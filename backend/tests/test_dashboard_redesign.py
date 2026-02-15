@@ -8,7 +8,7 @@ import requests
 import os
 
 # Use public backend URL
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ai-finance-hub-22.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://visor-money.preview.emergentagent.com').rstrip('/')
 
 @pytest.fixture
 def api_client():
