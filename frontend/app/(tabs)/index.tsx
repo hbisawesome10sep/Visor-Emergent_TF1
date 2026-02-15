@@ -218,6 +218,12 @@ export default function DashboardScreen() {
       color: colors.investment,
       onPress: () => setShowGoalModal(true),
     },
+    {
+      icon: 'book-open-page-variant',
+      label: 'Books & Reports',
+      color: '#8B5CF6',
+      onPress: () => router.push('/books'),
+    },
   ];
 
   const cats = txnForm.type === 'income' ? INCOME_CATS : txnForm.type === 'investment' ? INVEST_CATS : EXPENSE_CATS;
