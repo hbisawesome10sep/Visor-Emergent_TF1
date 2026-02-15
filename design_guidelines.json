@@ -1,0 +1,178 @@
+{
+  "identity": {
+    "name": "Visor",
+    "persona": "E1 - The Anti-AI Designer",
+    "mission": "To bring clarity, trust, and intelligence to personal finance through a glass-inspired, high-fidelity interface.",
+    "core_values": ["Transparent (Glass)", "Secure (Vault)", "Intelligent (AI)", "Prosperous (Emerald)"],
+    "voice": "Professional, insightful, encouraging, and precise."
+  },
+  "technical_constraints": {
+    "framework": "React Native Expo",
+    "router": "Expo Router",
+    "language": "TypeScript (.tsx)",
+    "styling": "StyleSheet.create()",
+    "icons": "@expo/vector-icons",
+    "fonts": "System Font for UI, SpaceMono for Data/Numbers",
+    "theme_support": "Light & Dark (System Default + Toggle)"
+  },
+  "design_system": {
+    "colors": {
+      "light": {
+        "background": "#F8FAFC",
+        "surface": "#FFFFFF",
+        "primary": "#059669",
+        "secondary": "#4338CA",
+        "text_primary": "#0F172A",
+        "text_secondary": "#64748B",
+        "border": "#E2E8F0",
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "glass_bg": "rgba(255, 255, 255, 0.7)",
+        "glass_border": "rgba(255, 255, 255, 0.5)"
+      },
+      "dark": {
+        "background": "#0F172A",
+        "surface": "#1E293B",
+        "primary": "#10B981",
+        "secondary": "#6366F1",
+        "text_primary": "#F1F5F9",
+        "text_secondary": "#94A3B8",
+        "border": "#334155",
+        "success": "#34D399",
+        "warning": "#FBBF24",
+        "error": "#F87171",
+        "glass_bg": "rgba(30, 41, 59, 0.7)",
+        "glass_border": "rgba(255, 255, 255, 0.1)"
+      }
+    },
+    "typography": {
+      "headings": {
+        "fontFamily": "System",
+        "fontWeight": "700",
+        "letterSpacing": -0.5
+      },
+      "body": {
+        "fontFamily": "System",
+        "fontWeight": "400",
+        "letterSpacing": 0
+      },
+      "data": {
+        "fontFamily": "SpaceMono",
+        "fontWeight": "400",
+        "letterSpacing": -0.5
+      }
+    },
+    "spacing": {
+      "xs": 4,
+      "s": 8,
+      "m": 16,
+      "l": 24,
+      "xl": 32,
+      "xxl": 48
+    },
+    "borderRadius": {
+      "s": 8,
+      "m": 16,
+      "l": 24,
+      "xl": 32,
+      "pill": 9999
+    },
+    "shadows": {
+      "light": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 4 },
+        "shadowOpacity": 0.1,
+        "shadowRadius": 12,
+        "elevation": 5
+      },
+      "dark": {
+        "shadowColor": "#000",
+        "shadowOffset": { "width": 0, "height": 4 },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 12,
+        "elevation": 8
+      }
+    }
+  },
+  "component_guidelines": {
+    "GlassCard": {
+      "description": "The core container. Must look like frosted glass.",
+      "implementation": "Use a View with semi-transparent background and blur if available, or just semi-transparent bg. Add a 1px border with low opacity.",
+      "style": {
+        "borderRadius": 24,
+        "overflow": "hidden",
+        "borderWidth": 1,
+        "padding": 20
+      }
+    },
+    "PrimaryButton": {
+      "description": "Pill-shaped, high visibility.",
+      "style": {
+        "height": 56,
+        "borderRadius": 999,
+        "justifyContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "primary"
+      }
+    },
+    "MoneyText": {
+      "description": "Displays currency. Uses SpaceMono font.",
+      "format": "₹ xx,xx,xxx.xx"
+    }
+  },
+  "screens": {
+    "Auth": {
+      "layout": "Clean, centered, trust-focused.",
+      "elements": ["Logo", "Welcome Text", "Input Fields (Phone/Email)", "Social Auth (optional)", "Legal Text"],
+      "image_url": "https://images.unsplash.com/photo-1632377658890-7a0188612905?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "image_usage": "Background or Hero Image (faded/blurred)"
+    },
+    "Dashboard": {
+      "layout": "Bento Grid (Scrollable).",
+      "sections": [
+        "Header (Greeting + Net Worth)",
+        "Wealth Card (Total Balance, Trend)",
+        "Quick Actions (Add Transaction, Scan)",
+        "Recent Transactions List",
+        "Financial Health Score (Circle Chart)"
+      ],
+      "image_url": "https://images.unsplash.com/photo-1770520216765-40fdf4f65b30?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "image_usage": "Subtle background pattern for the Wealth Card"
+    },
+    "AI_Insights": {
+      "layout": "Chat Interface + Insight Cards.",
+      "style": "More 'futuristic' look. Darker background even in light mode.",
+      "elements": ["Chat Bubble List", "Input Area", "Insight Visualization"],
+      "image_url": "https://images.unsplash.com/photo-1614852207091-9d38a326d2ba?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "image_usage": "Header background or empty state illustration"
+    }
+  },
+  "assets": {
+    "images": {
+      "auth_hero": "https://images.unsplash.com/photo-1632377658890-7a0188612905?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "dashboard_bg": "https://images.unsplash.com/photo-1770520216765-40fdf4f65b30?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "ai_bg": "https://images.unsplash.com/photo-1614852207091-9d38a326d2ba?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "abstract_teal": "https://images.unsplash.com/photo-1763448535001-2cdbfd543a5b?crop=entropy&cs=srgb&fm=jpg&q=85"
+    },
+    "icons": {
+      "home": "home-variant",
+      "transactions": "swap-horizontal",
+      "ai": "robot",
+      "goals": "target",
+      "settings": "cog",
+      "income": "arrow-down-circle",
+      "expense": "arrow-up-circle",
+      "investment": "chart-line"
+    }
+  },
+  "universal_guidelines": [
+    "Use StyleSheet.create() for all styles. No inline styles unless for dynamic values.",
+    "Ensure 60fps animations using Reanimated or LayoutAnimation.",
+    "Respect Safe Area View boundaries.",
+    "All inputs must have `keyboardType` configured correctly (number-pad for amounts).",
+    "Use `TouchableOpacity` or `Pressable` for all interactive elements with active opacity feedback.",
+    "Implement 'Gap' using margins or the gap property in flex containers.",
+    "Data-TestID: All interactive elements must have a testID prop."
+  ]
+}
