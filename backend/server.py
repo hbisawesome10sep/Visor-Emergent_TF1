@@ -117,6 +117,59 @@ class ChatMessage(BaseModel):
     created_at: str
 
 # ══════════════════════════════════════
+#  BOOKKEEPING MODELS
+# ══════════════════════════════════════
+
+class FixedAssetCreate(BaseModel):
+    name: str
+    category: str  # Property, Vehicle, Electronics, Furniture, Other
+    purchase_date: str
+    purchase_value: float
+    current_value: float
+    depreciation_rate: float = 10.0  # Annual depreciation %
+    notes: Optional[str] = None
+
+class FixedAssetUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    purchase_date: Optional[str] = None
+    purchase_value: Optional[float] = None
+    current_value: Optional[float] = None
+    depreciation_rate: Optional[float] = None
+    notes: Optional[str] = None
+
+class FixedAssetResponse(BaseModel):
+    id: str
+    user_id: str
+    name: str
+    category: str
+    purchase_date: str
+    purchase_value: float
+    current_value: float
+    depreciation_rate: float
+    accumulated_depreciation: float
+    notes: Optional[str]
+    created_at: str
+
+class AccountCreate(BaseModel):
+    name: str
+    account_type: str  # Assets, Liabilities, Income, Expenses
+    account_group: str  # Sub-group like "Cash & Bank", "Investments", etc.
+    opening_balance: float = 0
+    notes: Optional[str] = None
+
+class AccountResponse(BaseModel):
+    id: str
+    user_id: str
+    name: str
+    account_type: str
+    account_group: str
+    opening_balance: float
+    current_balance: float
+    notes: Optional[str]
+    created_at: str
+
+# ══════════════════════════════════════
 #  AUTH HELPERS
 # ══════════════════════════════════════
 
