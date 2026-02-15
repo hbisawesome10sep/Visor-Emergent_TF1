@@ -344,16 +344,45 @@ async def get_dashboard_stats(user=Depends(get_current_user)):
     total_goal_current = sum(g["current_amount"] for g in goals) if goals else 0
     goal_progress = (total_goal_current / total_goal_target * 100) if total_goal_target > 0 else 0
     
+    # Savings calculation
+    savings = total_income - total_expenses - total_investments
+    savings_rate = (savings / total_income * 100) if total_income > 0 else 0
+    expense_ratio = (total_expenses / total_income * 100) if total_income > 0 else 0
+    investment_ratio = (total_investments / total_income * 100) if total_income > 0 else 0
+
+    # Monthly savings
+    monthly_savings = monthly_income - monthly_expenses - monthly_investments
+
+    # Budget tracking per category (as % of income)
+    budget_items = []
+    for cat, amount in sorted(category_breakdown.items(), key=lambda x: -x[1]):
+        pct = (amount / total_income * 100) if total_income > 0 else 0
+        budget_items.append({"category": cat, "amount": amount, "percentage": round(pct, 1)})
+
+    # Investment breakdown
+    invest_breakdown = {}
+    for t in txns:
+        if t["type"] == "investment":
+            cat = t["category"]
+            invest_breakdown[cat] = invest_breakdown.get(cat, 0) + t["amount"]
+
     return {
         "total_income": total_income,
         "total_expenses": total_expenses,
         "total_investments": total_investments,
         "net_balance": net_balance,
+        "savings": savings,
+        "savings_rate": round(savings_rate, 1),
+        "expense_ratio": round(expense_ratio, 1),
+        "investment_ratio": round(investment_ratio, 1),
         "category_breakdown": category_breakdown,
+        "budget_items": budget_items,
+        "invest_breakdown": invest_breakdown,
         "recent_transactions": recent,
         "monthly_income": monthly_income,
         "monthly_expenses": monthly_expenses,
         "monthly_investments": monthly_investments,
+        "monthly_savings": monthly_savings,
         "goal_count": len(goals),
         "goal_progress": round(goal_progress, 1),
         "transaction_count": len(txns),
