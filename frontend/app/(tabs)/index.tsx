@@ -2,28 +2,18 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator,
   TouchableOpacity, Dimensions, Modal, TextInput, Alert,
-  KeyboardAvoidingView, Platform, StatusBar,
+  KeyboardAvoidingView, Platform, StatusBar, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  withSpring,
-  FadeIn,
-  SlideInUp,
-} from 'react-native-reanimated';
 
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { apiRequest } from '../../src/utils/api';
 import {
-  formatINR,
   formatINRShort,
   getGreeting,
   getCurrentMonthYear,
@@ -37,7 +27,6 @@ import TrendChart from '../../src/components/TrendChart';
 import FAB from '../../src/components/FAB';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = (SCREEN_WIDTH - 48) / 3;
 
 const EXPENSE_CATS = ['Rent', 'Groceries', 'Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'EMI', 'Other'];
 const INCOME_CATS = ['Salary', 'Freelance', 'Bonus', 'Interest', 'Dividend', 'Other'];
@@ -79,7 +68,7 @@ type Goal = {
 
 export default function DashboardScreen() {
   const { user, token } = useAuth();
-  const { colors, isDark, themeMode, setThemeMode } = useTheme();
+  const { colors, isDark, setThemeMode } = useTheme();
   const router = useRouter();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -93,9 +82,6 @@ export default function DashboardScreen() {
   const [goalForm, setGoalForm] = useState({ title: '', target_amount: '', category: 'Safety' });
   const [saving, setSaving] = useState(false);
 
-  // Animation values
-  const headerOpacity = useSharedValue(0);
-
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
@@ -105,7 +91,6 @@ export default function DashboardScreen() {
       ]);
       setStats(s);
       setGoals(g);
-      headerOpacity.value = withTiming(1, { duration: 500 });
     } catch (e) {
       console.error(e);
     } finally {
@@ -202,7 +187,7 @@ export default function DashboardScreen() {
     color: getCategoryColor(category, isDark),
   }));
 
-  // Prepare trend data (mock monthly data from recent transactions)
+  // Prepare trend data
   const trendData = [
     { label: 'Jan', income: stats?.monthly_income || 0, expenses: stats?.monthly_expenses || 0 },
     { label: 'Feb', income: (stats?.monthly_income || 0) * 0.9, expenses: (stats?.monthly_expenses || 0) * 1.1 },
@@ -238,16 +223,12 @@ export default function DashboardScreen() {
   const cats = txnForm.type === 'income' ? INCOME_CATS : txnForm.type === 'investment' ? INVEST_CATS : EXPENSE_CATS;
   const frequencies: FrequencyOption[] = ['Quarter', 'Month', 'Year'];
 
-  const animatedHeaderStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-  }));
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Sticky Glass Header */}
-      <Animated.View style={[styles.stickyHeader, animatedHeaderStyle]}>
+      <View style={styles.stickyHeader}>
         <BlurView
           intensity={isDark ? 50 : 70}
           tint={isDark ? 'dark' : 'light'}
@@ -327,7 +308,7 @@ export default function DashboardScreen() {
             </View>
           </SafeAreaView>
         </BlurView>
-      </Animated.View>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
@@ -338,7 +319,7 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ═══ OVERVIEW CARDS (Liquid Fill) ═══ */}
-        <Animated.View entering={SlideInUp.delay(100).duration(500)} style={styles.section}>
+        <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Overview</Text>
           <ScrollView
             horizontal
@@ -352,7 +333,7 @@ export default function DashboardScreen() {
               fillPercent={100 - expensePercent}
               gradient={['#10B981', '#059669']}
               icon="arrow-down-circle"
-              onPress={() => router.push('/(tabs)/transactions?type=income')}
+              onPress={() => router.push('/(tabs)/transactions')}
               colors={colors}
               isDark={isDark}
             />
@@ -363,7 +344,7 @@ export default function DashboardScreen() {
               fillPercent={expensePercent}
               gradient={['#F43F5E', '#E11D48']}
               icon="arrow-up-circle"
-              onPress={() => router.push('/(tabs)/transactions?type=expense')}
+              onPress={() => router.push('/(tabs)/transactions')}
               colors={colors}
               isDark={isDark}
             />
@@ -377,12 +358,11 @@ export default function DashboardScreen() {
               isDark={isDark}
             />
           </ScrollView>
-        </Animated.View>
+        </View>
 
         {/* ═══ EXPENSE BREAKDOWN (Pie Chart) ═══ */}
         {pieData.length > 0 && (
-          <Animated.View
-            entering={FadeIn.delay(200).duration(500)}
+          <View
             style={[
               styles.glassCard,
               {
@@ -411,12 +391,11 @@ export default function DashboardScreen() {
                 ))}
               </View>
             </View>
-          </Animated.View>
+          </View>
         )}
 
         {/* ═══ TREND ANALYSIS ═══ */}
-        <Animated.View
-          entering={FadeIn.delay(300).duration(500)}
+        <View
           style={[
             styles.glassCard,
             {
@@ -427,12 +406,11 @@ export default function DashboardScreen() {
         >
           <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Trend Analysis</Text>
           <TrendChart data={trendData} colors={colors} isDark={isDark} />
-        </Animated.View>
+        </View>
 
         {/* ═══ RECENT TRANSACTIONS ═══ */}
         {stats && stats.recent_transactions.length > 0 && (
-          <Animated.View
-            entering={FadeIn.delay(400).duration(500)}
+          <View
             style={[
               styles.glassCard,
               {
@@ -517,12 +495,11 @@ export default function DashboardScreen() {
                 </Text>
               </View>
             ))}
-          </Animated.View>
+          </View>
         )}
 
         {/* ═══ FINANCIAL GOALS ═══ */}
-        <Animated.View
-          entering={FadeIn.delay(500).duration(500)}
+        <View
           style={[
             styles.glassCard,
             {
@@ -622,7 +599,7 @@ export default function DashboardScreen() {
               );
             })
           )}
-        </Animated.View>
+        </View>
 
         <View style={{ height: 120 }} />
       </ScrollView>
