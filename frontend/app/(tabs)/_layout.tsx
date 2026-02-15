@@ -48,18 +48,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="insights"
         options={{
-          title: 'AI Advisor',
+          title: 'Insights',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="robot" size={size} color={color} />
+            <MaterialCommunityIcons name="chart-arc" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="goals"
+        name="investments"
         options={{
-          title: 'Goals',
+          title: 'Invest',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="target" size={size} color={color} />
+            <MaterialCommunityIcons name="chart-line" size={size} color={color} />
           ),
         }}
       />
