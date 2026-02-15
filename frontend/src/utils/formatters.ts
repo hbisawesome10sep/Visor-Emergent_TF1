@@ -22,11 +22,27 @@ export const formatINRShort = (amount: number): string => {
   return `${sign}₹${abs.toFixed(0)}`;
 };
 
+// Get IST-based greeting
 export const getGreeting = (): string => {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 17) return 'Good Afternoon';
-  return 'Good Evening';
+  // Get current time in IST (UTC+5:30)
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const istTime = new Date(utc + istOffset);
+  const hour = istTime.getHours();
+  
+  if (hour >= 5 && hour < 12) return 'Good Morning';
+  if (hour >= 12 && hour < 17) return 'Good Afternoon';
+  if (hour >= 17 && hour < 21) return 'Good Evening';
+  return 'Good Night';
+};
+
+// Get current month and year
+export const getCurrentMonthYear = (): string => {
+  const months = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  const now = new Date();
+  return `${months[now.getMonth()]} ${now.getFullYear()}`;
 };
 
 export const getCategoryIcon = (category: string): string => {
@@ -34,6 +50,8 @@ export const getCategoryIcon = (category: string): string => {
     'Salary': 'briefcase',
     'Freelance': 'laptop',
     'Bonus': 'gift',
+    'Interest': 'percent',
+    'Dividend': 'cash-multiple',
     'Rent': 'home',
     'Groceries': 'cart',
     'Food': 'food',
@@ -42,6 +60,7 @@ export const getCategoryIcon = (category: string): string => {
     'Utilities': 'flash',
     'Entertainment': 'play-circle',
     'Health': 'heart-pulse',
+    'Education': 'school',
     'EMI': 'bank',
     'SIP': 'chart-line',
     'PPF': 'shield-check',
@@ -49,10 +68,12 @@ export const getCategoryIcon = (category: string): string => {
     'Mutual Funds': 'finance',
     'FD': 'lock',
     'Gold': 'diamond-stone',
+    'NPS': 'account-cash',
     'Safety': 'shield',
     'Travel': 'airplane',
     'Purchase': 'tag',
     'Property': 'home-city',
+    'Other': 'dots-horizontal',
   };
   return icons[category] || 'circle';
 };
@@ -65,18 +86,30 @@ export const getCategoryColor = (category: string, isDark: boolean): string => {
     'Transport': '#3B82F6',
     'Shopping': '#EC4899',
     'Utilities': '#8B5CF6',
-    'Entertainment': '#06B6D4',
+    'Entertainment': '#FBBF24',
     'Health': '#10B981',
+    'Education': '#14B8A6',
     'EMI': '#DC2626',
     'Salary': '#059669',
     'Freelance': '#0EA5E9',
     'Bonus': '#D97706',
+    'Interest': '#06B6D4',
+    'Dividend': '#84CC16',
     'SIP': '#6366F1',
     'PPF': '#059669',
     'Stocks': '#8B5CF6',
     'Mutual Funds': '#3B82F6',
     'FD': '#0891B2',
     'Gold': '#EAB308',
+    'NPS': '#22C55E',
+    'Other': isDark ? '#94A3B8' : '#64748B',
   };
   return colors[category] || (isDark ? '#94A3B8' : '#64748B');
+};
+
+// Format date as "Feb 10"
+export const formatShortDate = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[date.getMonth()]} ${date.getDate()}`;
 };
