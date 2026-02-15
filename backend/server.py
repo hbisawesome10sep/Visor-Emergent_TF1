@@ -61,6 +61,11 @@ class TransactionCreate(BaseModel):
     category: str
     description: str
     date: str
+    is_recurring: bool = False
+    recurring_frequency: Optional[str] = None
+    is_split: bool = False
+    split_count: int = 1
+    notes: Optional[str] = None
 
 class TransactionResponse(BaseModel):
     id: str
@@ -70,6 +75,11 @@ class TransactionResponse(BaseModel):
     category: str
     description: str
     date: str
+    is_recurring: bool = False
+    recurring_frequency: Optional[str] = None
+    is_split: bool = False
+    split_count: int = 1
+    notes: Optional[str] = None
     created_at: str
 
 class GoalCreate(BaseModel):
