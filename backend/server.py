@@ -620,6 +620,505 @@ async def clear_chat_history(user=Depends(get_current_user)):
     return {"message": "Chat history cleared"}
 
 # ══════════════════════════════════════
+#  FIXED ASSETS ENDPOINTS
+# ══════════════════════════════════════
+
+@api_router.get("/assets", response_model=List[FixedAssetResponse])
+async def get_fixed_assets(user=Depends(get_current_user)):
+    assets = await db.fixed_assets.find({"user_id": user["id"]}, {"_id": 0}).to_list(100)
+    # Calculate accumulated depreciation for each asset
+    result = []
+    for asset in assets:
+        purchase_date = datetime.fromisoformat(asset["purchase_date"].replace("Z", "+00:00")) if "T" in asset["purchase_date"] else datetime.strptime(asset["purchase_date"], "%Y-%m-%d")
+        years_held = (datetime.now(timezone.utc) - purchase_date.replace(tzinfo=timezone.utc)).days / 365.25
+        acc_dep = min(asset["purchase_value"], asset["purchase_value"] * (asset.get("depreciation_rate", 10) / 100) * years_held)
+        asset["accumulated_depreciation"] = round(acc_dep, 2)
+        result.append(FixedAssetResponse(**asset))
+    return result
+
+@api_router.post("/assets", response_model=FixedAssetResponse)
+async def create_fixed_asset(asset: FixedAssetCreate, user=Depends(get_current_user)):
+    asset_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    asset_doc = {
+        "id": asset_id,
+        "user_id": user["id"],
+        "name": asset.name,
+        "category": asset.category,
+        "purchase_date": asset.purchase_date,
+        "purchase_value": asset.purchase_value,
+        "current_value": asset.current_value,
+        "depreciation_rate": asset.depreciation_rate,
+        "notes": asset.notes,
+        "created_at": now,
+    }
+    await db.fixed_assets.insert_one(asset_doc)
+    asset_doc["accumulated_depreciation"] = 0
+    return FixedAssetResponse(**asset_doc)
+
+@api_router.put("/assets/{asset_id}", response_model=FixedAssetResponse)
+async def update_fixed_asset(asset_id: str, asset_update: FixedAssetUpdate, user=Depends(get_current_user)):
+    existing = await db.fixed_assets.find_one({"id": asset_id, "user_id": user["id"]}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    update_data = {k: v for k, v in asset_update.dict().items() if v is not None}
+    if update_data:
+        await db.fixed_assets.update_one({"id": asset_id}, {"$set": update_data})
+    
+    updated = await db.fixed_assets.find_one({"id": asset_id}, {"_id": 0})
+    purchase_date = datetime.fromisoformat(updated["purchase_date"].replace("Z", "+00:00")) if "T" in updated["purchase_date"] else datetime.strptime(updated["purchase_date"], "%Y-%m-%d")
+    years_held = (datetime.now(timezone.utc) - purchase_date.replace(tzinfo=timezone.utc)).days / 365.25
+    acc_dep = min(updated["purchase_value"], updated["purchase_value"] * (updated.get("depreciation_rate", 10) / 100) * years_held)
+    updated["accumulated_depreciation"] = round(acc_dep, 2)
+    return FixedAssetResponse(**updated)
+
+@api_router.delete("/assets/{asset_id}")
+async def delete_fixed_asset(asset_id: str, user=Depends(get_current_user)):
+    result = await db.fixed_assets.delete_one({"id": asset_id, "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return {"message": "Asset deleted"}
+
+# ══════════════════════════════════════
+#  BOOKKEEPING / LEDGER ENDPOINTS
+# ══════════════════════════════════════
+
+def get_indian_fy_dates(fy_year: int = None):
+    """Get Indian Financial Year dates (April 1 to March 31)"""
+    now = datetime.now(timezone.utc)
+    if fy_year is None:
+        # Current FY: if we're in Jan-Mar, FY started previous year
+        if now.month < 4:
+            fy_year = now.year - 1
+        else:
+            fy_year = now.year
+    
+    fy_start = datetime(fy_year, 4, 1, tzinfo=timezone.utc)
+    fy_end = datetime(fy_year + 1, 3, 31, 23, 59, 59, tzinfo=timezone.utc)
+    return fy_start, fy_end
+
+@api_router.get("/books/ledger")
+async def get_ledger(
+    account_group: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    user=Depends(get_current_user)
+):
+    """Get general ledger with double-entry bookkeeping entries"""
+    user_id = user["id"]
+    
+    # Default to current FY if no dates provided
+    if not start_date or not end_date:
+        fy_start, fy_end = get_indian_fy_dates()
+        start_date = start_date or fy_start.strftime("%Y-%m-%d")
+        end_date = end_date or fy_end.strftime("%Y-%m-%d")
+    
+    # Fetch all transactions in date range
+    query = {
+        "user_id": user_id,
+        "date": {"$gte": start_date, "$lte": end_date}
+    }
+    txns = await db.transactions.find(query, {"_id": 0}).sort("date", 1).to_list(2000)
+    
+    # Map transaction types/categories to account groups
+    account_mapping = {
+        # Assets
+        "Salary": "Cash & Bank Balances",
+        "Freelance": "Cash & Bank Balances",
+        "Bonus": "Cash & Bank Balances",
+        "Interest": "Cash & Bank Balances",
+        "Dividend": "Cash & Bank Balances",
+        # Investments
+        "SIP": "Investments",
+        "PPF": "Investments",
+        "Stocks": "Investments",
+        "Mutual Funds": "Investments",
+        "FD": "Investments",
+        "Gold": "Investments",
+        "NPS": "Investments",
+        # Expenses
+        "Rent": "Rent & Housing",
+        "Groceries": "Food & Dining",
+        "Food": "Food & Dining",
+        "Transport": "Transport & Fuel",
+        "Shopping": "Shopping & Personal",
+        "Utilities": "Utilities & Bills",
+        "Entertainment": "Entertainment & Leisure",
+        "Health": "Health & Medical",
+        "EMI": "Financial Obligations",
+        "Education": "Education & Learning",
+        "Insurance": "Insurance Premiums",
+    }
+    
+    # Build ledger entries with double-entry
+    ledger_entries = []
+    running_balances = {}
+    
+    for txn in txns:
+        cat = txn.get("category", "Other")
+        mapped_group = account_mapping.get(cat, "Other")
+        
+        if account_group and mapped_group != account_group:
+            continue
+        
+        if txn["type"] == "income":
+            # Debit: Cash & Bank, Credit: Income account
+            ledger_entries.append({
+                "date": txn["date"],
+                "particulars": txn["description"],
+                "voucher_ref": f"TXN-{txn['id'][:8].upper()}",
+                "account": "Cash & Bank Balances",
+                "debit": txn["amount"],
+                "credit": 0,
+                "transaction_id": txn["id"],
+            })
+            ledger_entries.append({
+                "date": txn["date"],
+                "particulars": txn["description"],
+                "voucher_ref": f"TXN-{txn['id'][:8].upper()}",
+                "account": f"{cat} Income",
+                "debit": 0,
+                "credit": txn["amount"],
+                "transaction_id": txn["id"],
+            })
+        elif txn["type"] == "expense":
+            # Debit: Expense account, Credit: Cash & Bank
+            ledger_entries.append({
+                "date": txn["date"],
+                "particulars": txn["description"],
+                "voucher_ref": f"TXN-{txn['id'][:8].upper()}",
+                "account": mapped_group,
+                "debit": txn["amount"],
+                "credit": 0,
+                "transaction_id": txn["id"],
+            })
+            ledger_entries.append({
+                "date": txn["date"],
+                "particulars": txn["description"],
+                "voucher_ref": f"TXN-{txn['id'][:8].upper()}",
+                "account": "Cash & Bank Balances",
+                "debit": 0,
+                "credit": txn["amount"],
+                "transaction_id": txn["id"],
+            })
+        elif txn["type"] == "investment":
+            # Debit: Investment account, Credit: Cash & Bank
+            ledger_entries.append({
+                "date": txn["date"],
+                "particulars": txn["description"],
+                "voucher_ref": f"TXN-{txn['id'][:8].upper()}",
+                "account": f"{cat} Investment",
+                "debit": txn["amount"],
+                "credit": 0,
+                "transaction_id": txn["id"],
+            })
+            ledger_entries.append({
+                "date": txn["date"],
+                "particulars": txn["description"],
+                "voucher_ref": f"TXN-{txn['id'][:8].upper()}",
+                "account": "Cash & Bank Balances",
+                "debit": 0,
+                "credit": txn["amount"],
+                "transaction_id": txn["id"],
+            })
+    
+    # Group by account and calculate running balances
+    accounts = {}
+    for entry in ledger_entries:
+        acc = entry["account"]
+        if acc not in accounts:
+            accounts[acc] = {"entries": [], "total_debit": 0, "total_credit": 0}
+        accounts[acc]["entries"].append(entry)
+        accounts[acc]["total_debit"] += entry["debit"]
+        accounts[acc]["total_credit"] += entry["credit"]
+    
+    # Calculate running balance for each account
+    for acc, data in accounts.items():
+        running = 0
+        for entry in data["entries"]:
+            running += entry["debit"] - entry["credit"]
+            entry["balance"] = running
+        data["closing_balance"] = running
+    
+    return {
+        "fy_start": start_date,
+        "fy_end": end_date,
+        "accounts": accounts,
+        "entry_count": len(ledger_entries),
+    }
+
+@api_router.get("/books/pnl")
+async def get_profit_loss(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    user=Depends(get_current_user)
+):
+    """Get Profit & Loss (Income & Expenditure) Statement"""
+    user_id = user["id"]
+    
+    # Default to current FY if no dates provided
+    if not start_date or not end_date:
+        fy_start, fy_end = get_indian_fy_dates()
+        start_date = start_date or fy_start.strftime("%Y-%m-%d")
+        end_date = end_date or fy_end.strftime("%Y-%m-%d")
+    
+    query = {
+        "user_id": user_id,
+        "date": {"$gte": start_date, "$lte": end_date}
+    }
+    txns = await db.transactions.find(query, {"_id": 0}).to_list(2000)
+    
+    # Income categories mapping
+    income_groups = {
+        "A": {"name": "Revenue from Employment", "categories": ["Salary", "Bonus"], "items": {}},
+        "B": {"name": "Income from Profession/Freelance", "categories": ["Freelance", "Consulting"], "items": {}},
+        "C": {"name": "Income from Investments", "categories": ["Interest", "Dividend", "Capital Gains"], "items": {}},
+        "D": {"name": "Other Income", "categories": ["Rental", "Other"], "items": {}},
+    }
+    
+    # Expense categories mapping
+    expense_groups = {
+        "E": {"name": "Living & Household Expenses", "categories": ["Food", "Groceries", "Utilities", "Rent", "Transport", "Shopping", "Entertainment", "Health"], "items": {}},
+        "F": {"name": "Financial Obligations", "categories": ["EMI", "Insurance"], "items": {}},
+        "G": {"name": "Taxes & Statutory Deductions", "categories": ["Tax", "TDS"], "items": {}},
+        "H": {"name": "Education & Development", "categories": ["Education"], "items": {}},
+        "I": {"name": "Other Expenses", "categories": ["Bank Charges", "Depreciation", "Other"], "items": {}},
+    }
+    
+    # Process transactions
+    total_income = 0
+    total_expenses = 0
+    total_investments = 0
+    
+    for txn in txns:
+        cat = txn.get("category", "Other")
+        amount = txn["amount"]
+        
+        if txn["type"] == "income":
+            total_income += amount
+            # Find appropriate income group
+            placed = False
+            for group_id, group in income_groups.items():
+                if cat in group["categories"] or any(c.lower() in cat.lower() for c in group["categories"]):
+                    if cat not in group["items"]:
+                        group["items"][cat] = 0
+                    group["items"][cat] += amount
+                    placed = True
+                    break
+            if not placed:
+                income_groups["D"]["items"][cat] = income_groups["D"]["items"].get(cat, 0) + amount
+                
+        elif txn["type"] == "expense":
+            total_expenses += amount
+            # Find appropriate expense group
+            placed = False
+            for group_id, group in expense_groups.items():
+                if cat in group["categories"] or any(c.lower() in cat.lower() for c in group["categories"]):
+                    if cat not in group["items"]:
+                        group["items"][cat] = 0
+                    group["items"][cat] += amount
+                    placed = True
+                    break
+            if not placed:
+                expense_groups["I"]["items"][cat] = expense_groups["I"]["items"].get(cat, 0) + amount
+                
+        elif txn["type"] == "investment":
+            total_investments += amount
+    
+    # Calculate subtotals
+    income_sections = []
+    for group_id, group in income_groups.items():
+        subtotal = sum(group["items"].values())
+        if subtotal > 0 or group["items"]:
+            income_sections.append({
+                "id": group_id,
+                "name": group["name"],
+                "items": [{"category": k, "amount": v} for k, v in sorted(group["items"].items(), key=lambda x: -x[1])],
+                "subtotal": subtotal,
+            })
+    
+    expense_sections = []
+    for group_id, group in expense_groups.items():
+        subtotal = sum(group["items"].values())
+        if subtotal > 0 or group["items"]:
+            expense_sections.append({
+                "id": group_id,
+                "name": group["name"],
+                "items": [{"category": k, "amount": v} for k, v in sorted(group["items"].items(), key=lambda x: -x[1])],
+                "subtotal": subtotal,
+            })
+    
+    surplus = total_income - total_expenses
+    
+    return {
+        "period_start": start_date,
+        "period_end": end_date,
+        "income_sections": income_sections,
+        "expense_sections": expense_sections,
+        "total_income": total_income,
+        "total_expenses": total_expenses,
+        "total_investments": total_investments,
+        "surplus_deficit": surplus,
+        "allocation": {
+            "to_savings": max(0, surplus * 0.4),
+            "to_investments": total_investments,
+            "retained": max(0, surplus - total_investments - (surplus * 0.4)),
+        }
+    }
+
+@api_router.get("/books/balance-sheet")
+async def get_balance_sheet(
+    as_of_date: Optional[str] = None,
+    user=Depends(get_current_user)
+):
+    """Get Balance Sheet as of a specific date"""
+    user_id = user["id"]
+    
+    if not as_of_date:
+        as_of_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Get all transactions up to the date
+    query = {"user_id": user_id, "date": {"$lte": as_of_date}}
+    txns = await db.transactions.find(query, {"_id": 0}).to_list(5000)
+    
+    # Get fixed assets
+    assets = await db.fixed_assets.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    
+    # Get goals (as receivables/planned savings)
+    goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    
+    # Calculate totals
+    total_income = sum(t["amount"] for t in txns if t["type"] == "income")
+    total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
+    total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+    
+    # Investment breakdown
+    invest_by_cat = {}
+    for t in txns:
+        if t["type"] == "investment":
+            cat = t.get("category", "Other")
+            invest_by_cat[cat] = invest_by_cat.get(cat, 0) + t["amount"]
+    
+    # Calculate fixed assets with depreciation
+    fixed_asset_items = []
+    total_fixed_assets = 0
+    total_depreciation = 0
+    for asset in assets:
+        purchase_date = datetime.fromisoformat(asset["purchase_date"].replace("Z", "+00:00")) if "T" in asset["purchase_date"] else datetime.strptime(asset["purchase_date"], "%Y-%m-%d")
+        years_held = (datetime.now(timezone.utc) - purchase_date.replace(tzinfo=timezone.utc)).days / 365.25
+        acc_dep = min(asset["purchase_value"], asset["purchase_value"] * (asset.get("depreciation_rate", 10) / 100) * years_held)
+        net_value = asset["purchase_value"] - acc_dep
+        fixed_asset_items.append({
+            "name": asset["name"],
+            "category": asset["category"],
+            "purchase_value": asset["purchase_value"],
+            "accumulated_depreciation": round(acc_dep, 2),
+            "net_value": round(net_value, 2),
+        })
+        total_fixed_assets += asset["purchase_value"]
+        total_depreciation += acc_dep
+    
+    # Build balance sheet structure
+    cash_balance = total_income - total_expenses - total_investments
+    
+    # Non-current assets
+    non_current_assets = {
+        "fixed_assets": {
+            "items": fixed_asset_items,
+            "gross_value": total_fixed_assets,
+            "depreciation": round(total_depreciation, 2),
+            "net_value": round(total_fixed_assets - total_depreciation, 2),
+        },
+        "long_term_investments": {
+            "items": [
+                {"name": "PPF", "amount": invest_by_cat.get("PPF", 0)},
+                {"name": "NPS", "amount": invest_by_cat.get("NPS", 0)},
+                {"name": "Long-term MF", "amount": invest_by_cat.get("Mutual Funds", 0) * 0.5},
+            ],
+            "total": invest_by_cat.get("PPF", 0) + invest_by_cat.get("NPS", 0) + invest_by_cat.get("Mutual Funds", 0) * 0.5,
+        },
+        "total": round(total_fixed_assets - total_depreciation + invest_by_cat.get("PPF", 0) + invest_by_cat.get("NPS", 0) + invest_by_cat.get("Mutual Funds", 0) * 0.5, 2),
+    }
+    
+    # Current assets
+    current_assets = {
+        "short_term_investments": {
+            "items": [
+                {"name": "Fixed Deposits", "amount": invest_by_cat.get("FD", 0)},
+                {"name": "Liquid MF", "amount": invest_by_cat.get("Mutual Funds", 0) * 0.5},
+                {"name": "Stocks", "amount": invest_by_cat.get("Stocks", 0)},
+                {"name": "Gold", "amount": invest_by_cat.get("Gold", 0)},
+                {"name": "SIP Accumulation", "amount": invest_by_cat.get("SIP", 0)},
+            ],
+            "total": invest_by_cat.get("FD", 0) + invest_by_cat.get("Mutual Funds", 0) * 0.5 + invest_by_cat.get("Stocks", 0) + invest_by_cat.get("Gold", 0) + invest_by_cat.get("SIP", 0),
+        },
+        "cash_bank": {
+            "items": [
+                {"name": "Bank Balances", "amount": max(0, cash_balance)},
+            ],
+            "total": max(0, cash_balance),
+        },
+        "receivables": {
+            "items": [],
+            "total": 0,
+        },
+        "total": round(invest_by_cat.get("FD", 0) + invest_by_cat.get("Mutual Funds", 0) * 0.5 + invest_by_cat.get("Stocks", 0) + invest_by_cat.get("Gold", 0) + invest_by_cat.get("SIP", 0) + max(0, cash_balance), 2),
+    }
+    
+    total_assets = non_current_assets["total"] + current_assets["total"]
+    
+    # Liabilities (placeholder - would need separate loan tracking)
+    non_current_liabilities = {
+        "long_term_borrowings": {
+            "items": [],
+            "total": 0,
+        },
+        "total": 0,
+    }
+    
+    current_liabilities = {
+        "short_term_borrowings": {
+            "items": [],
+            "total": 0,
+        },
+        "payables": {
+            "items": [],
+            "total": 0,
+        },
+        "total": 0,
+    }
+    
+    total_liabilities = non_current_liabilities["total"] + current_liabilities["total"]
+    
+    # Net Worth
+    net_worth = total_assets - total_liabilities
+    
+    # Check if balanced
+    is_balanced = abs(total_assets - (total_liabilities + net_worth)) < 0.01
+    
+    return {
+        "as_of_date": as_of_date,
+        "assets": {
+            "non_current": non_current_assets,
+            "current": current_assets,
+            "total": round(total_assets, 2),
+        },
+        "liabilities": {
+            "non_current": non_current_liabilities,
+            "current": current_liabilities,
+            "total": round(total_liabilities, 2),
+        },
+        "net_worth": {
+            "opening": 0,
+            "surplus_for_period": round(total_income - total_expenses, 2),
+            "closing": round(net_worth, 2),
+        },
+        "total_liabilities_and_net_worth": round(total_liabilities + net_worth, 2),
+        "is_balanced": is_balanced,
+    }
+
+# ══════════════════════════════════════
 #  DEMO DATA SEEDING
 # ══════════════════════════════════════
 
