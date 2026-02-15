@@ -236,6 +236,7 @@ async def get_profile(user=Depends(get_current_user)):
 async def get_transactions(
     type: Optional[str] = None,
     category: Optional[str] = None,
+    search: Optional[str] = None,
     user=Depends(get_current_user)
 ):
     query = {"user_id": user["id"]}
@@ -243,6 +244,12 @@ async def get_transactions(
         query["type"] = type
     if category:
         query["category"] = category
+    if search:
+        query["$or"] = [
+            {"description": {"$regex": search, "$options": "i"}},
+            {"category": {"$regex": search, "$options": "i"}},
+            {"notes": {"$regex": search, "$options": "i"}},
+        ]
     
     txns = await db.transactions.find(query, {"_id": 0}).sort("date", -1).to_list(500)
     return txns
@@ -259,6 +266,11 @@ async def create_transaction(txn: TransactionCreate, user=Depends(get_current_us
         "category": txn.category,
         "description": txn.description,
         "date": txn.date,
+        "is_recurring": txn.is_recurring,
+        "recurring_frequency": txn.recurring_frequency,
+        "is_split": txn.is_split,
+        "split_count": txn.split_count,
+        "notes": txn.notes,
         "created_at": now,
     }
     await db.transactions.insert_one(txn_doc)
