@@ -1,178 +1,152 @@
 {
   "identity": {
-    "name": "Visor",
-    "persona": "E1 - The Anti-AI Designer",
-    "mission": "To bring clarity, trust, and intelligence to personal finance through a glass-inspired, high-fidelity interface.",
-    "core_values": ["Transparent (Glass)", "Secure (Vault)", "Intelligent (AI)", "Prosperous (Emerald)"],
-    "voice": "Professional, insightful, encouraging, and precise."
+    "name": "Visor 2.0",
+    "aesthetic": "Cyber-Fintech Luxury",
+    "core_principles": [
+      "Void Black & Stark White: No muddy greys. Maximum contrast.",
+      "Neon Bloom: Interactive elements glow. Data pops.",
+      "Liquid Motion: Everything flows. Static is dead.",
+      "Precision Typography: Tight tracking, bold weights, mono-spaced numbers."
+    ]
   },
-  "technical_constraints": {
-    "framework": "React Native Expo",
-    "router": "Expo Router",
-    "language": "TypeScript (.tsx)",
-    "styling": "StyleSheet.create()",
-    "icons": "@expo/vector-icons",
-    "fonts": "System Font for UI, SpaceMono for Data/Numbers",
-    "theme_support": "Light & Dark (System Default + Toggle)"
+  "typography": {
+    "font_family": {
+      "headings": "Space Grotesk",
+      "body": "Outfit",
+      "code": "JetBrains Mono"
+    },
+    "installation_instructions": [
+      "npx expo install @expo-google-fonts/space-grotesk @expo-google-fonts/outfit @expo-google-fonts/jetbrains-mono",
+      "Load fonts in app/_layout.tsx using useFonts hook"
+    ],
+    "scale": {
+      "display": { "size": 32, "weight": "700", "tracking": -1, "lineHeight": 40 },
+      "h1": { "size": 24, "weight": "700", "tracking": -0.5, "lineHeight": 32 },
+      "h2": { "size": 20, "weight": "600", "tracking": -0.5, "lineHeight": 28 },
+      "body_lg": { "size": 16, "weight": "400", "tracking": 0, "lineHeight": 24 },
+      "body_sm": { "size": 14, "weight": "400", "tracking": 0, "lineHeight": 20 },
+      "caption": { "size": 12, "weight": "500", "tracking": 0.5, "lineHeight": 16, "transform": "uppercase" }
+    }
   },
-  "design_system": {
-    "colors": {
-      "light": {
-        "background": "#F8FAFC",
-        "surface": "#FFFFFF",
-        "primary": "#059669",
-        "secondary": "#4338CA",
-        "text_primary": "#0F172A",
-        "text_secondary": "#64748B",
-        "border": "#E2E8F0",
-        "success": "#10B981",
-        "warning": "#F59E0B",
-        "error": "#EF4444",
-        "glass_bg": "rgba(255, 255, 255, 0.7)",
-        "glass_border": "rgba(255, 255, 255, 0.5)"
+  "colors": {
+    "palette": {
+      "common": {
+        "black": "#000000",
+        "white": "#FFFFFF",
+        "transparent": "transparent"
       },
+      "neon": {
+        "green": "#39FF14",
+        "red": "#FF073A",
+        "orange": "#FF6B00",
+        "cyan": "#00FFD1",
+        "blue": "#00B4FF",
+        "purple": "#B026FF",
+        "yellow": "#FFE600"
+      }
+    },
+    "themes": {
       "dark": {
-        "background": "#0F172A",
-        "surface": "#1E293B",
-        "primary": "#10B981",
-        "secondary": "#6366F1",
-        "text_primary": "#F1F5F9",
-        "text_secondary": "#94A3B8",
-        "border": "#334155",
-        "success": "#34D399",
-        "warning": "#FBBF24",
-        "error": "#F87171",
-        "glass_bg": "rgba(30, 41, 59, 0.7)",
-        "glass_border": "rgba(255, 255, 255, 0.1)"
-      }
-    },
-    "typography": {
-      "headings": {
-        "fontFamily": "System",
-        "fontWeight": "700",
-        "letterSpacing": -0.5
+        "background": "#000000",
+        "surface": "#09090B",
+        "surfaceHighlight": "#18181B",
+        "textPrimary": "#FFFFFF",
+        "textSecondary": "#A1A1AA",
+        "border": "#27272A",
+        "primary": "#00FFD1",
+        "secondary": "#B026FF",
+        "success": "#39FF14",
+        "error": "#FF073A",
+        "warning": "#FFE600",
+        "info": "#00B4FF",
+        "glassBg": "rgba(9, 9, 11, 0.7)",
+        "glassBorder": "rgba(255, 255, 255, 0.1)",
+        "cardShadow": "#00FFD1"
       },
-      "body": {
-        "fontFamily": "System",
-        "fontWeight": "400",
-        "letterSpacing": 0
-      },
-      "data": {
-        "fontFamily": "SpaceMono",
-        "fontWeight": "400",
-        "letterSpacing": -0.5
-      }
-    },
-    "spacing": {
-      "xs": 4,
-      "s": 8,
-      "m": 16,
-      "l": 24,
-      "xl": 32,
-      "xxl": 48
-    },
-    "borderRadius": {
-      "s": 8,
-      "m": 16,
-      "l": 24,
-      "xl": 32,
-      "pill": 9999
-    },
-    "shadows": {
       "light": {
-        "shadowColor": "#000",
-        "shadowOffset": { "width": 0, "height": 4 },
-        "shadowOpacity": 0.1,
-        "shadowRadius": 12,
-        "elevation": 5
+        "background": "#FFFFFF",
+        "surface": "#FAFAFA",
+        "surfaceHighlight": "#F4F4F5",
+        "textPrimary": "#000000",
+        "textSecondary": "#52525B",
+        "border": "#E4E4E7",
+        "primary": "#009080",
+        "secondary": "#7C3AED",
+        "success": "#059669",
+        "error": "#E11D48",
+        "warning": "#D97706",
+        "info": "#0284C7",
+        "glassBg": "rgba(255, 255, 255, 0.8)",
+        "glassBorder": "rgba(0, 0, 0, 0.05)",
+        "cardShadow": "#000000"
+      }
+    }
+  },
+  "components": {
+    "LiquidCard": {
+      "wrapper": "rounded-3xl border border-white/10 overflow-hidden",
+      "style": {
+        "shadowColor": "neon.primary",
+        "shadowOffset": { "width": 0, "height": 8 },
+        "shadowOpacity": 0.4,
+        "shadowRadius": 16,
+        "elevation": 10
       },
-      "dark": {
-        "shadowColor": "#000",
-        "shadowOffset": { "width": 0, "height": 4 },
-        "shadowOpacity": 0.3,
-        "shadowRadius": 12,
-        "elevation": 8
+      "gradients": {
+        "income": ["#39FF14", "#00B4FF"],
+        "expense": ["#FF073A", "#FF6B00"],
+        "savings": ["#00FFD1", "#B026FF"]
       }
-    }
-  },
-  "component_guidelines": {
-    "GlassCard": {
-      "description": "The core container. Must look like frosted glass.",
-      "implementation": "Use a View with semi-transparent background and blur if available, or just semi-transparent bg. Add a 1px border with low opacity.",
+    },
+    "GlassHeader": {
       "style": {
-        "borderRadius": 24,
-        "overflow": "hidden",
-        "borderWidth": 1,
-        "padding": 20
+        "blurAmount": 30,
+        "borderColor": "rgba(255,255,255,0.1)",
+        "borderBottomWidth": 1
       }
     },
-    "PrimaryButton": {
-      "description": "Pill-shaped, high visibility.",
+    "TabBar": {
       "style": {
-        "height": 56,
-        "borderRadius": 999,
-        "justifyContent": "center",
-        "alignItems": "center",
-        "backgroundColor": "primary"
+        "backgroundColor": "rgba(0,0,0,0.8)",
+        "borderTopColor": "rgba(255,255,255,0.1)",
+        "blur": true,
+        "floating": true,
+        "borderRadius": 30,
+        "margin": 16,
+        "height": 70
+      },
+      "activeIcon": {
+        "glow": true,
+        "scale": 1.2
       }
     },
-    "MoneyText": {
-      "description": "Displays currency. Uses SpaceMono font.",
-      "format": "₹ xx,xx,xxx.xx"
+    "Charts": {
+      "pie": {
+        "strokeWidth": 0,
+        "radius": 100,
+        "innerRadius": 70,
+        "padAngle": 4
+      },
+      "trend": {
+        "strokeWidth": 3,
+        "gradientFill": true,
+        "bezier": true
+      }
     }
   },
-  "screens": {
-    "Auth": {
-      "layout": "Clean, centered, trust-focused.",
-      "elements": ["Logo", "Welcome Text", "Input Fields (Phone/Email)", "Social Auth (optional)", "Legal Text"],
-      "image_url": "https://images.unsplash.com/photo-1632377658890-7a0188612905?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "image_usage": "Background or Hero Image (faded/blurred)"
-    },
-    "Dashboard": {
-      "layout": "Bento Grid (Scrollable).",
-      "sections": [
-        "Header (Greeting + Net Worth)",
-        "Wealth Card (Total Balance, Trend)",
-        "Quick Actions (Add Transaction, Scan)",
-        "Recent Transactions List",
-        "Financial Health Score (Circle Chart)"
-      ],
-      "image_url": "https://images.unsplash.com/photo-1770520216765-40fdf4f65b30?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "image_usage": "Subtle background pattern for the Wealth Card"
-    },
-    "AI_Insights": {
-      "layout": "Chat Interface + Insight Cards.",
-      "style": "More 'futuristic' look. Darker background even in light mode.",
-      "elements": ["Chat Bubble List", "Input Area", "Insight Visualization"],
-      "image_url": "https://images.unsplash.com/photo-1614852207091-9d38a326d2ba?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "image_usage": "Header background or empty state illustration"
-    }
+  "implementation_steps": [
+    "1. INSTALL FONTS: Add @expo-google-fonts/space-grotesk and @expo-google-fonts/outfit.",
+    "2. CONFIGURE FONTS: Update app/_layout.tsx to load these fonts before rendering.",
+    "3. UPDATE THEME: Replace content of src/utils/theme.ts with the new Color Palette (Neon/Void).",
+    "4. UPDATE LAYOUT: Modify app/(tabs)/_layout.tsx to implement the floating glass tab bar.",
+    "5. RESTYLE COMPONENTS: Update LiquidFillCard.tsx to use new neon gradients and stronger shadows.",
+    "6. GLOBAL STYLES: Ensure all Text components use the new font families (Space Grotesk for headers, Outfit for body).",
+    "7. DARK MODE FIX: Ensure the background is true #000000, not slate."
+  ],
+  "image_urls": {
+    "placeholder_user": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80",
+    "card_bg_pattern": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80"
   },
-  "assets": {
-    "images": {
-      "auth_hero": "https://images.unsplash.com/photo-1632377658890-7a0188612905?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "dashboard_bg": "https://images.unsplash.com/photo-1770520216765-40fdf4f65b30?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "ai_bg": "https://images.unsplash.com/photo-1614852207091-9d38a326d2ba?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "abstract_teal": "https://images.unsplash.com/photo-1763448535001-2cdbfd543a5b?crop=entropy&cs=srgb&fm=jpg&q=85"
-    },
-    "icons": {
-      "home": "home-variant",
-      "transactions": "swap-horizontal",
-      "ai": "robot",
-      "goals": "target",
-      "settings": "cog",
-      "income": "arrow-down-circle",
-      "expense": "arrow-up-circle",
-      "investment": "chart-line"
-    }
-  },
-  "universal_guidelines": [
-    "Use StyleSheet.create() for all styles. No inline styles unless for dynamic values.",
-    "Ensure 60fps animations using Reanimated or LayoutAnimation.",
-    "Respect Safe Area View boundaries.",
-    "All inputs must have `keyboardType` configured correctly (number-pad for amounts).",
-    "Use `TouchableOpacity` or `Pressable` for all interactive elements with active opacity feedback.",
-    "Implement 'Gap' using margins or the gap property in flex containers.",
-    "Data-TestID: All interactive elements must have a testID prop."
-  ]
+  "instructions_to_main_agent": "You are the Lead Developer. Follow these guidelines strictly. Your goal is a VISUAL OVERHAUL. Do not change business logic. 1. Replace the theme file first. 2. Set up the fonts. 3. Go screen by screen (Dashboard -> Transactions -> Insights) and apply the 'Neon on Void' aesthetic. 4. Use 'Space Grotesk' for all numbers and headers to give it that premium fintech look. 5. Make the 'Liquid' cards pop with neon gradients.",
+  "UNIVERSAL_GUIDELINES": "See Phase 5 of the system prompt for general rules."
 }
