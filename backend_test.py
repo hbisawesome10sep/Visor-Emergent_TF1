@@ -169,13 +169,13 @@ class BackendTester:
             self.log(f"❌ Dashboard stats request failed: {str(e)}", "ERROR")
             return False, None
     
-    def test_dashboard_stats_with_date_range(self, start_date, end_date, test_name):
-        """Test dashboard stats with date range filtering"""
+    def test_dashboard_stats_with_date_range(self, start_date, end_date, test_name, expected_health_score=None):
+        """Test dashboard stats with date range filtering - validates health_score consistency"""
         self.log(f"Testing dashboard stats with date range: {start_date} to {end_date}")
         
         if not self.token:
             self.log("❌ No token available", "ERROR")
-            return False
+            return False, None
             
         try:
             params = {
@@ -194,35 +194,52 @@ class BackendTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check required fields
+                # Check required fields including health_score
                 required_fields = [
                     "total_income", "total_expenses", "total_investments", 
-                    "net_balance", "user_created_at", "date_range"
+                    "net_balance", "user_created_at", "date_range", "health_score"
                 ]
                 
                 missing_fields = [field for field in required_fields if field not in data]
                 if missing_fields:
                     self.log(f"❌ Missing required fields: {missing_fields}", "ERROR")
-                    return False
+                    return False, None
                 
                 # Check that date_range object contains the provided dates
                 date_range = data.get("date_range")
                 if not date_range:
                     self.log("❌ Expected date_range object, got None", "ERROR")
-                    return False
+                    return False, None
                     
                 if date_range.get("start") != start_date:
                     self.log(f"❌ Expected start date {start_date}, got {date_range.get('start')}", "ERROR")
-                    return False
+                    return False, None
                     
                 if date_range.get("end") != end_date:
                     self.log(f"❌ Expected end date {end_date}, got {date_range.get('end')}", "ERROR")
-                    return False
+                    return False, None
                 
                 # Check user_created_at exists
                 if not data.get("user_created_at"):
                     self.log("❌ user_created_at field is empty", "ERROR")
-                    return False
+                    return False, None
+                
+                # CRITICAL: Validate health_score structure and values
+                health_score = data.get("health_score", {})
+                if not self.validate_health_score(health_score):
+                    return False, None
+                
+                # CRITICAL: If we have expected health_score from baseline test, compare it
+                if expected_health_score:
+                    expected_overall = expected_health_score.get("overall")
+                    actual_overall = health_score.get("overall")
+                    
+                    if expected_overall != actual_overall:
+                        self.log(f"❌ CRITICAL: Health score should be identical across date ranges!", "ERROR")
+                        self.log(f"   Expected: {expected_overall}, Got: {actual_overall}", "ERROR")
+                        return False, None
+                    else:
+                        self.log(f"✅ CRITICAL VERIFICATION PASSED: Health score consistent across date ranges ({actual_overall})")
                 
                 self.log(f"✅ Dashboard stats ({test_name}) - All validation passed")
                 self.log(f"   - Total Income: ₹{data['total_income']}")
@@ -231,15 +248,16 @@ class BackendTester:
                 self.log(f"   - User Created At: {data['user_created_at']}")
                 self.log(f"   - Date Range: {data['date_range']}")
                 self.log(f"   - Transaction Count: {data.get('transaction_count', 0)}")
+                self.log(f"   - Health Score Overall: {health_score.get('overall', 'N/A')} ({health_score.get('grade', 'N/A')})")
                 
-                return True
+                return True, health_score
             else:
                 self.log(f"❌ Dashboard stats failed: {response.text}", "ERROR")
-                return False
+                return False, None
                 
         except Exception as e:
             self.log(f"❌ Dashboard stats request failed: {str(e)}", "ERROR")
-            return False
+            return False, None
 
     def run_all_tests(self):
         """Run all backend tests for dashboard stats"""
