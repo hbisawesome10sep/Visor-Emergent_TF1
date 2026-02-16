@@ -108,12 +108,12 @@ function InsightCard({
   // Gradient colors based on status
   const getGradient = (): [string, string] => {
     switch (status) {
-      case 'excellent': return [Accent.emerald, Accent.teal];
-      case 'good': return [Accent.teal, Accent.sapphire];
-      case 'fair': return [Accent.amber, Accent.amber];
-      case 'needs_work': return [Accent.amber, Accent.ruby];
-      case 'critical': return [Accent.ruby, '#C2185B'];
-      default: return [Accent.amethyst, Accent.sapphire];
+      case 'excellent': return [Accent.emerald, '#047857'];
+      case 'good': return [Accent.teal, '#0F766E'];
+      case 'fair': return [Accent.amber, '#D97706'];
+      case 'needs_work': return ['#EA580C', Accent.ruby];
+      case 'critical': return [Accent.ruby, '#B91C1C'];
+      default: return [Accent.sapphire, '#4F46E5'];
     }
   };
 
