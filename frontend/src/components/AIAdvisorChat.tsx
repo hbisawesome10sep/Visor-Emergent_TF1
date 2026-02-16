@@ -178,7 +178,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
           {/* Header */}
           <View style={[styles.header, {
-            backgroundColor: isDark ? 'rgba(30,41,59,0.98)' : 'rgba(255,255,255,0.98)',
+            backgroundColor: isDark ? 'rgba(10,10,11,0.98)' : 'rgba(255,255,255,0.98)',
             borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
           }]}>
             <View style={styles.headerLeft}>
@@ -339,7 +339,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
 
             {/* Input Area */}
             <View style={[styles.inputContainer, {
-              backgroundColor: isDark ? 'rgba(30,41,59,0.98)' : 'rgba(255,255,255,0.98)',
+              backgroundColor: isDark ? 'rgba(10,10,11,0.98)' : 'rgba(255,255,255,0.98)',
               borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
             }]}>
               <TextInput
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   aiBadgeText: {
     color: '#fff',
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 
   // Container
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   headerSubtitle: {
     fontSize: 12,
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
     marginBottom: 8,
   },
   emptySubtitle: {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   },
   quickTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
     marginBottom: 12,
   },
   quickPrompts: {
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   },
   quickChipText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
   },
 
   // Message bubbles
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   },
   assistantName: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   messageText: {
     fontSize: 15,
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   },
   calcTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
     marginBottom: 8,
   },
   calcRow: {
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
   },
   calcValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
 
   // Typing indicator
