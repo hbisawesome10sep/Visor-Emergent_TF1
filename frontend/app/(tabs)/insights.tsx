@@ -132,7 +132,7 @@ function getStatusLabel(status: 'excellent' | 'good' | 'fair' | 'critical'): str
 interface FlippableCardProps {
   frontContent: React.ReactNode;
   backContent: React.ReactNode;
-  gradientColors: string[];
+  gradientColors: [string, string, ...string[]];
   height?: number;
   style?: any;
 }
