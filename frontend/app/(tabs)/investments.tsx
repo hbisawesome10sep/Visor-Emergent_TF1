@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, G, Path, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
+import { Neon } from '../../src/utils/theme';
 import { apiRequest } from '../../src/utils/api';
 import { formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
 
