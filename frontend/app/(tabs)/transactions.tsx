@@ -228,7 +228,7 @@ export default function TransactionsScreen() {
             styles.headerContent,
             {
               backgroundColor: isDark ? '#000000' : '#FFFFFF',
-              borderBottomColor: isDark ? '#18181B' : '#E4E4E7',
+              borderBottomColor: isDark ? '#1F2937' : '#E5E7EB',
             },
           ]}
         >

@@ -375,7 +375,7 @@ export default function DashboardScreen() {
             styles.headerContent,
             {
               backgroundColor: isDark ? '#000000' : '#FFFFFF',
-              borderBottomColor: isDark ? '#18181B' : '#E4E4E7',
+              borderBottomColor: isDark ? '#1F2937' : '#E5E7EB',
             },
           ]}
         >
@@ -627,7 +627,7 @@ export default function DashboardScreen() {
             styles.glassCard,
             {
               backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-              borderColor: isDark ? '#27272A' : '#E4E4E7',
+              borderColor: isDark ? '#1F2937' : '#E5E7EB',
             },
           ]}
         >
@@ -731,7 +731,7 @@ export default function DashboardScreen() {
             styles.glassCard,
             {
               backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-              borderColor: isDark ? '#27272A' : '#E4E4E7',
+              borderColor: isDark ? '#1F2937' : '#E5E7EB',
             },
           ]}
         >
