@@ -144,10 +144,35 @@ export default function DashboardScreen() {
 
   const fetchData = useCallback(async () => {
     if (!token) return;
+    setLoading(true);
     try {
-      const range = getDateRangeForFrequency(selectedFrequency);
-      const startStr = range.start.toISOString().split('T')[0];
-      const endStr = range.end.toISOString().split('T')[0];
+      // Calculate date range inline to avoid stale closure issues
+      const now = new Date();
+      let startDate: Date;
+      let endDate = now;
+      
+      switch (selectedFrequency) {
+        case 'Quarter':
+          startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+          break;
+        case 'Year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        case 'Custom':
+          startDate = dateRange.start;
+          endDate = dateRange.end;
+          break;
+        case 'Month':
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+      }
+      
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = endDate.toISOString().split('T')[0];
+      
+      console.log(`[Dashboard] Fetching stats: ${selectedFrequency} | ${startStr} → ${endStr}`);
+      
       const [s, g] = await Promise.all([
         apiRequest(`/dashboard/stats?start_date=${startStr}&end_date=${endStr}`, { token }),
         apiRequest('/goals', { token }),
