@@ -254,7 +254,7 @@ function InsightCard({
   const frontContent = (
     <View style={styles.insightFront}>
       <View style={styles.insightHeader}>
-        <View style={[styles.insightIconContainer, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+        <View style={[styles.insightIconContainer, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
           <MaterialCommunityIcons name={icon as any} size={24} color="#FFFFFF" />
         </View>
         <View style={[styles.statusBadge, { backgroundColor: `${statusColor}30` }]}>
@@ -439,7 +439,7 @@ export default function InsightsScreen() {
   const spendingRate = income > 0 ? (expenses / income) * 100 : 0;
   const monthlySavings = income - expenses;
   const runwayMonths = expenses > 0 ? Math.max(0, (monthlySavings * 6) / expenses) : 0;
-  const foirRatio = income > 0 ? ((emiEstimate + (expenses * 0.15)) / income) * 100 : 0;
+  const foirRatio = income > 0 ? ((emiEstimate + (expenses * 0.6)) / income) * 100 : 0;
   
   // Wealth projection (assuming 12% annual return on investments)
   const currentWealth = investments * 12; // Assume 12 months of investments
@@ -528,8 +528,8 @@ export default function InsightsScreen() {
         recommended: '<70%',
       },
       gradientColors: isDark
-        ? ['rgba(245, 158, 11, 0.3)', 'rgba(217, 119, 6, 0.2)']
-        : ['rgba(245, 158, 11, 0.15)', 'rgba(254, 243, 199, 0.3)'],
+        ? ['rgba(245, 158, 11, 0.3)', 'rgba(217, 119, 6, 0.4)']
+        : ['rgba(245, 158, 11, 0.6)', 'rgba(254, 243, 199, 0.3)'],
     },
     {
       icon: 'timer-sand',
@@ -548,8 +548,8 @@ export default function InsightsScreen() {
         recommended: '6+ months',
       },
       gradientColors: isDark
-        ? ['rgba(236, 72, 153, 0.3)', 'rgba(190, 24, 93, 0.2)']
-        : ['rgba(236, 72, 153, 0.15)', 'rgba(252, 231, 243, 0.3)'],
+        ? ['rgba(236, 72, 153, 0.3)', 'rgba(190, 24, 93, 0.4)']
+        : ['rgba(236, 72, 153, 0.6)', 'rgba(252, 231, 243, 0.3)'],
     },
     {
       icon: 'chart-areaspline',
@@ -568,8 +568,8 @@ export default function InsightsScreen() {
         recommended: 'Invest consistently',
       },
       gradientColors: isDark
-        ? ['rgba(6, 182, 212, 0.3)', 'rgba(8, 145, 178, 0.2)']
-        : ['rgba(6, 182, 212, 0.15)', 'rgba(207, 250, 254, 0.3)'],
+        ? ['rgba(6, 182, 212, 0.3)', 'rgba(8, 145, 178, 0.4)']
+        : ['rgba(6, 182, 212, 0.6)', 'rgba(207, 250, 254, 0.3)'],
     },
     {
       icon: 'scale-balance',
@@ -588,8 +588,8 @@ export default function InsightsScreen() {
         recommended: '<50%',
       },
       gradientColors: isDark
-        ? ['rgba(239, 68, 68, 0.3)', 'rgba(185, 28, 28, 0.2)']
-        : ['rgba(239, 68, 68, 0.15)', 'rgba(254, 226, 226, 0.3)'],
+        ? ['rgba(239, 68, 68, 0.3)', 'rgba(185, 28, 28, 0.4)']
+        : ['rgba(239, 68, 68, 0.6)', 'rgba(254, 226, 226, 0.3)'],
     },
   ];
 
@@ -659,8 +659,8 @@ export default function InsightsScreen() {
         <FlippableCard
           height={280}
           gradientColors={isDark 
-            ? ['rgba(16, 185, 129, 0.25)', 'rgba(5, 150, 105, 0.15)']
-            : ['rgba(16, 185, 129, 0.1)', 'rgba(209, 250, 229, 0.2)']
+            ? ['rgba(16, 185, 129, 0.5)', 'rgba(5, 150, 105, 0.6)']
+            : ['rgba(16, 185, 129, 0.1)', 'rgba(209, 250, 229, 0.4)']
           }
           frontContent={
             <View style={styles.healthScoreFront}>
@@ -682,7 +682,7 @@ export default function InsightsScreen() {
                         cx="60"
                         cy="60"
                         r="50"
-                        stroke="rgba(255,255,255,0.2)"
+                        stroke="rgba(255,255,255,0.4)"
                         strokeWidth="10"
                         fill="transparent"
                       />
@@ -800,11 +800,11 @@ export default function InsightsScreen() {
           height={180}
           gradientColors={isDark
             ? isBetterThanAverage 
-              ? ['rgba(16, 185, 129, 0.3)', 'rgba(5, 150, 105, 0.2)']
-              : ['rgba(245, 158, 11, 0.3)', 'rgba(217, 119, 6, 0.2)']
+              ? ['rgba(16, 185, 129, 0.3)', 'rgba(5, 150, 105, 0.4)']
+              : ['rgba(245, 158, 11, 0.3)', 'rgba(217, 119, 6, 0.4)']
             : isBetterThanAverage
-              ? ['rgba(16, 185, 129, 0.15)', 'rgba(209, 250, 229, 0.25)']
-              : ['rgba(245, 158, 11, 0.15)', 'rgba(254, 243, 199, 0.25)']
+              ? ['rgba(16, 185, 129, 0.6)', 'rgba(209, 250, 229, 0.5)']
+              : ['rgba(245, 158, 11, 0.6)', 'rgba(254, 243, 199, 0.5)']
           }
           frontContent={
             <View style={styles.comparisonFront}>
@@ -988,7 +988,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: 'rgba(16, 185, 129, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: 'rgba(16, 185, 129, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1223,7 +1223,7 @@ const styles = StyleSheet.create({
   },
   progressBg: {
     height: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.4)',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -1332,7 +1332,7 @@ const styles = StyleSheet.create({
   comparisonVs: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.6)',
     borderRadius: 8,
   },
   vsText: {
