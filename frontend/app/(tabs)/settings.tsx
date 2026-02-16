@@ -25,6 +25,8 @@ const TABS = [
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const HEADER_HEIGHT = 70 + insets.top;
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState('account');
