@@ -1675,7 +1675,75 @@ export default function BooksScreen() {
                 <Text style={[styles.bsItemText, { fontStyle: 'italic' }]}>No current liabilities</Text>
               </View>
             )}
+            
+            {/* Add Loan Button */}
+            <TouchableOpacity
+              style={styles.addAssetButton}
+              onPress={() => setShowLoanModal(true)}
+            >
+              <MaterialCommunityIcons name="plus-circle" size={20} color={colors.primary} />
+              <Text style={styles.addAssetText}>Add Loan/Liability</Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Loans List */}
+          {loans.length > 0 && (
+            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+              <Text style={[styles.bsSubTitle, { marginBottom: 12 }]}>Active Loans</Text>
+              {loans.map(loan => (
+                <View key={loan.id} style={[styles.loanCard, { marginHorizontal: 0, marginBottom: 8 }]}>
+                  <View style={styles.loanCardHeader}>
+                    <View style={[styles.loanIcon, { backgroundColor: '#EF4444' + '20' }]}>
+                      <MaterialCommunityIcons
+                        name={loan.loan_type.includes('Home') ? 'home' : loan.loan_type.includes('Car') ? 'car' : 'bank'}
+                        size={22}
+                        color="#EF4444"
+                      />
+                    </View>
+                    <View style={styles.loanInfo}>
+                      <Text style={styles.loanName}>{loan.name}</Text>
+                      <Text style={styles.loanType}>{loan.loan_type} • {loan.lender || 'N/A'}</Text>
+                    </View>
+                    <View style={styles.loanAmount}>
+                      <Text style={styles.loanOutstanding}>{formatINRShort(loan.outstanding_principal)}</Text>
+                      <Text style={styles.loanEMI}>EMI: {formatINRShort(loan.emi_amount)}/mo</Text>
+                    </View>
+                  </View>
+                  <View style={styles.loanDetails}>
+                    <View style={styles.loanDetailRow}>
+                      <Text style={styles.loanDetailLabel}>Principal</Text>
+                      <Text style={styles.loanDetailValue}>{formatINRIndian(loan.principal_amount)}</Text>
+                    </View>
+                    <View style={styles.loanDetailRow}>
+                      <Text style={styles.loanDetailLabel}>Interest Rate</Text>
+                      <Text style={styles.loanDetailValue}>{loan.interest_rate}% p.a.</Text>
+                    </View>
+                    <View style={styles.loanDetailRow}>
+                      <Text style={styles.loanDetailLabel}>Remaining EMIs</Text>
+                      <Text style={styles.loanDetailValue}>{loan.remaining_emis} of {loan.tenure_months}</Text>
+                    </View>
+                    <View style={styles.loanDetailRow}>
+                      <Text style={styles.loanDetailLabel}>Interest Paid</Text>
+                      <Text style={[styles.loanDetailValue, { color: '#EF4444' }]}>{formatINRIndian(loan.total_interest_paid)}</Text>
+                    </View>
+                    <View style={styles.loanActions}>
+                      <TouchableOpacity style={styles.loanActionBtn} onPress={() => viewEMISchedule(loan.id)}>
+                        <MaterialCommunityIcons name="calendar-month" size={16} color={colors.primary} />
+                        <Text style={styles.loanActionText}>EMI Schedule</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.loanActionBtn, { backgroundColor: '#EF4444' + '10' }]}
+                        onPress={() => handleDeleteLoan(loan.id)}
+                      >
+                        <MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />
+                        <Text style={[styles.loanActionText, { color: '#EF4444' }]}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* NET WORTH Section */}
