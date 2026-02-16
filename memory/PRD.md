@@ -1,92 +1,49 @@
-# Visor - AI-Powered Personal Finance Manager
+# Visor - AI-Powered Finance Manager PRD
 
 ## Product Overview
-Visor is a comprehensive, mobile-first personal finance management application tailored for the Indian market. It combines automated transaction tracking, AI-powered financial insights (GPT-5.2), and goal tracking with a premium iOS-inspired glass UI that works seamlessly across phones, tablets (iPad), and laptops.
+Visor is a personal finance management application built with React Native/Expo (frontend) and FastAPI/MongoDB (backend). It helps Indian users track income, expenses, investments, and provides AI-powered financial insights.
 
-## Target Audience
-Tech-savvy Indian users aged 22-40 who use multiple financial channels (banks, UPI) and want automated tracking with intelligent guidance.
+## Architecture
+- **Frontend**: Expo, React Native, TypeScript, expo-router
+- **Backend**: Python, FastAPI, MongoDB
+- **AI**: OpenAI GPT-4 via Emergent Integrations (AI Financial Advisor)
 
-## Core Features
+## Core Features (Implemented)
+- **Auth**: Login/Register with demo accounts
+- **Dashboard**: Financial health score ring, liquid fill overview cards (Income/Expense/Savings), pie chart, trend chart, recent transactions, goals, date range filter (M/Q/Y/Custom)
+- **Transactions**: CRUD, category filters, search, grouped by date
+- **Insights**: 6 insight cards with animated gradients, national average comparisons, AI recommendations
+- **Investments**: Portfolio tracking, asset allocation, Indian markets data, financial goals
+- **Settings**: Theme toggle (Light/Dark/System), profile, data export/delete
+- **Bookkeeping**: Reports and bookkeeping module
+- **AI Advisor**: Chat-based financial advisor with calculator tools
 
-### 1. Authentication & Security
-- Custom JWT-based authentication with Indian compliance fields (DOB, PAN, Aadhaar)
-- Secure password hashing with bcrypt
-- 7-day token expiry
-- **Demo Accounts:**
-  - Rajesh Kumar: `rajesh@visor.demo` / `Demo@123` (PAN: ABCDE1234F, Aadhaar: ****9012)
-  - Priya Sharma: `priya@visor.demo` / `Demo@456` (PAN: FGHIJ5678K, Aadhaar: ****1098)
+## Visual Design System (Visor 2.0 — Implemented Feb 2026)
+### Color Palette
+- **Dark Mode**: True black (#000000) background, pure white (#FFFFFF) text
+- **Light Mode**: Pure white (#FFFFFF) background, deep black (#09090B) text
+- **Neon Accents**: Green (#39FF14), Red (#FF073A), Orange (#FF6B00), Cyan (#00FFD1), Blue (#00B4FF), Purple (#B026FF), Yellow (#FFE600)
 
-### 2. Financial Dashboard
-- Net balance overview with monthly breakdown (Income/Expenses/Investments)
-- Financial Health Score (0-100) with grade (Excellent/Good/Fair/Needs Work/Critical)
-- Expense breakdown with visual bar charts
-- Recent transactions feed
-- Pull-to-refresh for real-time updates
+### Typography
+- **Headings/Numbers**: Space Grotesk (400-700)
+- **Body/Labels**: Outfit (400-800)
+- Loaded via Google Fonts CDN (web) / expo-google-fonts (native)
 
-### 3. Transaction Management
-- Full CRUD operations for Income, Expense, and Investment transactions
-- Category-based organization (20+ categories covering Indian financial context)
-- Filter by type (All/Income/Expense/Investment)
-- Bottom sheet modal for adding transactions
-- Indian Rupee (₹) formatting with Indian numbering system (lakhs, crores)
+### Components
+- Liquid Fill Cards with animated gradient backgrounds
+- Neon glow effects on active states (tab bar, cards)
+- Consistent card styling with dark glass surfaces
 
-### 4. AI Financial Advisor (GPT-5.2)
-- Real-time AI chat powered by OpenAI GPT-5.2 via Emergent LLM Key
-- Context-aware: analyzes user's actual financial data before responding
-- Indian finance focus: tax laws (Section 80C/80D), investment instruments (PPF, NPS, ELSS, SIP, FD)
-- Quick prompts for common financial questions
-- Persistent chat history
+## Test Credentials
+- User 1: rajesh@visor.demo / Demo@123
+- User 2: priya@visor.demo / Demo@456
 
-### 5. Financial Goals
-- Create and track financial goals with target/current amounts
-- Progress visualization with color-coded bars
-- Overall goal progress summary
-- Edit and delete goals
-- Categories: Safety, Travel, Purchase, Property, Education, Retirement, Wedding
+## Prioritized Backlog
+### P1 - Next Up
+- Backend migration: Python/FastAPI → Node.js/Express/PostgreSQL (deferred, discuss with user)
 
-### 6. Settings & Personalization
-- Profile display with masked Aadhaar
-- Theme toggle: Light / Dark / System
-- App info and configuration
-
-## Tech Stack
-- **Frontend:** React Native (Expo SDK 54), TypeScript, Expo Router
-- **Backend:** FastAPI (Python), MongoDB (Motor async driver)
-- **AI:** OpenAI GPT-5.2 via emergentintegrations library
-- **Auth:** JWT with bcrypt password hashing
-- **State:** AsyncStorage for auth persistence
-
-## Design System
-- **Primary Color:** Emerald Green (#059669 light / #10B981 dark)
-- **Secondary Color:** Indigo (#4338CA light / #6366F1 dark)
-- **Glass UI:** Semi-transparent surfaces with rounded corners (16-24px radius)
-- **Fonts:** System for UI, SpaceMono for financial data
-- **Spacing:** 8pt grid system
-
-## API Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/auth/register | Create new account |
-| POST | /api/auth/login | Login with credentials |
-| GET | /api/auth/profile | Get user profile |
-| GET | /api/transactions | List transactions (with filters) |
-| POST | /api/transactions | Create transaction |
-| DELETE | /api/transactions/{id} | Delete transaction |
-| GET | /api/goals | List goals |
-| POST | /api/goals | Create goal |
-| PUT | /api/goals/{id} | Update goal |
-| DELETE | /api/goals/{id} | Delete goal |
-| GET | /api/dashboard/stats | Dashboard statistics |
-| GET | /api/health-score | Financial health score |
-| POST | /api/ai/chat | AI advisor chat |
-| GET | /api/ai/history | Chat history |
-| DELETE | /api/ai/history | Clear chat history |
-
-## Future Enhancements
-- SMS transaction parsing for Indian banks (SBI, HDFC, ICICI, etc.)
-- Biometric authentication (WebAuthn)
-- Investment portfolio tracking with real-time market data
-- Budget planning with alerts
-- Export data as PDF/CSV
-- Push notifications for spending alerts
-- Premium subscription with advanced AI features
+### P2 - Future
+- Enhanced animations and micro-interactions
+- Custom financial goal setting improvements
+- Push notifications for budget alerts
+- Data export enhancements
