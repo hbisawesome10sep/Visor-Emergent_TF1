@@ -175,19 +175,25 @@ export default function DashboardScreen() {
     if (!token) return;
     try {
       const range = getDateRangeForFrequency(selectedFrequency);
+      const startStr = range.start.toISOString().split('T')[0];
+      const endStr = range.end.toISOString().split('T')[0];
       const [s, g] = await Promise.all([
-        apiRequest('/dashboard/stats', { token }),
+        apiRequest(`/dashboard/stats?start_date=${startStr}&end_date=${endStr}`, { token }),
         apiRequest('/goals', { token }),
       ]);
       setStats(s);
       setGoals(g);
+      // Store user's created_at for date range limit
+      if (s?.user_created_at) {
+        setUserCreatedAt(s.user_created_at);
+      }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, selectedFrequency]);
+  }, [token, selectedFrequency, dateRange]);
 
   useEffect(() => {
     fetchData();
