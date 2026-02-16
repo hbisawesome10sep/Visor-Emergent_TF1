@@ -1453,7 +1453,7 @@ const styles = StyleSheet.create({
   },
   txnAmount: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 
   // Goals
