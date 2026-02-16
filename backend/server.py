@@ -511,6 +511,42 @@ async def get_dashboard_stats(
     # Get user's account creation date for date range limits
     user_created_at = user.get("created_at", now.isoformat())
 
+    # ── Compute Health Score from ALL-TIME data (not filtered) ──
+    all_txns = txns
+    if start_date and end_date:
+        # If date-filtered, fetch ALL transactions for health score
+        all_txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+    
+    hs_income = sum(t["amount"] for t in all_txns if t["type"] == "income") or 1
+    hs_expenses = sum(t["amount"] for t in all_txns if t["type"] == "expense")
+    hs_investments = sum(t["amount"] for t in all_txns if t["type"] == "investment")
+    
+    hs_savings_rate = max(0, (hs_income - hs_expenses) / hs_income * 100)
+    hs_investment_rate = (hs_investments / hs_income * 100)
+    hs_expense_ratio = (hs_expenses / hs_income * 100)
+    
+    hs_goal_target = sum(g["target_amount"] for g in goals) if goals else 1
+    hs_goal_current = sum(g["current_amount"] for g in goals) if goals else 0
+    hs_goal_score = min(100, (hs_goal_current / hs_goal_target * 100))
+    
+    hs_savings_score = min(100, hs_savings_rate * 2.5)
+    hs_invest_score = min(100, hs_investment_rate * 5)
+    hs_expense_score = max(0, 100 - hs_expense_ratio)
+    
+    hs_overall = (hs_savings_score * 0.3 + hs_invest_score * 0.2 + hs_expense_score * 0.3 + hs_goal_score * 0.2)
+    hs_overall = min(100, max(0, hs_overall))
+    
+    if hs_overall >= 80:
+        hs_grade = "Excellent"
+    elif hs_overall >= 65:
+        hs_grade = "Good"
+    elif hs_overall >= 45:
+        hs_grade = "Fair"
+    elif hs_overall >= 25:
+        hs_grade = "Needs Work"
+    else:
+        hs_grade = "Critical"
+
     return {
         "total_income": total_income,
         "total_expenses": total_expenses,
@@ -536,6 +572,22 @@ async def get_dashboard_stats(
             "start": start_date,
             "end": end_date,
         } if start_date and end_date else None,
+        "health_score": {
+            "overall": round(hs_overall, 1),
+            "grade": hs_grade,
+            "breakdown": {
+                "savings": round(hs_savings_score, 1),
+                "investments": round(hs_invest_score, 1),
+                "spending": round(hs_expense_score, 1),
+                "goals": round(hs_goal_score, 1),
+            },
+            "metrics": {
+                "savings_rate": round(hs_savings_rate, 1),
+                "investment_rate": round(hs_investment_rate, 1),
+                "expense_ratio": round(hs_expense_ratio, 1),
+                "goal_progress": round(hs_goal_score, 1),
+            },
+        },
     }
 
 @api_router.get("/health-score")
