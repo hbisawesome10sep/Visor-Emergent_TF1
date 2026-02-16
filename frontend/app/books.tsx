@@ -296,24 +296,26 @@ export default function BooksScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const fy = getFYDates();
-      const [ledger, pnl, bs, assets] = await Promise.all([
-        apiRequest(`/books/ledger?start_date=${fy.start}&end_date=${fy.end}`, { token }),
-        apiRequest(`/books/pnl?start_date=${fy.start}&end_date=${fy.end}`, { token }),
+      const dateRange = getDateRange();
+      const [ledger, pnl, bs, assets, loansData] = await Promise.all([
+        apiRequest(`/books/ledger?start_date=${dateRange.start}&end_date=${dateRange.end}`, { token }),
+        apiRequest(`/books/pnl?start_date=${dateRange.start}&end_date=${dateRange.end}`, { token }),
         apiRequest('/books/balance-sheet', { token }),
         apiRequest('/assets', { token }),
+        apiRequest('/loans', { token }),
       ]);
       setLedgerData(ledger);
       setPnlData(pnl);
       setBalanceSheet(bs);
       setFixedAssets(assets || []);
+      setLoans(loansData || []);
     } catch (e) {
       console.error('Error fetching books data:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token]);
+  }, [token, getDateRange]);
 
   useEffect(() => {
     fetchData();
