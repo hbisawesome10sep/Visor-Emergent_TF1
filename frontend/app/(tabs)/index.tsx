@@ -2,13 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator,
   TouchableOpacity, Dimensions, Modal, TextInput, Alert,
-  KeyboardAvoidingView, Platform, StatusBar, Animated,
+  KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
+import Svg, { Circle, G } from 'react-native-svg';
 
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -33,7 +34,7 @@ const INCOME_CATS = ['Salary', 'Freelance', 'Bonus', 'Interest', 'Dividend', 'Ot
 const INVEST_CATS = ['SIP', 'PPF', 'Stocks', 'Mutual Funds', 'FD', 'Gold', 'NPS', 'Other'];
 const GOAL_CATS = ['Safety', 'Travel', 'Purchase', 'Property', 'Other'];
 
-type FrequencyOption = 'Quarter' | 'Month' | 'Year';
+type FrequencyOption = 'Quarter' | 'Month' | 'Year' | 'Custom';
 
 type DashboardStats = {
   total_income: number;
@@ -66,6 +67,51 @@ type Goal = {
   category: string;
 };
 
+// Health Score Calculator
+function calculateHealthScore(stats: DashboardStats | null): {
+  score: number;
+  breakdown: { savings: number; emergency: number; investment: number };
+} {
+  if (!stats) return { score: 0, breakdown: { savings: 0, emergency: 0, investment: 0 } };
+  const { total_income, total_expenses, total_investments, savings_rate } = stats;
+  
+  let savingsPoints = Math.min(40, savings_rate * 1.5);
+  
+  const monthlyExpenses = total_expenses || 1;
+  const savings = total_income - total_expenses;
+  const emergencyMonths = savings > 0 ? Math.min((savings * 6) / monthlyExpenses, 12) : 0;
+  let emergencyPoints = Math.min(30, emergencyMonths * 5);
+  
+  const investRatio = total_income > 0 ? (total_investments / total_income) * 100 : 0;
+  let investPoints = Math.min(30, investRatio * 1.5);
+
+  const score = Math.min(100, Math.round(savingsPoints + emergencyPoints + investPoints));
+  
+  return {
+    score,
+    breakdown: {
+      savings: Math.round(savingsPoints),
+      emergency: Math.round(emergencyPoints),
+      investment: Math.round(investPoints),
+    }
+  };
+}
+
+function getScoreLabel(score: number): { label: string; color: string } {
+  if (score >= 80) return { label: 'Excellent', color: '#10B981' };
+  if (score >= 65) return { label: 'Good', color: '#22C55E' };
+  if (score >= 50) return { label: 'Fair', color: '#F59E0B' };
+  if (score >= 35) return { label: 'Needs Work', color: '#F97316' };
+  return { label: 'Critical', color: '#EF4444' };
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 76) return '#10B981';
+  if (score >= 61) return '#22C55E';
+  if (score >= 41) return '#F59E0B';
+  return '#EF4444';
+}
+
 export default function DashboardScreen() {
   const { user, token } = useAuth();
   const { colors, isDark, setThemeMode } = useTheme();
@@ -78,13 +124,53 @@ export default function DashboardScreen() {
   const [selectedFrequency, setSelectedFrequency] = useState<FrequencyOption>('Month');
   const [showTxnModal, setShowTxnModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [txnForm, setTxnForm] = useState({ type: 'expense', amount: '', category: '', description: '', date: '' });
   const [goalForm, setGoalForm] = useState({ title: '', target_amount: '', category: 'Safety' });
   const [saving, setSaving] = useState(false);
+  const [showScoreBack, setShowScoreBack] = useState(false);
+  
+  // Date range state
+  const [dateRange, setDateRange] = useState({
+    start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    end: new Date(),
+  });
+
+  // Get date range based on frequency
+  const getDateRangeForFrequency = (freq: FrequencyOption) => {
+    const now = new Date();
+    const userCreatedAt = user?.created_at ? new Date(user.created_at) : new Date(now.getFullYear(), 0, 1);
+    
+    let start: Date;
+    let end = now;
+    
+    switch (freq) {
+      case 'Quarter':
+        const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+        start = quarterStart < userCreatedAt ? userCreatedAt : quarterStart;
+        break;
+      case 'Year':
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        start = yearStart < userCreatedAt ? userCreatedAt : yearStart;
+        break;
+      case 'Custom':
+        start = dateRange.start < userCreatedAt ? userCreatedAt : dateRange.start;
+        end = dateRange.end;
+        break;
+      case 'Month':
+      default:
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        start = monthStart < userCreatedAt ? userCreatedAt : monthStart;
+        break;
+    }
+    
+    return { start, end };
+  };
 
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
+      const range = getDateRangeForFrequency(selectedFrequency);
       const [s, g] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
@@ -97,7 +183,7 @@ export default function DashboardScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token]);
+  }, [token, selectedFrequency]);
 
   useEffect(() => {
     fetchData();
@@ -106,6 +192,14 @@ export default function DashboardScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchData();
+  };
+
+  const handleFrequencyChange = (freq: FrequencyOption) => {
+    if (freq === 'Custom') {
+      setShowDatePicker(true);
+    } else {
+      setSelectedFrequency(freq);
+    }
   };
 
   const handleAddTxn = async () => {
@@ -175,10 +269,17 @@ export default function DashboardScreen() {
     );
   }
 
-  // Calculate values for liquid fill cards
+  // Calculate values
   const incomeTarget = stats?.total_income || 1;
   const expensePercent = Math.min(((stats?.total_expenses || 0) / incomeTarget) * 100, 100);
   const savingsRate = stats?.savings_rate || 0;
+  const investmentRate = stats?.total_income ? (stats.total_investments / stats.total_income) * 100 : 0;
+  const runwayMonths = stats?.total_expenses ? ((stats.total_income - stats.total_expenses) * 6) / stats.total_expenses : 0;
+
+  // Health Score
+  const { score: healthScore, breakdown } = calculateHealthScore(stats);
+  const scoreInfo = getScoreLabel(healthScore);
+  const scoreColor = getScoreColor(healthScore);
 
   // Prepare pie chart data
   const pieData = Object.entries(stats?.category_breakdown || {}).map(([category, amount]) => ({
@@ -229,6 +330,16 @@ export default function DashboardScreen() {
   const cats = txnForm.type === 'income' ? INCOME_CATS : txnForm.type === 'investment' ? INVEST_CATS : EXPENSE_CATS;
   const frequencies: FrequencyOption[] = ['Quarter', 'Month', 'Year'];
 
+  // Format current date range display
+  const range = getDateRangeForFrequency(selectedFrequency);
+  const rangeDisplay = selectedFrequency === 'Month' 
+    ? getCurrentMonthYear()
+    : selectedFrequency === 'Quarter'
+    ? `Q${Math.floor(new Date().getMonth() / 3) + 1} ${new Date().getFullYear()}`
+    : selectedFrequency === 'Year'
+    ? `${new Date().getFullYear()}`
+    : `${range.start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${range.end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
@@ -263,7 +374,7 @@ export default function DashboardScreen() {
                   </Text>
                 </View>
                 <Text style={[styles.monthYear, { color: colors.textSecondary }]}>
-                  {getCurrentMonthYear()}
+                  {rangeDisplay}
                 </Text>
               </View>
 
@@ -282,7 +393,7 @@ export default function DashboardScreen() {
                         styles.freqPill,
                         selectedFrequency === freq && { backgroundColor: colors.primary },
                       ]}
-                      onPress={() => setSelectedFrequency(freq)}
+                      onPress={() => handleFrequencyChange(freq)}
                     >
                       <Text
                         style={[
@@ -324,6 +435,86 @@ export default function DashboardScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* ═══ FINANCIAL HEALTH SCORE CARD ═══ */}
+        <TouchableOpacity
+          activeOpacity={0.95}
+          onPress={() => setShowScoreBack(!showScoreBack)}
+          style={[styles.healthScoreCard, {
+            backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)',
+            borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)',
+          }]}
+        >
+          {/* Flip icon */}
+          <TouchableOpacity 
+            style={[styles.scoreFlipBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+            onPress={() => setShowScoreBack(!showScoreBack)}
+          >
+            <MaterialCommunityIcons 
+              name={showScoreBack ? "rotate-left" : "information-outline"} 
+              size={16} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+
+          {!showScoreBack ? (
+            <View style={styles.healthScoreFront}>
+              <View style={styles.scoreRow}>
+                {/* Score Ring */}
+                <View style={styles.scoreRingBox}>
+                  <Svg width={90} height={90}>
+                    <G rotation="-90" origin="45, 45">
+                      <Circle cx="45" cy="45" r="38" stroke={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'} strokeWidth="8" fill="transparent" />
+                      <Circle cx="45" cy="45" r="38" stroke={scoreColor} strokeWidth="8" fill="transparent" strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 38}`}
+                        strokeDashoffset={(1 - healthScore / 100) * 2 * Math.PI * 38}
+                      />
+                    </G>
+                  </Svg>
+                  <View style={styles.scoreCenter}>
+                    <Text style={[styles.scoreNum, { color: scoreColor }]}>{healthScore}</Text>
+                    <Text style={[styles.scoreOf, { color: colors.textSecondary }]}>/100</Text>
+                  </View>
+                </View>
+
+                {/* Score Info */}
+                <View style={styles.scoreInfo}>
+                  <Text style={[styles.scoreTitle, { color: colors.textPrimary }]}>Financial Health Score</Text>
+                  <View style={[styles.scoreLabelBadge, { backgroundColor: `${scoreInfo.color}20` }]}>
+                    <Text style={[styles.scoreLabelText, { color: scoreInfo.color }]}>{scoreInfo.label}</Text>
+                  </View>
+                  <Text style={[styles.scoreDesc, { color: colors.textSecondary }]}>
+                    {healthScore >= 70 ? "Great habits!" : healthScore >= 50 ? "Room to improve" : "Needs attention"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.healthScoreBack}>
+              <Text style={[styles.scoreBackTitle, { color: colors.textPrimary }]}>Score Breakdown</Text>
+              <Text style={[styles.scoreBackDesc, { color: colors.textSecondary }]}>Based on RBI guidelines</Text>
+              
+              <View style={[styles.scoreBreakdown, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+                <View style={styles.breakdownRow}>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Savings ({savingsRate.toFixed(0)}%)</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{breakdown.savings}/40</Text>
+                </View>
+                <View style={styles.breakdownRow}>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Emergency ({runwayMonths.toFixed(1)}mo)</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{breakdown.emergency}/30</Text>
+                </View>
+                <View style={styles.breakdownRow}>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Investments ({investmentRate.toFixed(0)}%)</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{breakdown.investment}/30</Text>
+                </View>
+                <View style={[styles.breakdownTotal, { borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
+                  <Text style={[styles.breakdownTotalLabel, { color: colors.textPrimary }]}>Total</Text>
+                  <Text style={[styles.breakdownTotalValue, { color: scoreColor }]}>{healthScore}/100</Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </TouchableOpacity>
+
         {/* ═══ OVERVIEW CARDS (Liquid Fill) ═══ */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Overview</Text>
@@ -607,7 +798,7 @@ export default function DashboardScreen() {
           )}
         </View>
 
-        <View style={{ height: 120 }} />
+        <View style={{ height: 140 }} />
       </ScrollView>
 
       {/* ═══ FLOATING ACTION BUTTON ═══ */}
@@ -932,6 +1123,122 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingTop: Platform.OS === 'ios' ? 120 : 100,
     paddingHorizontal: 16,
+  },
+
+  // Health Score Card
+  healthScoreCard: {
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 2,
+    marginBottom: 20,
+  },
+  scoreFlipBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  healthScoreFront: {
+    minHeight: 80,
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  scoreRingBox: {
+    width: 90,
+    height: 90,
+    position: 'relative',
+  },
+  scoreCenter: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scoreNum: {
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -1,
+  },
+  scoreOf: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  scoreInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  scoreTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  scoreLabelBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  scoreLabelText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  scoreDesc: {
+    fontSize: 12,
+  },
+  healthScoreBack: {
+    minHeight: 80,
+  },
+  scoreBackTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  scoreBackDesc: {
+    fontSize: 11,
+    marginBottom: 10,
+  },
+  scoreBreakdown: {
+    borderRadius: 10,
+    padding: 10,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  breakdownLabel: {
+    fontSize: 12,
+  },
+  breakdownValue: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  breakdownTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 8,
+    marginTop: 4,
+    borderTopWidth: 1,
+  },
+  breakdownTotalLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  breakdownTotalValue: {
+    fontSize: 16,
+    fontWeight: '800',
   },
 
   // Section
