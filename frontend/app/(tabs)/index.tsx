@@ -1187,15 +1187,15 @@ const styles = StyleSheet.create({
   },
   greetingText: {
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   greetingName: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   monthYear: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12,
+    fontFamily: 'Outfit_500Medium',
     marginTop: 2,
   },
   headerRight: {
