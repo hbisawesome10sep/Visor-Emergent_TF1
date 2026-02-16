@@ -267,7 +267,7 @@ export default function InvestmentsScreen() {
           borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
         }]}>
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: '#F97316' }]}>Investments</Text>
+            <Text style={[styles.headerTitle, { color: isDark ? Neon.orange : '#D97706' }]}>Investments</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Goals & Portfolio Management</Text>
           </View>
           <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={onRefresh}>
