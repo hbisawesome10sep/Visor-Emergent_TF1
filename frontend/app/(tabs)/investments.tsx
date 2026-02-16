@@ -622,18 +622,22 @@ const styles = StyleSheet.create({
 
   // Header
   stickyHeader: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100 },
-  headerBlur: { borderBottomWidth: 1 },
-  headerSafeArea: { paddingHorizontal: 16, paddingBottom: 12 },
-  headerContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingTop: Platform.OS === 'android' ? 8 : 0 },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
   headerLeft: { flex: 1 },
-  gradientTitleBg: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  gradientTitle: { fontSize: 22, fontWeight: '800', color: '#fff' },
-  headerSubtitle: { fontSize: 12, marginTop: 4 },
+  headerTitle: { fontSize: 22, fontWeight: '800' },
+  headerSubtitle: { fontSize: 13, marginTop: 2 },
   refreshBtn: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
 
   // Scroll
   scrollView: { flex: 1 },
-  scrollContent: { paddingTop: Platform.OS === 'ios' ? 120 : 100, paddingHorizontal: 16 },
+  scrollContent: { paddingHorizontal: 16 },
 
   // Section
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
