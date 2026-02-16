@@ -151,22 +151,24 @@ function FlippableCard({ frontContent, backContent, gradientColors, height = 200
   };
 
   const frontAnimatedStyle = useAnimatedStyle(() => {
+    const rotateValue = interpolate(rotation.value, [0, 180], [0, 180]);
     return {
       transform: [
         { perspective: 1000 },
-        { rotateY: `${rotation.value}deg` },
+        { rotateY: `${rotateValue}deg` },
       ],
-      backfaceVisibility: 'hidden',
+      opacity: interpolate(rotation.value, [0, 90, 180], [1, 0, 0]),
     };
   });
 
   const backAnimatedStyle = useAnimatedStyle(() => {
+    const rotateValue = interpolate(rotation.value, [0, 180], [180, 360]);
     return {
       transform: [
         { perspective: 1000 },
-        { rotateY: `${rotation.value + 180}deg` },
+        { rotateY: `${rotateValue}deg` },
       ],
-      backfaceVisibility: 'hidden',
+      opacity: interpolate(rotation.value, [0, 90, 180], [0, 0, 1]),
     };
   });
 
