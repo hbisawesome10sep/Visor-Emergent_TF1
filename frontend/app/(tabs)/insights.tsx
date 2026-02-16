@@ -239,7 +239,7 @@ interface InsightCardProps {
     nationalAverage: string;
     recommended: string;
   };
-  gradientColors: string[];
+  gradientColors: [string, string, ...string[]];
 }
 
 function InsightCard({
