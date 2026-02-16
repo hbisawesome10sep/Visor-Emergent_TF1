@@ -71,18 +71,18 @@ type Goal = {
 
 // Health Score - now uses backend-provided score for consistency
 function getScoreLabel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: 'Excellent', color: '#10B981' };
-  if (score >= 65) return { label: 'Good', color: '#22C55E' };
-  if (score >= 50) return { label: 'Fair', color: '#F59E0B' };
-  if (score >= 35) return { label: 'Needs Work', color: '#F97316' };
-  return { label: 'Critical', color: '#EF4444' };
+  if (score >= 80) return { label: 'Excellent', color: Neon.green };
+  if (score >= 65) return { label: 'Good', color: Neon.cyan };
+  if (score >= 50) return { label: 'Fair', color: Neon.yellow };
+  if (score >= 35) return { label: 'Needs Work', color: Neon.orange };
+  return { label: 'Critical', color: Neon.red };
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 76) return '#10B981';
-  if (score >= 61) return '#22C55E';
-  if (score >= 41) return '#F59E0B';
-  return '#EF4444';
+  if (score >= 76) return Neon.green;
+  if (score >= 61) return Neon.cyan;
+  if (score >= 41) return Neon.yellow;
+  return Neon.red;
 }
 
 export default function DashboardScreen() {
