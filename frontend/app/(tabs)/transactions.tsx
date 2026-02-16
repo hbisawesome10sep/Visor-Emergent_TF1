@@ -1086,7 +1086,7 @@ const styles = StyleSheet.create({
   },
   txnAmount: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
     letterSpacing: -0.3,
   },
 
