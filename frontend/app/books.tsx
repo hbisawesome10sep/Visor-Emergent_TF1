@@ -672,7 +672,7 @@ export default function BooksScreen() {
     },
     headerTitle: {
       fontSize: 24,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.textPrimary,
     },
     headerSubtitle: {
@@ -690,7 +690,7 @@ export default function BooksScreen() {
     },
     exportButtonText: {
       color: '#FFF',
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       marginLeft: 6,
     },
     tabsContainer: {
@@ -717,7 +717,7 @@ export default function BooksScreen() {
     },
     tabText: {
       fontSize: 13,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.textSecondary,
       marginLeft: 6,
     },
@@ -748,7 +748,7 @@ export default function BooksScreen() {
     },
     sectionTitle: {
       fontSize: 16,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.textPrimary,
     },
     sectionSubtitle: {
@@ -774,12 +774,12 @@ export default function BooksScreen() {
     },
     accountGroupTitle: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.textPrimary,
     },
     accountGroupBalance: {
       fontSize: 14,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.primary,
     },
     ledgerTable: {
@@ -796,7 +796,7 @@ export default function BooksScreen() {
     },
     tableHeaderText: {
       fontSize: 11,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.textSecondary,
       textTransform: 'uppercase',
     },
@@ -815,7 +815,7 @@ export default function BooksScreen() {
       color: colors.textPrimary,
     },
     tableCellBold: {
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     // P&L specific styles
     pnlSection: {
@@ -833,12 +833,12 @@ export default function BooksScreen() {
     },
     pnlSectionTitle: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.textPrimary,
     },
     pnlSectionSubtotal: {
       fontSize: 15,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     pnlItem: {
       flexDirection: 'row',
@@ -854,7 +854,7 @@ export default function BooksScreen() {
     },
     pnlItemAmount: {
       fontSize: 13,
-      fontWeight: '500',
+      fontFamily: 'Outfit_500Medium',
       color: colors.textPrimary,
     },
     pnlTotal: {
@@ -870,12 +870,12 @@ export default function BooksScreen() {
     },
     pnlTotalText: {
       fontSize: 15,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.textPrimary,
     },
     pnlTotalAmount: {
       fontSize: 16,
-      fontWeight: '800',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     surplusBox: {
       marginHorizontal: 16,
@@ -886,12 +886,12 @@ export default function BooksScreen() {
     },
     surplusTitle: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       marginBottom: 4,
     },
     surplusAmount: {
       fontSize: 24,
-      fontWeight: '800',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     // Balance Sheet styles
     bsCategory: {
@@ -908,13 +908,13 @@ export default function BooksScreen() {
     },
     bsCategoryTitle: {
       fontSize: 16,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.textPrimary,
       flex: 1,
     },
     bsCategoryTotal: {
       fontSize: 15,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     bsSubSection: {
       marginTop: 8,
@@ -925,7 +925,7 @@ export default function BooksScreen() {
     },
     bsSubTitle: {
       fontSize: 13,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.textSecondary,
       marginBottom: 8,
     },
@@ -940,7 +940,7 @@ export default function BooksScreen() {
     },
     bsItemAmount: {
       fontSize: 13,
-      fontWeight: '500',
+      fontFamily: 'Outfit_500Medium',
       color: colors.textPrimary,
     },
     balanceBadge: {
@@ -954,7 +954,7 @@ export default function BooksScreen() {
     },
     balanceBadgeText: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       marginLeft: 6,
     },
     // Asset styles
@@ -978,7 +978,7 @@ export default function BooksScreen() {
     },
     assetName: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.textPrimary,
     },
     assetCategory: {
@@ -991,7 +991,7 @@ export default function BooksScreen() {
     },
     assetCurrentValue: {
       fontSize: 15,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.textPrimary,
     },
     assetDepreciation: {
@@ -1008,7 +1008,7 @@ export default function BooksScreen() {
     },
     addAssetText: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.primary,
     },
     // Modal styles
@@ -1035,7 +1035,7 @@ export default function BooksScreen() {
     },
     modalTitle: {
       fontSize: 18,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: isDark ? '#F8FAFC' : '#0A0A0B',
     },
     modalBody: {
@@ -1043,7 +1043,7 @@ export default function BooksScreen() {
     },
     inputLabel: {
       fontSize: 13,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: isDark ? '#94A3B8' : '#64748B',
       marginBottom: 8,
       marginTop: 16,
@@ -1081,7 +1081,7 @@ export default function BooksScreen() {
     },
     categoryChipTextActive: {
       color: '#10B981',
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
     },
     saveButton: {
       backgroundColor: colors.primary,
@@ -1093,7 +1093,7 @@ export default function BooksScreen() {
     saveButtonText: {
       color: '#FFF',
       fontSize: 16,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     // Export modal styles
     exportOption: {
@@ -1114,7 +1114,7 @@ export default function BooksScreen() {
     },
     exportOptionTitle: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: isDark ? '#F8FAFC' : '#0A0A0B',
     },
     exportOptionDesc: {
@@ -1145,7 +1145,7 @@ export default function BooksScreen() {
     fyInfoText: {
       fontSize: 13,
       color: colors.primary,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       marginLeft: 8,
     },
     // Date range selector styles
@@ -1173,7 +1173,7 @@ export default function BooksScreen() {
     },
     dateSelectorChipTextActive: {
       color: colors.primary,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
     },
     // Loan styles
     loanCard: {
@@ -1205,7 +1205,7 @@ export default function BooksScreen() {
     },
     loanName: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.textPrimary,
     },
     loanType: {
@@ -1218,7 +1218,7 @@ export default function BooksScreen() {
     },
     loanOutstanding: {
       fontSize: 16,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       color: colors.error,
     },
     loanEMI: {
@@ -1241,7 +1241,7 @@ export default function BooksScreen() {
     },
     loanDetailValue: {
       fontSize: 13,
-      fontWeight: '500',
+      fontFamily: 'Outfit_500Medium',
       color: colors.textPrimary,
     },
     loanActions: {
@@ -1262,7 +1262,7 @@ export default function BooksScreen() {
     },
     loanActionText: {
       fontSize: 13,
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
       color: colors.primary,
       marginLeft: 4,
     },
@@ -1302,7 +1302,7 @@ export default function BooksScreen() {
       color: colors.textPrimary,
     },
     emiCellBold: {
-      fontWeight: '600',
+      fontFamily: 'Outfit_600SemiBold',
     },
   });
 
@@ -1651,8 +1651,8 @@ export default function BooksScreen() {
             ))}
             
             <View style={[styles.bsItem, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
-              <Text style={[styles.bsItemText, { fontWeight: '700' }]}>Total Non-Current Assets</Text>
-              <Text style={[styles.bsItemAmount, { fontWeight: '700', color: '#3B82F6' }]}>
+              <Text style={[styles.bsItemText, { fontFamily: 'SpaceGrotesk_700Bold' }]}>Total Non-Current Assets</Text>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: '#3B82F6' }]}>
                 {formatINRIndian(balanceSheet.assets.non_current.total)}
               </Text>
             </View>
@@ -1681,8 +1681,8 @@ export default function BooksScreen() {
             ))}
             
             <View style={[styles.bsItem, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
-              <Text style={[styles.bsItemText, { fontWeight: '700' }]}>Total Current Assets</Text>
-              <Text style={[styles.bsItemAmount, { fontWeight: '700', color: '#3B82F6' }]}>
+              <Text style={[styles.bsItemText, { fontFamily: 'SpaceGrotesk_700Bold' }]}>Total Current Assets</Text>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: '#3B82F6' }]}>
                 {formatINRIndian(balanceSheet.assets.current.total)}
               </Text>
             </View>
@@ -1820,8 +1820,8 @@ export default function BooksScreen() {
               </Text>
             </View>
             <View style={[styles.bsItem, { borderTopWidth: 2, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
-              <Text style={[styles.bsItemText, { fontWeight: '700' }]}>Closing Net Worth</Text>
-              <Text style={[styles.bsItemAmount, { fontWeight: '700', color: '#10B981' }]}>
+              <Text style={[styles.bsItemText, { fontFamily: 'SpaceGrotesk_700Bold' }]}>Closing Net Worth</Text>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: '#10B981' }]}>
                 {formatINRIndian(balanceSheet.net_worth.closing)}
               </Text>
             </View>

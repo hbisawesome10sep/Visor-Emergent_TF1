@@ -449,7 +449,7 @@ export default function DashboardScreen() {
         {/* Active date range indicator */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8, marginTop: 4 }}>
           <MaterialCommunityIcons name="calendar-range" size={14} color={colors.textSecondary} />
-          <Text style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 6, fontWeight: '500' }}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 6, fontFamily: 'Outfit_500Medium' }}>
             {selectedFrequency === 'Custom' 
               ? `${dateRange.start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${dateRange.end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
               : selectedFrequency === 'Month'
@@ -881,7 +881,7 @@ export default function DashboardScreen() {
                     <Text
                       style={{
                         fontSize: 13,
-                        fontWeight: '600',
+                        fontFamily: 'Outfit_600SemiBold',
                         color: txnForm.type === t ? '#fff' : colors.textSecondary,
                       }}
                     >
@@ -1094,8 +1094,8 @@ export default function DashboardScreen() {
                 }]}
                 onPress={() => setActivePickerField('start')}
               >
-                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 }}>FROM</Text>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary }}>
+                <Text style={{ fontSize: 11, fontFamily: 'Outfit_600SemiBold', color: colors.textSecondary, marginBottom: 4 }}>FROM</Text>
+                <Text style={{ fontSize: 16, fontFamily: 'SpaceGrotesk_700Bold', color: colors.textPrimary }}>
                   {customStartDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </Text>
               </TouchableOpacity>
@@ -1112,8 +1112,8 @@ export default function DashboardScreen() {
                 }]}
                 onPress={() => setActivePickerField('end')}
               >
-                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 }}>TO</Text>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary }}>
+                <Text style={{ fontSize: 11, fontFamily: 'Outfit_600SemiBold', color: colors.textSecondary, marginBottom: 4 }}>TO</Text>
+                <Text style={{ fontSize: 16, fontFamily: 'SpaceGrotesk_700Bold', color: colors.textPrimary }}>
                   {customEndDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </Text>
               </TouchableOpacity>
@@ -1215,7 +1215,7 @@ const styles = StyleSheet.create({
   },
   freqText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   themeBtn: {
     width: 36,
@@ -1289,7 +1289,7 @@ const styles = StyleSheet.create({
   },
   scoreTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   scoreLabelBadge: {
     alignSelf: 'flex-start',
@@ -1299,7 +1299,7 @@ const styles = StyleSheet.create({
   },
   scoreLabelText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   scoreDesc: {
     fontSize: 12,
@@ -1309,7 +1309,7 @@ const styles = StyleSheet.create({
   },
   scoreBackTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
     marginBottom: 2,
   },
   scoreBackDesc: {
@@ -1331,7 +1331,7 @@ const styles = StyleSheet.create({
   },
   breakdownValue: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   breakdownTotal: {
     flexDirection: 'row',
@@ -1343,11 +1343,11 @@ const styles = StyleSheet.create({
   },
   breakdownTotalLabel: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   breakdownTotalValue: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 
   // Section
@@ -1419,11 +1419,11 @@ const styles = StyleSheet.create({
   legendCat: {
     flex: 1,
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
   },
   legendAmt: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
 
   // Transactions
@@ -1445,7 +1445,7 @@ const styles = StyleSheet.create({
   },
   txnTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   txnMeta: {
     fontSize: 12,
@@ -1463,7 +1463,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
     marginTop: 12,
   },
   emptySubtitle: {
@@ -1480,7 +1480,7 @@ const styles = StyleSheet.create({
   emptyBtnText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   goalCard: {
     padding: 14,
@@ -1504,7 +1504,7 @@ const styles = StyleSheet.create({
   },
   goalTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   goalCategory: {
     fontSize: 12,
@@ -1512,7 +1512,7 @@ const styles = StyleSheet.create({
   },
   goalPercent: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   goalBarTrack: {
     height: 4,
@@ -1531,7 +1531,7 @@ const styles = StyleSheet.create({
   },
   goalAmounts: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
   },
   goalRemaining: {
     fontSize: 12,
@@ -1568,7 +1568,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   typeRow: {
     flexDirection: 'row',
@@ -1596,12 +1596,12 @@ const styles = StyleSheet.create({
   },
   rupeeSymbol: {
     fontSize: 24,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   amountInput: {
     flex: 1,
     fontSize: 28,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
     paddingHorizontal: 8,
     height: '100%',
   },
@@ -1633,6 +1633,6 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: '#fff',
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 });

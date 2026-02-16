@@ -670,7 +670,7 @@ export default function TransactionsScreen() {
                           }]}
                           onPress={() => setForm(p => ({ ...p, recurring_frequency: freq }))}
                         >
-                          <Text style={{ fontSize: 12, fontWeight: '600', color: form.recurring_frequency === freq ? '#fff' : colors.textSecondary }}>
+                          <Text style={{ fontSize: 12, fontFamily: 'Outfit_600SemiBold', color: form.recurring_frequency === freq ? '#fff' : colors.textSecondary }}>
                             {freq}
                           </Text>
                         </TouchableOpacity>
@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
   },
   filterPillText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   categoryChipsRow: {
     flexDirection: 'row',
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
   },
   clearFiltersBtn: {
     flexDirection: 'row',
@@ -892,7 +892,7 @@ const styles = StyleSheet.create({
   },
   clearFiltersText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
     color: '#9333EA',
   },
 
@@ -911,7 +911,7 @@ const styles = StyleSheet.create({
   },
   summaryAmount: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   summaryLabel: {
     fontSize: 11,
@@ -973,7 +973,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -997,7 +997,7 @@ const styles = StyleSheet.create({
   emptyAddText: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   clearFiltersLargeBtn: {
     paddingHorizontal: 20,
@@ -1007,7 +1007,7 @@ const styles = StyleSheet.create({
   },
   clearFiltersLargeText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
     color: '#9333EA',
   },
 
@@ -1022,7 +1022,7 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   dateCount: {
     fontSize: 12,
@@ -1051,7 +1051,7 @@ const styles = StyleSheet.create({
   },
   txnTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   txnMetaRow: {
     flexDirection: 'row',
@@ -1079,7 +1079,7 @@ const styles = StyleSheet.create({
   },
   txnBadgeText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   txnAmountWrap: {
     alignItems: 'flex-end',
@@ -1144,7 +1144,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 
   // Type Selector
@@ -1165,13 +1165,13 @@ const styles = StyleSheet.create({
   },
   typeBtnText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 
   // Form Fields
   fieldLabel: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -1201,12 +1201,12 @@ const styles = StyleSheet.create({
   },
   rupeeSymbol: {
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   amountInput: {
     flex: 1,
     fontSize: 30,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
     paddingHorizontal: 8,
     height: '100%',
   },
@@ -1229,7 +1229,7 @@ const styles = StyleSheet.create({
   },
   categoryOptionText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
   },
 
   // Toggle Cards
@@ -1256,7 +1256,7 @@ const styles = StyleSheet.create({
   },
   toggleTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   toggleDesc: {
     fontSize: 12,
@@ -1301,13 +1301,13 @@ const styles = StyleSheet.create({
   },
   splitCount: {
     fontSize: 18,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
     minWidth: 28,
     textAlign: 'center',
   },
   splitResult: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 
   // Submit Button
@@ -1326,7 +1326,7 @@ const styles = StyleSheet.create({
   submitText: {
     color: '#fff',
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
 
   // Delete Button
@@ -1342,6 +1342,6 @@ const styles = StyleSheet.create({
   },
   deleteBtnText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
 });
