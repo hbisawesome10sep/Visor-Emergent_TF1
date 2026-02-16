@@ -356,7 +356,7 @@ export default function TransactionsScreen() {
 
         {/* ═══ SUMMARY BAR ═══ */}
         <View style={[styles.summaryBar, {
-          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.95)',
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
         }]}>
           <View style={styles.summaryItem}>
