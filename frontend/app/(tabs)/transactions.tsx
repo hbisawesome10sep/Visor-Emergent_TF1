@@ -220,79 +220,66 @@ export default function TransactionsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      {/* ═══ GLASS HEADER ═══ */}
-      <View style={styles.stickyHeader}>
-        <BlurView
-          intensity={isDark ? 50 : 70}
-          tint={isDark ? 'dark' : 'light'}
+      {/* Clean Header */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top }]}>
+        <View
           style={[
-            styles.headerBlur,
+            styles.headerContent,
             {
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(255, 255, 255, 0.75)',
+              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
               borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
             },
           ]}
         >
-          <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-            <View style={styles.headerContent}>
-              <View style={styles.headerLeft}>
-                <LinearGradient
-                  colors={['#9333EA', '#EC4899']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.gradientTitleBg}
-                >
-                  <Text style={styles.gradientTitle}>Transactions</Text>
-                </LinearGradient>
-                <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                  Track and manage your finances
-                </Text>
-              </View>
-              <View style={styles.headerActions}>
-                <TouchableOpacity
-                  style={[styles.headerIconBtn, {
-                    backgroundColor: showSearch ? 'rgba(147, 51, 234, 0.15)' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                  }]}
-                  onPress={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
-                >
-                  <MaterialCommunityIcons
-                    name={showSearch ? 'close' : 'magnify'}
-                    size={20}
-                    color={showSearch ? '#9333EA' : colors.textSecondary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.headerTitle, { color: '#9333EA' }]}>Transactions</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              Track and manage your finances
+            </Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.headerIconBtn, {
+                backgroundColor: showSearch ? 'rgba(147, 51, 234, 0.15)' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+              }]}
+              onPress={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
+            >
+              <MaterialCommunityIcons
+                name={showSearch ? 'close' : 'magnify'}
+                size={20}
+                color={showSearch ? '#9333EA' : colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-            {/* Search Bar */}
-            {showSearch && (
-              <View style={[styles.searchBar, {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-              }]}>
-                <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
-                <TextInput
-                  style={[styles.searchInput, { color: colors.textPrimary }]}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  placeholder="Search transactions..."
-                  placeholderTextColor={colors.textSecondary}
-                  autoFocus
-                />
-                {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <MaterialCommunityIcons name="close-circle" size={18} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                )}
-              </View>
+        {/* Search Bar */}
+        {showSearch && (
+          <View style={[styles.searchBar, {
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+          }]}>
+            <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.textPrimary }]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search transactions..."
+              placeholderTextColor={colors.textSecondary}
+              autoFocus
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <MaterialCommunityIcons name="close-circle" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
             )}
-          </SafeAreaView>
-        </BlurView>
+          </View>
+        )}
       </View>
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + (showSearch ? 50 : 0) + 16 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         showsVerticalScrollIndicator={false}
       >
