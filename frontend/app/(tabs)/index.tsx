@@ -1048,7 +1048,7 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      {/* ═══ CUSTOM DATE RANGE MODAL ═══ */}
+      {/* ═══ CUSTOM DATE RANGE MODAL with Calendar Picker ═══ */}
       <Modal visible={showDatePicker} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.surface, paddingBottom: 30 }]}>
@@ -1063,49 +1063,77 @@ export default function DashboardScreen() {
             </View>
 
             {userCreatedAt ? (
-              <Text style={{ fontSize: 12, color: colors.textSecondary, paddingHorizontal: 4, marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, paddingHorizontal: 20, marginBottom: 12 }}>
                 Account created: {new Date(userCreatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </Text>
             ) : null}
 
-            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 8 }}>
-              From Date
-            </Text>
-            <TextInput
-              style={[styles.descInput, {
-                borderColor: colors.border,
-                backgroundColor: colors.background,
-                color: colors.textPrimary,
-                marginBottom: 12,
-              }]}
-              value={customStartInput}
-              onChangeText={setCustomStartInput}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textSecondary}
-            />
+            {/* Date Field Selectors */}
+            <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 12, marginBottom: 16 }}>
+              <TouchableOpacity
+                style={[{
+                  flex: 1, padding: 14, borderRadius: 12, borderWidth: 2,
+                  borderColor: activePickerField === 'start' ? colors.primary : colors.border,
+                  backgroundColor: activePickerField === 'start' ? (colors.primary + '10') : colors.background,
+                }]}
+                onPress={() => setActivePickerField('start')}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 }}>FROM</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary }}>
+                  {customStartDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </Text>
+              </TouchableOpacity>
+              
+              <View style={{ justifyContent: 'center' }}>
+                <MaterialCommunityIcons name="arrow-right" size={20} color={colors.textSecondary} />
+              </View>
+              
+              <TouchableOpacity
+                style={[{
+                  flex: 1, padding: 14, borderRadius: 12, borderWidth: 2,
+                  borderColor: activePickerField === 'end' ? colors.primary : colors.border,
+                  backgroundColor: activePickerField === 'end' ? (colors.primary + '10') : colors.background,
+                }]}
+                onPress={() => setActivePickerField('end')}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 }}>TO</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary }}>
+                  {customEndDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 8 }}>
-              To Date
-            </Text>
-            <TextInput
-              style={[styles.descInput, {
-                borderColor: colors.border,
-                backgroundColor: colors.background,
-                color: colors.textPrimary,
-                marginBottom: 20,
-              }]}
-              value={customEndInput}
-              onChangeText={setCustomEndInput}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textSecondary}
-            />
+            {/* Calendar DateTimePicker */}
+            <View style={{ alignItems: 'center', marginBottom: 16, backgroundColor: isDark ? colors.background : '#F8FAFC', marginHorizontal: 20, borderRadius: 12, padding: 8 }}>
+              <DateTimePicker
+                value={activePickerField === 'start' ? customStartDate : customEndDate}
+                mode="date"
+                display="spinner"
+                minimumDate={userCreatedAt ? new Date(userCreatedAt) : new Date(2020, 0, 1)}
+                maximumDate={new Date()}
+                onChange={(event: any, date?: Date) => {
+                  if (date) {
+                    if (activePickerField === 'start') {
+                      setCustomStartDate(date);
+                    } else {
+                      setCustomEndDate(date);
+                    }
+                  }
+                }}
+                themeVariant={isDark ? 'dark' : 'light'}
+                style={{ width: '100%', height: 150 }}
+              />
+            </View>
 
-            <TouchableOpacity
-              style={[styles.saveBtn, { backgroundColor: colors.primary }]}
-              onPress={handleApplyCustomRange}
-            >
-              <Text style={styles.saveBtnText}>Apply Date Range</Text>
-            </TouchableOpacity>
+            <View style={{ paddingHorizontal: 20 }}>
+              <TouchableOpacity
+                style={[styles.saveBtn, { backgroundColor: colors.primary }]}
+                onPress={handleApplyCustomRange}
+              >
+                <MaterialCommunityIcons name="check" size={20} color="#FFF" />
+                <Text style={[styles.saveBtnText, { marginLeft: 8 }]}>Apply Date Range</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
