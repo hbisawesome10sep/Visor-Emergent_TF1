@@ -19,29 +19,19 @@ type Props = {
 };
 
 export default function LiquidFillCard({
-  title,
-  amount,
-  percentChange,
-  fillPercent,
-  gradient,
-  icon,
-  onPress,
-  colors,
-  isDark,
+  title, amount, percentChange, fillPercent, gradient, icon, onPress, colors, isDark,
 }: Props) {
   const fillAnim = useRef(new Animated.Value(0)).current;
   const waveAnim = useRef(new Animated.Value(0)).current;
   const bubbleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fill animation
     Animated.timing(fillAnim, {
       toValue: Math.min(Math.max(fillPercent, 0), 100),
       duration: 1500,
       useNativeDriver: false,
     }).start();
 
-    // Wave animation loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(waveAnim, { toValue: 1, duration: 3000, useNativeDriver: true }),
@@ -49,7 +39,6 @@ export default function LiquidFillCard({
       ])
     ).start();
 
-    // Bubble animation loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(bubbleAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
@@ -78,9 +67,20 @@ export default function LiquidFillCard({
     outputRange: [0.6, 0.3, 0],
   });
 
+  // Neon glow color derived from first gradient color
+  const glowColor = gradient[0];
+
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[
+        styles.card,
+        {
+          shadowColor: isDark ? glowColor : '#000',
+          shadowOpacity: isDark ? 0.5 : 0.15,
+          shadowRadius: isDark ? 16 : 10,
+          borderColor: isDark ? `${glowColor}30` : 'rgba(0,0,0,0.06)',
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.95}
       disabled={!onPress}
@@ -91,63 +91,34 @@ export default function LiquidFillCard({
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        {/* Animated liquid fill background */}
+        {/* Liquid fill animation */}
         <View style={styles.liquidContainer}>
           <Animated.View
-            style={[
-              styles.liquidFill,
-              {
-                height: fillHeight,
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              },
-            ]}
+            style={[styles.liquidFill, { height: fillHeight, backgroundColor: 'rgba(255, 255, 255, 0.12)' }]}
           >
-            {/* Wave effect */}
-            <Animated.View
-              style={[
-                styles.wave,
-                {
-                  transform: [{ translateX: waveTranslateX }],
-                },
-              ]}
-            />
+            <Animated.View style={[styles.wave, { transform: [{ translateX: waveTranslateX }] }]} />
           </Animated.View>
-
-          {/* Bubble particles */}
           <Animated.View
-            style={[
-              styles.bubble,
-              {
-                transform: [{ translateY: bubbleTranslateY }],
-                opacity: bubbleOpacity,
-              },
-            ]}
+            style={[styles.bubble, { transform: [{ translateY: bubbleTranslateY }], opacity: bubbleOpacity }]}
           />
           <Animated.View
-            style={[
-              styles.bubble,
-              styles.bubble2,
-              {
-                transform: [{ translateY: bubbleTranslateY }],
-                opacity: bubbleOpacity,
-              },
-            ]}
+            style={[styles.bubble, styles.bubble2, { transform: [{ translateY: bubbleTranslateY }], opacity: bubbleOpacity }]}
           />
         </View>
 
         {/* Content */}
         <View style={styles.content}>
           <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name={icon} size={20} color="rgba(255,255,255,0.9)" />
+            <MaterialCommunityIcons name={icon} size={18} color="rgba(255,255,255,0.95)" />
           </View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.amount}>{amount}</Text>
           {percentChange !== undefined && (
             <View style={styles.changeRow}>
               <MaterialCommunityIcons
-                name={percentChange >= 0 ? 'arrow-up' : 'arrow-down'}
+                name={percentChange >= 0 ? 'trending-up' : 'trending-down'}
                 size={14}
-                color="rgba(255,255,255,0.85)"
+                color="rgba(255,255,255,0.9)"
               />
               <Text style={styles.changeText}>
                 {Math.abs(percentChange).toFixed(1)}%
@@ -167,13 +138,9 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
+    borderWidth: 1,
   },
   gradient: {
     flex: 1,
@@ -195,7 +162,7 @@ const styles = StyleSheet.create({
     left: -20,
     right: -20,
     height: 16,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 8,
   },
   bubble: {
@@ -220,40 +187,34 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
+    fontSize: 11,
     color: 'rgba(255,255,255,0.85)',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    letterSpacing: 0.8,
   },
   amount: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 20,
     color: '#fff',
     letterSpacing: -0.5,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   changeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
   },
   changeText: {
+    fontFamily: 'SpaceGrotesk_600SemiBold',
     fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(255,255,255,0.9)',
   },
 });
