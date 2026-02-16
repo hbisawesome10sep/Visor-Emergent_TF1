@@ -221,18 +221,18 @@ export default function TransactionsScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Clean Header */}
-      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
         <View
           style={[
             styles.headerContent,
             {
-              backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
-              borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+              backgroundColor: isDark ? '#000000' : '#FFFFFF',
+              borderBottomColor: isDark ? '#18181B' : '#E4E4E7',
             },
           ]}
         >
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: '#9333EA' }]}>Transactions</Text>
+            <Text style={[styles.headerTitle, { color: isDark ? Neon.purple : '#7C3AED' }]}>Transactions</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               Track and manage your finances
             </Text>
