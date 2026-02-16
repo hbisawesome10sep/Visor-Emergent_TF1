@@ -2073,12 +2073,12 @@ export default function BooksScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Export Report</Text>
               <TouchableOpacity onPress={() => setShowExportModal(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={colors.text} />
+                <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
               </TouchableOpacity>
             </View>
             
             <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
-              <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 16 }}>
+              <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', marginBottom: 16 }}>
                 Export your {activeTab === 'ledger' ? 'General Ledger' : activeTab === 'pnl' ? 'Profit & Loss Statement' : 'Balance Sheet'} in your preferred format
               </Text>
             </View>
@@ -2091,7 +2091,7 @@ export default function BooksScreen() {
                 <Text style={styles.exportOptionTitle}>CSV Format</Text>
                 <Text style={styles.exportOptionDesc}>Comma-separated values for spreadsheets</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('excel')} disabled={exporting}>
@@ -2102,7 +2102,7 @@ export default function BooksScreen() {
                 <Text style={styles.exportOptionTitle}>Excel Format</Text>
                 <Text style={styles.exportOptionDesc}>Formatted .xlsx workbook with styling</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('pdf')} disabled={exporting}>
@@ -2113,7 +2113,7 @@ export default function BooksScreen() {
                 <Text style={styles.exportOptionTitle}>PDF Format</Text>
                 <Text style={styles.exportOptionDesc}>Professional report for printing & sharing</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('json')} disabled={exporting}>
@@ -2124,13 +2124,13 @@ export default function BooksScreen() {
                 <Text style={styles.exportOptionTitle}>JSON Format</Text>
                 <Text style={styles.exportOptionDesc}>Structured data for developers & APIs</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
             </TouchableOpacity>
             
             {exporting && (
               <View style={{ padding: 20, alignItems: 'center' }}>
                 <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={{ marginTop: 12, color: colors.textSecondary }}>Generating report...</Text>
+                <Text style={{ marginTop: 12, color: isDark ? '#94A3B8' : '#64748B' }}>Generating report...</Text>
               </View>
             )}
             
