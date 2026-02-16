@@ -478,7 +478,7 @@ export default function InsightsScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color=Neon.green />
+          <ActivityIndicator size="large" color={Neon.green} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Analyzing your finances...
           </Text>
@@ -512,7 +512,7 @@ export default function InsightsScreen() {
             style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
             onPress={onRefresh}
           >
-            <MaterialCommunityIcons name="refresh" size={20} color=Neon.green />
+            <MaterialCommunityIcons name="refresh" size={20} color={Neon.green} />
           </TouchableOpacity>
         </View>
       </View>
@@ -520,7 +520,7 @@ export default function InsightsScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 16 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor=Neon.green />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Neon.green} />}
         showsVerticalScrollIndicator={false}
       >
         {/* ═══ FINANCIAL HEALTH SCORE ═══ */}

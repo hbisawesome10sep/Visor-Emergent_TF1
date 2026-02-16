@@ -483,7 +483,7 @@ export default function TransactionsScreen() {
                         )}
                         {txn.is_split && txn.split_count && txn.split_count > 1 && (
                           <View style={[styles.txnBadge, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                            <MaterialCommunityIcons name="account-multiple" size={10} color=Neon.yellow />
+                            <MaterialCommunityIcons name="account-multiple" size={10} color={Neon.yellow} />
                             <Text style={[styles.txnBadgeText, { color: Neon.yellow }]}>Split ×{txn.split_count}</Text>
                           </View>
                         )}
@@ -683,7 +683,7 @@ export default function TransactionsScreen() {
                 <View style={[styles.toggleCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
                   <View style={styles.toggleRow}>
                     <View style={[styles.toggleIcon, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                      <MaterialCommunityIcons name="account-multiple" size={20} color=Neon.yellow />
+                      <MaterialCommunityIcons name="account-multiple" size={20} color={Neon.yellow} />
                     </View>
                     <View style={styles.toggleInfo}>
                       <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Split with others</Text>

@@ -371,7 +371,7 @@ export default function InvestmentsScreen() {
           <View style={styles.portfolioHeader}>
             <Text style={[styles.portfolioLabel, { color: colors.textSecondary }]}>Total Portfolio Value</Text>
             <View style={[styles.changeBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-              <MaterialCommunityIcons name="arrow-up" size={14} color=Neon.green />
+              <MaterialCommunityIcons name="arrow-up" size={14} color={Neon.green} />
               <Text style={[styles.changeText, { color: Neon.green }]}>+3.99%</Text>
             </View>
           </View>
