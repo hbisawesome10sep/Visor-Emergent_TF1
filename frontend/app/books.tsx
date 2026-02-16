@@ -1854,7 +1854,7 @@ export default function BooksScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
           </TouchableOpacity>
           <View style={{ flex: 1, marginLeft: 16 }}>
             <Text style={styles.headerTitle}>Books & Reports</Text>
