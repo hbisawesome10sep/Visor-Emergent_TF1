@@ -783,33 +783,24 @@ const styles = StyleSheet.create({
   headerBlur: {
     borderBottomWidth: 1,
   },
-  headerSafeArea: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingTop: Platform.OS === 'android' ? 8 : 0,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   },
   headerLeft: {
     flex: 1,
   },
-  gradientTitleBg: {
-    alignSelf: 'flex-start',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  gradientTitle: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 22,
     fontWeight: '800',
-    color: '#fff',
   },
   headerSubtitle: {
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 2,
   },
   headerActions: {
     flexDirection: 'row',
@@ -825,7 +816,8 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
     paddingHorizontal: 14,
     height: 44,
     borderRadius: 12,
@@ -843,7 +835,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: Platform.OS === 'ios' ? 130 : 110,
+    paddingBottom: 100,
   },
 
   // Filters
