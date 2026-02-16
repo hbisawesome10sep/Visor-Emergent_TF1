@@ -61,8 +61,8 @@ export default function FAB({ actions, colors, isDark }: Props) {
               activeOpacity={0.9}
             >
               <View style={[styles.labelBox, {
-                backgroundColor: isDark ? 'rgba(30,41,59,0.95)' : 'rgba(255,255,255,0.95)',
-                borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+                backgroundColor: isDark ? 'rgba(10,10,11,0.95)' : 'rgba(255,255,255,0.95)',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
               }]}>
                 <Text style={[styles.labelText, { color: colors.textPrimary }]}>
                   {action.label}
