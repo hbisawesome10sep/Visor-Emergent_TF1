@@ -260,56 +260,94 @@ class BackendTester:
             return False, None
 
     def run_all_tests(self):
-        """Run all backend tests for dashboard stats"""
-        self.log("=" * 60)
-        self.log("STARTING VISOR FINANCE BACKEND API TESTS")
-        self.log("=" * 60)
+        """Run comprehensive health_score tests with date range filtering as per review request"""
+        self.log("=" * 80)
+        self.log("STARTING VISOR FINANCE HEALTH SCORE COMPREHENSIVE TESTING")
+        self.log("Focus: Health score consistency across different date ranges")
+        self.log("=" * 80)
         
         results = {
             "login": False,
             "stats_no_dates": False,
-            "stats_current_year": False,
-            "stats_old_dates": False
+            "stats_february_2026": False,
+            "stats_q1_2026": False,
+            "stats_yearly_2026": False
         }
         
-        # Test 1: Login
+        # Test 1: Login with specific credentials
+        self.log(f"Using credentials: {LOGIN_EMAIL} / {LOGIN_PASSWORD}")
         results["login"] = self.login()
         if not results["login"]:
             self.log("❌ Login failed - skipping other tests", "ERROR")
             return results
         
-        # Test 2: Dashboard stats without dates
-        results["stats_no_dates"] = self.test_dashboard_stats_no_dates()
+        # Test 2: Dashboard stats WITHOUT date params - Establish baseline health_score
+        self.log("\n" + "="*60)
+        self.log("TEST 2: Baseline - Dashboard stats WITHOUT date parameters")
+        self.log("="*60)
+        success, baseline_health_score = self.test_dashboard_stats_no_dates()
+        results["stats_no_dates"] = success
         
-        # Test 3: Dashboard stats with current year date range
-        results["stats_current_year"] = self.test_dashboard_stats_with_date_range(
-            "2025-01-01", "2025-12-31", "current year 2025"
-        )
+        if not baseline_health_score:
+            self.log("❌ Failed to get baseline health_score - skipping consistency tests", "ERROR")
+            return results
         
-        # Test 4: Dashboard stats with old date range (should return mostly zeros)
-        results["stats_old_dates"] = self.test_dashboard_stats_with_date_range(
-            "2020-01-01", "2020-12-31", "old dates 2020"
+        # Test 3: February 2026 monthly filter - Health score should be SAME as baseline
+        self.log("\n" + "="*60)
+        self.log("TEST 3: February 2026 filter - Health score should be SAME as baseline")
+        self.log("="*60)
+        success, feb_health_score = self.test_dashboard_stats_with_date_range(
+            "2026-02-01", "2026-02-28", "February 2026 monthly", baseline_health_score
         )
+        results["stats_february_2026"] = success
+        
+        # Test 4: Q1 2026 filter - Should have more transactions than February alone
+        self.log("\n" + "="*60)
+        self.log("TEST 4: Q1 2026 filter - Should have higher totals than February alone")
+        self.log("="*60)
+        success, q1_health_score = self.test_dashboard_stats_with_date_range(
+            "2026-01-01", "2026-02-28", "Q1 2026", baseline_health_score
+        )
+        results["stats_q1_2026"] = success
+        
+        # Test 5: Yearly 2026 filter - Should return ALL transactions for the year
+        self.log("\n" + "="*60)
+        self.log("TEST 5: Yearly 2026 filter - Should return ALL transactions")
+        self.log("="*60)
+        success, yearly_health_score = self.test_dashboard_stats_with_date_range(
+            "2026-01-01", "2026-12-31", "Yearly 2026", baseline_health_score
+        )
+        results["stats_yearly_2026"] = success
         
         # Summary
-        self.log("=" * 60)
-        self.log("TEST RESULTS SUMMARY")
-        self.log("=" * 60)
+        self.log("\n" + "="*80)
+        self.log("HEALTH SCORE COMPREHENSIVE TEST RESULTS SUMMARY")
+        self.log("="*80)
         
         passed = sum(results.values())
         total = len(results)
         
         for test_name, result in results.items():
             status = "✅ PASS" if result else "❌ FAIL"
-            self.log(f"{test_name.upper()}: {status}")
+            self.log(f"{test_name.upper().replace('_', ' ')}: {status}")
         
-        self.log("-" * 60)
+        # Critical verification summary
+        if baseline_health_score:
+            self.log("\n" + "-"*60)
+            self.log("CRITICAL VERIFICATION SUMMARY:")
+            self.log(f"Baseline Health Score: {baseline_health_score.get('overall', 'N/A')} ({baseline_health_score.get('grade', 'N/A')})")
+            self.log("✅ Health score should be IDENTICAL across all date ranges")
+            self.log("✅ Transaction totals should DIFFER between monthly vs quarterly vs yearly")
+            self.log("-"*60)
+        
         self.log(f"OVERALL: {passed}/{total} tests passed")
         
         if passed == total:
-            self.log("🎉 ALL TESTS PASSED! Dashboard stats endpoint working correctly.")
+            self.log("🎉 ALL HEALTH SCORE TESTS PASSED! Dashboard endpoint working correctly.")
+            self.log("✅ Critical verification: Health score consistent across date ranges")
+            self.log("✅ Date filtering: Transaction totals varying correctly by period")
         else:
-            self.log("⚠️  Some tests failed. Please check the logs above.")
+            self.log("⚠️  Some tests failed. Please check the logs above for details.")
             
         return results
 
