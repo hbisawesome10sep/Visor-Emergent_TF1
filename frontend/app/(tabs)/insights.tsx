@@ -468,8 +468,8 @@ export default function InsightsScreen() {
         recommended: '20%+',
       },
       gradientColors: isDark 
-        ? ['rgba(16, 185, 129, 0.3)', 'rgba(5, 150, 105, 0.2)']
-        : ['rgba(16, 185, 129, 0.15)', 'rgba(209, 250, 229, 0.3)'],
+        ? ['rgba(16, 185, 129, 0.5)', 'rgba(5, 150, 105, 0.4)']
+        : ['rgba(16, 185, 129, 0.6)', 'rgba(5, 150, 105, 0.4)'],
     },
     {
       icon: 'credit-card-check',
