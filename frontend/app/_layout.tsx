@@ -1,7 +1,7 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
 import {
   useFonts,
   SpaceGrotesk_400Regular,
@@ -37,7 +37,7 @@ function InnerLayout() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     SpaceGrotesk_400Regular,
     SpaceGrotesk_500Medium,
     SpaceGrotesk_600SemiBold,
@@ -49,17 +49,29 @@ export default function RootLayout() {
     Outfit_800ExtraBold,
   });
 
+  // On web, inject Google Fonts via CSS as a fallback
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const link = document.createElement('link');
+      link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+  }, []);
+
+  const isReady = fontsLoaded || fontError || Platform.OS === 'web';
+
   const onLayoutReady = useCallback(async () => {
-    if (fontsLoaded) {
+    if (isReady) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [isReady]);
 
   useEffect(() => {
     onLayoutReady();
   }, [onLayoutReady]);
 
-  if (!fontsLoaded) {
+  if (!isReady) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
         <ActivityIndicator size="large" color="#00FFD1" />
