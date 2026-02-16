@@ -508,8 +508,8 @@ export default function InsightsScreen() {
         recommended: '20-25%',
       },
       gradientColors: isDark
-        ? ['rgba(139, 92, 246, 0.3)', 'rgba(109, 40, 217, 0.2)']
-        : ['rgba(139, 92, 246, 0.15)', 'rgba(237, 233, 254, 0.3)'],
+        ? ['rgba(139, 92, 246, 0.5)', 'rgba(109, 40, 217, 0.4)']
+        : ['rgba(139, 92, 246, 0.6)', 'rgba(109, 40, 217, 0.4)'],
     },
     {
       icon: 'wallet-outline',
