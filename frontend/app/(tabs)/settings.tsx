@@ -667,12 +667,12 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: '700' },
 
   // Profile Banner
-  profileBanner: { borderRadius: 16, padding: 16, marginBottom: 20 },
+  profileBanner: { borderRadius: 16, padding: 16, marginBottom: 16 },
   profileLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 14 },
-  avatarLarge: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
-  avatarText: { color: '#fff', fontSize: 24, fontWeight: '800' },
+  avatarLarge: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
+  avatarText: { color: '#fff', fontSize: 22, fontWeight: '800' },
   profileInfo: { flex: 1 },
-  profileName: { fontSize: 18, fontWeight: '700' },
+  profileName: { fontSize: 17, fontWeight: '700' },
   profileEmail: { fontSize: 13, marginTop: 2 },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginTop: 6 },
   verifiedText: { fontSize: 11, fontWeight: '600', color: '#10B981' },
