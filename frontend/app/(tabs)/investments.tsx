@@ -81,6 +81,8 @@ type DashboardStats = {
 export default function InvestmentsScreen() {
   const { token } = useAuth();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  const HEADER_HEIGHT = 70 + insets.top;
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
