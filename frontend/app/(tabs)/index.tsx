@@ -116,6 +116,7 @@ export default function DashboardScreen() {
   const { user, token } = useAuth();
   const { colors, isDark, setThemeMode } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -128,6 +129,9 @@ export default function DashboardScreen() {
   const [txnForm, setTxnForm] = useState({ type: 'expense', amount: '', category: '', description: '', date: '' });
   const [goalForm, setGoalForm] = useState({ title: '', target_amount: '', category: 'Safety' });
   const [saving, setSaving] = useState(false);
+  
+  // Calculate header height dynamically based on safe area
+  const HEADER_HEIGHT = 70 + insets.top;
   const [showScoreBack, setShowScoreBack] = useState(false);
   
   // Date range state
