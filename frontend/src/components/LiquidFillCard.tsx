@@ -75,10 +75,10 @@ export default function LiquidFillCard({
       style={[
         styles.card,
         {
-          shadowColor: isDark ? glowColor : '#000',
-          shadowOpacity: isDark ? 0.5 : 0.15,
-          shadowRadius: isDark ? 16 : 10,
-          borderColor: isDark ? `${glowColor}30` : 'rgba(0,0,0,0.06)',
+          shadowColor: isDark ? '#000' : '#000',
+          shadowOpacity: isDark ? 0.4 : 0.12,
+          shadowRadius: isDark ? 12 : 8,
+          borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
         },
       ]}
       onPress={onPress}
