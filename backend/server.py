@@ -738,6 +738,179 @@ async def delete_fixed_asset(asset_id: str, user=Depends(get_current_user)):
     return {"message": "Asset deleted"}
 
 # ══════════════════════════════════════
+#  LOAN/LIABILITY ENDPOINTS
+# ══════════════════════════════════════
+
+def calculate_emi(principal: float, annual_rate: float, tenure_months: int) -> float:
+    """Calculate EMI using standard formula"""
+    if annual_rate == 0:
+        return principal / tenure_months
+    monthly_rate = annual_rate / 12 / 100
+    emi = principal * monthly_rate * ((1 + monthly_rate) ** tenure_months) / (((1 + monthly_rate) ** tenure_months) - 1)
+    return round(emi, 2)
+
+def generate_emi_schedule(principal: float, annual_rate: float, tenure_months: int, start_date: str, emi: float) -> List[dict]:
+    """Generate complete EMI amortization schedule"""
+    schedule = []
+    balance = principal
+    monthly_rate = annual_rate / 12 / 100 if annual_rate > 0 else 0
+    
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    today = datetime.now()
+    
+    for month in range(1, tenure_months + 1):
+        payment_date = start + timedelta(days=30 * month)
+        
+        interest = balance * monthly_rate
+        principal_component = emi - interest
+        closing_balance = max(0, balance - principal_component)
+        
+        # Determine status
+        if payment_date < today:
+            status = "paid"
+        elif payment_date.month == today.month and payment_date.year == today.year:
+            status = "current"
+        else:
+            status = "upcoming"
+        
+        schedule.append({
+            "month": month,
+            "date": payment_date.strftime("%Y-%m-%d"),
+            "opening_balance": round(balance, 2),
+            "emi": emi,
+            "principal": round(principal_component, 2),
+            "interest": round(interest, 2),
+            "closing_balance": round(closing_balance, 2),
+            "status": status,
+        })
+        
+        balance = closing_balance
+        if balance <= 0:
+            break
+    
+    return schedule
+
+@api_router.get("/loans")
+async def get_loans(user=Depends(get_current_user)):
+    """Get all loans with calculated outstanding amounts"""
+    loans = await db.loans.find({"user_id": user["id"]}, {"_id": 0}).to_list(100)
+    result = []
+    
+    for loan in loans:
+        emi = loan.get("emi_amount") or calculate_emi(loan["principal_amount"], loan["interest_rate"], loan["tenure_months"])
+        schedule = generate_emi_schedule(
+            loan["principal_amount"],
+            loan["interest_rate"],
+            loan["tenure_months"],
+            loan["start_date"],
+            emi
+        )
+        
+        # Calculate paid amounts
+        paid_emis = [s for s in schedule if s["status"] == "paid"]
+        total_principal_paid = sum(s["principal"] for s in paid_emis)
+        total_interest_paid = sum(s["interest"] for s in paid_emis)
+        outstanding = loan["principal_amount"] - total_principal_paid
+        remaining_emis = loan["tenure_months"] - len(paid_emis)
+        
+        result.append({
+            **loan,
+            "emi_amount": emi,
+            "outstanding_principal": round(outstanding, 2),
+            "total_principal_paid": round(total_principal_paid, 2),
+            "total_interest_paid": round(total_interest_paid, 2),
+            "remaining_emis": remaining_emis,
+        })
+    
+    return result
+
+@api_router.post("/loans")
+async def create_loan(loan: LoanCreate, user=Depends(get_current_user)):
+    """Create a new loan"""
+    loan_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    emi = loan.emi_amount or calculate_emi(loan.principal_amount, loan.interest_rate, loan.tenure_months)
+    
+    loan_doc = {
+        "id": loan_id,
+        "user_id": user["id"],
+        "name": loan.name,
+        "loan_type": loan.loan_type,
+        "principal_amount": loan.principal_amount,
+        "interest_rate": loan.interest_rate,
+        "tenure_months": loan.tenure_months,
+        "start_date": loan.start_date,
+        "emi_amount": emi,
+        "lender": loan.lender,
+        "account_number": loan.account_number,
+        "notes": loan.notes,
+        "created_at": now,
+    }
+    await db.loans.insert_one(loan_doc)
+    
+    return {
+        **loan_doc,
+        "outstanding_principal": loan.principal_amount,
+        "total_principal_paid": 0,
+        "total_interest_paid": 0,
+        "remaining_emis": loan.tenure_months,
+    }
+
+@api_router.get("/loans/{loan_id}")
+async def get_loan_detail(loan_id: str, user=Depends(get_current_user)):
+    """Get loan details with EMI schedule"""
+    loan = await db.loans.find_one({"id": loan_id, "user_id": user["id"]}, {"_id": 0})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    emi = loan.get("emi_amount") or calculate_emi(loan["principal_amount"], loan["interest_rate"], loan["tenure_months"])
+    schedule = generate_emi_schedule(
+        loan["principal_amount"],
+        loan["interest_rate"],
+        loan["tenure_months"],
+        loan["start_date"],
+        emi
+    )
+    
+    paid_emis = [s for s in schedule if s["status"] == "paid"]
+    total_principal_paid = sum(s["principal"] for s in paid_emis)
+    total_interest_paid = sum(s["interest"] for s in paid_emis)
+    outstanding = loan["principal_amount"] - total_principal_paid
+    
+    return {
+        **loan,
+        "emi_amount": emi,
+        "outstanding_principal": round(outstanding, 2),
+        "total_principal_paid": round(total_principal_paid, 2),
+        "total_interest_paid": round(total_interest_paid, 2),
+        "remaining_emis": loan["tenure_months"] - len(paid_emis),
+        "emi_schedule": schedule,
+    }
+
+@api_router.put("/loans/{loan_id}")
+async def update_loan(loan_id: str, loan_update: LoanUpdate, user=Depends(get_current_user)):
+    """Update a loan"""
+    existing = await db.loans.find_one({"id": loan_id, "user_id": user["id"]}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    update_data = {k: v for k, v in loan_update.dict().items() if v is not None}
+    if update_data:
+        await db.loans.update_one({"id": loan_id}, {"$set": update_data})
+    
+    updated = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    return updated
+
+@api_router.delete("/loans/{loan_id}")
+async def delete_loan(loan_id: str, user=Depends(get_current_user)):
+    """Delete a loan"""
+    result = await db.loans.delete_one({"id": loan_id, "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    return {"message": "Loan deleted"}
+
+# ══════════════════════════════════════
 #  BOOKKEEPING / LEDGER ENDPOINTS
 # ══════════════════════════════════════
 
