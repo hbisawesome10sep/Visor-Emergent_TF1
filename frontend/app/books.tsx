@@ -506,29 +506,46 @@ export default function BooksScreen() {
           throw new Error('Export failed');
         }
         
-        const blob = await response.blob();
-        const fileUri = FileSystem.documentDirectory + filename + (format === 'excel' ? '.xlsx' : '.pdf');
-        
-        // Convert blob to base64
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const base64 = (reader.result as string).split(',')[1];
-          await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+        // For mobile: download and share
+        if (Platform.OS !== 'web') {
+          const blob = await response.blob();
+          const fileUri = FileSystem.documentDirectory + filename + (format === 'excel' ? '.xlsx' : '.pdf');
           
-          if (await Sharing.isAvailableAsync()) {
-            await Sharing.shareAsync(fileUri, {
-              mimeType: format === 'excel' 
-                ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-                : 'application/pdf',
-              dialogTitle: `Share ${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'P&L' : 'Balance Sheet'}`,
-            });
-          } else {
-            Alert.alert('Success', `File saved as ${filename}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
-          }
+          // Convert blob to base64
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const base64 = (reader.result as string).split(',')[1];
+            await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: 'base64' });
+            
+            if (await Sharing.isAvailableAsync()) {
+              await Sharing.shareAsync(fileUri, {
+                mimeType: format === 'excel' 
+                  ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                  : 'application/pdf',
+                dialogTitle: `Share ${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'P&L' : 'Balance Sheet'}`,
+              });
+            } else {
+              Alert.alert('Success', `File saved as ${filename}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
+            }
+            setExporting(false);
+            setShowExportModal(false);
+          };
+          reader.readAsDataURL(blob);
+        } else {
+          // For web: use browser download
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename + (format === 'excel' ? '.xlsx' : '.pdf');
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
           setExporting(false);
           setShowExportModal(false);
-        };
-        reader.readAsDataURL(blob);
+          Alert.alert('Success', `Downloaded ${filename}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
+        }
         return;
       }
       
