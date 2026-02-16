@@ -68,36 +68,7 @@ type Goal = {
   category: string;
 };
 
-// Health Score Calculator
-function calculateHealthScore(stats: DashboardStats | null): {
-  score: number;
-  breakdown: { savings: number; emergency: number; investment: number };
-} {
-  if (!stats) return { score: 0, breakdown: { savings: 0, emergency: 0, investment: 0 } };
-  const { total_income, total_expenses, total_investments, savings_rate } = stats;
-  
-  let savingsPoints = Math.min(40, savings_rate * 1.5);
-  
-  const monthlyExpenses = total_expenses || 1;
-  const savings = total_income - total_expenses;
-  const emergencyMonths = savings > 0 ? Math.min((savings * 6) / monthlyExpenses, 12) : 0;
-  let emergencyPoints = Math.min(30, emergencyMonths * 5);
-  
-  const investRatio = total_income > 0 ? (total_investments / total_income) * 100 : 0;
-  let investPoints = Math.min(30, investRatio * 1.5);
-
-  const score = Math.min(100, Math.round(savingsPoints + emergencyPoints + investPoints));
-  
-  return {
-    score,
-    breakdown: {
-      savings: Math.round(savingsPoints),
-      emergency: Math.round(emergencyPoints),
-      investment: Math.round(investPoints),
-    }
-  };
-}
-
+// Health Score - now uses backend-provided score for consistency
 function getScoreLabel(score: number): { label: string; color: string } {
   if (score >= 80) return { label: 'Excellent', color: '#10B981' };
   if (score >= 65) return { label: 'Good', color: '#22C55E' };
