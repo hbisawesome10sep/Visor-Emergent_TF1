@@ -24,6 +24,51 @@ class BackendTester:
     def log(self, message, level="INFO"):
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"[{timestamp}] {level}: {message}")
+    
+    def validate_health_score(self, health_score):
+        """Validate health_score structure and values"""
+        try:
+            # Check overall score exists and is valid
+            overall = health_score.get("overall")
+            if overall is None:
+                self.log("❌ health_score.overall is missing", "ERROR")
+                return False
+            
+            if not isinstance(overall, (int, float)) or overall < 0 or overall > 100:
+                self.log(f"❌ health_score.overall must be 0-100, got: {overall}", "ERROR")
+                return False
+            
+            # Check grade exists
+            grade = health_score.get("grade")
+            if not grade:
+                self.log("❌ health_score.grade is missing", "ERROR")
+                return False
+            
+            valid_grades = ["Excellent", "Good", "Fair", "Needs Work", "Critical"]
+            if grade not in valid_grades:
+                self.log(f"❌ health_score.grade invalid, got: {grade}", "ERROR")
+                return False
+            
+            # Check breakdown exists and has required fields
+            breakdown = health_score.get("breakdown", {})
+            required_breakdown_fields = ["savings", "investments", "spending", "goals"]
+            for field in required_breakdown_fields:
+                value = breakdown.get(field)
+                if value is None:
+                    self.log(f"❌ health_score.breakdown.{field} is missing", "ERROR")
+                    return False
+                if not isinstance(value, (int, float)) or value < 0 or value > 100:
+                    self.log(f"❌ health_score.breakdown.{field} must be 0-100, got: {value}", "ERROR")
+                    return False
+            
+            self.log("✅ Health score structure and values are valid")
+            self.log(f"   - Overall: {overall} ({grade})")
+            self.log(f"   - Breakdown: Savings={breakdown['savings']}, Investments={breakdown['investments']}, Spending={breakdown['spending']}, Goals={breakdown['goals']}")
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Health score validation failed: {str(e)}", "ERROR")
+            return False
         
     def login(self):
         """Test login endpoint and get JWT token"""
