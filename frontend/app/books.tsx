@@ -149,6 +149,45 @@ type FixedAsset = {
   notes?: string;
 };
 
+type Loan = {
+  id: string;
+  name: string;
+  loan_type: string;
+  principal_amount: number;
+  interest_rate: number;
+  tenure_months: number;
+  start_date: string;
+  emi_amount: number;
+  lender?: string;
+  account_number?: string;
+  notes?: string;
+  outstanding_principal: number;
+  total_principal_paid: number;
+  total_interest_paid: number;
+  remaining_emis: number;
+};
+
+type EMIScheduleItem = {
+  month: number;
+  date: string;
+  opening_balance: number;
+  emi: number;
+  principal: number;
+  interest: number;
+  closing_balance: number;
+  status: string;
+};
+
+const LOAN_TYPES = ['Home Loan', 'Car Loan', 'Personal Loan', 'Education Loan', 'Credit Card', 'Other'];
+
+const DATE_PRESETS = [
+  { label: 'Current Month', key: 'month' },
+  { label: 'Current Quarter', key: 'quarter' },
+  { label: 'Current FY', key: 'year' },
+  { label: 'Previous FY', key: 'prev_year' },
+  { label: 'Custom', key: 'custom' },
+];
+
 export default function BooksScreen() {
   const { token, user } = useAuth();
   const { colors, isDark } = useTheme();
