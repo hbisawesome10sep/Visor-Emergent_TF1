@@ -997,11 +997,11 @@ export default function BooksScreen() {
     // Modal styles
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.5)',
       justifyContent: 'flex-end',
     },
     modalContent: {
-      backgroundColor: colors.card,
+      backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       paddingTop: 20,
@@ -1014,12 +1014,12 @@ export default function BooksScreen() {
       paddingHorizontal: 20,
       paddingBottom: 16,
       borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
     },
     modalTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: colors.text,
+      color: isDark ? '#F8FAFC' : '#1E293B',
     },
     modalBody: {
       padding: 20,
@@ -1027,19 +1027,19 @@ export default function BooksScreen() {
     inputLabel: {
       fontSize: 13,
       fontWeight: '600',
-      color: colors.textSecondary,
+      color: isDark ? '#94A3B8' : '#64748B',
       marginBottom: 8,
       marginTop: 16,
     },
     input: {
-      backgroundColor: colors.background,
+      backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,
       fontSize: 16,
-      color: colors.text,
+      color: isDark ? '#F8FAFC' : '#1E293B',
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
     },
     categoryPicker: {
       flexDirection: 'row',
@@ -1050,20 +1050,20 @@ export default function BooksScreen() {
       paddingHorizontal: 14,
       paddingVertical: 8,
       borderRadius: 20,
-      backgroundColor: colors.background,
+      backgroundColor: isDark ? '#0F172A' : '#F1F5F9',
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
     },
     categoryChipActive: {
-      backgroundColor: colors.primary + '20',
-      borderColor: colors.primary,
+      backgroundColor: isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.1)',
+      borderColor: '#10B981',
     },
     categoryChipText: {
       fontSize: 13,
-      color: colors.textSecondary,
+      color: isDark ? '#94A3B8' : '#64748B',
     },
     categoryChipTextActive: {
-      color: colors.primary,
+      color: '#10B981',
       fontWeight: '600',
     },
     saveButton: {
