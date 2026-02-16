@@ -229,7 +229,69 @@ export default function BooksScreen() {
   // Export modal
   const [showExportModal, setShowExportModal] = useState(false);
 
+  // Loan state
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [showLoanModal, setShowLoanModal] = useState(false);
+  const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
+  const [showEMISchedule, setShowEMISchedule] = useState<string | null>(null);
+  const [emiSchedule, setEmiSchedule] = useState<EMIScheduleItem[]>([]);
+  const [loanForm, setLoanForm] = useState({
+    name: '',
+    loan_type: 'Home Loan',
+    principal_amount: '',
+    interest_rate: '',
+    tenure_months: '',
+    start_date: '',
+    emi_amount: '',
+    lender: '',
+    account_number: '',
+    notes: '',
+  });
+
+  // Date range state
+  const [datePreset, setDatePreset] = useState<string>('year');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Get date range based on preset
+  const getDateRange = useCallback(() => {
+    const now = new Date();
+    const currentYear = now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear();
+    
+    switch (datePreset) {
+      case 'month':
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        return {
+          start: monthStart.toISOString().split('T')[0],
+          end: monthEnd.toISOString().split('T')[0],
+        };
+      case 'quarter':
+        const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
+        const qStart = new Date(now.getFullYear(), quarterMonth, 1);
+        const qEnd = new Date(now.getFullYear(), quarterMonth + 3, 0);
+        return {
+          start: qStart.toISOString().split('T')[0],
+          end: qEnd.toISOString().split('T')[0],
+        };
+      case 'prev_year':
+        return {
+          start: `${currentYear - 1}-04-01`,
+          end: `${currentYear}-03-31`,
+        };
+      case 'custom':
+        return {
+          start: customStartDate || `${currentYear}-04-01`,
+          end: customEndDate || `${currentYear + 1}-03-31`,
+        };
+      case 'year':
+      default:
+        return getFYDates(currentYear);
+    }
+  }, [datePreset, customStartDate, customEndDate]);
 
   const fetchData = useCallback(async () => {
     if (!token) return;
