@@ -673,7 +673,7 @@ export default function BooksScreen() {
     headerTitle: {
       fontSize: 24,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     headerSubtitle: {
       fontSize: 14,
@@ -749,7 +749,7 @@ export default function BooksScreen() {
     sectionTitle: {
       fontSize: 16,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     sectionSubtitle: {
       fontSize: 13,
@@ -775,7 +775,7 @@ export default function BooksScreen() {
     accountGroupTitle: {
       fontSize: 15,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     accountGroupBalance: {
       fontSize: 14,
@@ -812,7 +812,7 @@ export default function BooksScreen() {
     },
     tableCell: {
       fontSize: 12,
-      color: colors.text,
+      color: colors.textPrimary,
     },
     tableCellBold: {
       fontWeight: '700',
@@ -834,7 +834,7 @@ export default function BooksScreen() {
     pnlSectionTitle: {
       fontSize: 14,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     pnlSectionSubtotal: {
       fontSize: 15,
@@ -855,7 +855,7 @@ export default function BooksScreen() {
     pnlItemAmount: {
       fontSize: 13,
       fontWeight: '500',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     pnlTotal: {
       flexDirection: 'row',
@@ -871,7 +871,7 @@ export default function BooksScreen() {
     pnlTotalText: {
       fontSize: 15,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     pnlTotalAmount: {
       fontSize: 16,
@@ -909,7 +909,7 @@ export default function BooksScreen() {
     bsCategoryTitle: {
       fontSize: 16,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.textPrimary,
       flex: 1,
     },
     bsCategoryTotal: {
@@ -936,12 +936,12 @@ export default function BooksScreen() {
     },
     bsItemText: {
       fontSize: 13,
-      color: colors.text,
+      color: colors.textPrimary,
     },
     bsItemAmount: {
       fontSize: 13,
       fontWeight: '500',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     balanceBadge: {
       flexDirection: 'row',
@@ -979,7 +979,7 @@ export default function BooksScreen() {
     assetName: {
       fontSize: 15,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     assetCategory: {
       fontSize: 12,
@@ -992,7 +992,7 @@ export default function BooksScreen() {
     assetCurrentValue: {
       fontSize: 15,
       fontWeight: '700',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     assetDepreciation: {
       fontSize: 11,
@@ -1206,7 +1206,7 @@ export default function BooksScreen() {
     loanName: {
       fontSize: 16,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     loanType: {
       fontSize: 12,
@@ -1242,7 +1242,7 @@ export default function BooksScreen() {
     loanDetailValue: {
       fontSize: 13,
       fontWeight: '500',
-      color: colors.text,
+      color: colors.textPrimary,
     },
     loanActions: {
       flexDirection: 'row',
@@ -1299,7 +1299,7 @@ export default function BooksScreen() {
     },
     emiCell: {
       fontSize: 11,
-      color: colors.text,
+      color: colors.textPrimary,
     },
     emiCellBold: {
       fontWeight: '600',
