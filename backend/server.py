@@ -444,9 +444,19 @@ async def delete_goal(goal_id: str, user=Depends(get_current_user)):
 # ══════════════════════════════════════
 
 @api_router.get("/dashboard/stats")
-async def get_dashboard_stats(user=Depends(get_current_user)):
+async def get_dashboard_stats(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    user=Depends(get_current_user),
+):
     user_id = user["id"]
-    txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+    
+    # Build query filter
+    query = {"user_id": user_id}
+    if start_date and end_date:
+        query["date"] = {"$gte": start_date, "$lte": end_date}
+    
+    txns = await db.transactions.find(query, {"_id": 0}).to_list(1000)
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(100)
     
     total_income = sum(t["amount"] for t in txns if t["type"] == "income")
@@ -498,6 +508,9 @@ async def get_dashboard_stats(user=Depends(get_current_user)):
             cat = t["category"]
             invest_breakdown[cat] = invest_breakdown.get(cat, 0) + t["amount"]
 
+    # Get user's account creation date for date range limits
+    user_created_at = user.get("created_at", now.isoformat())
+
     return {
         "total_income": total_income,
         "total_expenses": total_expenses,
@@ -518,6 +531,11 @@ async def get_dashboard_stats(user=Depends(get_current_user)):
         "goal_count": len(goals),
         "goal_progress": round(goal_progress, 1),
         "transaction_count": len(txns),
+        "user_created_at": user_created_at,
+        "date_range": {
+            "start": start_date,
+            "end": end_date,
+        } if start_date and end_date else None,
     }
 
 @api_router.get("/health-score")
