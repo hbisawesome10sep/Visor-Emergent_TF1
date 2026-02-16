@@ -2077,7 +2077,13 @@ export default function BooksScreen() {
               </TouchableOpacity>
             </View>
             
-            <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('csv')}>
+            <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 16 }}>
+                Export your {activeTab === 'ledger' ? 'General Ledger' : activeTab === 'pnl' ? 'Profit & Loss Statement' : 'Balance Sheet'} in your preferred format
+              </Text>
+            </View>
+            
+            <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('csv')} disabled={exporting}>
               <View style={[styles.exportOptionIcon, { backgroundColor: '#10B981' + '20' }]}>
                 <MaterialCommunityIcons name="file-delimited" size={24} color="#10B981" />
               </View>
@@ -2088,35 +2094,35 @@ export default function BooksScreen() {
               <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('json')}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: '#3B82F6' + '20' }]}>
-                <MaterialCommunityIcons name="code-json" size={24} color="#3B82F6" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exportOptionTitle}>JSON Format</Text>
-                <Text style={styles.exportOptionDesc}>Structured data for developers</Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.exportOption} onPress={() => Alert.alert('Coming Soon', 'Excel export will be available soon!')}>
+            <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('excel')} disabled={exporting}>
               <View style={[styles.exportOptionIcon, { backgroundColor: '#8B5CF6' + '20' }]}>
                 <MaterialCommunityIcons name="microsoft-excel" size={24} color="#8B5CF6" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>Excel Format</Text>
-                <Text style={styles.exportOptionDesc}>Full formatted workbook with formulas</Text>
+                <Text style={styles.exportOptionDesc}>Formatted .xlsx workbook with styling</Text>
               </View>
               <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.exportOption} onPress={() => Alert.alert('Coming Soon', 'PDF export will be available soon!')}>
+            <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('pdf')} disabled={exporting}>
               <View style={[styles.exportOptionIcon, { backgroundColor: '#EF4444' + '20' }]}>
                 <MaterialCommunityIcons name="file-pdf-box" size={24} color="#EF4444" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>PDF Format</Text>
-                <Text style={styles.exportOptionDesc}>Professional report for printing</Text>
+                <Text style={styles.exportOptionDesc}>Professional report for printing & sharing</Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('json')} disabled={exporting}>
+              <View style={[styles.exportOptionIcon, { backgroundColor: '#3B82F6' + '20' }]}>
+                <MaterialCommunityIcons name="code-json" size={24} color="#3B82F6" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.exportOptionTitle}>JSON Format</Text>
+                <Text style={styles.exportOptionDesc}>Structured data for developers & APIs</Text>
               </View>
               <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
