@@ -22,7 +22,7 @@ export default function TabLayout() {
           elevation: 0,
         },
         tabBarLabelStyle: {
-          fontFamily: 'Outfit_600SemiBold',
+          fontFamily: 'Outfit', fontWeight: '600' as any,
           fontSize: 10,
           letterSpacing: 0.3,
           textTransform: 'uppercase',

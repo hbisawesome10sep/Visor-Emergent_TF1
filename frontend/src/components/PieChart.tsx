@@ -111,11 +111,11 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 11,
-    fontFamily: 'Outfit_500Medium',
+    fontFamily: 'Outfit', fontWeight: '500' as any,
   },
   totalAmount: {
     fontSize: 16,
-    fontFamily: 'SpaceGrotesk_700Bold',
+    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
     marginTop: 2,
   },
 });

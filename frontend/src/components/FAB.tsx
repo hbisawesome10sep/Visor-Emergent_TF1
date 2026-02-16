@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 14,
-    fontFamily: 'Outfit_600SemiBold',
+    fontFamily: 'Outfit', fontWeight: '600' as any,
   },
 
   // Icon button
