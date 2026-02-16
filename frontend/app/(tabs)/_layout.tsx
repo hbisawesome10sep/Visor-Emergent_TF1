@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../src/context/ThemeContext';
-import { Platform, View } from 'react-native';
+import { Platform } from 'react-native';
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
@@ -11,10 +11,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: isDark ? '#52525B' : '#A1A1AA',
+        tabBarInactiveTintColor: isDark ? '#6B7280' : '#9CA3AF',
         tabBarStyle: {
           backgroundColor: isDark ? '#000000' : '#FFFFFF',
-          borderTopColor: isDark ? '#18181B' : '#E4E4E7',
+          borderTopColor: isDark ? '#1F2937' : '#E5E7EB',
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 88 : 64,
           paddingBottom: Platform.OS === 'ios' ? 28 : 8,
@@ -22,9 +22,10 @@ export default function TabLayout() {
           elevation: 0,
         },
         tabBarLabelStyle: {
-          fontFamily: 'DM Sans', fontWeight: '600' as any,
+          fontFamily: 'DM Sans',
+          fontWeight: '600' as any,
           fontSize: 10,
-          letterSpacing: 0.3,
+          letterSpacing: 0.5,
           textTransform: 'uppercase',
         },
       }}
@@ -33,15 +34,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? {
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: isDark ? 0.6 : 0,
-              shadowRadius: 8,
-            } : undefined}>
-              <MaterialCommunityIcons name="view-dashboard-outline" size={24} color={color} />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="view-dashboard-outline" size={24} color={color} />
           ),
         }}
       />
@@ -49,15 +43,8 @@ export default function TabLayout() {
         name="transactions"
         options={{
           title: 'Transactions',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? {
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: isDark ? 0.6 : 0,
-              shadowRadius: 8,
-            } : undefined}>
-              <MaterialCommunityIcons name="swap-horizontal-circle-outline" size={24} color={color} />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="swap-horizontal-circle-outline" size={24} color={color} />
           ),
         }}
       />
@@ -65,15 +52,8 @@ export default function TabLayout() {
         name="insights"
         options={{
           title: 'Insights',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? {
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: isDark ? 0.6 : 0,
-              shadowRadius: 8,
-            } : undefined}>
-              <MaterialCommunityIcons name="chart-arc" size={24} color={color} />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="chart-arc" size={24} color={color} />
           ),
         }}
       />
@@ -81,15 +61,8 @@ export default function TabLayout() {
         name="investments"
         options={{
           title: 'Invest',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? {
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: isDark ? 0.6 : 0,
-              shadowRadius: 8,
-            } : undefined}>
-              <MaterialCommunityIcons name="chart-timeline-variant-shimmer" size={24} color={color} />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="chart-timeline-variant-shimmer" size={24} color={color} />
           ),
         }}
       />
@@ -97,15 +70,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? {
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: isDark ? 0.6 : 0,
-              shadowRadius: 8,
-            } : undefined}>
-              <MaterialCommunityIcons name="cog-outline" size={24} color={color} />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="cog-outline" size={24} color={color} />
           ),
         }}
       />
