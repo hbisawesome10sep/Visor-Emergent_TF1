@@ -191,7 +191,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 <MaterialCommunityIcons name="robot" size={22} color="#fff" />
               </LinearGradient>
               <View style={styles.headerText}>
-                <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Artha AI</Text>
+                <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Visor</Text>
                 <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
                   Your Financial Advisor
                 </Text>
