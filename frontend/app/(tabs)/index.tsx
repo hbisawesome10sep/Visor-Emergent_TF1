@@ -116,31 +116,26 @@ export default function DashboardScreen() {
   const [customStartInput, setCustomStartInput] = useState('');
   const [customEndInput, setCustomEndInput] = useState('');
 
-  // Get date range based on frequency
-  const getDateRangeForFrequency = (freq: FrequencyOption) => {
+  // Get date range based on frequency - no userCreatedAt constraint for Q/M/Y
+  const getDateRangeForFrequency = (freq: FrequencyOption): { start: Date; end: Date } => {
     const now = new Date();
-    const userCreatedAt = user?.created_at ? new Date(user.created_at) : new Date(now.getFullYear(), 0, 1);
-    
     let start: Date;
     let end = now;
     
     switch (freq) {
       case 'Quarter':
-        const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
-        start = quarterStart < userCreatedAt ? userCreatedAt : quarterStart;
+        start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
         break;
       case 'Year':
-        const yearStart = new Date(now.getFullYear(), 0, 1);
-        start = yearStart < userCreatedAt ? userCreatedAt : yearStart;
+        start = new Date(now.getFullYear(), 0, 1);
         break;
       case 'Custom':
-        start = dateRange.start < userCreatedAt ? userCreatedAt : dateRange.start;
+        start = dateRange.start;
         end = dateRange.end;
         break;
       case 'Month':
       default:
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        start = monthStart < userCreatedAt ? userCreatedAt : monthStart;
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
     }
     
