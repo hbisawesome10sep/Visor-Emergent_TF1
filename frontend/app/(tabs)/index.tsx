@@ -348,92 +348,79 @@ export default function DashboardScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      {/* Sticky Glass Header */}
-      <View style={styles.stickyHeader}>
-        <BlurView
-          intensity={isDark ? 50 : 70}
-          tint={isDark ? 'dark' : 'light'}
+      {/* Clean Header with proper safe area handling */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top }]}>
+        <View
           style={[
-            styles.headerBlur,
+            styles.headerContent,
             {
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
               borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
             },
           ]}
         >
-          <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-            <View style={styles.headerContent}>
-              <View style={styles.headerLeft}>
-                <View style={styles.greetingRow}>
-                  <LinearGradient
-                    colors={['#3B82F6', '#6366F1']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.gradientTextBg}
-                  >
-                    <Text style={styles.greetingGradient}>{getGreeting()}</Text>
-                  </LinearGradient>
-                  <Text style={[styles.greetingName, { color: colors.textPrimary }]}>
-                    , {user?.full_name?.split(' ')[0] || 'User'}
-                  </Text>
-                </View>
-                <Text style={[styles.monthYear, { color: colors.textSecondary }]}>
-                  {rangeDisplay}
-                </Text>
-              </View>
-
-              <View style={styles.headerRight}>
-                {/* Frequency Selector */}
-                <View
-                  style={[
-                    styles.frequencyPills,
-                    { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
-                  ]}
-                >
-                  {frequencies.map((freq) => (
-                    <TouchableOpacity
-                      key={freq}
-                      style={[
-                        styles.freqPill,
-                        selectedFrequency === freq && { backgroundColor: colors.primary },
-                      ]}
-                      onPress={() => handleFrequencyChange(freq)}
-                    >
-                      <Text
-                        style={[
-                          styles.freqText,
-                          { color: selectedFrequency === freq ? '#fff' : colors.textSecondary },
-                        ]}
-                      >
-                        {freq.charAt(0)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Theme Toggle */}
-                <TouchableOpacity
-                  style={[
-                    styles.themeBtn,
-                    { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' },
-                  ]}
-                  onPress={toggleTheme}
-                >
-                  <MaterialCommunityIcons
-                    name={isDark ? 'weather-sunny' : 'weather-night'}
-                    size={18}
-                    color={isDark ? '#FBBF24' : '#6366F1'}
-                  />
-                </TouchableOpacity>
-              </View>
+          <View style={styles.headerLeft}>
+            <View style={styles.greetingRow}>
+              <Text style={[styles.greetingText, { color: colors.primary }]}>{getGreeting()}</Text>
+              <Text style={[styles.greetingName, { color: colors.textPrimary }]}>
+                , {user?.full_name?.split(' ')[0] || 'User'}
+              </Text>
             </View>
-          </SafeAreaView>
-        </BlurView>
+            <Text style={[styles.monthYear, { color: colors.textSecondary }]}>
+              {rangeDisplay}
+            </Text>
+          </View>
+
+          <View style={styles.headerRight}>
+            {/* Frequency Selector */}
+            <View
+              style={[
+                styles.frequencyPills,
+                { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
+              ]}
+            >
+              {frequencies.map((freq) => (
+                <TouchableOpacity
+                  key={freq}
+                  style={[
+                    styles.freqPill,
+                    selectedFrequency === freq && { backgroundColor: colors.primary },
+                  ]}
+                  onPress={() => handleFrequencyChange(freq)}
+                >
+                  <Text
+                    style={[
+                      styles.freqText,
+                      { color: selectedFrequency === freq ? '#fff' : colors.textSecondary },
+                    ]}
+                  >
+                    {freq.charAt(0)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Theme Toggle */}
+            <TouchableOpacity
+              style={[
+                styles.themeBtn,
+                { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' },
+              ]}
+              onPress={toggleTheme}
+            >
+              <MaterialCommunityIcons
+                name={isDark ? 'weather-sunny' : 'weather-night'}
+                size={18}
+                color={isDark ? '#FBBF24' : '#6366F1'}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 16 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
