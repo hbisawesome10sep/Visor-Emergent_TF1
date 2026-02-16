@@ -67,8 +67,8 @@ export default function LiquidFillCard({
     outputRange: [0.6, 0.3, 0],
   });
 
-  // Neon glow color derived from first gradient color
-  const glowColor = gradient[0];
+  // Card accent color from first gradient
+  const accentColor = gradient[0];
 
   return (
     <TouchableOpacity
