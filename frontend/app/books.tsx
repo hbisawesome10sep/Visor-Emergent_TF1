@@ -1096,6 +1096,162 @@ export default function BooksScreen() {
       fontWeight: '600',
       marginLeft: 8,
     },
+    // Date range selector styles
+    dateSelector: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      marginBottom: 12,
+      gap: 6,
+    },
+    dateSelectorChip: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    dateSelectorChipActive: {
+      backgroundColor: colors.primary + '20',
+      borderColor: colors.primary,
+    },
+    dateSelectorChipText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    dateSelectorChipTextActive: {
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    // Loan styles
+    loanCard: {
+      marginHorizontal: 16,
+      marginBottom: 12,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    },
+    loanCardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    loanIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    loanInfo: {
+      flex: 1,
+    },
+    loanName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    loanType: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    loanAmount: {
+      alignItems: 'flex-end',
+    },
+    loanOutstanding: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.error,
+    },
+    loanEMI: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    loanDetails: {
+      padding: 16,
+      backgroundColor: isDark ? colors.background : '#F8FAFC',
+    },
+    loanDetailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    loanDetailLabel: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    loanDetailValue: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    loanActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      gap: 12,
+    },
+    loanActionBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      backgroundColor: colors.primary + '10',
+    },
+    loanActionText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primary,
+      marginLeft: 4,
+    },
+    // EMI Schedule styles
+    emiScheduleContainer: {
+      marginHorizontal: 16,
+      marginTop: 12,
+      borderRadius: 12,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      maxHeight: 300,
+    },
+    emiScheduleHeader: {
+      flexDirection: 'row',
+      backgroundColor: isDark ? colors.card : '#F1F5F9',
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    emiRow: {
+      flexDirection: 'row',
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border + '50',
+    },
+    emiRowPaid: {
+      backgroundColor: '#10B981' + '10',
+    },
+    emiRowCurrent: {
+      backgroundColor: '#F59E0B' + '20',
+    },
+    emiCell: {
+      fontSize: 11,
+      color: colors.text,
+    },
+    emiCellBold: {
+      fontWeight: '600',
+    },
   });
 
   const renderLedgerTab = () => {
