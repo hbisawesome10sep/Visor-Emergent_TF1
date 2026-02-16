@@ -140,35 +140,27 @@ interface FlippableCardProps {
 function FlippableCard({ frontContent, backContent, gradientColors, height = 200, style }: FlippableCardProps) {
   const { isDark } = useTheme();
   const [isFlipped, setIsFlipped] = useState(false);
-  const rotation = useSharedValue(0);
+  const flipProgress = useSharedValue(0);
 
   const flipCard = () => {
     setIsFlipped(!isFlipped);
-    rotation.value = withSpring(isFlipped ? 0 : 180, {
-      damping: 20,
-      stiffness: 90,
+    flipProgress.value = withSpring(isFlipped ? 0 : 1, {
+      damping: 15,
+      stiffness: 100,
     });
   };
 
   const frontAnimatedStyle = useAnimatedStyle(() => {
-    const rotateValue = interpolate(rotation.value, [0, 180], [0, 180]);
     return {
-      transform: [
-        { perspective: 1000 },
-        { rotateY: `${rotateValue}deg` },
-      ],
-      opacity: interpolate(rotation.value, [0, 90, 180], [1, 0, 0]),
+      opacity: interpolate(flipProgress.value, [0, 0.5, 1], [1, 0, 0]),
+      zIndex: flipProgress.value < 0.5 ? 1 : 0,
     };
   });
 
   const backAnimatedStyle = useAnimatedStyle(() => {
-    const rotateValue = interpolate(rotation.value, [0, 180], [180, 360]);
     return {
-      transform: [
-        { perspective: 1000 },
-        { rotateY: `${rotateValue}deg` },
-      ],
-      opacity: interpolate(rotation.value, [0, 90, 180], [0, 0, 1]),
+      opacity: interpolate(flipProgress.value, [0, 0.5, 1], [0, 0, 1]),
+      zIndex: flipProgress.value >= 0.5 ? 1 : 0,
     };
   });
 
