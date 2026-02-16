@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
-import { Neon } from '../../src/utils/theme';
+import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -120,7 +120,7 @@ export default function SettingsScreen() {
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
         <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)' }]}>
-          <MaterialCommunityIcons name="account" size={22} color={Neon.blue} />
+          <MaterialCommunityIcons name="account" size={22} color={Accent.sapphire} />
         </View>
         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Personal Information</Text>
       </View>
@@ -128,14 +128,14 @@ export default function SettingsScreen() {
       {/* Profile Banner */}
       <View style={[styles.profileBanner, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
         <View style={styles.profileLeft}>
-          <LinearGradient colors={[Neon.blue, Neon.purple]} style={styles.avatarLarge}>
+          <LinearGradient colors={[Accent.sapphire, Accent.amethyst]} style={styles.avatarLarge}>
             <Text style={styles.avatarText}>{user?.full_name?.charAt(0)?.toUpperCase() || 'V'}</Text>
           </LinearGradient>
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.textPrimary }]}>{user?.full_name || 'User'}</Text>
             <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{user?.email}</Text>
             <View style={[styles.verifiedBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-              <MaterialCommunityIcons name="check-decagram" size={12} color={Neon.green} />
+              <MaterialCommunityIcons name="check-decagram" size={12} color={Accent.emerald} />
               <Text style={styles.verifiedText}>Verified</Text>
             </View>
           </View>
@@ -146,7 +146,7 @@ export default function SettingsScreen() {
             <Text style={[styles.editBtnText, { color: colors.textSecondary }]}>Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.signOutBtn} onPress={handleLogout}>
-            <MaterialCommunityIcons name="logout" size={16} color={Neon.red} />
+            <MaterialCommunityIcons name="logout" size={16} color={Accent.ruby} />
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
@@ -189,7 +189,7 @@ export default function SettingsScreen() {
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
         <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)' }]}>
-          <MaterialCommunityIcons name="shield-check" size={22} color={Neon.green} />
+          <MaterialCommunityIcons name="shield-check" size={22} color={Accent.emerald} />
         </View>
         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Security & Privacy</Text>
       </View>
@@ -198,7 +198,7 @@ export default function SettingsScreen() {
 
       <SettingToggleRow
         icon="fingerprint"
-        iconColor={Neon.blue}
+        iconColor={Accent.sapphire}
         title="Biometric Authentication"
         description="Use fingerprint or face ID"
         value={settings.biometric}
@@ -209,7 +209,7 @@ export default function SettingsScreen() {
 
       <SettingToggleRow
         icon="lock"
-        iconColor={Neon.green}
+        iconColor={Accent.emerald}
         title="Two-Factor Authentication"
         description="Extra security for your account"
         value={settings.twoFactor}
@@ -240,14 +240,14 @@ export default function SettingsScreen() {
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
         <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)' }]}>
-          <MaterialCommunityIcons name="bell" size={22} color={Neon.blue} />
+          <MaterialCommunityIcons name="bell" size={22} color={Accent.sapphire} />
         </View>
         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Notifications</Text>
       </View>
 
       <SettingToggleRow
         icon="email"
-        iconColor={Neon.green}
+        iconColor={Accent.emerald}
         title="Email Notifications"
         description="Receive updates via email"
         value={settings.emailNotifications}
@@ -258,7 +258,7 @@ export default function SettingsScreen() {
 
       <SettingToggleRow
         icon="cellphone"
-        iconColor={Neon.blue}
+        iconColor={Accent.sapphire}
         title="Push Notifications"
         description="Real-time app notifications"
         value={settings.pushNotifications}
@@ -325,7 +325,7 @@ export default function SettingsScreen() {
             <Text style={[styles.settingDesc, { color: colors.textSecondary }]}>Monthly savings goal percentage</Text>
           </View>
           <View style={[styles.sliderValue, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)' }]}>
-            <Text style={[styles.sliderValueText, { color: Neon.purple }]}>{settings.savingsTarget}%</Text>
+            <Text style={[styles.sliderValueText, { color: Accent.amethyst }]}>{settings.savingsTarget}%</Text>
           </View>
         </View>
         <Slider
@@ -362,7 +362,7 @@ export default function SettingsScreen() {
               style={[
                 styles.riskOption,
                 settings.riskTolerance === risk && {
-                  backgroundColor: risk === 'Conservative' ? Neon.blue : risk === 'Moderate' ? Neon.yellow : Neon.red,
+                  backgroundColor: risk === 'Conservative' ? Accent.sapphire : risk === 'Moderate' ? Accent.amber : Accent.ruby,
                 },
               ]}
               onPress={() => setSettings(prev => ({ ...prev, riskTolerance: risk }))}
@@ -380,7 +380,7 @@ export default function SettingsScreen() {
 
       <SettingToggleRow
         icon="trending-up"
-        iconColor={Neon.green}
+        iconColor={Accent.emerald}
         title="Auto-Investment"
         description="Automatically invest surplus funds"
         value={settings.autoInvestment}
@@ -396,7 +396,7 @@ export default function SettingsScreen() {
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
         <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.1)' }]}>
-          <MaterialCommunityIcons name="palette" size={22} color={Neon.yellow} />
+          <MaterialCommunityIcons name="palette" size={22} color={Accent.amber} />
         </View>
         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Appearance & Display</Text>
       </View>
@@ -405,8 +405,8 @@ export default function SettingsScreen() {
 
       <View style={styles.themeOptions}>
         {[
-          { key: 'light', label: 'Light', icon: 'white-balance-sunny', color: Neon.yellow },
-          { key: 'dark', label: 'Dark', icon: 'moon-waning-crescent', color: Neon.purple },
+          { key: 'light', label: 'Light', icon: 'white-balance-sunny', color: Accent.amber },
+          { key: 'dark', label: 'Dark', icon: 'moon-waning-crescent', color: Accent.amethyst },
           { key: 'system', label: 'System', icon: 'cellphone', color: '#64748B' },
         ].map(theme => (
           <TouchableOpacity
@@ -447,7 +447,7 @@ export default function SettingsScreen() {
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
         <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)' }]}>
-          <MaterialCommunityIcons name="download" size={22} color={Neon.red} />
+          <MaterialCommunityIcons name="download" size={22} color={Accent.ruby} />
         </View>
         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Data Management</Text>
       </View>
@@ -455,7 +455,7 @@ export default function SettingsScreen() {
       {/* Export Data */}
       <View style={[styles.dataRow, { borderColor: colors.border }]}>
         <View style={[styles.dataIconWrap, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)' }]}>
-          <MaterialCommunityIcons name="download" size={20} color={Neon.blue} />
+          <MaterialCommunityIcons name="download" size={20} color={Accent.sapphire} />
         </View>
         <View style={styles.dataInfo}>
           <Text style={[styles.dataTitle, { color: colors.textPrimary }]}>Export Data</Text>
@@ -472,11 +472,11 @@ export default function SettingsScreen() {
         borderColor: isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)',
       }]}>
         <View style={[styles.dataIconWrap, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
-          <MaterialCommunityIcons name="trash-can" size={20} color={Neon.red} />
+          <MaterialCommunityIcons name="trash-can" size={20} color={Accent.ruby} />
         </View>
         <View style={styles.dataInfo}>
-          <Text style={[styles.dangerTitle, { color: isDark ? '#FCA5A5' : Neon.red }]}>Delete Account</Text>
-          <Text style={[styles.dangerDesc, { color: isDark ? '#FCA5A5' : Neon.red }]}>
+          <Text style={[styles.dangerTitle, { color: isDark ? '#FCA5A5' : Accent.ruby }]}>Delete Account</Text>
+          <Text style={[styles.dangerDesc, { color: isDark ? '#FCA5A5' : Accent.ruby }]}>
             Permanently delete your account and data
           </Text>
         </View>
@@ -558,14 +558,14 @@ export default function SettingsScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.deleteModal, { backgroundColor: colors.surface }]}>
             <View style={[styles.deleteModalIcon, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}>
-              <MaterialCommunityIcons name="alert-circle" size={48} color={Neon.red} />
+              <MaterialCommunityIcons name="alert-circle" size={48} color={Accent.ruby} />
             </View>
             <Text style={[styles.deleteModalTitle, { color: colors.textPrimary }]}>Delete Account?</Text>
             <Text style={[styles.deleteModalDesc, { color: colors.textSecondary }]}>
               This action cannot be undone. All your data including transactions, goals, and settings will be permanently deleted.
             </Text>
             <Text style={[styles.deleteModalPrompt, { color: colors.textSecondary }]}>
-              Type <Text style={{ color: Neon.red, fontFamily: 'Space Grotesk', fontWeight: '700' as any }}>DELETE</Text> to confirm:
+              Type <Text style={{ color: Accent.ruby, fontFamily: 'Space Grotesk', fontWeight: '700' as any }}>DELETE</Text> to confirm:
             </Text>
             <TextInput
               style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
@@ -629,7 +629,7 @@ function SettingToggleRow({ icon, iconColor, title, description, value, onToggle
         value={value}
         onValueChange={onToggle}
         trackColor={{ false: colors.border, true: 'rgba(99, 102, 241, 0.5)' }}
-        thumbColor={value ? Neon.purple : '#CBD5E1'}
+        thumbColor={value ? Accent.amethyst : '#CBD5E1'}
       />
     </View>
   );
@@ -676,12 +676,12 @@ const styles = StyleSheet.create({
   profileName: { fontSize: 17, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
   profileEmail: { fontSize: 13, marginTop: 2 },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginTop: 6 },
-  verifiedText: { fontSize: 11, fontFamily: 'Outfit', fontWeight: '600' as any, color: Neon.green },
+  verifiedText: { fontSize: 11, fontFamily: 'Outfit', fontWeight: '600' as any, color: Accent.emerald },
   profileActions: { flexDirection: 'row', gap: 10 },
   editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
   editBtnText: { fontSize: 13, fontFamily: 'Outfit', fontWeight: '600' as any },
   signOutBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(239, 68, 68, 0.1)' },
-  signOutText: { fontSize: 13, fontFamily: 'Outfit', fontWeight: '600' as any, color: Neon.red },
+  signOutText: { fontSize: 13, fontFamily: 'Outfit', fontWeight: '600' as any, color: Accent.ruby },
 
   // Details Grid
   detailsGrid: { gap: 12 },
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
   dangerZone: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 16, gap: 12 },
   dangerTitle: { fontSize: 15, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
   dangerDesc: { fontSize: 12, marginTop: 2 },
-  deleteBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: Neon.red },
+  deleteBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: Accent.ruby },
   deleteBtnText: { fontSize: 13, fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: '#fff' },
 
   // App Info
@@ -772,6 +772,6 @@ const styles = StyleSheet.create({
   deleteModalActions: { flexDirection: 'row', gap: 12, width: '100%' },
   cancelModalBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
   cancelModalText: { fontSize: 15, fontFamily: 'Outfit', fontWeight: '600' as any },
-  confirmDeleteBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: Neon.red, alignItems: 'center' },
+  confirmDeleteBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: Accent.ruby, alignItems: 'center' },
   confirmDeleteText: { fontSize: 15, fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: '#fff' },
 });

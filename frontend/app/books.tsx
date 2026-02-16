@@ -14,7 +14,7 @@ import * as Sharing from 'expo-sharing';
 
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/context/ThemeContext';
-import { Neon } from '../src/utils/theme';
+import { Accent } from '../src/utils/theme';
 import { apiRequest } from '../src/utils/api';
 import { formatINR, formatINRShort } from '../src/utils/formatters';
 
@@ -1074,14 +1074,14 @@ export default function BooksScreen() {
     },
     categoryChipActive: {
       backgroundColor: isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.1)',
-      borderColor: Neon.green,
+      borderColor: Accent.emerald,
     },
     categoryChipText: {
       fontSize: 13,
       color: isDark ? '#94A3B8' : '#64748B',
     },
     categoryChipTextActive: {
-      color: Neon.green,
+      color: Accent.emerald,
       fontFamily: 'Outfit', fontWeight: '600' as any,
     },
     saveButton: {
@@ -1293,10 +1293,10 @@ export default function BooksScreen() {
       borderBottomColor: colors.border + '50',
     },
     emiRowPaid: {
-      backgroundColor: Neon.green + '10',
+      backgroundColor: Accent.emerald + '10',
     },
     emiRowCurrent: {
-      backgroundColor: Neon.yellow + '20',
+      backgroundColor: Accent.amber + '20',
     },
     emiCell: {
       fontSize: 11,
@@ -1405,9 +1405,9 @@ export default function BooksScreen() {
           </Text>
         </View>
         
-        {renderAccountGroup('Assets', assetAccounts, Neon.green)}
-        {renderAccountGroup('Income', incomeAccounts, Neon.blue)}
-        {renderAccountGroup('Expenses', expenseAccounts, Neon.red)}
+        {renderAccountGroup('Assets', assetAccounts, Accent.emerald)}
+        {renderAccountGroup('Income', incomeAccounts, Accent.sapphire)}
+        {renderAccountGroup('Expenses', expenseAccounts, Accent.ruby)}
         
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -1418,8 +1418,8 @@ export default function BooksScreen() {
     if (!pnlData) return null;
 
     const sectionColors: Record<string, string> = {
-      'A': Neon.green, 'B': Neon.blue, 'C': Neon.purple, 'D': Neon.yellow,
-      'E': Neon.red, 'F': Neon.red, 'G': '#7C3AED', 'H': '#06B6D4', 'I': '#6B7280',
+      'A': Accent.emerald, 'B': Accent.sapphire, 'C': Accent.amethyst, 'D': Accent.amber,
+      'E': Accent.ruby, 'F': Accent.ruby, 'G': '#7C3AED', 'H': '#06B6D4', 'I': '#6B7280',
     };
 
     return (
@@ -1438,13 +1438,13 @@ export default function BooksScreen() {
               <Text style={styles.sectionTitle}>INCOME</Text>
               <Text style={styles.sectionSubtitle}>Revenue & Earnings</Text>
             </View>
-            <Text style={[styles.sectionTitle, { color: Neon.green }]}>{formatINRIndian(pnlData.total_income)}</Text>
+            <Text style={[styles.sectionTitle, { color: Accent.emerald }]}>{formatINRIndian(pnlData.total_income)}</Text>
           </View>
           
           {pnlData.income_sections.map(section => (
             <View key={section.id} style={styles.pnlSection}>
               <TouchableOpacity
-                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || Neon.green }]}
+                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || Accent.emerald }]}
                 onPress={() => toggleSectionExpand(section.id)}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -1455,7 +1455,7 @@ export default function BooksScreen() {
                   />
                   <Text style={[styles.pnlSectionTitle, { marginLeft: 8 }]}>{section.id}. {section.name}</Text>
                 </View>
-                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || Neon.green }]}>
+                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || Accent.emerald }]}>
                   {formatINRIndian(section.subtotal)}
                 </Text>
               </TouchableOpacity>
@@ -1477,13 +1477,13 @@ export default function BooksScreen() {
               <Text style={styles.sectionTitle}>EXPENDITURE</Text>
               <Text style={styles.sectionSubtitle}>Expenses & Outflows</Text>
             </View>
-            <Text style={[styles.sectionTitle, { color: Neon.red }]}>{formatINRIndian(pnlData.total_expenses)}</Text>
+            <Text style={[styles.sectionTitle, { color: Accent.ruby }]}>{formatINRIndian(pnlData.total_expenses)}</Text>
           </View>
           
           {pnlData.expense_sections.map(section => (
             <View key={section.id} style={styles.pnlSection}>
               <TouchableOpacity
-                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || Neon.red }]}
+                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || Accent.ruby }]}
                 onPress={() => toggleSectionExpand(section.id)}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -1494,7 +1494,7 @@ export default function BooksScreen() {
                   />
                   <Text style={[styles.pnlSectionTitle, { marginLeft: 8 }]}>{section.id}. {section.name}</Text>
                 </View>
-                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || Neon.red }]}>
+                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || Accent.ruby }]}>
                   {formatINRIndian(section.subtotal)}
                 </Text>
               </TouchableOpacity>
@@ -1513,14 +1513,14 @@ export default function BooksScreen() {
         <View style={[
           styles.surplusBox,
           {
-            backgroundColor: pnlData.surplus_deficit >= 0 ? Neon.green + '15' : Neon.red + '15',
-            borderColor: pnlData.surplus_deficit >= 0 ? Neon.green : Neon.red,
+            backgroundColor: pnlData.surplus_deficit >= 0 ? Accent.emerald + '15' : Accent.ruby + '15',
+            borderColor: pnlData.surplus_deficit >= 0 ? Accent.emerald : Accent.ruby,
           }
         ]}>
-          <Text style={[styles.surplusTitle, { color: pnlData.surplus_deficit >= 0 ? Neon.green : Neon.red }]}>
+          <Text style={[styles.surplusTitle, { color: pnlData.surplus_deficit >= 0 ? Accent.emerald : Accent.ruby }]}>
             {pnlData.surplus_deficit >= 0 ? 'SURPLUS' : 'DEFICIT'} FOR THE PERIOD
           </Text>
-          <Text style={[styles.surplusAmount, { color: pnlData.surplus_deficit >= 0 ? Neon.green : Neon.red }]}>
+          <Text style={[styles.surplusAmount, { color: pnlData.surplus_deficit >= 0 ? Accent.emerald : Accent.ruby }]}>
             {formatINRIndian(Math.abs(pnlData.surplus_deficit))}
           </Text>
         </View>
@@ -1568,24 +1568,24 @@ export default function BooksScreen() {
         {/* Balance Verification Badge */}
         <View style={[
           styles.balanceBadge,
-          { backgroundColor: balanceSheet.is_balanced ? Neon.green + '20' : Neon.red + '20' }
+          { backgroundColor: balanceSheet.is_balanced ? Accent.emerald + '20' : Accent.ruby + '20' }
         ]}>
           <MaterialCommunityIcons
             name={balanceSheet.is_balanced ? 'check-circle' : 'alert-circle'}
             size={20}
-            color={balanceSheet.is_balanced ? Neon.green : Neon.red}
+            color={balanceSheet.is_balanced ? Accent.emerald : Accent.ruby}
           />
-          <Text style={[styles.balanceBadgeText, { color: balanceSheet.is_balanced ? Neon.green : Neon.red }]}>
+          <Text style={[styles.balanceBadgeText, { color: balanceSheet.is_balanced ? Accent.emerald : Accent.ruby }]}>
             {balanceSheet.is_balanced ? 'Balance Sheet Balanced ✓' : 'Balance Sheet Discrepancy'}
           </Text>
         </View>
 
         {/* ASSETS Section */}
         <View style={[styles.section, { marginHorizontal: 0 }]}>
-          <View style={[styles.bsCategoryHeader, { borderLeftColor: Neon.blue }]}>
-            <MaterialCommunityIcons name="bank" size={22} color={Neon.blue} style={{ marginRight: 12 }} />
+          <View style={[styles.bsCategoryHeader, { borderLeftColor: Accent.sapphire }]}>
+            <MaterialCommunityIcons name="bank" size={22} color={Accent.sapphire} style={{ marginRight: 12 }} />
             <Text style={styles.bsCategoryTitle}>I. ASSETS</Text>
-            <Text style={[styles.bsCategoryTotal, { color: Neon.blue }]}>
+            <Text style={[styles.bsCategoryTotal, { color: Accent.sapphire }]}>
               {formatINRIndian(balanceSheet.assets.total)}
             </Text>
           </View>
@@ -1599,11 +1599,11 @@ export default function BooksScreen() {
             {fixedAssets.length > 0 ? (
               fixedAssets.map(asset => (
                 <View key={asset.id} style={styles.assetCard}>
-                  <View style={[styles.assetIcon, { backgroundColor: Neon.blue + '20' }]}>
+                  <View style={[styles.assetIcon, { backgroundColor: Accent.sapphire + '20' }]}>
                     <MaterialCommunityIcons
                       name={asset.category === 'Property' ? 'home' : asset.category === 'Vehicle' ? 'car' : 'laptop'}
                       size={22}
-                      color={Neon.blue}
+                      color={Accent.sapphire}
                     />
                   </View>
                   <View style={styles.assetInfo}>
@@ -1653,7 +1653,7 @@ export default function BooksScreen() {
             
             <View style={[styles.bsItem, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
               <Text style={[styles.bsItemText, { fontFamily: 'Space Grotesk', fontWeight: '700' as any }]}>Total Non-Current Assets</Text>
-              <Text style={[styles.bsItemAmount, { fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: Neon.blue }]}>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: Accent.sapphire }]}>
                 {formatINRIndian(balanceSheet.assets.non_current.total)}
               </Text>
             </View>
@@ -1683,7 +1683,7 @@ export default function BooksScreen() {
             
             <View style={[styles.bsItem, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
               <Text style={[styles.bsItemText, { fontFamily: 'Space Grotesk', fontWeight: '700' as any }]}>Total Current Assets</Text>
-              <Text style={[styles.bsItemAmount, { fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: Neon.blue }]}>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: Accent.sapphire }]}>
                 {formatINRIndian(balanceSheet.assets.current.total)}
               </Text>
             </View>
@@ -1692,10 +1692,10 @@ export default function BooksScreen() {
 
         {/* LIABILITIES & NET WORTH Section */}
         <View style={[styles.section, { marginHorizontal: 0 }]}>
-          <View style={[styles.bsCategoryHeader, { borderLeftColor: Neon.red }]}>
-            <MaterialCommunityIcons name="credit-card-outline" size={22} color={Neon.red} style={{ marginRight: 12 }} />
+          <View style={[styles.bsCategoryHeader, { borderLeftColor: Accent.ruby }]}>
+            <MaterialCommunityIcons name="credit-card-outline" size={22} color={Accent.ruby} style={{ marginRight: 12 }} />
             <Text style={styles.bsCategoryTitle}>II. LIABILITIES</Text>
-            <Text style={[styles.bsCategoryTotal, { color: Neon.red }]}>
+            <Text style={[styles.bsCategoryTotal, { color: Accent.ruby }]}>
               {formatINRIndian(balanceSheet.liabilities.total)}
             </Text>
           </View>
@@ -1746,11 +1746,11 @@ export default function BooksScreen() {
               {loans.map(loan => (
                 <View key={loan.id} style={[styles.loanCard, { marginHorizontal: 0, marginBottom: 8 }]}>
                   <View style={styles.loanCardHeader}>
-                    <View style={[styles.loanIcon, { backgroundColor: Neon.red + '20' }]}>
+                    <View style={[styles.loanIcon, { backgroundColor: Accent.ruby + '20' }]}>
                       <MaterialCommunityIcons
                         name={loan.loan_type.includes('Home') ? 'home' : loan.loan_type.includes('Car') ? 'car' : 'bank'}
                         size={22}
-                        color={Neon.red}
+                        color={Accent.ruby}
                       />
                     </View>
                     <View style={styles.loanInfo}>
@@ -1777,7 +1777,7 @@ export default function BooksScreen() {
                     </View>
                     <View style={styles.loanDetailRow}>
                       <Text style={styles.loanDetailLabel}>Interest Paid</Text>
-                      <Text style={[styles.loanDetailValue, { color: Neon.red }]}>{formatINRIndian(loan.total_interest_paid)}</Text>
+                      <Text style={[styles.loanDetailValue, { color: Accent.ruby }]}>{formatINRIndian(loan.total_interest_paid)}</Text>
                     </View>
                     <View style={styles.loanActions}>
                       <TouchableOpacity style={styles.loanActionBtn} onPress={() => viewEMISchedule(loan.id)}>
@@ -1785,11 +1785,11 @@ export default function BooksScreen() {
                         <Text style={styles.loanActionText}>EMI Schedule</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.loanActionBtn, { backgroundColor: Neon.red + '10' }]}
+                        style={[styles.loanActionBtn, { backgroundColor: Accent.ruby + '10' }]}
                         onPress={() => handleDeleteLoan(loan.id)}
                       >
-                        <MaterialCommunityIcons name="delete-outline" size={16} color={Neon.red} />
-                        <Text style={[styles.loanActionText, { color: Neon.red }]}>Delete</Text>
+                        <MaterialCommunityIcons name="delete-outline" size={16} color={Accent.ruby} />
+                        <Text style={[styles.loanActionText, { color: Accent.ruby }]}>Delete</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -1801,10 +1801,10 @@ export default function BooksScreen() {
 
         {/* NET WORTH Section */}
         <View style={[styles.section, { marginHorizontal: 0 }]}>
-          <View style={[styles.bsCategoryHeader, { borderLeftColor: Neon.green }]}>
-            <MaterialCommunityIcons name="wallet" size={22} color={Neon.green} style={{ marginRight: 12 }} />
+          <View style={[styles.bsCategoryHeader, { borderLeftColor: Accent.emerald }]}>
+            <MaterialCommunityIcons name="wallet" size={22} color={Accent.emerald} style={{ marginRight: 12 }} />
             <Text style={styles.bsCategoryTitle}>III. NET WORTH</Text>
-            <Text style={[styles.bsCategoryTotal, { color: Neon.green }]}>
+            <Text style={[styles.bsCategoryTotal, { color: Accent.emerald }]}>
               {formatINRIndian(balanceSheet.net_worth.closing)}
             </Text>
           </View>
@@ -1816,13 +1816,13 @@ export default function BooksScreen() {
             </View>
             <View style={styles.bsItem}>
               <Text style={styles.bsItemText}>Add: Surplus for the Period</Text>
-              <Text style={[styles.bsItemAmount, { color: Neon.green }]}>
+              <Text style={[styles.bsItemAmount, { color: Accent.emerald }]}>
                 {formatINRIndian(balanceSheet.net_worth.surplus_for_period)}
               </Text>
             </View>
             <View style={[styles.bsItem, { borderTopWidth: 2, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
               <Text style={[styles.bsItemText, { fontFamily: 'Space Grotesk', fontWeight: '700' as any }]}>Closing Net Worth</Text>
-              <Text style={[styles.bsItemAmount, { fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: Neon.green }]}>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: Accent.emerald }]}>
                 {formatINRIndian(balanceSheet.net_worth.closing)}
               </Text>
             </View>
@@ -1834,7 +1834,7 @@ export default function BooksScreen() {
           <View>
             <Text style={styles.pnlTotalText}>TOTAL ASSETS</Text>
           </View>
-          <Text style={[styles.pnlTotalAmount, { color: Neon.blue }]}>
+          <Text style={[styles.pnlTotalAmount, { color: Accent.sapphire }]}>
             {formatINRIndian(balanceSheet.assets.total)}
           </Text>
         </View>
@@ -1843,7 +1843,7 @@ export default function BooksScreen() {
           <View>
             <Text style={styles.pnlTotalText}>LIABILITIES + NET WORTH</Text>
           </View>
-          <Text style={[styles.pnlTotalAmount, { color: Neon.green }]}>
+          <Text style={[styles.pnlTotalAmount, { color: Accent.emerald }]}>
             {formatINRIndian(balanceSheet.total_liabilities_and_net_worth)}
           </Text>
         </View>
@@ -2102,8 +2102,8 @@ export default function BooksScreen() {
             </View>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('csv')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.green + '20' }]}>
-                <MaterialCommunityIcons name="file-delimited" size={24} color={Neon.green} />
+              <View style={[styles.exportOptionIcon, { backgroundColor: Accent.emerald + '20' }]}>
+                <MaterialCommunityIcons name="file-delimited" size={24} color={Accent.emerald} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>CSV Format</Text>
@@ -2113,7 +2113,7 @@ export default function BooksScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('excel')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.purple + '20' }]}>
+              <View style={[styles.exportOptionIcon, { backgroundColor: Accent.amethyst + '20' }]}>
                 <MaterialCommunityIcons name="microsoft-excel" size={24} color="#8B5CF6" />
               </View>
               <View style={{ flex: 1 }}>
@@ -2124,8 +2124,8 @@ export default function BooksScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('pdf')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.red + '20' }]}>
-                <MaterialCommunityIcons name="file-pdf-box" size={24} color={Neon.red} />
+              <View style={[styles.exportOptionIcon, { backgroundColor: Accent.ruby + '20' }]}>
+                <MaterialCommunityIcons name="file-pdf-box" size={24} color={Accent.ruby} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>PDF Format</Text>
@@ -2135,8 +2135,8 @@ export default function BooksScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('json')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.blue + '20' }]}>
-                <MaterialCommunityIcons name="code-json" size={24} color={Neon.blue} />
+              <View style={[styles.exportOptionIcon, { backgroundColor: Accent.sapphire + '20' }]}>
+                <MaterialCommunityIcons name="code-json" size={24} color={Accent.sapphire} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>JSON Format</Text>

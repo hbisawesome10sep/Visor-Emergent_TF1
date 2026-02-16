@@ -13,7 +13,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
-import { Neon } from '../../src/utils/theme';
+import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -233,7 +233,7 @@ export default function TransactionsScreen() {
           ]}
         >
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: isDark ? Neon.purple : '#7C3AED' }]}>Transactions</Text>
+            <Text style={[styles.headerTitle, { color: isDark ? Accent.amethyst : '#7C3AED' }]}>Transactions</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               Track and manage your finances
             </Text>
@@ -248,7 +248,7 @@ export default function TransactionsScreen() {
               <MaterialCommunityIcons
                 name={showSearch ? 'close' : 'magnify'}
                 size={20}
-                color={showSearch ? Neon.purple : colors.textSecondary}
+                color={showSearch ? Accent.amethyst : colors.textSecondary}
               />
             </TouchableOpacity>
           </View>
@@ -414,7 +414,7 @@ export default function TransactionsScreen() {
             ) : (
               <TouchableOpacity style={styles.emptyAddBtn} onPress={() => openAdd()}>
                 <LinearGradient
-                  colors={[Neon.purple, '#EC4899']}
+                  colors={[Accent.amethyst, '#EC4899']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.emptyAddGradient}
@@ -478,13 +478,13 @@ export default function TransactionsScreen() {
                         {txn.is_recurring && (
                           <View style={[styles.txnBadge, { backgroundColor: 'rgba(147, 51, 234, 0.1)' }]}>
                             <MaterialCommunityIcons name="repeat" size={10} color="#9333EA" />
-                            <Text style={[styles.txnBadgeText, { color: Neon.purple }]}>Recurring</Text>
+                            <Text style={[styles.txnBadgeText, { color: Accent.amethyst }]}>Recurring</Text>
                           </View>
                         )}
                         {txn.is_split && txn.split_count && txn.split_count > 1 && (
                           <View style={[styles.txnBadge, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                            <MaterialCommunityIcons name="account-multiple" size={10} color={Neon.yellow} />
-                            <Text style={[styles.txnBadgeText, { color: Neon.yellow }]}>Split ×{txn.split_count}</Text>
+                            <MaterialCommunityIcons name="account-multiple" size={10} color={Accent.amber} />
+                            <Text style={[styles.txnBadgeText, { color: Accent.amber }]}>Split ×{txn.split_count}</Text>
                           </View>
                         )}
                       </View>
@@ -515,7 +515,7 @@ export default function TransactionsScreen() {
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={[Neon.purple, '#EC4899']}
+          colors={[Accent.amethyst, '#EC4899']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.fabGradient}
@@ -656,7 +656,7 @@ export default function TransactionsScreen() {
                       value={form.is_recurring}
                       onValueChange={v => setForm(p => ({ ...p, is_recurring: v }))}
                       trackColor={{ false: colors.border, true: 'rgba(147, 51, 234, 0.5)' }}
-                      thumbColor={form.is_recurring ? Neon.purple : '#ccc'}
+                      thumbColor={form.is_recurring ? Accent.amethyst : '#ccc'}
                     />
                   </View>
                   {form.is_recurring && (
@@ -665,8 +665,8 @@ export default function TransactionsScreen() {
                         <TouchableOpacity
                           key={freq}
                           style={[styles.freqChip, {
-                            backgroundColor: form.recurring_frequency === freq ? Neon.purple : 'transparent',
-                            borderColor: form.recurring_frequency === freq ? Neon.purple : colors.border,
+                            backgroundColor: form.recurring_frequency === freq ? Accent.amethyst : 'transparent',
+                            borderColor: form.recurring_frequency === freq ? Accent.amethyst : colors.border,
                           }]}
                           onPress={() => setForm(p => ({ ...p, recurring_frequency: freq }))}
                         >
@@ -683,7 +683,7 @@ export default function TransactionsScreen() {
                 <View style={[styles.toggleCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
                   <View style={styles.toggleRow}>
                     <View style={[styles.toggleIcon, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                      <MaterialCommunityIcons name="account-multiple" size={20} color={Neon.yellow} />
+                      <MaterialCommunityIcons name="account-multiple" size={20} color={Accent.amber} />
                     </View>
                     <View style={styles.toggleInfo}>
                       <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Split with others</Text>
@@ -693,7 +693,7 @@ export default function TransactionsScreen() {
                       value={form.is_split}
                       onValueChange={v => setForm(p => ({ ...p, is_split: v }))}
                       trackColor={{ false: colors.border, true: 'rgba(245, 158, 11, 0.5)' }}
-                      thumbColor={form.is_split ? Neon.yellow : '#ccc'}
+                      thumbColor={form.is_split ? Accent.amber : '#ccc'}
                     />
                   </View>
                   {form.is_split && (
@@ -716,7 +716,7 @@ export default function TransactionsScreen() {
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Text style={[styles.splitResult, { color: Neon.yellow }]}>
+                      <Text style={[styles.splitResult, { color: Accent.amber }]}>
                         Per person: {formatINRShort(parseFloat(form.amount || '0') / (parseInt(form.split_count) || 1))}
                       </Text>
                     </View>
@@ -730,7 +730,7 @@ export default function TransactionsScreen() {
                   disabled={saving || !form.amount || !form.category || !form.description}
                 >
                   <LinearGradient
-                    colors={[Neon.purple, '#EC4899']}
+                    colors={[Accent.amethyst, '#EC4899']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.submitGradient}
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
   clearFiltersText: {
     fontSize: 12,
     fontFamily: 'Outfit', fontWeight: '600' as any,
-    color: Neon.purple,
+    color: Accent.amethyst,
   },
 
   // Summary Bar
@@ -1008,7 +1008,7 @@ const styles = StyleSheet.create({
   clearFiltersLargeText: {
     fontSize: 14,
     fontFamily: 'Outfit', fontWeight: '600' as any,
-    color: Neon.purple,
+    color: Accent.amethyst,
   },
 
   // Date Header
@@ -1097,7 +1097,7 @@ const styles = StyleSheet.create({
     bottom: 90,
     zIndex: 99999,
     borderRadius: 28,
-    shadowColor: Neon.purple,
+    shadowColor: Accent.amethyst,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,

@@ -12,7 +12,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { apiRequest } from '../../src/utils/api';
 import { formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
-import { Neon } from '../../src/utils/theme';
+import { Accent } from '../../src/utils/theme';
 import AIAdvisorChat from '../../src/components/AIAdvisorChat';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -32,18 +32,18 @@ type DashboardStats = {
 
 // Health Score - now uses backend-provided score for consistency with Dashboard
 function getScoreLabel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: 'Excellent', color: Neon.green };
-  if (score >= 65) return { label: 'Good', color: Neon.cyan };
-  if (score >= 50) return { label: 'Fair', color: Neon.yellow };
+  if (score >= 80) return { label: 'Excellent', color: Accent.emerald };
+  if (score >= 65) return { label: 'Good', color: Accent.teal };
+  if (score >= 50) return { label: 'Fair', color: Accent.amber };
   if (score >= 35) return { label: 'Needs Work', color: '#F97316' };
-  return { label: 'Critical', color: Neon.red };
+  return { label: 'Critical', color: Accent.ruby };
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 76) return Neon.green;
-  if (score >= 61) return Neon.cyan;
-  if (score >= 41) return Neon.yellow;
-  return Neon.red;
+  if (score >= 76) return Accent.emerald;
+  if (score >= 61) return Accent.teal;
+  if (score >= 41) return Accent.amber;
+  return Accent.ruby;
 }
 
 function getMetricStatus(value: number, target: number, isInverted: boolean = false): 'excellent' | 'good' | 'fair' | 'critical' {
@@ -56,10 +56,10 @@ function getMetricStatus(value: number, target: number, isInverted: boolean = fa
 
 function getStatusColor(status: 'excellent' | 'good' | 'fair' | 'critical'): string {
   switch (status) {
-    case 'excellent': return Neon.green;
-    case 'good': return Neon.cyan;
-    case 'fair': return Neon.yellow;
-    case 'critical': return Neon.red;
+    case 'excellent': return Accent.emerald;
+    case 'good': return Accent.teal;
+    case 'fair': return Accent.amber;
+    case 'critical': return Accent.ruby;
   }
 }
 
@@ -108,12 +108,12 @@ function InsightCard({
   // Gradient colors based on status
   const getGradient = (): [string, string] => {
     switch (status) {
-      case 'excellent': return [Neon.green, Neon.cyan];
-      case 'good': return [Neon.cyan, Neon.blue];
-      case 'fair': return [Neon.yellow, Neon.orange];
-      case 'needs_work': return [Neon.orange, Neon.red];
-      case 'critical': return [Neon.red, '#C2185B'];
-      default: return [Neon.purple, Neon.blue];
+      case 'excellent': return [Accent.emerald, Accent.teal];
+      case 'good': return [Accent.teal, Accent.sapphire];
+      case 'fair': return [Accent.amber, Accent.amber];
+      case 'needs_work': return [Accent.amber, Accent.ruby];
+      case 'critical': return [Accent.ruby, '#C2185B'];
+      default: return [Accent.amethyst, Accent.sapphire];
     }
   };
 
@@ -198,7 +198,7 @@ function InsightCard({
             </View>
             <View style={styles.backStatRow}>
               <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>Target</Text>
-              <Text style={[styles.backStatValue, { color: Neon.green }]}>{benchmarkInfo.recommended}</Text>
+              <Text style={[styles.backStatValue, { color: Accent.emerald }]}>{benchmarkInfo.recommended}</Text>
             </View>
           </View>
           
@@ -478,7 +478,7 @@ export default function InsightsScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Neon.green} />
+          <ActivityIndicator size="large" color={Accent.emerald} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Analyzing your finances...
           </Text>
@@ -503,7 +503,7 @@ export default function InsightsScreen() {
           ]}
         >
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: isDark ? Neon.cyan : '#008F7A' }]}>Financial Insights</Text>
+            <Text style={[styles.headerTitle, { color: isDark ? Accent.teal : '#008F7A' }]}>Financial Insights</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               Real-time analysis based on Indian standards
             </Text>
@@ -512,7 +512,7 @@ export default function InsightsScreen() {
             style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
             onPress={onRefresh}
           >
-            <MaterialCommunityIcons name="refresh" size={20} color={Neon.green} />
+            <MaterialCommunityIcons name="refresh" size={20} color={Accent.emerald} />
           </TouchableOpacity>
         </View>
       </View>
@@ -520,7 +520,7 @@ export default function InsightsScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 16 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Neon.green} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Accent.emerald} />}
         showsVerticalScrollIndicator={false}
       >
         {/* ═══ FINANCIAL HEALTH SCORE ═══ */}
@@ -728,7 +728,7 @@ export default function InsightsScreen() {
         }]}>
           <View style={styles.compareHeader}>
             <View style={[styles.compareIcon, { backgroundColor: isBetterThanAverage ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)' }]}>
-              <MaterialCommunityIcons name={isBetterThanAverage ? "trophy" : "trending-up"} size={24} color={isBetterThanAverage ? Neon.green : Neon.yellow} />
+              <MaterialCommunityIcons name={isBetterThanAverage ? "trophy" : "trending-up"} size={24} color={isBetterThanAverage ? Accent.emerald : Accent.amber} />
             </View>
             <View style={styles.compareTitleBox}>
               <Text style={[styles.compareTitle, { color: colors.textPrimary }]}>
@@ -741,22 +741,22 @@ export default function InsightsScreen() {
           <View style={styles.compareGrid}>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Your Savings</Text>
-              <Text style={[styles.compareValue, { color: savingsRate > indianAvgSavingsRate ? Neon.green : Neon.red }]}>{savingsRate.toFixed(1)}%</Text>
+              <Text style={[styles.compareValue, { color: savingsRate > indianAvgSavingsRate ? Accent.emerald : Accent.ruby }]}>{savingsRate.toFixed(1)}%</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgSavingsRate}%</Text>
             </View>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Investment Rate</Text>
-              <Text style={[styles.compareValue, { color: investmentRate > indianAvgInvestmentRate ? Neon.green : Neon.yellow }]}>{investmentRate.toFixed(1)}%</Text>
+              <Text style={[styles.compareValue, { color: investmentRate > indianAvgInvestmentRate ? Accent.emerald : Accent.amber }]}>{investmentRate.toFixed(1)}%</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgInvestmentRate}%</Text>
             </View>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Expense Ratio</Text>
-              <Text style={[styles.compareValue, { color: spendingRate < indianAvgExpenseRatio ? Neon.green : Neon.red }]}>{spendingRate.toFixed(1)}%</Text>
+              <Text style={[styles.compareValue, { color: spendingRate < indianAvgExpenseRatio ? Accent.emerald : Accent.ruby }]}>{spendingRate.toFixed(1)}%</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgExpenseRatio}%</Text>
             </View>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Emergency Fund</Text>
-              <Text style={[styles.compareValue, { color: runwayMonths > 2.5 ? Neon.green : Neon.yellow }]}>{runwayMonths.toFixed(1)} mo</Text>
+              <Text style={[styles.compareValue, { color: runwayMonths > 2.5 ? Accent.emerald : Accent.amber }]}>{runwayMonths.toFixed(1)} mo</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: 2.5 mo</Text>
             </View>
           </View>
@@ -807,7 +807,7 @@ export default function InsightsScreen() {
             style={[styles.recommendationCard, {
               backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
               borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-              borderLeftColor: rec.priority === 'high' ? Neon.red : rec.priority === 'medium' ? Neon.yellow : Neon.green,
+              borderLeftColor: rec.priority === 'high' ? Accent.ruby : rec.priority === 'medium' ? Accent.amber : Accent.emerald,
             }]}
           >
             <View style={styles.recHeader}>
@@ -817,7 +817,7 @@ export default function InsightsScreen() {
                 <MaterialCommunityIcons
                   name={rec.icon as any}
                   size={20}
-                  color={rec.priority === 'high' ? Neon.red : rec.priority === 'medium' ? Neon.yellow : Neon.green}
+                  color={rec.priority === 'high' ? Accent.ruby : rec.priority === 'medium' ? Accent.amber : Accent.emerald}
                 />
               </View>
               <View style={styles.recInfo}>
@@ -829,8 +829,8 @@ export default function InsightsScreen() {
               <View style={[styles.impactBadge, {
                 backgroundColor: rec.priority === 'low' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
               }]}>
-                <MaterialCommunityIcons name="lightning-bolt" size={12} color={rec.priority === 'low' ? Neon.green : Neon.yellow} />
-                <Text style={[styles.impactText, { color: rec.priority === 'low' ? Neon.green : Neon.yellow }]}>{rec.impact}</Text>
+                <MaterialCommunityIcons name="lightning-bolt" size={12} color={rec.priority === 'low' ? Accent.emerald : Accent.amber} />
+                <Text style={[styles.impactText, { color: rec.priority === 'low' ? Accent.emerald : Accent.amber }]}>{rec.impact}</Text>
               </View>
               <Text style={[styles.sourceText, { color: colors.textSecondary }]}>{rec.source}</Text>
             </View>

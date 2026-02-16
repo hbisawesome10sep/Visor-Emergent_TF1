@@ -27,7 +27,7 @@ import LiquidFillCard from '../../src/components/LiquidFillCard';
 import PieChart from '../../src/components/PieChart';
 import TrendChart from '../../src/components/TrendChart';
 import FAB from '../../src/components/FAB';
-import { Neon } from '../../src/utils/theme';
+import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -71,18 +71,18 @@ type Goal = {
 
 // Health Score - now uses backend-provided score for consistency
 function getScoreLabel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: 'Excellent', color: Neon.green };
-  if (score >= 65) return { label: 'Good', color: Neon.cyan };
-  if (score >= 50) return { label: 'Fair', color: Neon.yellow };
-  if (score >= 35) return { label: 'Needs Work', color: Neon.orange };
-  return { label: 'Critical', color: Neon.red };
+  if (score >= 80) return { label: 'Excellent', color: Accent.emerald };
+  if (score >= 65) return { label: 'Good', color: Accent.teal };
+  if (score >= 50) return { label: 'Fair', color: Accent.amber };
+  if (score >= 35) return { label: 'Needs Work', color: Accent.amber };
+  return { label: 'Critical', color: Accent.ruby };
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 76) return Neon.green;
-  if (score >= 61) return Neon.cyan;
-  if (score >= 41) return Neon.yellow;
-  return Neon.red;
+  if (score >= 76) return Accent.emerald;
+  if (score >= 61) return Accent.teal;
+  if (score >= 41) return Accent.amber;
+  return Accent.ruby;
 }
 
 export default function DashboardScreen() {
@@ -346,7 +346,7 @@ export default function DashboardScreen() {
     {
       icon: 'book-open-page-variant',
       label: 'Books & Reports',
-      color: Neon.purple,
+      color: Accent.amethyst,
       onPress: () => router.push('/books'),
     },
   ];
@@ -431,7 +431,7 @@ export default function DashboardScreen() {
               <MaterialCommunityIcons
                 name={isDark ? 'weather-sunny' : 'weather-night'}
                 size={18}
-                color={isDark ? '#FBBF24' : Neon.purple}
+                color={isDark ? '#FBBF24' : Accent.amethyst}
               />
             </TouchableOpacity>
           </View>
@@ -558,7 +558,7 @@ export default function DashboardScreen() {
               amount={formatINRShort(stats?.total_income || 0)}
               percentChange={12.5}
               fillPercent={100 - expensePercent}
-              gradient={[Neon.green, Neon.cyan]}
+              gradient={[Accent.emerald, Accent.teal]}
               icon="arrow-down-circle"
               onPress={() => router.push('/(tabs)/transactions')}
               colors={colors}
@@ -569,7 +569,7 @@ export default function DashboardScreen() {
               amount={formatINRShort(stats?.total_expenses || 0)}
               percentChange={-8.2}
               fillPercent={expensePercent}
-              gradient={[Neon.red, Neon.orange]}
+              gradient={[Accent.ruby, Accent.amber]}
               icon="arrow-up-circle"
               onPress={() => router.push('/(tabs)/transactions')}
               colors={colors}
@@ -579,7 +579,7 @@ export default function DashboardScreen() {
               title="Savings Rate"
               amount={`${savingsRate.toFixed(0)}%`}
               fillPercent={savingsRate}
-              gradient={[Neon.blue, Neon.purple]}
+              gradient={[Accent.sapphire, Accent.amethyst]}
               icon="piggy-bank"
               colors={colors}
               isDark={isDark}
