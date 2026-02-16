@@ -256,7 +256,7 @@ export default function TransactionsScreen() {
         {/* Search Bar */}
         {showSearch && (
           <View style={[styles.searchBar, {
-            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
             borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
           }]}>
             <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
