@@ -167,16 +167,16 @@ const styles = StyleSheet.create({
   },
   percentText: {
     fontSize: 12,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   amount: {
     fontSize: 20,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     letterSpacing: -0.5,
   },
   title: {
     fontSize: 12,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
     marginTop: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

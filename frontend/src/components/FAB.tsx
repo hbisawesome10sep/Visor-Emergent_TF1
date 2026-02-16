@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 14,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
 
   // Icon button

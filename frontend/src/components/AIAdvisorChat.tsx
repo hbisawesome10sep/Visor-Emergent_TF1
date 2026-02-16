@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   aiBadgeText: {
     color: '#fff',
     fontSize: 10,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
 
   // Container
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   headerSubtitle: {
     fontSize: 12,
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     marginBottom: 8,
   },
   emptySubtitle: {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   },
   quickTitle: {
     fontSize: 15,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
     marginBottom: 12,
   },
   quickPrompts: {
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   },
   quickChipText: {
     fontSize: 13,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
   },
 
   // Message bubbles
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   },
   assistantName: {
     fontSize: 12,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
   messageText: {
     fontSize: 15,
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   },
   calcTitle: {
     fontSize: 14,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     marginBottom: 8,
   },
   calcRow: {
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
   },
   calcValue: {
     fontSize: 13,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
 
   // Typing indicator

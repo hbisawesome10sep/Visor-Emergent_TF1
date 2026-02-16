@@ -195,14 +195,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
     fontSize: 11,
     color: 'rgba(255,255,255,0.85)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
   amount: {
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     fontSize: 20,
     color: '#fff',
     letterSpacing: -0.5,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   changeText: {
-    fontFamily: 'Space Grotesk', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
     fontSize: 12,
     color: 'rgba(255,255,255,0.9)',
   },

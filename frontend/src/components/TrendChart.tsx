@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
   },
   legend: {
     flexDirection: 'row',
@@ -222,6 +222,6 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
   },
 });

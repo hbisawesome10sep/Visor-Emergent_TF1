@@ -449,7 +449,7 @@ export default function DashboardScreen() {
         {/* Active date range indicator */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8, marginTop: 4 }}>
           <MaterialCommunityIcons name="calendar-range" size={14} color={colors.textSecondary} />
-          <Text style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 6, fontFamily: 'Outfit', fontWeight: '500' as any }}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 6, fontFamily: 'DM Sans', fontWeight: '500' as any }}>
             {selectedFrequency === 'Custom' 
               ? `${dateRange.start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${dateRange.end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
               : selectedFrequency === 'Month'
@@ -881,7 +881,7 @@ export default function DashboardScreen() {
                     <Text
                       style={{
                         fontSize: 13,
-                        fontFamily: 'Outfit', fontWeight: '600' as any,
+                        fontFamily: 'DM Sans', fontWeight: '600' as any,
                         color: txnForm.type === t ? '#fff' : colors.textSecondary,
                       }}
                     >
@@ -1094,8 +1094,8 @@ export default function DashboardScreen() {
                 }]}
                 onPress={() => setActivePickerField('start')}
               >
-                <Text style={{ fontSize: 11, fontFamily: 'Outfit', fontWeight: '600' as any, color: colors.textSecondary, marginBottom: 4 }}>FROM</Text>
-                <Text style={{ fontSize: 16, fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: colors.textPrimary }}>
+                <Text style={{ fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, color: colors.textSecondary, marginBottom: 4 }}>FROM</Text>
+                <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, color: colors.textPrimary }}>
                   {customStartDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </Text>
               </TouchableOpacity>
@@ -1112,8 +1112,8 @@ export default function DashboardScreen() {
                 }]}
                 onPress={() => setActivePickerField('end')}
               >
-                <Text style={{ fontSize: 11, fontFamily: 'Outfit', fontWeight: '600' as any, color: colors.textSecondary, marginBottom: 4 }}>TO</Text>
-                <Text style={{ fontSize: 16, fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: colors.textPrimary }}>
+                <Text style={{ fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, color: colors.textSecondary, marginBottom: 4 }}>TO</Text>
+                <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, color: colors.textPrimary }}>
                   {customEndDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </Text>
               </TouchableOpacity>
@@ -1187,15 +1187,15 @@ const styles = StyleSheet.create({
   },
   greetingText: {
     fontSize: 17,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   greetingName: {
     fontSize: 17,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   monthYear: {
     fontSize: 12,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
     marginTop: 2,
   },
   headerRight: {
@@ -1215,7 +1215,7 @@ const styles = StyleSheet.create({
   },
   freqText: {
     fontSize: 12,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   themeBtn: {
     width: 36,
@@ -1276,12 +1276,12 @@ const styles = StyleSheet.create({
   },
   scoreNum: {
     fontSize: 26,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     letterSpacing: -1,
   },
   scoreOf: {
     fontSize: 11,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
   scoreInfo: {
     flex: 1,
@@ -1289,7 +1289,7 @@ const styles = StyleSheet.create({
   },
   scoreTitle: {
     fontSize: 15,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   scoreLabelBadge: {
     alignSelf: 'flex-start',
@@ -1299,7 +1299,7 @@ const styles = StyleSheet.create({
   },
   scoreLabelText: {
     fontSize: 11,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   scoreDesc: {
     fontSize: 12,
@@ -1309,7 +1309,7 @@ const styles = StyleSheet.create({
   },
   scoreBackTitle: {
     fontSize: 15,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     marginBottom: 2,
   },
   scoreBackDesc: {
@@ -1331,7 +1331,7 @@ const styles = StyleSheet.create({
   },
   breakdownValue: {
     fontSize: 12,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
   breakdownTotal: {
     flexDirection: 'row',
@@ -1343,11 +1343,11 @@ const styles = StyleSheet.create({
   },
   breakdownTotalLabel: {
     fontSize: 13,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   breakdownTotalValue: {
     fontSize: 16,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
 
   // Section
@@ -1356,7 +1356,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     letterSpacing: -0.3,
     marginBottom: 14,
   },
@@ -1388,12 +1388,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     letterSpacing: -0.3,
   },
   viewAllLink: {
     fontSize: 13,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
 
   // Pie Chart
@@ -1419,11 +1419,11 @@ const styles = StyleSheet.create({
   legendCat: {
     flex: 1,
     fontSize: 13,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
   },
   legendAmt: {
     fontSize: 12,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
 
   // Transactions
@@ -1445,7 +1445,7 @@ const styles = StyleSheet.create({
   },
   txnTitle: {
     fontSize: 14,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
   txnMeta: {
     fontSize: 12,
@@ -1453,7 +1453,7 @@ const styles = StyleSheet.create({
   },
   txnAmount: {
     fontSize: 15,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
 
   // Goals
@@ -1463,7 +1463,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     marginTop: 12,
   },
   emptySubtitle: {
@@ -1480,7 +1480,7 @@ const styles = StyleSheet.create({
   emptyBtnText: {
     color: '#fff',
     fontSize: 14,
-    fontFamily: 'Outfit', fontWeight: '600' as any,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
   goalCard: {
     padding: 14,
@@ -1504,7 +1504,7 @@ const styles = StyleSheet.create({
   },
   goalTitle: {
     fontSize: 14,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   goalCategory: {
     fontSize: 12,
@@ -1512,7 +1512,7 @@ const styles = StyleSheet.create({
   },
   goalPercent: {
     fontSize: 16,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   goalBarTrack: {
     height: 4,
@@ -1531,7 +1531,7 @@ const styles = StyleSheet.create({
   },
   goalAmounts: {
     fontSize: 12,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
   },
   goalRemaining: {
     fontSize: 12,
@@ -1568,7 +1568,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   typeRow: {
     flexDirection: 'row',
@@ -1596,12 +1596,12 @@ const styles = StyleSheet.create({
   },
   rupeeSymbol: {
     fontSize: 24,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   amountInput: {
     flex: 1,
     fontSize: 28,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     paddingHorizontal: 8,
     height: '100%',
   },
@@ -1633,6 +1633,6 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: '#fff',
     fontSize: 17,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
 });

@@ -149,17 +149,17 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 18,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
     color: '#fff',
     paddingHorizontal: 2,
   },
   userName: {
     fontSize: 18,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   monthYear: {
     fontSize: 13,
-    fontFamily: 'Outfit', fontWeight: '500' as any,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
     marginTop: 2,
   },
   rightSection: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   frequencyText: {
     fontSize: 12,
-    fontFamily: 'Space Grotesk', fontWeight: '700' as any,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   themeToggle: {
     width: 36,

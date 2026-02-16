@@ -565,7 +565,7 @@ export default function SettingsScreen() {
               This action cannot be undone. All your data including transactions, goals, and settings will be permanently deleted.
             </Text>
             <Text style={[styles.deleteModalPrompt, { color: colors.textSecondary }]}>
-              Type <Text style={{ color: Accent.ruby, fontFamily: 'Space Grotesk', fontWeight: '700' as any }}>DELETE</Text> to confirm:
+              Type <Text style={{ color: Accent.ruby, fontFamily: 'DM Sans', fontWeight: '700' as any }}>DELETE</Text> to confirm:
             </Text>
             <TextInput
               style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerLeft: { flex: 1 },
-  headerTitle: { fontSize: 22, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
+  headerTitle: { fontSize: 22, fontFamily: 'DM Sans', fontWeight: '700' as any },
   headerSubtitle: { fontSize: 13, marginTop: 2 },
 
   // Scroll
@@ -659,42 +659,42 @@ const styles = StyleSheet.create({
   // Tab Bar
   tabBar: { flexDirection: 'row', flexWrap: 'wrap', borderRadius: 14, padding: 6, marginBottom: 16 },
   tabItem: { width: '33.33%', alignItems: 'center', paddingVertical: 10, borderRadius: 10 },
-  tabLabel: { fontSize: 11, fontFamily: 'Outfit', fontWeight: '600' as any, marginTop: 4 },
+  tabLabel: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, marginTop: 4 },
 
   // Card
   card: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 14 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   cardIconWrap: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  cardTitle: { fontSize: 16, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
+  cardTitle: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any },
 
   // Profile Banner
   profileBanner: { borderRadius: 16, padding: 16, marginBottom: 16 },
   profileLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 14 },
   avatarLarge: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
-  avatarText: { color: '#fff', fontSize: 22, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
+  avatarText: { color: '#fff', fontSize: 22, fontFamily: 'DM Sans', fontWeight: '700' as any },
   profileInfo: { flex: 1 },
-  profileName: { fontSize: 17, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
+  profileName: { fontSize: 17, fontFamily: 'DM Sans', fontWeight: '700' as any },
   profileEmail: { fontSize: 13, marginTop: 2 },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginTop: 6 },
-  verifiedText: { fontSize: 11, fontFamily: 'Outfit', fontWeight: '600' as any, color: Accent.emerald },
+  verifiedText: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, color: Accent.emerald },
   profileActions: { flexDirection: 'row', gap: 10 },
   editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
-  editBtnText: { fontSize: 13, fontFamily: 'Outfit', fontWeight: '600' as any },
+  editBtnText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any },
   signOutBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(239, 68, 68, 0.1)' },
-  signOutText: { fontSize: 13, fontFamily: 'Outfit', fontWeight: '600' as any, color: Accent.ruby },
+  signOutText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any, color: Accent.ruby },
 
   // Details Grid
   detailsGrid: { gap: 12 },
   fieldContainer: { borderRadius: 12, padding: 12, borderWidth: 1 },
   fieldHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
-  fieldLabel: { fontSize: 11, fontFamily: 'Outfit', fontWeight: '600' as any, textTransform: 'uppercase', letterSpacing: 0.3 },
+  fieldLabel: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, textTransform: 'uppercase', letterSpacing: 0.3 },
   fieldValueRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  fieldValue: { fontSize: 15, fontFamily: 'Outfit', fontWeight: '600' as any },
+  fieldValue: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '600' as any },
   eyeBtn: { padding: 4 },
   fieldHelper: { fontSize: 10, marginTop: 4 },
 
   // Section Label
-  sectionLabel: { fontSize: 12, fontFamily: 'Space Grotesk', fontWeight: '700' as any, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12, marginTop: 8 },
+  sectionLabel: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' as any, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12, marginTop: 8 },
 
   // Separator
   separator: { height: 1, marginVertical: 16 },
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   toggleRow: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 10, gap: 12 },
   toggleIconWrap: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   toggleInfo: { flex: 1 },
-  toggleTitle: { fontSize: 15, fontFamily: 'Outfit', fontWeight: '600' as any },
+  toggleTitle: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '600' as any },
   toggleDesc: { fontSize: 12, marginTop: 2 },
 
   // Future Feature
@@ -713,24 +713,24 @@ const styles = StyleSheet.create({
   // Setting Row
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 4 },
   settingLeft: { flex: 1 },
-  settingTitle: { fontSize: 15, fontFamily: 'Outfit', fontWeight: '600' as any },
+  settingTitle: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '600' as any },
   settingDesc: { fontSize: 12, marginTop: 2 },
 
   // Currency Selector
   currencySelector: { flexDirection: 'row', borderRadius: 10, borderWidth: 1, overflow: 'hidden' },
   currencyOption: { paddingHorizontal: 12, paddingVertical: 8 },
-  currencyText: { fontSize: 12, fontFamily: 'Outfit', fontWeight: '600' as any },
+  currencyText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
 
   // Risk Selector
   riskSelector: { flexDirection: 'row', borderRadius: 10, borderWidth: 1, overflow: 'hidden' },
   riskOption: { paddingHorizontal: 10, paddingVertical: 8 },
-  riskText: { fontSize: 11, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
+  riskText: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '700' as any },
 
   // Slider
   sliderSection: { paddingVertical: 8 },
   sliderHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sliderValue: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
-  sliderValueText: { fontSize: 16, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
+  sliderValueText: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any },
   slider: { width: '100%', height: 40 },
   sliderLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -8 },
   sliderLabel: { fontSize: 11 },
@@ -739,23 +739,23 @@ const styles = StyleSheet.create({
   themeOptions: { flexDirection: 'row', gap: 10 },
   themeCard: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 16, borderWidth: 1.5 },
   themeIconWrap: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  themeLabel: { fontSize: 13, fontFamily: 'Outfit', fontWeight: '600' as any, marginBottom: 6 },
+  themeLabel: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any, marginBottom: 6 },
 
   // Data Row
   dataRow: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 12, gap: 12 },
   dataIconWrap: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   dataInfo: { flex: 1 },
-  dataTitle: { fontSize: 15, fontFamily: 'Outfit', fontWeight: '600' as any },
+  dataTitle: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '600' as any },
   dataDesc: { fontSize: 12, marginTop: 2 },
   exportBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
-  exportBtnText: { fontSize: 13, fontFamily: 'Outfit', fontWeight: '600' as any },
+  exportBtnText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any },
 
   // Danger Zone
   dangerZone: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 16, gap: 12 },
-  dangerTitle: { fontSize: 15, fontFamily: 'Space Grotesk', fontWeight: '700' as any },
+  dangerTitle: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700' as any },
   dangerDesc: { fontSize: 12, marginTop: 2 },
   deleteBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: Accent.ruby },
-  deleteBtnText: { fontSize: 13, fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: '#fff' },
+  deleteBtnText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any, color: '#fff' },
 
   // App Info
   appInfo: { alignItems: 'center', marginTop: 16, gap: 4 },
@@ -765,13 +765,13 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   deleteModal: { width: '100%', maxWidth: 360, borderRadius: 24, padding: 24, alignItems: 'center' },
   deleteModalIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
-  deleteModalTitle: { fontSize: 22, fontFamily: 'Space Grotesk', fontWeight: '700' as any, marginBottom: 8 },
+  deleteModalTitle: { fontSize: 22, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 8 },
   deleteModalDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   deleteModalPrompt: { fontSize: 13, marginBottom: 12 },
-  deleteInput: { width: '100%', height: 48, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, fontSize: 16, fontFamily: 'Space Grotesk', fontWeight: '700' as any, textAlign: 'center', marginBottom: 20 },
+  deleteInput: { width: '100%', height: 48, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, textAlign: 'center', marginBottom: 20 },
   deleteModalActions: { flexDirection: 'row', gap: 12, width: '100%' },
   cancelModalBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
-  cancelModalText: { fontSize: 15, fontFamily: 'Outfit', fontWeight: '600' as any },
+  cancelModalText: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '600' as any },
   confirmDeleteBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: Accent.ruby, alignItems: 'center' },
-  confirmDeleteText: { fontSize: 15, fontFamily: 'Space Grotesk', fontWeight: '700' as any, color: '#fff' },
+  confirmDeleteText: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700' as any, color: '#fff' },
 });
