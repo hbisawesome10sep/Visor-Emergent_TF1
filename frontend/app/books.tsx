@@ -2004,7 +2004,7 @@ export default function BooksScreen() {
                   value={assetForm.purchase_date}
                   onChangeText={(t) => setAssetForm(f => ({ ...f, purchase_date: t }))}
                   placeholder="YYYY-MM-DD"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 />
                 
                 <Text style={styles.inputLabel}>Purchase Value (₹) *</Text>
@@ -2013,7 +2013,7 @@ export default function BooksScreen() {
                   value={assetForm.purchase_value}
                   onChangeText={(t) => setAssetForm(f => ({ ...f, purchase_value: t }))}
                   placeholder="5000000"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="numeric"
                 />
                 
@@ -2023,7 +2023,7 @@ export default function BooksScreen() {
                   value={assetForm.current_value}
                   onChangeText={(t) => setAssetForm(f => ({ ...f, current_value: t }))}
                   placeholder="5500000"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="numeric"
                 />
                 
@@ -2033,7 +2033,7 @@ export default function BooksScreen() {
                   value={assetForm.depreciation_rate}
                   onChangeText={(t) => setAssetForm(f => ({ ...f, depreciation_rate: t }))}
                   placeholder="10"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="numeric"
                 />
                 
@@ -2043,7 +2043,7 @@ export default function BooksScreen() {
                   value={assetForm.notes}
                   onChangeText={(t) => setAssetForm(f => ({ ...f, notes: t }))}
                   placeholder="Additional notes..."
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   multiline
                 />
                 
