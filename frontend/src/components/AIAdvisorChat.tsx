@@ -287,7 +287,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                     {msg.role === 'assistant' && (
                       <View style={styles.assistantHeader}>
                         <MaterialCommunityIcons name="robot" size={16} color="#8B5CF6" />
-                        <Text style={[styles.assistantName, { color: '#8B5CF6' }]}>Artha AI</Text>
+                        <Text style={[styles.assistantName, { color: '#8B5CF6' }]}>Visor</Text>
                       </View>
                     )}
                     <Text
