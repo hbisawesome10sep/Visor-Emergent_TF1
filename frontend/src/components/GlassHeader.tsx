@@ -149,17 +149,17 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
     color: '#fff',
     paddingHorizontal: 2,
   },
   userName: {
     fontSize: 18,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   monthYear: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
     marginTop: 2,
   },
   rightSection: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   frequencyText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   themeToggle: {
     width: 36,

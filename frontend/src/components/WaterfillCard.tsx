@@ -69,7 +69,7 @@ export default function WaterfillCard({ title, amount, subtitle, fillPercent, ic
 
   return (
     <View style={[styles.card, {
-      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.85)',
+      backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.85)',
       borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.6)',
       shadowColor: isDark ? '#000' : '#64748B',
     }]}>
@@ -167,16 +167,16 @@ const styles = StyleSheet.create({
   },
   percentText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   amount: {
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
     letterSpacing: -0.5,
   },
   title: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
     marginTop: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

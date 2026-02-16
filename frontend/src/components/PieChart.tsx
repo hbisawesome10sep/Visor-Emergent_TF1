@@ -82,7 +82,7 @@ export default function PieChart({ data, size = 180, colors, isDark }: Props) {
             cx={cx}
             cy={cy}
             r={innerRadius}
-            fill={isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255,255,255,0.95)'}
+            fill={isDark ? 'rgba(10, 10, 11, 0.95)' : 'rgba(255,255,255,0.95)'}
           />
         </G>
       </Svg>
@@ -111,11 +111,11 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: 'Outfit_500Medium',
   },
   totalAmount: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'SpaceGrotesk_700Bold',
     marginTop: 2,
   },
 });
