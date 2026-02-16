@@ -2296,7 +2296,7 @@ export default function BooksScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>EMI Schedule</Text>
               <TouchableOpacity onPress={() => setShowEMISchedule(null)}>
-                <MaterialCommunityIcons name="close" size={24} color={colors.text} />
+                <MaterialCommunityIcons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
             
