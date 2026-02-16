@@ -1085,7 +1085,7 @@ export default function BooksScreen() {
       paddingVertical: 16,
       paddingHorizontal: 20,
       borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
     },
     exportOptionIcon: {
       width: 48,
@@ -1098,11 +1098,11 @@ export default function BooksScreen() {
     exportOptionTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: colors.text,
+      color: isDark ? '#F8FAFC' : '#1E293B',
     },
     exportOptionDesc: {
       fontSize: 12,
-      color: colors.textSecondary,
+      color: isDark ? '#94A3B8' : '#64748B',
       marginTop: 2,
     },
     emptyState: {
