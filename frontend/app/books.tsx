@@ -326,6 +326,13 @@ export default function BooksScreen() {
     }).start();
   }, [fetchData, fadeAnim]);
 
+  // Refetch when date preset changes
+  useEffect(() => {
+    if (!loading) {
+      fetchData();
+    }
+  }, [datePreset, customStartDate, customEndDate]);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchData();
