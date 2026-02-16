@@ -223,8 +223,21 @@ export default function InsightsScreen() {
   const { user, token, loading: authLoading } = useAuth();
   const { colors, isDark } = useTheme();
 
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>({
+    total_income: 150000,
+    total_expenses: 95000,
+    total_investments: 25000,
+    savings_rate: 36.7,
+    category_breakdown: {
+      'Housing': 25000,
+      'Food': 15000,
+      'Transport': 10000,
+      'Utilities': 5000,
+      'Shopping': 12000,
+      'Entertainment': 8000,
+    },
+  });
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showScoreBack, setShowScoreBack] = useState(false);
 
