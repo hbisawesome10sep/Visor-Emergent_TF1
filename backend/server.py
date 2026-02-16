@@ -849,8 +849,21 @@ async def create_loan(loan: LoanCreate, user=Depends(get_current_user)):
     }
     await db.loans.insert_one(loan_doc)
     
+    # Return without _id
     return {
-        **loan_doc,
+        "id": loan_id,
+        "user_id": user["id"],
+        "name": loan.name,
+        "loan_type": loan.loan_type,
+        "principal_amount": loan.principal_amount,
+        "interest_rate": loan.interest_rate,
+        "tenure_months": loan.tenure_months,
+        "start_date": loan.start_date,
+        "emi_amount": emi,
+        "lender": loan.lender,
+        "account_number": loan.account_number,
+        "notes": loan.notes,
+        "created_at": now,
         "outstanding_principal": loan.principal_amount,
         "total_principal_paid": 0,
         "total_interest_paid": 0,
