@@ -165,9 +165,9 @@ function FlippableCard({ frontContent, backContent, gradientColors, height = 200
   });
 
   return (
-    <TouchableOpacity activeOpacity={0.95} onPress={flipCard} style={[styles.flippableContainer, { height }, style]}>
+    <TouchableOpacity activeOpacity={0.95} onPress={flipCard} style={[styles.flippableContainer, { height, width: style?.width || '100%' }, style]}>
       {/* Front */}
-      <Animated.View style={[styles.cardFace, frontAnimatedStyle]}>
+      <Animated.View style={[styles.cardFace, { width: '100%', height: '100%' }, frontAnimatedStyle]}>
         <LinearGradient
           colors={gradientColors}
           start={{ x: 0, y: 0 }}
@@ -183,7 +183,7 @@ function FlippableCard({ frontContent, backContent, gradientColors, height = 200
       </Animated.View>
 
       {/* Back */}
-      <Animated.View style={[styles.cardFace, styles.cardBack, backAnimatedStyle]}>
+      <Animated.View style={[styles.cardFace, styles.cardBack, { width: '100%', height: '100%' }, backAnimatedStyle]}>
         <LinearGradient
           colors={gradientColors}
           start={{ x: 0, y: 0 }}
