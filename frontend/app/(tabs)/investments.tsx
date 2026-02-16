@@ -673,17 +673,17 @@ const styles = StyleSheet.create({
   goalAmounts: { fontSize: 11 },
 
   // Portfolio
-  portfolioCard: { borderRadius: 24, padding: 20, borderWidth: 2, marginBottom: 20 },
+  portfolioCard: { borderRadius: 18, padding: 18, borderWidth: 1, marginBottom: 20 },
   portfolioHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   portfolioLabel: { fontSize: 13, fontWeight: '600' },
   changeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   changeText: { fontSize: 12, fontWeight: '700' },
-  portfolioValue: { fontSize: 34, fontWeight: '900', letterSpacing: -2 },
-  portfolioChange: { fontSize: 14, fontWeight: '600', marginTop: 4 },
-  summaryPillsRow: { flexDirection: 'row', gap: 10, marginTop: 16 },
-  summaryPill: { flex: 1, padding: 12, borderRadius: 14, alignItems: 'center' },
+  portfolioValue: { fontSize: 28, fontWeight: '800', letterSpacing: -1 },
+  portfolioChange: { fontSize: 13, fontWeight: '600', marginTop: 4 },
+  summaryPillsRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
+  summaryPill: { flex: 1, padding: 10, borderRadius: 12, alignItems: 'center' },
   pillLabel: { fontSize: 11, marginBottom: 4 },
-  pillValue: { fontSize: 14, fontWeight: '800' },
+  pillValue: { fontSize: 13, fontWeight: '800' },
 
   // Glass Card
   glassCard: { borderRadius: 20, padding: 18, borderWidth: 1, marginBottom: 16 },
