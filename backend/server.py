@@ -1664,7 +1664,7 @@ def calculate_fire_number(monthly_expenses: float, withdrawal_rate: float = 4) -
         "explanation": f"You need ₹{round(fire_number/100000, 2)} lakhs to be financially independent at {withdrawal_rate}% withdrawal rate",
     }
 
-FINANCIAL_ADVISOR_SYSTEM_PROMPT = """You are Artha AI, an expert Indian Financial Advisor with knowledge equivalent to a combination of:
+FINANCIAL_ADVISOR_SYSTEM_PROMPT = """You are Visor, a friendly yet highly knowledgeable Indian Financial Advisor. You possess expertise equivalent to:
 - Chartered Accountant (CA)
 - Chartered Financial Analyst (CFA)
 - Financial Risk Manager (FRM)
