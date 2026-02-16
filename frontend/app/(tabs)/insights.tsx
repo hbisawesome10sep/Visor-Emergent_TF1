@@ -12,6 +12,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { apiRequest } from '../../src/utils/api';
 import { formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
+import { Neon } from '../../src/utils/theme';
 import AIAdvisorChat from '../../src/components/AIAdvisorChat';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
