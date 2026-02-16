@@ -2027,6 +2027,192 @@ export default function BooksScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Add Loan Modal */}
+      <Modal visible={showLoanModal} transparent animationType="slide">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{editingLoan ? 'Edit Loan' : 'Add Loan/Liability'}</Text>
+                <TouchableOpacity onPress={() => { setShowLoanModal(false); setEditingLoan(null); }}>
+                  <MaterialCommunityIcons name="close" size={24} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+              
+              <ScrollView style={styles.modalBody}>
+                <Text style={[styles.inputLabel, { marginTop: 0 }]}>Loan Name *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.name}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, name: t }))}
+                  placeholder="e.g., HDFC Home Loan"
+                  placeholderTextColor={colors.textSecondary}
+                />
+                
+                <Text style={styles.inputLabel}>Loan Type</Text>
+                <View style={styles.categoryPicker}>
+                  {LOAN_TYPES.map(type => (
+                    <TouchableOpacity
+                      key={type}
+                      style={[styles.categoryChip, loanForm.loan_type === type && styles.categoryChipActive]}
+                      onPress={() => setLoanForm(f => ({ ...f, loan_type: type }))}
+                    >
+                      <Text style={[styles.categoryChipText, loanForm.loan_type === type && styles.categoryChipTextActive]}>
+                        {type}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                
+                <Text style={styles.inputLabel}>Principal Amount (₹) *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.principal_amount}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, principal_amount: t }))}
+                  placeholder="5000000"
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="numeric"
+                />
+                
+                <Text style={styles.inputLabel}>Annual Interest Rate (%) *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.interest_rate}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, interest_rate: t }))}
+                  placeholder="8.5"
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="numeric"
+                />
+                
+                <Text style={styles.inputLabel}>Tenure (Months) *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.tenure_months}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, tenure_months: t }))}
+                  placeholder="240"
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="numeric"
+                />
+                
+                <Text style={styles.inputLabel}>Start Date</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.start_date}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, start_date: t }))}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={colors.textSecondary}
+                />
+                
+                <Text style={styles.inputLabel}>EMI Amount (₹) - Auto-calculated if empty</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.emi_amount}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, emi_amount: t }))}
+                  placeholder="Auto-calculated"
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="numeric"
+                />
+                
+                <Text style={styles.inputLabel}>Lender Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.lender}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, lender: t }))}
+                  placeholder="e.g., HDFC Bank"
+                  placeholderTextColor={colors.textSecondary}
+                />
+                
+                <Text style={styles.inputLabel}>Loan Account Number</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loanForm.account_number}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, account_number: t }))}
+                  placeholder="e.g., LOAN123456"
+                  placeholderTextColor={colors.textSecondary}
+                />
+                
+                <Text style={styles.inputLabel}>Notes</Text>
+                <TextInput
+                  style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+                  value={loanForm.notes}
+                  onChangeText={(t) => setLoanForm(f => ({ ...f, notes: t }))}
+                  placeholder="Additional notes..."
+                  placeholderTextColor={colors.textSecondary}
+                  multiline
+                />
+                
+                <TouchableOpacity
+                  style={[styles.saveButton, saving && { opacity: 0.6 }]}
+                  onPress={handleSaveLoan}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>{editingLoan ? 'Update Loan' : 'Add Loan'}</Text>
+                  )}
+                </TouchableOpacity>
+                
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* EMI Schedule Modal */}
+      <Modal visible={showEMISchedule !== null} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '80%' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>EMI Schedule</Text>
+              <TouchableOpacity onPress={() => setShowEMISchedule(null)}>
+                <MaterialCommunityIcons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={{ paddingHorizontal: 16 }}>
+              <View style={styles.emiScheduleHeader}>
+                <Text style={[styles.tableHeaderText, { width: 35 }]}>#</Text>
+                <Text style={[styles.tableHeaderText, { width: 70 }]}>Date</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>EMI</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Principal</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Interest</Text>
+                <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Balance</Text>
+              </View>
+              
+              {emiSchedule.map((emi, idx) => (
+                <View
+                  key={idx}
+                  style={[
+                    styles.emiRow,
+                    emi.status === 'paid' && styles.emiRowPaid,
+                    emi.status === 'current' && styles.emiRowCurrent,
+                  ]}
+                >
+                  <Text style={[styles.emiCell, { width: 35 }]}>{emi.month}</Text>
+                  <Text style={[styles.emiCell, { width: 70 }]}>{formatIndianDate(emi.date).slice(0, 6)}</Text>
+                  <Text style={[styles.emiCell, styles.emiCellBold, { flex: 1, textAlign: 'right' }]}>
+                    {formatINRShort(emi.emi)}
+                  </Text>
+                  <Text style={[styles.emiCell, { flex: 1, textAlign: 'right' }]}>
+                    {formatINRShort(emi.principal)}
+                  </Text>
+                  <Text style={[styles.emiCell, { flex: 1, textAlign: 'right' }]}>
+                    {formatINRShort(emi.interest)}
+                  </Text>
+                  <Text style={[styles.emiCell, { flex: 1, textAlign: 'right' }]}>
+                    {formatINRShort(emi.closing_balance)}
+                  </Text>
+                </View>
+              ))}
+              
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
