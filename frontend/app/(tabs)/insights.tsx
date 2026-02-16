@@ -289,9 +289,11 @@ export default function InsightsScreen() {
   const investments = stats?.total_investments || 0;
   const savingsRate = stats?.savings_rate || 0;
 
-  const { score: healthScore, breakdown } = calculateHealthScore(stats);
+  // Use backend-provided health score (consistent with Dashboard)
+  const healthScore = stats?.health_score?.overall ?? 0;
   const scoreInfo = getScoreLabel(healthScore);
   const scoreColor = getScoreColor(healthScore);
+  const breakdown = stats?.health_score?.breakdown ?? { savings: 0, investments: 0, spending: 0, goals: 0 };
 
   // Calculate all financial metrics
   const emiEstimate = expenses * 0.35;
