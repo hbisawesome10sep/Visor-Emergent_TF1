@@ -808,7 +808,7 @@ export default function BooksScreen() {
       borderBottomColor: colors.border,
     },
     tableRowAlt: {
-      backgroundColor: isDark ? colors.card + '50' : '#F8FAFC',
+      backgroundColor: isDark ? colors.surface + '50' : '#F8FAFC',
     },
     tableCell: {
       fontSize: 12,
