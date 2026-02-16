@@ -503,7 +503,7 @@ export default function InsightsScreen() {
           ]}
         >
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: Neon.green }]}>Financial Insights</Text>
+            <Text style={[styles.headerTitle, { color: isDark ? Neon.cyan : '#008F7A' }]}>Financial Insights</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               Real-time analysis based on Indian standards
             </Text>
