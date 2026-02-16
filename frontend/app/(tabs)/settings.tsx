@@ -498,40 +498,24 @@ export default function SettingsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      {/* ═══ GLASS HEADER ═══ */}
-      <View style={styles.stickyHeader}>
-        <BlurView
-          intensity={isDark ? 50 : 70}
-          tint={isDark ? 'dark' : 'light'}
-          style={[
-            styles.headerBlur,
-            {
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-              borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-            },
-          ]}
-        >
-          <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-            <View style={styles.headerContent}>
-              <LinearGradient
-                colors={['#475569', '#78716C']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientTitleBg}
-              >
-                <Text style={styles.gradientTitle}>Settings</Text>
-              </LinearGradient>
-              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                Manage your account, security, and app preferences
-              </Text>
-            </View>
-          </SafeAreaView>
-        </BlurView>
+      {/* ═══ HEADER ═══ */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
+        <View style={[styles.headerContent, {
+          backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+          borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        }]}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.headerTitle, { color: '#64748B' }]}>Settings</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              Account, security & preferences
+            </Text>
+          </View>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 8 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* ═══ TAB BAR ═══ */}
