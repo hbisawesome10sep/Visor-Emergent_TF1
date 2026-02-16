@@ -1033,7 +1033,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  // Sticky Header
+  // Clean Header
   stickyHeader: {
     position: 'absolute',
     top: 0,
@@ -1041,18 +1041,13 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 100,
   },
-  headerBlur: {
-    borderBottomWidth: 1,
-  },
-  headerSafeArea: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? 8 : 0,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   },
   headerLeft: {
     flex: 1,
@@ -1061,15 +1056,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  gradientTextBg: {
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  greetingGradient: {
+  greetingText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#fff',
   },
   greetingName: {
     fontSize: 17,
@@ -1112,8 +1101,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: Platform.OS === 'ios' ? 120 : 100,
     paddingHorizontal: 16,
+    paddingBottom: 100,
   },
 
   // Health Score Card
