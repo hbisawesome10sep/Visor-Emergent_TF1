@@ -558,7 +558,7 @@ export default function DashboardScreen() {
               amount={formatINRShort(stats?.total_income || 0)}
               percentChange={12.5}
               fillPercent={100 - expensePercent}
-              gradient={['#10B981', '#059669']}
+              gradient={[Neon.green, Neon.cyan]}
               icon="arrow-down-circle"
               onPress={() => router.push('/(tabs)/transactions')}
               colors={colors}
@@ -569,7 +569,7 @@ export default function DashboardScreen() {
               amount={formatINRShort(stats?.total_expenses || 0)}
               percentChange={-8.2}
               fillPercent={expensePercent}
-              gradient={['#F43F5E', '#E11D48']}
+              gradient={[Neon.red, Neon.orange]}
               icon="arrow-up-circle"
               onPress={() => router.push('/(tabs)/transactions')}
               colors={colors}
@@ -579,7 +579,7 @@ export default function DashboardScreen() {
               title="Savings Rate"
               amount={`${savingsRate.toFixed(0)}%`}
               fillPercent={savingsRate}
-              gradient={['#3B82F6', '#6366F1']}
+              gradient={[Neon.blue, Neon.purple]}
               icon="piggy-bank"
               colors={colors}
               isDark={isDark}
