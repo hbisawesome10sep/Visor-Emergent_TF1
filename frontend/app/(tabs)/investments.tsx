@@ -260,34 +260,24 @@ export default function InvestmentsScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* ═══ HEADER ═══ */}
-      <View style={styles.stickyHeader}>
-        <BlurView
-          intensity={isDark ? 50 : 70}
-          tint={isDark ? 'dark' : 'light'}
-          style={[styles.headerBlur, {
-            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(255, 255, 255, 0.75)',
-            borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-          }]}
-        >
-          <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-            <View style={styles.headerContent}>
-              <View style={styles.headerLeft}>
-                <LinearGradient colors={['#EA580C', '#DC2626']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.gradientTitleBg}>
-                  <Text style={styles.gradientTitle}>Investments</Text>
-                </LinearGradient>
-                <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Goals & Portfolio Management</Text>
-              </View>
-              <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={onRefresh}>
-                <MaterialCommunityIcons name="refresh" size={20} color="#F97316" />
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
-        </BlurView>
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
+        <View style={[styles.headerContent, {
+          backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+          borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        }]}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.headerTitle, { color: '#F97316' }]}>Investments</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Goals & Portfolio Management</Text>
+          </View>
+          <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={onRefresh}>
+            <MaterialCommunityIcons name="refresh" size={20} color="#F97316" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 8 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
         showsVerticalScrollIndicator={false}
       >
