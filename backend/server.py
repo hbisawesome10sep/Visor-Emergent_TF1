@@ -1963,6 +1963,474 @@ async def run_calculator(calc_type: str, params: dict, user=Depends(get_current_
         raise HTTPException(status_code=500, detail=str(e))
 
 # ══════════════════════════════════════
+#  EXPORT ENDPOINTS (Excel & PDF)
+# ══════════════════════════════════════
+
+from fastapi.responses import StreamingResponse
+import io
+
+@api_router.get("/books/export/{report_type}/{format}")
+async def export_report(
+    report_type: str,  # ledger, pnl, balance
+    format: str,  # excel, pdf
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    user=Depends(get_current_user)
+):
+    """Export financial reports as Excel or PDF"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.utils import get_column_letter
+    from fpdf import FPDF
+    
+    user_id = user["id"]
+    user_name = user.get("full_name", "User")
+    
+    # Default to current FY if no dates provided
+    if not start_date or not end_date:
+        fy_start, fy_end = get_indian_fy_dates()
+        start_date = start_date or fy_start.strftime("%Y-%m-%d")
+        end_date = end_date or fy_end.strftime("%Y-%m-%d")
+    
+    if format == "excel":
+        wb = Workbook()
+        ws = wb.active
+        
+        # Styling
+        header_font = Font(bold=True, size=12, color="FFFFFF")
+        header_fill = PatternFill(start_color="3B82F6", end_color="3B82F6", fill_type="solid")
+        title_font = Font(bold=True, size=16)
+        subtitle_font = Font(bold=True, size=11, color="666666")
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        if report_type == "ledger":
+            ws.title = "General Ledger"
+            
+            # Title
+            ws.merge_cells('A1:G1')
+            ws['A1'] = f"GENERAL LEDGER - {user_name}"
+            ws['A1'].font = title_font
+            ws['A2'] = f"Period: {start_date} to {end_date}"
+            ws['A2'].font = subtitle_font
+            ws['A3'] = f"Generated: {datetime.now().strftime('%d-%b-%Y %H:%M')}"
+            ws['A3'].font = subtitle_font
+            
+            # Get ledger data
+            query = {"user_id": user_id, "date": {"$gte": start_date, "$lte": end_date}}
+            txns = await db.transactions.find(query, {"_id": 0}).sort("date", 1).to_list(2000)
+            
+            # Process transactions into ledger entries
+            row = 5
+            
+            # Headers
+            headers = ['Date', 'Particulars', 'Voucher Ref', 'Account', 'Debit (₹)', 'Credit (₹)', 'Balance (₹)']
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=row, column=col, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = Alignment(horizontal='center')
+                cell.border = border
+            
+            row += 1
+            balance = 0
+            
+            for txn in txns:
+                debit = txn['amount'] if txn['type'] == 'income' else 0
+                credit = txn['amount'] if txn['type'] in ['expense', 'investment'] else 0
+                balance += debit - credit
+                
+                ws.cell(row=row, column=1, value=txn['date']).border = border
+                ws.cell(row=row, column=2, value=txn['description']).border = border
+                ws.cell(row=row, column=3, value=f"TXN-{txn['id'][:8].upper()}").border = border
+                ws.cell(row=row, column=4, value=txn['category']).border = border
+                ws.cell(row=row, column=5, value=debit if debit > 0 else "").border = border
+                ws.cell(row=row, column=6, value=credit if credit > 0 else "").border = border
+                ws.cell(row=row, column=7, value=balance).border = border
+                row += 1
+            
+            # Column widths
+            ws.column_dimensions['A'].width = 12
+            ws.column_dimensions['B'].width = 30
+            ws.column_dimensions['C'].width = 15
+            ws.column_dimensions['D'].width = 18
+            ws.column_dimensions['E'].width = 14
+            ws.column_dimensions['F'].width = 14
+            ws.column_dimensions['G'].width = 14
+            
+        elif report_type == "pnl":
+            ws.title = "Profit & Loss"
+            
+            # Title
+            ws.merge_cells('A1:C1')
+            ws['A1'] = f"INCOME & EXPENDITURE STATEMENT - {user_name}"
+            ws['A1'].font = title_font
+            ws['A2'] = f"Period: {start_date} to {end_date}"
+            ws['A2'].font = subtitle_font
+            
+            # Get P&L data
+            query = {"user_id": user_id, "date": {"$gte": start_date, "$lte": end_date}}
+            txns = await db.transactions.find(query, {"_id": 0}).to_list(2000)
+            
+            total_income = sum(t["amount"] for t in txns if t["type"] == "income")
+            total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
+            total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+            
+            # Income by category
+            income_cats = {}
+            expense_cats = {}
+            for t in txns:
+                if t["type"] == "income":
+                    income_cats[t["category"]] = income_cats.get(t["category"], 0) + t["amount"]
+                elif t["type"] == "expense":
+                    expense_cats[t["category"]] = expense_cats.get(t["category"], 0) + t["amount"]
+            
+            row = 4
+            
+            # Income Section
+            ws.cell(row=row, column=1, value="INCOME").font = Font(bold=True, size=14, color="10B981")
+            row += 1
+            
+            for cat, amt in sorted(income_cats.items(), key=lambda x: -x[1]):
+                ws.cell(row=row, column=1, value=cat)
+                ws.cell(row=row, column=3, value=amt)
+                row += 1
+            
+            ws.cell(row=row, column=1, value="TOTAL INCOME").font = Font(bold=True)
+            ws.cell(row=row, column=3, value=total_income).font = Font(bold=True, color="10B981")
+            row += 2
+            
+            # Expenses Section
+            ws.cell(row=row, column=1, value="EXPENDITURE").font = Font(bold=True, size=14, color="EF4444")
+            row += 1
+            
+            for cat, amt in sorted(expense_cats.items(), key=lambda x: -x[1]):
+                ws.cell(row=row, column=1, value=cat)
+                ws.cell(row=row, column=3, value=amt)
+                row += 1
+            
+            ws.cell(row=row, column=1, value="TOTAL EXPENDITURE").font = Font(bold=True)
+            ws.cell(row=row, column=3, value=total_expenses).font = Font(bold=True, color="EF4444")
+            row += 2
+            
+            # Surplus/Deficit
+            surplus = total_income - total_expenses
+            label = "SURPLUS" if surplus >= 0 else "DEFICIT"
+            ws.cell(row=row, column=1, value=f"{label} FOR THE PERIOD").font = Font(bold=True, size=14)
+            ws.cell(row=row, column=3, value=abs(surplus)).font = Font(bold=True, size=14, color="10B981" if surplus >= 0 else "EF4444")
+            
+            ws.column_dimensions['A'].width = 30
+            ws.column_dimensions['B'].width = 15
+            ws.column_dimensions['C'].width = 18
+            
+        elif report_type == "balance":
+            ws.title = "Balance Sheet"
+            
+            # Get balance sheet data
+            query = {"user_id": user_id, "date": {"$lte": end_date}}
+            txns = await db.transactions.find(query, {"_id": 0}).to_list(5000)
+            assets = await db.fixed_assets.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+            loans = await db.loans.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+            
+            total_income = sum(t["amount"] for t in txns if t["type"] == "income")
+            total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
+            total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+            
+            ws.merge_cells('A1:C1')
+            ws['A1'] = f"STATEMENT OF FINANCIAL POSITION - {user_name}"
+            ws['A1'].font = title_font
+            ws['A2'] = f"As at: {end_date}"
+            ws['A2'].font = subtitle_font
+            
+            row = 4
+            
+            # Assets
+            ws.cell(row=row, column=1, value="I. ASSETS").font = Font(bold=True, size=14, color="3B82F6")
+            row += 1
+            
+            # Fixed Assets
+            total_fixed = sum(a.get("current_value", a["purchase_value"]) for a in assets)
+            ws.cell(row=row, column=1, value="Fixed Assets")
+            ws.cell(row=row, column=3, value=total_fixed)
+            row += 1
+            
+            # Investments
+            ws.cell(row=row, column=1, value="Investments")
+            ws.cell(row=row, column=3, value=total_investments)
+            row += 1
+            
+            # Cash & Bank
+            cash_balance = total_income - total_expenses - total_investments
+            ws.cell(row=row, column=1, value="Cash & Bank Balance")
+            ws.cell(row=row, column=3, value=max(0, cash_balance))
+            row += 1
+            
+            total_assets = total_fixed + total_investments + max(0, cash_balance)
+            ws.cell(row=row, column=1, value="TOTAL ASSETS").font = Font(bold=True)
+            ws.cell(row=row, column=3, value=total_assets).font = Font(bold=True, color="3B82F6")
+            row += 2
+            
+            # Liabilities
+            ws.cell(row=row, column=1, value="II. LIABILITIES").font = Font(bold=True, size=14, color="EF4444")
+            row += 1
+            
+            total_liabilities = 0
+            for loan in loans:
+                ws.cell(row=row, column=1, value=loan["name"])
+                ws.cell(row=row, column=3, value=loan.get("outstanding_principal", loan["principal_amount"]))
+                total_liabilities += loan.get("outstanding_principal", loan["principal_amount"])
+                row += 1
+            
+            ws.cell(row=row, column=1, value="TOTAL LIABILITIES").font = Font(bold=True)
+            ws.cell(row=row, column=3, value=total_liabilities).font = Font(bold=True, color="EF4444")
+            row += 2
+            
+            # Net Worth
+            net_worth = total_assets - total_liabilities
+            ws.cell(row=row, column=1, value="III. NET WORTH").font = Font(bold=True, size=14, color="10B981")
+            row += 1
+            ws.cell(row=row, column=1, value="Closing Net Worth").font = Font(bold=True)
+            ws.cell(row=row, column=3, value=net_worth).font = Font(bold=True, color="10B981")
+            
+            ws.column_dimensions['A'].width = 25
+            ws.column_dimensions['B'].width = 15
+            ws.column_dimensions['C'].width = 18
+        
+        # Save to buffer
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        
+        filename = f"Visor_{report_type.title()}_{end_date}.xlsx"
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    
+    elif format == "pdf":
+        # Create PDF using fpdf2
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        
+        # Header
+        pdf.set_font("Helvetica", "B", 20)
+        pdf.set_text_color(59, 130, 246)  # Blue
+        
+        if report_type == "ledger":
+            pdf.cell(0, 10, "GENERAL LEDGER", ln=True, align="C")
+        elif report_type == "pnl":
+            pdf.cell(0, 10, "INCOME & EXPENDITURE STATEMENT", ln=True, align="C")
+        else:
+            pdf.cell(0, 10, "STATEMENT OF FINANCIAL POSITION", ln=True, align="C")
+        
+        pdf.set_font("Helvetica", "", 12)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(0, 8, f"User: {user_name}", ln=True, align="C")
+        pdf.cell(0, 8, f"Period: {start_date} to {end_date}", ln=True, align="C")
+        pdf.cell(0, 8, f"Generated: {datetime.now().strftime('%d-%b-%Y %H:%M')}", ln=True, align="C")
+        pdf.ln(10)
+        
+        # Content
+        query = {"user_id": user_id, "date": {"$gte": start_date, "$lte": end_date}}
+        txns = await db.transactions.find(query, {"_id": 0}).sort("date", 1).to_list(2000)
+        
+        if report_type == "ledger":
+            # Table header
+            pdf.set_fill_color(59, 130, 246)
+            pdf.set_text_color(255, 255, 255)
+            pdf.set_font("Helvetica", "B", 10)
+            
+            pdf.cell(25, 8, "Date", border=1, fill=True)
+            pdf.cell(60, 8, "Particulars", border=1, fill=True)
+            pdf.cell(30, 8, "Category", border=1, fill=True)
+            pdf.cell(25, 8, "Debit", border=1, fill=True, align="R")
+            pdf.cell(25, 8, "Credit", border=1, fill=True, align="R")
+            pdf.cell(25, 8, "Balance", border=1, fill=True, align="R")
+            pdf.ln()
+            
+            pdf.set_text_color(0, 0, 0)
+            pdf.set_font("Helvetica", "", 9)
+            
+            balance = 0
+            for txn in txns[:50]:  # Limit for PDF
+                debit = txn['amount'] if txn['type'] == 'income' else 0
+                credit = txn['amount'] if txn['type'] in ['expense', 'investment'] else 0
+                balance += debit - credit
+                
+                pdf.cell(25, 7, txn['date'][:10], border=1)
+                pdf.cell(60, 7, txn['description'][:25], border=1)
+                pdf.cell(30, 7, txn['category'][:15], border=1)
+                pdf.cell(25, 7, f"{debit:,.0f}" if debit > 0 else "-", border=1, align="R")
+                pdf.cell(25, 7, f"{credit:,.0f}" if credit > 0 else "-", border=1, align="R")
+                pdf.cell(25, 7, f"{balance:,.0f}", border=1, align="R")
+                pdf.ln()
+        
+        elif report_type == "pnl":
+            total_income = sum(t["amount"] for t in txns if t["type"] == "income")
+            total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
+            
+            # Income by category
+            income_cats = {}
+            expense_cats = {}
+            for t in txns:
+                if t["type"] == "income":
+                    income_cats[t["category"]] = income_cats.get(t["category"], 0) + t["amount"]
+                elif t["type"] == "expense":
+                    expense_cats[t["category"]] = expense_cats.get(t["category"], 0) + t["amount"]
+            
+            # Income Section
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(16, 185, 129)  # Green
+            pdf.cell(0, 10, "INCOME", ln=True)
+            
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(0, 0, 0)
+            
+            for cat, amt in sorted(income_cats.items(), key=lambda x: -x[1]):
+                pdf.cell(100, 8, cat)
+                pdf.cell(50, 8, f"Rs. {amt:,.2f}", align="R")
+                pdf.ln()
+            
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.set_text_color(16, 185, 129)
+            pdf.cell(100, 10, "TOTAL INCOME")
+            pdf.cell(50, 10, f"Rs. {total_income:,.2f}", align="R")
+            pdf.ln(15)
+            
+            # Expenses Section
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(239, 68, 68)  # Red
+            pdf.cell(0, 10, "EXPENDITURE", ln=True)
+            
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(0, 0, 0)
+            
+            for cat, amt in sorted(expense_cats.items(), key=lambda x: -x[1]):
+                pdf.cell(100, 8, cat)
+                pdf.cell(50, 8, f"Rs. {amt:,.2f}", align="R")
+                pdf.ln()
+            
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.set_text_color(239, 68, 68)
+            pdf.cell(100, 10, "TOTAL EXPENDITURE")
+            pdf.cell(50, 10, f"Rs. {total_expenses:,.2f}", align="R")
+            pdf.ln(15)
+            
+            # Surplus/Deficit
+            surplus = total_income - total_expenses
+            pdf.set_font("Helvetica", "B", 16)
+            if surplus >= 0:
+                pdf.set_text_color(16, 185, 129)
+                pdf.cell(100, 12, "SURPLUS FOR THE PERIOD")
+            else:
+                pdf.set_text_color(239, 68, 68)
+                pdf.cell(100, 12, "DEFICIT FOR THE PERIOD")
+            pdf.cell(50, 12, f"Rs. {abs(surplus):,.2f}", align="R")
+        
+        elif report_type == "balance":
+            query = {"user_id": user_id, "date": {"$lte": end_date}}
+            txns = await db.transactions.find(query, {"_id": 0}).to_list(5000)
+            assets = await db.fixed_assets.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+            loans = await db.loans.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+            
+            total_income = sum(t["amount"] for t in txns if t["type"] == "income")
+            total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
+            total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+            cash_balance = total_income - total_expenses - total_investments
+            
+            # Assets
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(59, 130, 246)
+            pdf.cell(0, 10, "I. ASSETS", ln=True)
+            
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(0, 0, 0)
+            
+            total_fixed = sum(a.get("current_value", a["purchase_value"]) for a in assets)
+            
+            pdf.cell(100, 8, "Fixed Assets")
+            pdf.cell(50, 8, f"Rs. {total_fixed:,.2f}", align="R")
+            pdf.ln()
+            
+            pdf.cell(100, 8, "Investments")
+            pdf.cell(50, 8, f"Rs. {total_investments:,.2f}", align="R")
+            pdf.ln()
+            
+            pdf.cell(100, 8, "Cash & Bank Balance")
+            pdf.cell(50, 8, f"Rs. {max(0, cash_balance):,.2f}", align="R")
+            pdf.ln()
+            
+            total_assets = total_fixed + total_investments + max(0, cash_balance)
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.set_text_color(59, 130, 246)
+            pdf.cell(100, 10, "TOTAL ASSETS")
+            pdf.cell(50, 10, f"Rs. {total_assets:,.2f}", align="R")
+            pdf.ln(15)
+            
+            # Liabilities
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(239, 68, 68)
+            pdf.cell(0, 10, "II. LIABILITIES", ln=True)
+            
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(0, 0, 0)
+            
+            total_liabilities = 0
+            for loan in loans:
+                outstanding = loan.get("outstanding_principal", loan["principal_amount"])
+                pdf.cell(100, 8, loan["name"])
+                pdf.cell(50, 8, f"Rs. {outstanding:,.2f}", align="R")
+                pdf.ln()
+                total_liabilities += outstanding
+            
+            if not loans:
+                pdf.cell(100, 8, "No liabilities")
+                pdf.ln()
+            
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.set_text_color(239, 68, 68)
+            pdf.cell(100, 10, "TOTAL LIABILITIES")
+            pdf.cell(50, 10, f"Rs. {total_liabilities:,.2f}", align="R")
+            pdf.ln(15)
+            
+            # Net Worth
+            net_worth = total_assets - total_liabilities
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(16, 185, 129)
+            pdf.cell(0, 10, "III. NET WORTH", ln=True)
+            
+            pdf.set_font("Helvetica", "B", 16)
+            pdf.cell(100, 12, "Closing Net Worth")
+            pdf.cell(50, 12, f"Rs. {net_worth:,.2f}", align="R")
+        
+        # Footer
+        pdf.ln(20)
+        pdf.set_font("Helvetica", "I", 9)
+        pdf.set_text_color(150, 150, 150)
+        pdf.cell(0, 8, "Generated by Visor Finance App", ln=True, align="C")
+        
+        # Save to buffer
+        buffer = io.BytesIO()
+        pdf.output(buffer)
+        buffer.seek(0)
+        
+        filename = f"Visor_{report_type.title()}_{end_date}.pdf"
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    
+    else:
+        raise HTTPException(status_code=400, detail="Invalid format. Use 'excel' or 'pdf'")
+
+# ══════════════════════════════════════
 #  APP SETUP
 # ══════════════════════════════════════
 
