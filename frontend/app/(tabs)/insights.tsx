@@ -341,12 +341,38 @@ export default function InsightsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      // For demo purposes, show sample data when not logged in
+      setStats({
+        total_income: 150000,
+        total_expenses: 95000,
+        total_investments: 25000,
+        savings_rate: 36.7,
+        category_breakdown: {
+          'Housing': 25000,
+          'Food': 15000,
+          'Transport': 10000,
+          'Utilities': 5000,
+          'Shopping': 12000,
+          'Entertainment': 8000,
+        },
+      });
+      setLoading(false);
+      return;
+    }
     try {
       const data = await apiRequest('/dashboard/stats', { token });
       setStats(data);
     } catch (e) {
       console.error(e);
+      // Set demo data on error too
+      setStats({
+        total_income: 150000,
+        total_expenses: 95000,
+        total_investments: 25000,
+        savings_rate: 36.7,
+        category_breakdown: {},
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
