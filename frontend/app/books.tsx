@@ -1927,23 +1927,23 @@ export default function BooksScreen() {
       {datePreset === 'custom' && (
         <View style={{ flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12, gap: 8 }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 4 }}>From</Text>
+            <Text style={{ fontSize: 11, color: isDark ? '#94A3B8' : '#64748B', marginBottom: 4 }}>From</Text>
             <TextInput
               style={[styles.input, { paddingVertical: 10, fontSize: 13 }]}
               value={customStartDate}
               onChangeText={setCustomStartDate}
               placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
             />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 4 }}>To</Text>
+            <Text style={{ fontSize: 11, color: isDark ? '#94A3B8' : '#64748B', marginBottom: 4 }}>To</Text>
             <TextInput
               style={[styles.input, { paddingVertical: 10, fontSize: 13 }]}
               value={customEndDate}
               onChangeText={setCustomEndDate}
               placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
             />
           </View>
         </View>
