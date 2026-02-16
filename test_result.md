@@ -183,8 +183,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Financial Advisor Chat API"
-    - "Financial Calculators"
+    - "Dashboard Stats with Date Range Filtering"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -192,3 +191,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Fixed critical bug in AI advisor - removed unsupported 'store_only' parameter. Renamed 'Artha AI' to 'Visor' in both backend system prompt and frontend UI. Tested backend endpoints with curl - AI responds correctly and calculators work as expected."
+  - agent: "main"
+    message: "Added date range filtering to /api/dashboard/stats. The endpoint now accepts optional start_date and end_date query params (YYYY-MM-DD format). When provided, transactions are filtered by date range. Returns user_created_at for limiting frontend date picker. Also fixed header opacity on all screens (was semi-transparent, now fully opaque). Fixed books.tsx dark mode - replaced colors.text->colors.textPrimary and colors.card->colors.surface. Please test: 1) GET /api/dashboard/stats without date params (should work as before), 2) GET /api/dashboard/stats?start_date=2025-01-01&end_date=2025-12-31 (should filter transactions). Login: rajesh@visor.demo / Demo@123"
