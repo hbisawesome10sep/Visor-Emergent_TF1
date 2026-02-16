@@ -330,7 +330,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                   <View style={styles.typingIndicator}>
                     <ActivityIndicator size="small" color="#8B5CF6" />
                     <Text style={[styles.typingText, { color: colors.textSecondary }]}>
-                      Artha is thinking...
+                      Visor is thinking...
                     </Text>
                   </View>
                 </View>
