@@ -445,6 +445,21 @@ export default function DashboardScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* Active date range indicator */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8, marginTop: 4 }}>
+          <MaterialCommunityIcons name="calendar-range" size={14} color={colors.textSecondary} />
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 6, fontWeight: '500' }}>
+            {selectedFrequency === 'Custom' 
+              ? `${dateRange.start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${dateRange.end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
+              : selectedFrequency === 'Month'
+              ? new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+              : selectedFrequency === 'Quarter'
+              ? `Q${Math.floor(new Date().getMonth() / 3) + 1} ${new Date().getFullYear()}`
+              : `Year ${new Date().getFullYear()}`
+            }
+          </Text>
+        </View>
+
         {/* ═══ FINANCIAL HEALTH SCORE CARD ═══ */}
         <TouchableOpacity
           activeOpacity={0.95}
