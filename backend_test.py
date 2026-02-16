@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend API Tests for Visor Finance App
-Testing dashboard stats endpoint with date range filtering
+Testing dashboard stats endpoint with date range filtering and health score
+Specific focus on health_score behavior across different date ranges
 """
 import requests
 import json
