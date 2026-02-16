@@ -49,24 +49,13 @@ export default function RootLayout() {
     Outfit_800ExtraBold,
   });
 
-  // On web, load Google Fonts via CSS and create aliases for expo font naming
+  // On web, load Google Fonts via CSS
   useEffect(() => {
     if (Platform.OS === 'web') {
-      const style = document.createElement('style');
-      style.textContent = `
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-        [style*="SpaceGrotesk_400Regular"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 400 !important; }
-        [style*="SpaceGrotesk_500Medium"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 500 !important; }
-        [style*="SpaceGrotesk_600SemiBold"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 600 !important; }
-        [style*="SpaceGrotesk_700Bold"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 700 !important; }
-        [style*="Outfit_400Regular"] { font-family: 'Outfit', sans-serif !important; font-weight: 400 !important; }
-        [style*="Outfit_500Medium"] { font-family: 'Outfit', sans-serif !important; font-weight: 500 !important; }
-        [style*="Outfit_600SemiBold"] { font-family: 'Outfit', sans-serif !important; font-weight: 600 !important; }
-        [style*="Outfit_700Bold"] { font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; }
-        [style*="Outfit_800ExtraBold"] { font-family: 'Outfit', sans-serif !important; font-weight: 800 !important; }
-      `;
-      document.head.appendChild(style);
+      const link = document.createElement('link');
+      link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
     }
   }, []);
 
