@@ -1969,7 +1969,7 @@ export default function BooksScreen() {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{editingAsset ? 'Edit Asset' : 'Add Fixed Asset'}</Text>
                 <TouchableOpacity onPress={() => { setShowAssetModal(false); setEditingAsset(null); }}>
-                  <MaterialCommunityIcons name="close" size={24} color={colors.text} />
+                  <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
                 </TouchableOpacity>
               </View>
               
@@ -1980,7 +1980,7 @@ export default function BooksScreen() {
                   value={assetForm.name}
                   onChangeText={(t) => setAssetForm(f => ({ ...f, name: t }))}
                   placeholder="e.g., Residential Apartment"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 />
                 
                 <Text style={styles.inputLabel}>Category</Text>
