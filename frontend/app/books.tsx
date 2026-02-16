@@ -668,7 +668,7 @@ export default function BooksScreen() {
     backButton: {
       padding: 8,
       borderRadius: 12,
-      backgroundColor: colors.card + '80',
+      backgroundColor: colors.surface + '80',
     },
     headerTitle: {
       fontSize: 24,
