@@ -133,12 +133,16 @@ export default function DashboardScreen() {
   // Calculate header height dynamically based on safe area
   const HEADER_HEIGHT = 70 + insets.top;
   const [showScoreBack, setShowScoreBack] = useState(false);
+  const [userCreatedAt, setUserCreatedAt] = useState<string>('');
   
   // Date range state
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     end: new Date(),
   });
+  // Custom date range input state
+  const [customStartInput, setCustomStartInput] = useState('');
+  const [customEndInput, setCustomEndInput] = useState('');
 
   // Get date range based on frequency
   const getDateRangeForFrequency = (freq: FrequencyOption) => {
