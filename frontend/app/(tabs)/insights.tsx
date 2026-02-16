@@ -223,6 +223,10 @@ function InsightCard({
 export default function InsightsScreen() {
   const { user, token, loading: authLoading } = useAuth();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  
+  // Calculate header height dynamically
+  const HEADER_HEIGHT = 60 + insets.top;
 
   const [stats, setStats] = useState<DashboardStats | null>({
     total_income: 150000,
