@@ -626,8 +626,8 @@ export default function DashboardScreen() {
           style={[
             styles.glassCard,
             {
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.85)',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+              borderColor: isDark ? '#27272A' : '#E4E4E7',
             },
           ]}
         >
@@ -730,8 +730,8 @@ export default function DashboardScreen() {
           style={[
             styles.glassCard,
             {
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.85)',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+              borderColor: isDark ? '#27272A' : '#E4E4E7',
             },
           ]}
         >
