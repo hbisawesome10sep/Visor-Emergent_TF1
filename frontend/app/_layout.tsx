@@ -49,22 +49,22 @@ export default function RootLayout() {
     Outfit_800ExtraBold,
   });
 
-  // On web, inject Google Fonts via CSS and register font-face aliases
+  // On web, load Google Fonts via CSS and create aliases for expo font naming
   useEffect(() => {
     if (Platform.OS === 'web') {
       const style = document.createElement('style');
       style.textContent = `
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-        
-        @font-face { font-family: 'SpaceGrotesk_400Regular'; src: local('Space Grotesk'), local('SpaceGrotesk-Regular'); font-weight: 400; }
-        @font-face { font-family: 'SpaceGrotesk_500Medium'; src: local('Space Grotesk'), local('SpaceGrotesk-Medium'); font-weight: 500; }
-        @font-face { font-family: 'SpaceGrotesk_600SemiBold'; src: local('Space Grotesk'), local('SpaceGrotesk-SemiBold'); font-weight: 600; }
-        @font-face { font-family: 'SpaceGrotesk_700Bold'; src: local('Space Grotesk'), local('SpaceGrotesk-Bold'); font-weight: 700; }
-        @font-face { font-family: 'Outfit_400Regular'; src: local('Outfit'), local('Outfit-Regular'); font-weight: 400; }
-        @font-face { font-family: 'Outfit_500Medium'; src: local('Outfit'), local('Outfit-Medium'); font-weight: 500; }
-        @font-face { font-family: 'Outfit_600SemiBold'; src: local('Outfit'), local('Outfit-SemiBold'); font-weight: 600; }
-        @font-face { font-family: 'Outfit_700Bold'; src: local('Outfit'), local('Outfit-Bold'); font-weight: 700; }
-        @font-face { font-family: 'Outfit_800ExtraBold'; src: local('Outfit'), local('Outfit-ExtraBold'); font-weight: 800; }
+
+        [style*="SpaceGrotesk_400Regular"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 400 !important; }
+        [style*="SpaceGrotesk_500Medium"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 500 !important; }
+        [style*="SpaceGrotesk_600SemiBold"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 600 !important; }
+        [style*="SpaceGrotesk_700Bold"] { font-family: 'Space Grotesk', sans-serif !important; font-weight: 700 !important; }
+        [style*="Outfit_400Regular"] { font-family: 'Outfit', sans-serif !important; font-weight: 400 !important; }
+        [style*="Outfit_500Medium"] { font-family: 'Outfit', sans-serif !important; font-weight: 500 !important; }
+        [style*="Outfit_600SemiBold"] { font-family: 'Outfit', sans-serif !important; font-weight: 600 !important; }
+        [style*="Outfit_700Bold"] { font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; }
+        [style*="Outfit_800ExtraBold"] { font-family: 'Outfit', sans-serif !important; font-weight: 800 !important; }
       `;
       document.head.appendChild(style);
     }
