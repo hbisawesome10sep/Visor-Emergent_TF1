@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Dimensions, Platform, StatusBar, Animated, Modal,
   TextInput, KeyboardAvoidingView, Alert, Share,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
