@@ -782,6 +782,9 @@ export default function InsightsScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* AI Financial Advisor Button */}
+      <AIAdvisorChat token={token} colors={colors} isDark={isDark} />
     </View>
   );
 }
