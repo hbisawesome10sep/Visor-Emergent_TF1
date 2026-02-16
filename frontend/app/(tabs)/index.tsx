@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import Svg, { Circle, G } from 'react-native-svg';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
