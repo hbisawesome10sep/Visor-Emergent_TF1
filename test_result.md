@@ -135,6 +135,30 @@ backend:
         agent: "main"
         comment: "Tested SIP calculator (15000/month, 12%, 15 years = ₹75.68L) and EMI calculator (50L loan, 8.5%, 20 years = ₹43,391 EMI). Both return correct results with detailed breakdowns."
 
+  - task: "Dashboard Stats with Date Range Filtering"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added start_date and end_date query parameters to /api/dashboard/stats endpoint. When provided, transactions are filtered by date range. Also returns user_created_at for limiting earliest date on frontend."
+
+  - task: "Bookkeeping Export (PDF/XLSX)"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Export endpoints working - /api/bookkeeping/export/xlsx and /api/bookkeeping/export/pdf"
+
 frontend:
   - task: "AI Advisor Chat UI Component"
     implemented: true
