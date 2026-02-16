@@ -2147,7 +2147,7 @@ export default function BooksScreen() {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{editingLoan ? 'Edit Loan' : 'Add Loan/Liability'}</Text>
                 <TouchableOpacity onPress={() => { setShowLoanModal(false); setEditingLoan(null); }}>
-                  <MaterialCommunityIcons name="close" size={24} color={colors.text} />
+                  <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
                 </TouchableOpacity>
               </View>
               
@@ -2158,7 +2158,7 @@ export default function BooksScreen() {
                   value={loanForm.name}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, name: t }))}
                   placeholder="e.g., HDFC Home Loan"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 />
                 
                 <Text style={styles.inputLabel}>Loan Type</Text>
@@ -2182,7 +2182,7 @@ export default function BooksScreen() {
                   value={loanForm.principal_amount}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, principal_amount: t }))}
                   placeholder="5000000"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="numeric"
                 />
                 
@@ -2192,7 +2192,7 @@ export default function BooksScreen() {
                   value={loanForm.interest_rate}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, interest_rate: t }))}
                   placeholder="8.5"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="numeric"
                 />
                 
@@ -2202,7 +2202,7 @@ export default function BooksScreen() {
                   value={loanForm.tenure_months}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, tenure_months: t }))}
                   placeholder="240"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="numeric"
                 />
                 
@@ -2212,7 +2212,7 @@ export default function BooksScreen() {
                   value={loanForm.start_date}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, start_date: t }))}
                   placeholder="YYYY-MM-DD"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 />
                 
                 <Text style={styles.inputLabel}>EMI Amount (₹) - Auto-calculated if empty</Text>
@@ -2221,7 +2221,7 @@ export default function BooksScreen() {
                   value={loanForm.emi_amount}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, emi_amount: t }))}
                   placeholder="Auto-calculated"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   keyboardType="numeric"
                 />
                 
@@ -2231,7 +2231,7 @@ export default function BooksScreen() {
                   value={loanForm.lender}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, lender: t }))}
                   placeholder="e.g., HDFC Bank"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 />
                 
                 <Text style={styles.inputLabel}>Loan Account Number</Text>
@@ -2240,7 +2240,7 @@ export default function BooksScreen() {
                   value={loanForm.account_number}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, account_number: t }))}
                   placeholder="e.g., LOAN123456"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                 />
                 
                 <Text style={styles.inputLabel}>Notes</Text>
@@ -2249,7 +2249,7 @@ export default function BooksScreen() {
                   value={loanForm.notes}
                   onChangeText={(t) => setLoanForm(f => ({ ...f, notes: t }))}
                   placeholder="Additional notes..."
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   multiline
                 />
                 
