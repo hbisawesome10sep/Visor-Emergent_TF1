@@ -100,8 +100,67 @@ function InsightCard({
   const [showBack, setShowBack] = useState(false);
   const statusColor = getStatusColor(status);
   const statusLabel = getStatusLabel(status);
+  const fillAnim = useRef(new Animated.Value(0)).current;
+  const waveAnim = useRef(new Animated.Value(0)).current;
+  const bubbleAnim = useRef(new Animated.Value(0)).current;
 
-  // Card background colors - more opaque for better legibility
+  // Gradient colors based on status
+  const getGradient = (): [string, string] => {
+    switch (status) {
+      case 'excellent': return ['#10B981', '#059669'];
+      case 'good': return ['#22C55E', '#16A34A'];
+      case 'fair': return ['#F59E0B', '#D97706'];
+      case 'needs_work': return ['#F97316', '#EA580C'];
+      case 'critical': return ['#EF4444', '#DC2626'];
+      default: return ['#6366F1', '#4F46E5'];
+    }
+  };
+
+  useEffect(() => {
+    Animated.timing(fillAnim, {
+      toValue: Math.min(Math.max(fillPercentage, 0), 100),
+      duration: 1500,
+      useNativeDriver: false,
+    }).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(waveAnim, { toValue: 1, duration: 3000, useNativeDriver: true }),
+        Animated.timing(waveAnim, { toValue: 0, duration: 3000, useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bubbleAnim, { toValue: 1, duration: 2500, useNativeDriver: true }),
+        Animated.timing(bubbleAnim, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [fillPercentage]);
+
+  const fillHeight = fillAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
+  const waveX = waveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-15, 15],
+  });
+
+  const bubbleY = bubbleAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -50],
+  });
+
+  const bubbleOpacity = bubbleAnim.interpolate({
+    inputRange: [0, 0.7, 1],
+    outputRange: [0.5, 0.2, 0],
+  });
+
+  const gradient = getGradient();
+
+  // Card background for back side
   const cardBg = isDark 
     ? 'rgba(30, 41, 59, 0.95)' 
     : 'rgba(255, 255, 255, 0.98)';
@@ -116,7 +175,6 @@ function InsightCard({
         onPress={() => setShowBack(false)}
         style={[styles.insightCard, { backgroundColor: cardBg, borderColor }]}
       >
-        {/* Flip icon */}
         <TouchableOpacity 
           style={[styles.flipIconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
           onPress={() => setShowBack(false)}
@@ -151,39 +209,65 @@ function InsightCard({
 
   return (
     <TouchableOpacity 
-      activeOpacity={0.95} 
+      activeOpacity={0.9} 
       onPress={() => setShowBack(true)}
-      style={[styles.insightCard, { backgroundColor: cardBg, borderColor, borderLeftColor: statusColor, borderLeftWidth: 4 }]}
+      style={styles.insightCard}
     >
-      {/* Flip icon */}
-      <TouchableOpacity 
-        style={[styles.flipIconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-        onPress={() => setShowBack(true)}
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.insightGradient}
       >
-        <MaterialCommunityIcons name="information-outline" size={14} color={colors.textSecondary} />
-      </TouchableOpacity>
-
-      <View style={styles.frontContent}>
-        <View style={styles.cardHeader}>
-          <View style={[styles.iconBox, { backgroundColor: `${statusColor}15` }]}>
-            <MaterialCommunityIcons name={icon as any} size={20} color={statusColor} />
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: `${statusColor}15` }]}>
-            <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
-          </View>
+        {/* Animated liquid fill */}
+        <View style={styles.liquidContainer}>
+          <Animated.View
+            style={[
+              styles.liquidFill,
+              { height: fillHeight, backgroundColor: 'rgba(255,255,255,0.12)' },
+            ]}
+          >
+            <Animated.View
+              style={[styles.wave, { transform: [{ translateX: waveX }] }]}
+            />
+          </Animated.View>
+          <Animated.View
+            style={[styles.bubble, { transform: [{ translateY: bubbleY }], opacity: bubbleOpacity }]}
+          />
+          <Animated.View
+            style={[styles.bubble, styles.bubble2, { transform: [{ translateY: bubbleY }], opacity: bubbleOpacity }]}
+          />
         </View>
 
-        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{title}</Text>
-        <Text style={[styles.cardValue, { color: statusColor }]}>{value}</Text>
-        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+        {/* Card content */}
+        <View style={styles.insightContent}>
+          <View style={styles.cardHeader}>
+            <View style={styles.insightIconBox}>
+              <MaterialCommunityIcons name={icon as any} size={18} color="rgba(255,255,255,0.9)" />
+            </View>
+            <View style={styles.insightBadge}>
+              <Text style={styles.insightBadgeText}>{statusLabel}</Text>
+            </View>
+          </View>
 
-        {/* Progress bar */}
-        <View style={styles.progressWrapper}>
-          <View style={[styles.progressBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-            <View style={[styles.progressFill, { width: `${Math.min(fillPercentage, 100)}%`, backgroundColor: statusColor }]} />
+          {/* Flip info hint */}
+          <TouchableOpacity 
+            style={styles.flipIconBtnFront}
+            onPress={() => setShowBack(true)}
+          >
+            <MaterialCommunityIcons name="information-outline" size={14} color="rgba(255,255,255,0.6)" />
+          </TouchableOpacity>
+
+          <Text style={styles.insightTitle}>{title}</Text>
+          <Text style={styles.insightValue}>{value}</Text>
+          <Text style={styles.insightSubtitle}>{subtitle}</Text>
+
+          {/* Bottom fill bar */}
+          <View style={styles.insightBarBg}>
+            <View style={[styles.insightBarFill, { width: `${Math.min(fillPercentage, 100)}%` }]} />
           </View>
         </View>
-      </View>
+      </LinearGradient>
     </TouchableOpacity>
   );
 }
