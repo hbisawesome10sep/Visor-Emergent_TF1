@@ -1356,7 +1356,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
+    letterSpacing: -0.3,
     marginBottom: 14,
   },
 
