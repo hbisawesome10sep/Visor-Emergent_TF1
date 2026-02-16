@@ -172,19 +172,13 @@ function FlippableCard({ frontContent, backContent, gradientColors, height = 200
           colors={gradientColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.cardGradient, { borderRadius: 24 }]}
+          style={[styles.cardGradient, styles.cardBlur, { borderRadius: 24 }]}
         >
-          <BlurView
-            intensity={isDark ? 40 : 60}
-            tint={isDark ? 'dark' : 'light'}
-            style={styles.cardBlur}
-          >
-            {frontContent}
-            <View style={styles.flipIndicator}>
-              <MaterialCommunityIcons name="gesture-tap" size={14} color="rgba(255,255,255,0.6)" />
-              <Text style={styles.flipText}>Tap to see calculation</Text>
-            </View>
-          </BlurView>
+          {frontContent}
+          <View style={styles.flipIndicator}>
+            <MaterialCommunityIcons name="gesture-tap" size={14} color="rgba(255,255,255,0.8)" />
+            <Text style={styles.flipText}>Tap to learn more</Text>
+          </View>
         </LinearGradient>
       </Animated.View>
 
@@ -194,19 +188,13 @@ function FlippableCard({ frontContent, backContent, gradientColors, height = 200
           colors={gradientColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.cardGradient, { borderRadius: 24 }]}
+          style={[styles.cardGradient, styles.cardBlur, { borderRadius: 24 }]}
         >
-          <BlurView
-            intensity={isDark ? 40 : 60}
-            tint={isDark ? 'dark' : 'light'}
-            style={styles.cardBlur}
-          >
-            {backContent}
-            <View style={styles.flipIndicator}>
-              <MaterialCommunityIcons name="arrow-left" size={14} color="rgba(255,255,255,0.6)" />
-              <Text style={styles.flipText}>Tap to go back</Text>
-            </View>
-          </BlurView>
+          {backContent}
+          <View style={styles.flipIndicator}>
+            <MaterialCommunityIcons name="arrow-left" size={14} color="rgba(255,255,255,0.8)" />
+            <Text style={styles.flipText}>Tap to go back</Text>
+          </View>
         </LinearGradient>
       </Animated.View>
     </TouchableOpacity>
