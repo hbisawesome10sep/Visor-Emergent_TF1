@@ -137,15 +137,18 @@ backend:
 
   - task: "Dashboard Stats with Date Range Filtering"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added start_date and end_date query parameters to /api/dashboard/stats endpoint. When provided, transactions are filtered by date range. Also returns user_created_at for limiting earliest date on frontend."
+      - working: true
+        agent: "testing"
+        comment: "✅ Comprehensive testing completed successfully! All endpoints returning 200 OK. Tested: 1) Login with rajesh@visor.demo credentials - JWT token received correctly. 2) GET /api/dashboard/stats (no dates) - Returns all transaction data (₹187K income, ₹120.8K expenses, 30 transactions), date_range=null as expected, user_created_at field present. 3) GET /api/dashboard/stats?start_date=2025-01-01&end_date=2025-12-31 - Returns zero values (no 2025 transactions), date_range object with correct dates. 4) GET /api/dashboard/stats?start_date=2020-01-01&end_date=2020-12-31 - Returns zero values (no 2020 transactions). 5) GET /api/dashboard/stats?start_date=2026-01-01&end_date=2026-12-31 - Returns full transaction data (current year). Date filtering working perfectly - filters transactions correctly and returns appropriate date_range object when dates provided or null when not provided."
 
   - task: "Bookkeeping Export (PDF/XLSX)"
     implemented: true
