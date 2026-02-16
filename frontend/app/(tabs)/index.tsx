@@ -1387,12 +1387,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    letterSpacing: -0.3,
   },
   viewAllLink: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontFamily: 'Outfit_600SemiBold',
   },
 
   // Pie Chart
