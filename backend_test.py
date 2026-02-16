@@ -62,12 +62,12 @@ class BackendTester:
             return False
     
     def test_dashboard_stats_no_dates(self):
-        """Test dashboard stats without date parameters"""
+        """Test dashboard stats without date parameters - includes health_score validation"""
         self.log("Testing dashboard stats without date parameters...")
         
         if not self.token:
             self.log("❌ No token available", "ERROR")
-            return False
+            return False, None
             
         try:
             response = self.session.get(
@@ -80,26 +80,31 @@ class BackendTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check required fields
+                # Check required fields including health_score
                 required_fields = [
                     "total_income", "total_expenses", "total_investments", 
-                    "net_balance", "user_created_at", "date_range"
+                    "net_balance", "user_created_at", "date_range", "health_score"
                 ]
                 
                 missing_fields = [field for field in required_fields if field not in data]
                 if missing_fields:
                     self.log(f"❌ Missing required fields: {missing_fields}", "ERROR")
-                    return False
+                    return False, None
                 
                 # Check that date_range is null when no dates provided
                 if data["date_range"] is not None:
                     self.log(f"❌ Expected date_range to be null, got: {data['date_range']}", "ERROR")
-                    return False
+                    return False, None
                     
                 # Check user_created_at exists and is not empty
                 if not data.get("user_created_at"):
                     self.log("❌ user_created_at field is empty", "ERROR")
-                    return False
+                    return False, None
+                
+                # CRITICAL: Validate health_score structure and values
+                health_score = data.get("health_score", {})
+                if not self.validate_health_score(health_score):
+                    return False, None
                 
                 self.log("✅ Dashboard stats (no dates) - All required fields present")
                 self.log(f"   - Total Income: ₹{data['total_income']}")
@@ -108,15 +113,16 @@ class BackendTester:
                 self.log(f"   - User Created At: {data['user_created_at']}")
                 self.log(f"   - Date Range: {data['date_range']}")
                 self.log(f"   - Transaction Count: {data.get('transaction_count', 0)}")
+                self.log(f"   - Health Score Overall: {health_score.get('overall', 'N/A')} ({health_score.get('grade', 'N/A')})")
                 
-                return True
+                return True, health_score
             else:
                 self.log(f"❌ Dashboard stats failed: {response.text}", "ERROR")
-                return False
+                return False, None
                 
         except Exception as e:
             self.log(f"❌ Dashboard stats request failed: {str(e)}", "ERROR")
-            return False
+            return False, None
     
     def test_dashboard_stats_with_date_range(self, start_date, end_date, test_name):
         """Test dashboard stats with date range filtering"""
