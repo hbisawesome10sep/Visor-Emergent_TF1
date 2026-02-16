@@ -3,9 +3,8 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert,
   Switch, TextInput, Platform, StatusBar, Modal, Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import Slider from '@react-native-community/slider';
