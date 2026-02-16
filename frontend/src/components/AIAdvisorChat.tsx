@@ -241,12 +241,11 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                     <MaterialCommunityIcons name="robot-happy" size={48} color="#fff" />
                   </LinearGradient>
                   <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-                    Hi! I'm Artha AI
+                    Hi! I'm Visor 👋
                   </Text>
                   <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                    Your personal financial advisor with CA, CFA & MBA expertise.
-                    I know your finances and can help with tax planning, investments,
-                    loans, and more!
+                    Your personal Indian financial advisor. I understand your finances deeply
+                    and can help with tax planning, investments, loans, and more!
                   </Text>
 
                   {/* Quick prompts */}
