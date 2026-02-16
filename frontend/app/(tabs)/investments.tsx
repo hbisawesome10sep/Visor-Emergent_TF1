@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
   addGoalText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
   // Goals Overview
-  goalsOverviewCard: { borderRadius: 18, padding: 16, borderWidth: 1.5, marginBottom: 16 },
+  goalsOverviewCard: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 16 },
   goalsOverviewRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   goalsOverviewLabel: { fontSize: 12, fontWeight: '600' },
   goalsOverviewAmount: { fontSize: 18, fontWeight: '800', marginTop: 2 },
