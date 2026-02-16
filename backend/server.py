@@ -1876,13 +1876,8 @@ async def chat_with_advisor(chat_msg: ChatMessage, user=Depends(get_current_user
             system_message=FINANCIAL_ADVISOR_SYSTEM_PROMPT
         ).with_model("openai", "gpt-4o")
         
-        # Add history to chat
-        for h in history:
-            if h.get("role") == "user":
-                await chat.send_message(UserMessage(text=h["content"]), store_only=True)
-            elif h.get("role") == "assistant":
-                # Manually add assistant message to history
-                chat.messages.append({"role": "assistant", "content": h["content"]})
+        # Note: History is already managed by session_id, we don't need to replay it
+        # Just send the current message with context
         
         # Send message and get response
         response = await chat.send_message(UserMessage(text=user_message_text))
