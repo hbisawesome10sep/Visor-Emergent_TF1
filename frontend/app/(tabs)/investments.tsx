@@ -260,9 +260,9 @@ export default function InvestmentsScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* ═══ HEADER ═══ */}
-      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
         <View style={[styles.headerContent, {
-          backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+          backgroundColor: isDark ? '#000000' : '#FFFFFF',
           borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
         }]}>
           <View style={styles.headerLeft}>
@@ -334,7 +334,7 @@ export default function InvestmentsScreen() {
                 <TouchableOpacity
                   key={goal.id}
                   style={[styles.goalCard, {
-                    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+                    backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.9)',
                     borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
                   }]}
                   onPress={() => openEditGoal(goal)}
@@ -396,7 +396,7 @@ export default function InvestmentsScreen() {
         {/* ═══ ASSET ALLOCATION ═══ */}
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Asset Allocation</Text>
         <View style={[styles.glassCard, {
-          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
         }]}>
           <View style={styles.donutContainer}>
@@ -433,7 +433,7 @@ export default function InvestmentsScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.marketsScroll}>
           {MARKET_INDICES.map((idx, i) => (
             <View key={i} style={[styles.marketCard, {
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
               borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
             }]}>
               <Text style={[styles.marketName, { color: colors.textSecondary }]}>{idx.name}</Text>
@@ -449,7 +449,7 @@ export default function InvestmentsScreen() {
         {/* ═══ RISK PROFILE ═══ */}
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Risk Profile & Strategy</Text>
         <View style={[styles.riskCard, {
-          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
         }]}>
           <View style={styles.riskHeader}>
@@ -487,7 +487,7 @@ export default function InvestmentsScreen() {
 
         {/* ═══ TAX SAVING ═══ */}
         <View style={[styles.glassCard, {
-          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
         }]}>
           <View style={styles.taxHeader}>

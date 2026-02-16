@@ -499,9 +499,9 @@ export default function SettingsScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* ═══ HEADER ═══ */}
-      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
         <View style={[styles.headerContent, {
-          backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+          backgroundColor: isDark ? '#000000' : '#FFFFFF',
           borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
         }]}>
           <View style={styles.headerLeft}>

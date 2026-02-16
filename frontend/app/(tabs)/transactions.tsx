@@ -257,7 +257,7 @@ export default function TransactionsScreen() {
         {/* Search Bar */}
         {showSearch && (
           <View style={[styles.searchBar, {
-            backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+            backgroundColor: isDark ? '#000000' : '#FFFFFF',
             borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
           }]}>
             <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
@@ -442,7 +442,7 @@ export default function TransactionsScreen() {
                   <TouchableOpacity
                     key={txn.id}
                     style={[styles.txnCard, {
-                      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+                      backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.9)',
                       borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
                     }]}
                     onPress={() => openEdit(txn)}

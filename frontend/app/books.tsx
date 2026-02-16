@@ -1018,7 +1018,7 @@ export default function BooksScreen() {
       justifyContent: 'flex-end',
     },
     modalContent: {
-      backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+      backgroundColor: isDark ? '#0A0A0B' : '#FFFFFF',
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       paddingTop: 20,
@@ -1036,7 +1036,7 @@ export default function BooksScreen() {
     modalTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: isDark ? '#F8FAFC' : '#1E293B',
+      color: isDark ? '#F8FAFC' : '#0A0A0B',
     },
     modalBody: {
       padding: 20,
@@ -1049,12 +1049,12 @@ export default function BooksScreen() {
       marginTop: 16,
     },
     input: {
-      backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+      backgroundColor: isDark ? '#000000' : '#F8FAFC',
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 14,
       fontSize: 16,
-      color: isDark ? '#F8FAFC' : '#1E293B',
+      color: isDark ? '#F8FAFC' : '#0A0A0B',
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
     },
@@ -1067,7 +1067,7 @@ export default function BooksScreen() {
       paddingHorizontal: 14,
       paddingVertical: 8,
       borderRadius: 20,
-      backgroundColor: isDark ? '#0F172A' : '#F1F5F9',
+      backgroundColor: isDark ? '#000000' : '#F1F5F9',
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
     },
@@ -1115,7 +1115,7 @@ export default function BooksScreen() {
     exportOptionTitle: {
       fontSize: 16,
       fontWeight: '600',
-      color: isDark ? '#F8FAFC' : '#1E293B',
+      color: isDark ? '#F8FAFC' : '#0A0A0B',
     },
     exportOptionDesc: {
       fontSize: 12,
@@ -1871,7 +1871,7 @@ export default function BooksScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={isDark ? '#F8FAFC' : '#0A0A0B'} />
           </TouchableOpacity>
           <View style={{ flex: 1, marginLeft: 16 }}>
             <Text style={styles.headerTitle}>Books & Reports</Text>
@@ -1986,7 +1986,7 @@ export default function BooksScreen() {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{editingAsset ? 'Edit Asset' : 'Add Fixed Asset'}</Text>
                 <TouchableOpacity onPress={() => { setShowAssetModal(false); setEditingAsset(null); }}>
-                  <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
+                  <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#0A0A0B'} />
                 </TouchableOpacity>
               </View>
               
@@ -2090,7 +2090,7 @@ export default function BooksScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Export Report</Text>
               <TouchableOpacity onPress={() => setShowExportModal(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
+                <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#0A0A0B'} />
               </TouchableOpacity>
             </View>
             
@@ -2164,7 +2164,7 @@ export default function BooksScreen() {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{editingLoan ? 'Edit Loan' : 'Add Loan/Liability'}</Text>
                 <TouchableOpacity onPress={() => { setShowLoanModal(false); setEditingLoan(null); }}>
-                  <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#1E293B'} />
+                  <MaterialCommunityIcons name="close" size={24} color={isDark ? '#F8FAFC' : '#0A0A0B'} />
                 </TouchableOpacity>
               </View>
               

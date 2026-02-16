@@ -491,12 +491,12 @@ export default function InsightsScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Clean Header */}
-      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
         <View
           style={[
             styles.headerContent,
             {
-              backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+              backgroundColor: isDark ? '#000000' : '#FFFFFF',
               borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
             },
           ]}
@@ -722,7 +722,7 @@ export default function InsightsScreen() {
 
         {/* ═══ HOW YOU COMPARE ═══ */}
         <View style={[styles.compareCard, {
-          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
           borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
         }]}>
           <View style={styles.compareHeader}>
@@ -766,7 +766,7 @@ export default function InsightsScreen() {
         {/* ═══ SPENDING BREAKDOWN ═══ */}
         {spendingData.length > 0 && (
           <View style={[styles.spendingCard, {
-            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+            backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
             borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
           }]}>
             <Text style={[styles.cardSectionTitle, { color: colors.textPrimary }]}>Spending Breakdown</Text>
@@ -804,7 +804,7 @@ export default function InsightsScreen() {
           <View
             key={index}
             style={[styles.recommendationCard, {
-              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
               borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
               borderLeftColor: rec.priority === 'high' ? '#EF4444' : rec.priority === 'medium' ? '#F59E0B' : '#10B981',
             }]}
