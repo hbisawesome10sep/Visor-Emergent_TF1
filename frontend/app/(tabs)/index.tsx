@@ -1275,13 +1275,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scoreNum: {
-    fontSize: 24,
-    fontWeight: '900',
+    fontSize: 26,
+    fontFamily: 'SpaceGrotesk_700Bold',
     letterSpacing: -1,
   },
   scoreOf: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: 'Outfit_600SemiBold',
   },
   scoreInfo: {
     flex: 1,
