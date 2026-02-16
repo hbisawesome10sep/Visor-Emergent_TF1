@@ -210,10 +210,35 @@ export default function DashboardScreen() {
 
   const handleFrequencyChange = (freq: FrequencyOption) => {
     if (freq === 'Custom') {
+      // Pre-fill custom inputs with current date range
+      const earliest = userCreatedAt ? new Date(userCreatedAt) : new Date(new Date().getFullYear(), 0, 1);
+      setCustomStartInput(earliest.toISOString().split('T')[0]);
+      setCustomEndInput(new Date().toISOString().split('T')[0]);
       setShowDatePicker(true);
     } else {
       setSelectedFrequency(freq);
     }
+  };
+
+  const handleApplyCustomRange = () => {
+    // Validate dates
+    const start = new Date(customStartInput);
+    const end = new Date(customEndInput);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      Alert.alert('Invalid Date', 'Please enter dates in YYYY-MM-DD format');
+      return;
+    }
+    if (start > end) {
+      Alert.alert('Invalid Range', 'Start date must be before end date');
+      return;
+    }
+    // Ensure start is not before user's created_at
+    const earliest = userCreatedAt ? new Date(userCreatedAt) : new Date(new Date().getFullYear(), 0, 1);
+    const effectiveStart = start < earliest ? earliest : start;
+    
+    setDateRange({ start: effectiveStart, end });
+    setSelectedFrequency('Custom');
+    setShowDatePicker(false);
   };
 
   const handleAddTxn = async () => {
