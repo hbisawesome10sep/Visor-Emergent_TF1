@@ -1840,7 +1840,7 @@ export default function BooksScreen() {
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={{ marginTop: 16, color: colors.textSecondary }}>Loading financial records...</Text>
+          <Text style={{ marginTop: 16, color: isDark ? '#94A3B8' : '#64748B' }}>Loading financial records...</Text>
         </View>
       </SafeAreaView>
     );
