@@ -14,6 +14,7 @@ import * as Sharing from 'expo-sharing';
 
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/context/ThemeContext';
+import { Neon } from '../src/utils/theme';
 import { apiRequest } from '../src/utils/api';
 import { formatINR, formatINRShort } from '../src/utils/formatters';
 
