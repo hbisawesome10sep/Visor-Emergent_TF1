@@ -20,12 +20,12 @@ const GOAL_CATS = ['Safety', 'Travel', 'Purchase', 'Property', 'Education', 'Ret
 
 // Investment categories
 const INVEST_CATEGORIES = [
-  { key: 'stocks', name: 'Stocks', color: '#3B82F6', icon: 'chart-areaspline' },
-  { key: 'mutual_funds', name: 'Mutual Funds', color: '#8B5CF6', icon: 'chart-pie' },
-  { key: 'fd', name: 'Fixed Deposits', color: '#10B981', icon: 'bank' },
+  { key: 'stocks', name: 'Stocks', color: Neon.blue, icon: 'chart-areaspline' },
+  { key: 'mutual_funds', name: 'Mutual Funds', color: Neon.purple, icon: 'chart-pie' },
+  { key: 'fd', name: 'Fixed Deposits', color: Neon.green, icon: 'bank' },
   { key: 'ppf', name: 'PPF', color: '#14B8A6', icon: 'shield-check' },
-  { key: 'gold', name: 'Gold', color: '#F59E0B', icon: 'diamond-stone' },
-  { key: 'nps', name: 'NPS', color: '#6366F1', icon: 'account-cash' },
+  { key: 'gold', name: 'Gold', color: Neon.yellow, icon: 'diamond-stone' },
+  { key: 'nps', name: 'NPS', color: Neon.purple, icon: 'account-cash' },
 ];
 
 // Risk assessment questions
@@ -235,9 +235,9 @@ export default function InvestmentsScreen() {
 
   // Strategy based on risk
   const strategies = {
-    Conservative: { name: 'Safe Harbor', allocation: [{ name: 'Debt', p: 60, c: '#10B981' }, { name: 'Equity', p: 25, c: '#3B82F6' }, { name: 'Gold', p: 15, c: '#F59E0B' }] },
-    Moderate: { name: 'Balanced Growth', allocation: [{ name: 'Equity', p: 40, c: '#3B82F6' }, { name: 'Debt', p: 30, c: '#10B981' }, { name: 'Gold', p: 15, c: '#F59E0B' }, { name: 'Alt', p: 15, c: '#8B5CF6' }] },
-    Aggressive: { name: 'High Growth', allocation: [{ name: 'Equity', p: 70, c: '#3B82F6' }, { name: 'Alt', p: 15, c: '#8B5CF6' }, { name: 'Debt', p: 10, c: '#10B981' }, { name: 'Gold', p: 5, c: '#F59E0B' }] },
+    Conservative: { name: 'Safe Harbor', allocation: [{ name: 'Debt', p: 60, c: Neon.green }, { name: 'Equity', p: 25, c: Neon.blue }, { name: 'Gold', p: 15, c: Neon.yellow }] },
+    Moderate: { name: 'Balanced Growth', allocation: [{ name: 'Equity', p: 40, c: Neon.blue }, { name: 'Debt', p: 30, c: Neon.green }, { name: 'Gold', p: 15, c: Neon.yellow }, { name: 'Alt', p: 15, c: Neon.purple }] },
+    Aggressive: { name: 'High Growth', allocation: [{ name: 'Equity', p: 70, c: Neon.blue }, { name: 'Alt', p: 15, c: Neon.purple }, { name: 'Debt', p: 10, c: Neon.green }, { name: 'Gold', p: 5, c: Neon.yellow }] },
   };
   const currentStrategy = strategies[riskProfile];
 
@@ -304,7 +304,7 @@ export default function InvestmentsScreen() {
                 </Text>
               </View>
               <View style={[styles.goalsPercentBadge, { backgroundColor: overallGoalProgress >= 50 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(249, 115, 22, 0.15)' }]}>
-                <Text style={[styles.goalsPercentText, { color: overallGoalProgress >= 50 ? '#10B981' : '#F97316' }]}>
+                <Text style={[styles.goalsPercentText, { color: overallGoalProgress >= 50 ? Neon.green : '#F97316' }]}>
                   {overallGoalProgress.toFixed(0)}%
                 </Text>
               </View>
@@ -329,7 +329,7 @@ export default function InvestmentsScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.goalsScroll}>
             {goals.map(goal => {
               const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-              const progressColor = progress >= 75 ? '#10B981' : progress >= 40 ? '#F59E0B' : '#EF4444';
+              const progressColor = progress >= 75 ? Neon.green : progress >= 40 ? Neon.yellow : Neon.red;
               return (
                 <TouchableOpacity
                   key={goal.id}
@@ -370,12 +370,12 @@ export default function InvestmentsScreen() {
           <View style={styles.portfolioHeader}>
             <Text style={[styles.portfolioLabel, { color: colors.textSecondary }]}>Total Portfolio Value</Text>
             <View style={[styles.changeBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-              <MaterialCommunityIcons name="arrow-up" size={14} color="#10B981" />
-              <Text style={[styles.changeText, { color: '#10B981' }]}>+3.99%</Text>
+              <MaterialCommunityIcons name="arrow-up" size={14} color=Neon.green />
+              <Text style={[styles.changeText, { color: Neon.green }]}>+3.99%</Text>
             </View>
           </View>
           <Text style={[styles.portfolioValue, { color: colors.textPrimary }]}>₹{portfolioValue.toLocaleString('en-IN')}</Text>
-          <Text style={[styles.portfolioChange, { color: '#10B981' }]}>+₹{monthlyChange.toLocaleString('en-IN')} this month</Text>
+          <Text style={[styles.portfolioChange, { color: Neon.green }]}>+₹{monthlyChange.toLocaleString('en-IN')} this month</Text>
 
           <View style={styles.summaryPillsRow}>
             <View style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
@@ -384,11 +384,11 @@ export default function InvestmentsScreen() {
             </View>
             <View style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
               <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>Returns</Text>
-              <Text style={[styles.pillValue, { color: '#10B981' }]}>+₹{formatINRShort(returns)}</Text>
+              <Text style={[styles.pillValue, { color: Neon.green }]}>+₹{formatINRShort(returns)}</Text>
             </View>
             <View style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
               <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>XIRR</Text>
-              <Text style={[styles.pillValue, { color: '#10B981' }]}>{xirr}%</Text>
+              <Text style={[styles.pillValue, { color: Neon.green }]}>{xirr}%</Text>
             </View>
           </View>
         </Animated.View>
@@ -439,8 +439,8 @@ export default function InvestmentsScreen() {
               <Text style={[styles.marketName, { color: colors.textSecondary }]}>{idx.name}</Text>
               <Text style={[styles.marketValue, { color: colors.textPrimary }]}>₹{idx.value.toLocaleString('en-IN')}</Text>
               <View style={[styles.marketChangeBadge, { backgroundColor: idx.up ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
-                <MaterialCommunityIcons name={idx.up ? 'arrow-up' : 'arrow-down'} size={12} color={idx.up ? '#10B981' : '#EF4444'} />
-                <Text style={[styles.marketChangeText, { color: idx.up ? '#10B981' : '#EF4444' }]}>{idx.change}%</Text>
+                <MaterialCommunityIcons name={idx.up ? 'arrow-up' : 'arrow-down'} size={12} color={idx.up ? Neon.green : Neon.red} />
+                <Text style={[styles.marketChangeText, { color: idx.up ? Neon.green : Neon.red }]}>{idx.change}%</Text>
               </View>
             </View>
           ))}
@@ -458,8 +458,8 @@ export default function InvestmentsScreen() {
             }]}>
               <MaterialCommunityIcons
                 name={riskProfile === 'Conservative' ? 'shield-check' : riskProfile === 'Moderate' ? 'scale-balance' : 'rocket-launch'}
-                size={20} color={riskProfile === 'Conservative' ? '#3B82F6' : riskProfile === 'Moderate' ? '#F59E0B' : '#EF4444'} />
-              <Text style={[styles.riskBadgeText, { color: riskProfile === 'Conservative' ? '#3B82F6' : riskProfile === 'Moderate' ? '#F59E0B' : '#EF4444' }]}>
+                size={20} color={riskProfile === 'Conservative' ? Neon.blue : riskProfile === 'Moderate' ? Neon.yellow : Neon.red} />
+              <Text style={[styles.riskBadgeText, { color: riskProfile === 'Conservative' ? Neon.blue : riskProfile === 'Moderate' ? Neon.yellow : Neon.red }]}>
                 {riskProfile}
               </Text>
             </View>
@@ -496,7 +496,7 @@ export default function InvestmentsScreen() {
               <Text style={[styles.taxUsed, { color: colors.textSecondary }]}>₹{formatINRShort(section80CUsed)} / ₹1.5L</Text>
             </View>
             <View style={[styles.taxPercentBadge, { backgroundColor: section80CUsed >= 150000 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)' }]}>
-              <Text style={[styles.taxPercentText, { color: section80CUsed >= 150000 ? '#10B981' : '#F59E0B' }]}>
+              <Text style={[styles.taxPercentText, { color: section80CUsed >= 150000 ? Neon.green : Neon.yellow }]}>
                 {((section80CUsed / 150000) * 100).toFixed(0)}%
               </Text>
             </View>
@@ -511,7 +511,7 @@ export default function InvestmentsScreen() {
 
       {/* ═══ ADD GOAL FAB ═══ */}
       <TouchableOpacity style={styles.fab} onPress={openAddGoal}>
-        <LinearGradient colors={['#EA580C', '#DC2626']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
+        <LinearGradient colors={['#EA580C', Neon.red]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
           <MaterialCommunityIcons name="plus" size={28} color="#fff" />
         </LinearGradient>
       </TouchableOpacity>
@@ -574,7 +574,7 @@ export default function InvestmentsScreen() {
               </ScrollView>
 
               <TouchableOpacity style={styles.saveBtn} onPress={handleSaveGoal} disabled={saving}>
-                <LinearGradient colors={['#EA580C', '#DC2626']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
+                <LinearGradient colors={['#EA580C', Neon.red]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
                   {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>{editGoal ? 'Update Goal' : 'Create Goal'}</Text>}
                 </LinearGradient>
               </TouchableOpacity>

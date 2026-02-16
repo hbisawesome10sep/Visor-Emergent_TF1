@@ -32,18 +32,18 @@ type DashboardStats = {
 
 // Health Score - now uses backend-provided score for consistency with Dashboard
 function getScoreLabel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: 'Excellent', color: '#10B981' };
-  if (score >= 65) return { label: 'Good', color: '#22C55E' };
-  if (score >= 50) return { label: 'Fair', color: '#F59E0B' };
+  if (score >= 80) return { label: 'Excellent', color: Neon.green };
+  if (score >= 65) return { label: 'Good', color: Neon.cyan };
+  if (score >= 50) return { label: 'Fair', color: Neon.yellow };
   if (score >= 35) return { label: 'Needs Work', color: '#F97316' };
-  return { label: 'Critical', color: '#EF4444' };
+  return { label: 'Critical', color: Neon.red };
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 76) return '#10B981';
-  if (score >= 61) return '#22C55E';
-  if (score >= 41) return '#F59E0B';
-  return '#EF4444';
+  if (score >= 76) return Neon.green;
+  if (score >= 61) return Neon.cyan;
+  if (score >= 41) return Neon.yellow;
+  return Neon.red;
 }
 
 function getMetricStatus(value: number, target: number, isInverted: boolean = false): 'excellent' | 'good' | 'fair' | 'critical' {
@@ -56,10 +56,10 @@ function getMetricStatus(value: number, target: number, isInverted: boolean = fa
 
 function getStatusColor(status: 'excellent' | 'good' | 'fair' | 'critical'): string {
   switch (status) {
-    case 'excellent': return '#10B981';
-    case 'good': return '#22C55E';
-    case 'fair': return '#F59E0B';
-    case 'critical': return '#EF4444';
+    case 'excellent': return Neon.green;
+    case 'good': return Neon.cyan;
+    case 'fair': return Neon.yellow;
+    case 'critical': return Neon.red;
   }
 }
 
@@ -108,12 +108,12 @@ function InsightCard({
   // Gradient colors based on status
   const getGradient = (): [string, string] => {
     switch (status) {
-      case 'excellent': return ['#10B981', '#059669'];
-      case 'good': return ['#22C55E', '#16A34A'];
-      case 'fair': return ['#F59E0B', '#D97706'];
+      case 'excellent': return [Neon.green, Neon.green];
+      case 'good': return [Neon.cyan, Neon.cyan];
+      case 'fair': return [Neon.yellow, Neon.orange];
       case 'needs_work': return ['#F97316', '#EA580C'];
-      case 'critical': return ['#EF4444', '#DC2626'];
-      default: return ['#6366F1', '#4F46E5'];
+      case 'critical': return [Neon.red, Neon.red];
+      default: return [Neon.purple, Neon.purple];
     }
   };
 
@@ -198,7 +198,7 @@ function InsightCard({
             </View>
             <View style={styles.backStatRow}>
               <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>Target</Text>
-              <Text style={[styles.backStatValue, { color: '#10B981' }]}>{benchmarkInfo.recommended}</Text>
+              <Text style={[styles.backStatValue, { color: Neon.green }]}>{benchmarkInfo.recommended}</Text>
             </View>
           </View>
           
@@ -478,7 +478,7 @@ export default function InsightsScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size="large" color=Neon.green />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Analyzing your finances...
           </Text>
@@ -503,7 +503,7 @@ export default function InsightsScreen() {
           ]}
         >
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: '#10B981' }]}>Financial Insights</Text>
+            <Text style={[styles.headerTitle, { color: Neon.green }]}>Financial Insights</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               Real-time analysis based on Indian standards
             </Text>
@@ -512,7 +512,7 @@ export default function InsightsScreen() {
             style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
             onPress={onRefresh}
           >
-            <MaterialCommunityIcons name="refresh" size={20} color="#10B981" />
+            <MaterialCommunityIcons name="refresh" size={20} color=Neon.green />
           </TouchableOpacity>
         </View>
       </View>
@@ -520,7 +520,7 @@ export default function InsightsScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 16 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor=Neon.green />}
         showsVerticalScrollIndicator={false}
       >
         {/* ═══ FINANCIAL HEALTH SCORE ═══ */}
@@ -728,7 +728,7 @@ export default function InsightsScreen() {
         }]}>
           <View style={styles.compareHeader}>
             <View style={[styles.compareIcon, { backgroundColor: isBetterThanAverage ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)' }]}>
-              <MaterialCommunityIcons name={isBetterThanAverage ? "trophy" : "trending-up"} size={24} color={isBetterThanAverage ? '#10B981' : '#F59E0B'} />
+              <MaterialCommunityIcons name={isBetterThanAverage ? "trophy" : "trending-up"} size={24} color={isBetterThanAverage ? Neon.green : Neon.yellow} />
             </View>
             <View style={styles.compareTitleBox}>
               <Text style={[styles.compareTitle, { color: colors.textPrimary }]}>
@@ -741,22 +741,22 @@ export default function InsightsScreen() {
           <View style={styles.compareGrid}>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Your Savings</Text>
-              <Text style={[styles.compareValue, { color: savingsRate > indianAvgSavingsRate ? '#10B981' : '#EF4444' }]}>{savingsRate.toFixed(1)}%</Text>
+              <Text style={[styles.compareValue, { color: savingsRate > indianAvgSavingsRate ? Neon.green : Neon.red }]}>{savingsRate.toFixed(1)}%</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgSavingsRate}%</Text>
             </View>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Investment Rate</Text>
-              <Text style={[styles.compareValue, { color: investmentRate > indianAvgInvestmentRate ? '#10B981' : '#F59E0B' }]}>{investmentRate.toFixed(1)}%</Text>
+              <Text style={[styles.compareValue, { color: investmentRate > indianAvgInvestmentRate ? Neon.green : Neon.yellow }]}>{investmentRate.toFixed(1)}%</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgInvestmentRate}%</Text>
             </View>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Expense Ratio</Text>
-              <Text style={[styles.compareValue, { color: spendingRate < indianAvgExpenseRatio ? '#10B981' : '#EF4444' }]}>{spendingRate.toFixed(1)}%</Text>
+              <Text style={[styles.compareValue, { color: spendingRate < indianAvgExpenseRatio ? Neon.green : Neon.red }]}>{spendingRate.toFixed(1)}%</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgExpenseRatio}%</Text>
             </View>
             <View style={styles.compareItem}>
               <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Emergency Fund</Text>
-              <Text style={[styles.compareValue, { color: runwayMonths > 2.5 ? '#10B981' : '#F59E0B' }]}>{runwayMonths.toFixed(1)} mo</Text>
+              <Text style={[styles.compareValue, { color: runwayMonths > 2.5 ? Neon.green : Neon.yellow }]}>{runwayMonths.toFixed(1)} mo</Text>
               <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: 2.5 mo</Text>
             </View>
           </View>
@@ -807,7 +807,7 @@ export default function InsightsScreen() {
             style={[styles.recommendationCard, {
               backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
               borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-              borderLeftColor: rec.priority === 'high' ? '#EF4444' : rec.priority === 'medium' ? '#F59E0B' : '#10B981',
+              borderLeftColor: rec.priority === 'high' ? Neon.red : rec.priority === 'medium' ? Neon.yellow : Neon.green,
             }]}
           >
             <View style={styles.recHeader}>
@@ -817,7 +817,7 @@ export default function InsightsScreen() {
                 <MaterialCommunityIcons
                   name={rec.icon as any}
                   size={20}
-                  color={rec.priority === 'high' ? '#EF4444' : rec.priority === 'medium' ? '#F59E0B' : '#10B981'}
+                  color={rec.priority === 'high' ? Neon.red : rec.priority === 'medium' ? Neon.yellow : Neon.green}
                 />
               </View>
               <View style={styles.recInfo}>
@@ -829,8 +829,8 @@ export default function InsightsScreen() {
               <View style={[styles.impactBadge, {
                 backgroundColor: rec.priority === 'low' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
               }]}>
-                <MaterialCommunityIcons name="lightning-bolt" size={12} color={rec.priority === 'low' ? '#10B981' : '#F59E0B'} />
-                <Text style={[styles.impactText, { color: rec.priority === 'low' ? '#10B981' : '#F59E0B' }]}>{rec.impact}</Text>
+                <MaterialCommunityIcons name="lightning-bolt" size={12} color={rec.priority === 'low' ? Neon.green : Neon.yellow} />
+                <Text style={[styles.impactText, { color: rec.priority === 'low' ? Neon.green : Neon.yellow }]}>{rec.impact}</Text>
               </View>
               <Text style={[styles.sourceText, { color: colors.textSecondary }]}>{rec.source}</Text>
             </View>

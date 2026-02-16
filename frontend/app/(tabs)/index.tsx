@@ -346,7 +346,7 @@ export default function DashboardScreen() {
     {
       icon: 'book-open-page-variant',
       label: 'Books & Reports',
-      color: '#8B5CF6',
+      color: Neon.purple,
       onPress: () => router.push('/books'),
     },
   ];
@@ -431,7 +431,7 @@ export default function DashboardScreen() {
               <MaterialCommunityIcons
                 name={isDark ? 'weather-sunny' : 'weather-night'}
                 size={18}
-                color={isDark ? '#FBBF24' : '#6366F1'}
+                color={isDark ? '#FBBF24' : Neon.purple}
               />
             </TouchableOpacity>
           </View>

@@ -248,7 +248,7 @@ export default function TransactionsScreen() {
               <MaterialCommunityIcons
                 name={showSearch ? 'close' : 'magnify'}
                 size={20}
-                color={showSearch ? '#9333EA' : colors.textSecondary}
+                color={showSearch ? Neon.purple : colors.textSecondary}
               />
             </TouchableOpacity>
           </View>
@@ -414,7 +414,7 @@ export default function TransactionsScreen() {
             ) : (
               <TouchableOpacity style={styles.emptyAddBtn} onPress={() => openAdd()}>
                 <LinearGradient
-                  colors={['#9333EA', '#EC4899']}
+                  colors={[Neon.purple, '#EC4899']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.emptyAddGradient}
@@ -478,13 +478,13 @@ export default function TransactionsScreen() {
                         {txn.is_recurring && (
                           <View style={[styles.txnBadge, { backgroundColor: 'rgba(147, 51, 234, 0.1)' }]}>
                             <MaterialCommunityIcons name="repeat" size={10} color="#9333EA" />
-                            <Text style={[styles.txnBadgeText, { color: '#9333EA' }]}>Recurring</Text>
+                            <Text style={[styles.txnBadgeText, { color: Neon.purple }]}>Recurring</Text>
                           </View>
                         )}
                         {txn.is_split && txn.split_count && txn.split_count > 1 && (
                           <View style={[styles.txnBadge, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                            <MaterialCommunityIcons name="account-multiple" size={10} color="#F59E0B" />
-                            <Text style={[styles.txnBadgeText, { color: '#F59E0B' }]}>Split ×{txn.split_count}</Text>
+                            <MaterialCommunityIcons name="account-multiple" size={10} color=Neon.yellow />
+                            <Text style={[styles.txnBadgeText, { color: Neon.yellow }]}>Split ×{txn.split_count}</Text>
                           </View>
                         )}
                       </View>
@@ -515,7 +515,7 @@ export default function TransactionsScreen() {
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={['#9333EA', '#EC4899']}
+          colors={[Neon.purple, '#EC4899']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.fabGradient}
@@ -656,7 +656,7 @@ export default function TransactionsScreen() {
                       value={form.is_recurring}
                       onValueChange={v => setForm(p => ({ ...p, is_recurring: v }))}
                       trackColor={{ false: colors.border, true: 'rgba(147, 51, 234, 0.5)' }}
-                      thumbColor={form.is_recurring ? '#9333EA' : '#ccc'}
+                      thumbColor={form.is_recurring ? Neon.purple : '#ccc'}
                     />
                   </View>
                   {form.is_recurring && (
@@ -665,8 +665,8 @@ export default function TransactionsScreen() {
                         <TouchableOpacity
                           key={freq}
                           style={[styles.freqChip, {
-                            backgroundColor: form.recurring_frequency === freq ? '#9333EA' : 'transparent',
-                            borderColor: form.recurring_frequency === freq ? '#9333EA' : colors.border,
+                            backgroundColor: form.recurring_frequency === freq ? Neon.purple : 'transparent',
+                            borderColor: form.recurring_frequency === freq ? Neon.purple : colors.border,
                           }]}
                           onPress={() => setForm(p => ({ ...p, recurring_frequency: freq }))}
                         >
@@ -683,7 +683,7 @@ export default function TransactionsScreen() {
                 <View style={[styles.toggleCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
                   <View style={styles.toggleRow}>
                     <View style={[styles.toggleIcon, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                      <MaterialCommunityIcons name="account-multiple" size={20} color="#F59E0B" />
+                      <MaterialCommunityIcons name="account-multiple" size={20} color=Neon.yellow />
                     </View>
                     <View style={styles.toggleInfo}>
                       <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>Split with others</Text>
@@ -693,7 +693,7 @@ export default function TransactionsScreen() {
                       value={form.is_split}
                       onValueChange={v => setForm(p => ({ ...p, is_split: v }))}
                       trackColor={{ false: colors.border, true: 'rgba(245, 158, 11, 0.5)' }}
-                      thumbColor={form.is_split ? '#F59E0B' : '#ccc'}
+                      thumbColor={form.is_split ? Neon.yellow : '#ccc'}
                     />
                   </View>
                   {form.is_split && (
@@ -716,7 +716,7 @@ export default function TransactionsScreen() {
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Text style={[styles.splitResult, { color: '#F59E0B' }]}>
+                      <Text style={[styles.splitResult, { color: Neon.yellow }]}>
                         Per person: {formatINRShort(parseFloat(form.amount || '0') / (parseInt(form.split_count) || 1))}
                       </Text>
                     </View>
@@ -730,7 +730,7 @@ export default function TransactionsScreen() {
                   disabled={saving || !form.amount || !form.category || !form.description}
                 >
                   <LinearGradient
-                    colors={['#9333EA', '#EC4899']}
+                    colors={[Neon.purple, '#EC4899']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.submitGradient}
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
   clearFiltersText: {
     fontSize: 12,
     fontFamily: 'Outfit_600SemiBold',
-    color: '#9333EA',
+    color: Neon.purple,
   },
 
   // Summary Bar
@@ -1008,7 +1008,7 @@ const styles = StyleSheet.create({
   clearFiltersLargeText: {
     fontSize: 14,
     fontFamily: 'Outfit_600SemiBold',
-    color: '#9333EA',
+    color: Neon.purple,
   },
 
   // Date Header
@@ -1097,7 +1097,7 @@ const styles = StyleSheet.create({
     bottom: 90,
     zIndex: 99999,
     borderRadius: 28,
-    shadowColor: '#9333EA',
+    shadowColor: Neon.purple,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,

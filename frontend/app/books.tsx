@@ -1073,14 +1073,14 @@ export default function BooksScreen() {
     },
     categoryChipActive: {
       backgroundColor: isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.1)',
-      borderColor: '#10B981',
+      borderColor: Neon.green,
     },
     categoryChipText: {
       fontSize: 13,
       color: isDark ? '#94A3B8' : '#64748B',
     },
     categoryChipTextActive: {
-      color: '#10B981',
+      color: Neon.green,
       fontFamily: 'Outfit_600SemiBold',
     },
     saveButton: {
@@ -1292,10 +1292,10 @@ export default function BooksScreen() {
       borderBottomColor: colors.border + '50',
     },
     emiRowPaid: {
-      backgroundColor: '#10B981' + '10',
+      backgroundColor: Neon.green + '10',
     },
     emiRowCurrent: {
-      backgroundColor: '#F59E0B' + '20',
+      backgroundColor: Neon.yellow + '20',
     },
     emiCell: {
       fontSize: 11,
@@ -1404,9 +1404,9 @@ export default function BooksScreen() {
           </Text>
         </View>
         
-        {renderAccountGroup('Assets', assetAccounts, '#10B981')}
-        {renderAccountGroup('Income', incomeAccounts, '#3B82F6')}
-        {renderAccountGroup('Expenses', expenseAccounts, '#EF4444')}
+        {renderAccountGroup('Assets', assetAccounts, Neon.green)}
+        {renderAccountGroup('Income', incomeAccounts, Neon.blue)}
+        {renderAccountGroup('Expenses', expenseAccounts, Neon.red)}
         
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -1417,8 +1417,8 @@ export default function BooksScreen() {
     if (!pnlData) return null;
 
     const sectionColors: Record<string, string> = {
-      'A': '#10B981', 'B': '#3B82F6', 'C': '#8B5CF6', 'D': '#F59E0B',
-      'E': '#EF4444', 'F': '#DC2626', 'G': '#7C3AED', 'H': '#06B6D4', 'I': '#6B7280',
+      'A': Neon.green, 'B': Neon.blue, 'C': Neon.purple, 'D': Neon.yellow,
+      'E': Neon.red, 'F': Neon.red, 'G': '#7C3AED', 'H': '#06B6D4', 'I': '#6B7280',
     };
 
     return (
@@ -1437,13 +1437,13 @@ export default function BooksScreen() {
               <Text style={styles.sectionTitle}>INCOME</Text>
               <Text style={styles.sectionSubtitle}>Revenue & Earnings</Text>
             </View>
-            <Text style={[styles.sectionTitle, { color: '#10B981' }]}>{formatINRIndian(pnlData.total_income)}</Text>
+            <Text style={[styles.sectionTitle, { color: Neon.green }]}>{formatINRIndian(pnlData.total_income)}</Text>
           </View>
           
           {pnlData.income_sections.map(section => (
             <View key={section.id} style={styles.pnlSection}>
               <TouchableOpacity
-                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || '#10B981' }]}
+                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || Neon.green }]}
                 onPress={() => toggleSectionExpand(section.id)}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -1454,7 +1454,7 @@ export default function BooksScreen() {
                   />
                   <Text style={[styles.pnlSectionTitle, { marginLeft: 8 }]}>{section.id}. {section.name}</Text>
                 </View>
-                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || '#10B981' }]}>
+                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || Neon.green }]}>
                   {formatINRIndian(section.subtotal)}
                 </Text>
               </TouchableOpacity>
@@ -1476,13 +1476,13 @@ export default function BooksScreen() {
               <Text style={styles.sectionTitle}>EXPENDITURE</Text>
               <Text style={styles.sectionSubtitle}>Expenses & Outflows</Text>
             </View>
-            <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>{formatINRIndian(pnlData.total_expenses)}</Text>
+            <Text style={[styles.sectionTitle, { color: Neon.red }]}>{formatINRIndian(pnlData.total_expenses)}</Text>
           </View>
           
           {pnlData.expense_sections.map(section => (
             <View key={section.id} style={styles.pnlSection}>
               <TouchableOpacity
-                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || '#EF4444' }]}
+                style={[styles.pnlSectionHeader, { borderLeftColor: sectionColors[section.id] || Neon.red }]}
                 onPress={() => toggleSectionExpand(section.id)}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -1493,7 +1493,7 @@ export default function BooksScreen() {
                   />
                   <Text style={[styles.pnlSectionTitle, { marginLeft: 8 }]}>{section.id}. {section.name}</Text>
                 </View>
-                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || '#EF4444' }]}>
+                <Text style={[styles.pnlSectionSubtotal, { color: sectionColors[section.id] || Neon.red }]}>
                   {formatINRIndian(section.subtotal)}
                 </Text>
               </TouchableOpacity>
@@ -1512,14 +1512,14 @@ export default function BooksScreen() {
         <View style={[
           styles.surplusBox,
           {
-            backgroundColor: pnlData.surplus_deficit >= 0 ? '#10B981' + '15' : '#EF4444' + '15',
-            borderColor: pnlData.surplus_deficit >= 0 ? '#10B981' : '#EF4444',
+            backgroundColor: pnlData.surplus_deficit >= 0 ? Neon.green + '15' : Neon.red + '15',
+            borderColor: pnlData.surplus_deficit >= 0 ? Neon.green : Neon.red,
           }
         ]}>
-          <Text style={[styles.surplusTitle, { color: pnlData.surplus_deficit >= 0 ? '#10B981' : '#EF4444' }]}>
+          <Text style={[styles.surplusTitle, { color: pnlData.surplus_deficit >= 0 ? Neon.green : Neon.red }]}>
             {pnlData.surplus_deficit >= 0 ? 'SURPLUS' : 'DEFICIT'} FOR THE PERIOD
           </Text>
-          <Text style={[styles.surplusAmount, { color: pnlData.surplus_deficit >= 0 ? '#10B981' : '#EF4444' }]}>
+          <Text style={[styles.surplusAmount, { color: pnlData.surplus_deficit >= 0 ? Neon.green : Neon.red }]}>
             {formatINRIndian(Math.abs(pnlData.surplus_deficit))}
           </Text>
         </View>
@@ -1567,24 +1567,24 @@ export default function BooksScreen() {
         {/* Balance Verification Badge */}
         <View style={[
           styles.balanceBadge,
-          { backgroundColor: balanceSheet.is_balanced ? '#10B981' + '20' : '#EF4444' + '20' }
+          { backgroundColor: balanceSheet.is_balanced ? Neon.green + '20' : Neon.red + '20' }
         ]}>
           <MaterialCommunityIcons
             name={balanceSheet.is_balanced ? 'check-circle' : 'alert-circle'}
             size={20}
-            color={balanceSheet.is_balanced ? '#10B981' : '#EF4444'}
+            color={balanceSheet.is_balanced ? Neon.green : Neon.red}
           />
-          <Text style={[styles.balanceBadgeText, { color: balanceSheet.is_balanced ? '#10B981' : '#EF4444' }]}>
+          <Text style={[styles.balanceBadgeText, { color: balanceSheet.is_balanced ? Neon.green : Neon.red }]}>
             {balanceSheet.is_balanced ? 'Balance Sheet Balanced ✓' : 'Balance Sheet Discrepancy'}
           </Text>
         </View>
 
         {/* ASSETS Section */}
         <View style={[styles.section, { marginHorizontal: 0 }]}>
-          <View style={[styles.bsCategoryHeader, { borderLeftColor: '#3B82F6' }]}>
-            <MaterialCommunityIcons name="bank" size={22} color="#3B82F6" style={{ marginRight: 12 }} />
+          <View style={[styles.bsCategoryHeader, { borderLeftColor: Neon.blue }]}>
+            <MaterialCommunityIcons name="bank" size={22} color=Neon.blue style={{ marginRight: 12 }} />
             <Text style={styles.bsCategoryTitle}>I. ASSETS</Text>
-            <Text style={[styles.bsCategoryTotal, { color: '#3B82F6' }]}>
+            <Text style={[styles.bsCategoryTotal, { color: Neon.blue }]}>
               {formatINRIndian(balanceSheet.assets.total)}
             </Text>
           </View>
@@ -1598,11 +1598,11 @@ export default function BooksScreen() {
             {fixedAssets.length > 0 ? (
               fixedAssets.map(asset => (
                 <View key={asset.id} style={styles.assetCard}>
-                  <View style={[styles.assetIcon, { backgroundColor: '#3B82F6' + '20' }]}>
+                  <View style={[styles.assetIcon, { backgroundColor: Neon.blue + '20' }]}>
                     <MaterialCommunityIcons
                       name={asset.category === 'Property' ? 'home' : asset.category === 'Vehicle' ? 'car' : 'laptop'}
                       size={22}
-                      color="#3B82F6"
+                      color=Neon.blue
                     />
                   </View>
                   <View style={styles.assetInfo}>
@@ -1652,7 +1652,7 @@ export default function BooksScreen() {
             
             <View style={[styles.bsItem, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
               <Text style={[styles.bsItemText, { fontFamily: 'SpaceGrotesk_700Bold' }]}>Total Non-Current Assets</Text>
-              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: '#3B82F6' }]}>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: Neon.blue }]}>
                 {formatINRIndian(balanceSheet.assets.non_current.total)}
               </Text>
             </View>
@@ -1682,7 +1682,7 @@ export default function BooksScreen() {
             
             <View style={[styles.bsItem, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
               <Text style={[styles.bsItemText, { fontFamily: 'SpaceGrotesk_700Bold' }]}>Total Current Assets</Text>
-              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: '#3B82F6' }]}>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: Neon.blue }]}>
                 {formatINRIndian(balanceSheet.assets.current.total)}
               </Text>
             </View>
@@ -1691,10 +1691,10 @@ export default function BooksScreen() {
 
         {/* LIABILITIES & NET WORTH Section */}
         <View style={[styles.section, { marginHorizontal: 0 }]}>
-          <View style={[styles.bsCategoryHeader, { borderLeftColor: '#EF4444' }]}>
-            <MaterialCommunityIcons name="credit-card-outline" size={22} color="#EF4444" style={{ marginRight: 12 }} />
+          <View style={[styles.bsCategoryHeader, { borderLeftColor: Neon.red }]}>
+            <MaterialCommunityIcons name="credit-card-outline" size={22} color=Neon.red style={{ marginRight: 12 }} />
             <Text style={styles.bsCategoryTitle}>II. LIABILITIES</Text>
-            <Text style={[styles.bsCategoryTotal, { color: '#EF4444' }]}>
+            <Text style={[styles.bsCategoryTotal, { color: Neon.red }]}>
               {formatINRIndian(balanceSheet.liabilities.total)}
             </Text>
           </View>
@@ -1745,11 +1745,11 @@ export default function BooksScreen() {
               {loans.map(loan => (
                 <View key={loan.id} style={[styles.loanCard, { marginHorizontal: 0, marginBottom: 8 }]}>
                   <View style={styles.loanCardHeader}>
-                    <View style={[styles.loanIcon, { backgroundColor: '#EF4444' + '20' }]}>
+                    <View style={[styles.loanIcon, { backgroundColor: Neon.red + '20' }]}>
                       <MaterialCommunityIcons
                         name={loan.loan_type.includes('Home') ? 'home' : loan.loan_type.includes('Car') ? 'car' : 'bank'}
                         size={22}
-                        color="#EF4444"
+                        color=Neon.red
                       />
                     </View>
                     <View style={styles.loanInfo}>
@@ -1776,7 +1776,7 @@ export default function BooksScreen() {
                     </View>
                     <View style={styles.loanDetailRow}>
                       <Text style={styles.loanDetailLabel}>Interest Paid</Text>
-                      <Text style={[styles.loanDetailValue, { color: '#EF4444' }]}>{formatINRIndian(loan.total_interest_paid)}</Text>
+                      <Text style={[styles.loanDetailValue, { color: Neon.red }]}>{formatINRIndian(loan.total_interest_paid)}</Text>
                     </View>
                     <View style={styles.loanActions}>
                       <TouchableOpacity style={styles.loanActionBtn} onPress={() => viewEMISchedule(loan.id)}>
@@ -1784,11 +1784,11 @@ export default function BooksScreen() {
                         <Text style={styles.loanActionText}>EMI Schedule</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.loanActionBtn, { backgroundColor: '#EF4444' + '10' }]}
+                        style={[styles.loanActionBtn, { backgroundColor: Neon.red + '10' }]}
                         onPress={() => handleDeleteLoan(loan.id)}
                       >
-                        <MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />
-                        <Text style={[styles.loanActionText, { color: '#EF4444' }]}>Delete</Text>
+                        <MaterialCommunityIcons name="delete-outline" size={16} color=Neon.red />
+                        <Text style={[styles.loanActionText, { color: Neon.red }]}>Delete</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -1800,10 +1800,10 @@ export default function BooksScreen() {
 
         {/* NET WORTH Section */}
         <View style={[styles.section, { marginHorizontal: 0 }]}>
-          <View style={[styles.bsCategoryHeader, { borderLeftColor: '#10B981' }]}>
-            <MaterialCommunityIcons name="wallet" size={22} color="#10B981" style={{ marginRight: 12 }} />
+          <View style={[styles.bsCategoryHeader, { borderLeftColor: Neon.green }]}>
+            <MaterialCommunityIcons name="wallet" size={22} color=Neon.green style={{ marginRight: 12 }} />
             <Text style={styles.bsCategoryTitle}>III. NET WORTH</Text>
-            <Text style={[styles.bsCategoryTotal, { color: '#10B981' }]}>
+            <Text style={[styles.bsCategoryTotal, { color: Neon.green }]}>
               {formatINRIndian(balanceSheet.net_worth.closing)}
             </Text>
           </View>
@@ -1815,13 +1815,13 @@ export default function BooksScreen() {
             </View>
             <View style={styles.bsItem}>
               <Text style={styles.bsItemText}>Add: Surplus for the Period</Text>
-              <Text style={[styles.bsItemAmount, { color: '#10B981' }]}>
+              <Text style={[styles.bsItemAmount, { color: Neon.green }]}>
                 {formatINRIndian(balanceSheet.net_worth.surplus_for_period)}
               </Text>
             </View>
             <View style={[styles.bsItem, { borderTopWidth: 2, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
               <Text style={[styles.bsItemText, { fontFamily: 'SpaceGrotesk_700Bold' }]}>Closing Net Worth</Text>
-              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: '#10B981' }]}>
+              <Text style={[styles.bsItemAmount, { fontFamily: 'SpaceGrotesk_700Bold', color: Neon.green }]}>
                 {formatINRIndian(balanceSheet.net_worth.closing)}
               </Text>
             </View>
@@ -1833,7 +1833,7 @@ export default function BooksScreen() {
           <View>
             <Text style={styles.pnlTotalText}>TOTAL ASSETS</Text>
           </View>
-          <Text style={[styles.pnlTotalAmount, { color: '#3B82F6' }]}>
+          <Text style={[styles.pnlTotalAmount, { color: Neon.blue }]}>
             {formatINRIndian(balanceSheet.assets.total)}
           </Text>
         </View>
@@ -1842,7 +1842,7 @@ export default function BooksScreen() {
           <View>
             <Text style={styles.pnlTotalText}>LIABILITIES + NET WORTH</Text>
           </View>
-          <Text style={[styles.pnlTotalAmount, { color: '#10B981' }]}>
+          <Text style={[styles.pnlTotalAmount, { color: Neon.green }]}>
             {formatINRIndian(balanceSheet.total_liabilities_and_net_worth)}
           </Text>
         </View>
@@ -2101,8 +2101,8 @@ export default function BooksScreen() {
             </View>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('csv')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: '#10B981' + '20' }]}>
-                <MaterialCommunityIcons name="file-delimited" size={24} color="#10B981" />
+              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.green + '20' }]}>
+                <MaterialCommunityIcons name="file-delimited" size={24} color=Neon.green />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>CSV Format</Text>
@@ -2112,7 +2112,7 @@ export default function BooksScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('excel')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: '#8B5CF6' + '20' }]}>
+              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.purple + '20' }]}>
                 <MaterialCommunityIcons name="microsoft-excel" size={24} color="#8B5CF6" />
               </View>
               <View style={{ flex: 1 }}>
@@ -2123,8 +2123,8 @@ export default function BooksScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('pdf')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: '#EF4444' + '20' }]}>
-                <MaterialCommunityIcons name="file-pdf-box" size={24} color="#EF4444" />
+              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.red + '20' }]}>
+                <MaterialCommunityIcons name="file-pdf-box" size={24} color=Neon.red />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>PDF Format</Text>
@@ -2134,8 +2134,8 @@ export default function BooksScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.exportOption} onPress={() => handleExport('json')} disabled={exporting}>
-              <View style={[styles.exportOptionIcon, { backgroundColor: '#3B82F6' + '20' }]}>
-                <MaterialCommunityIcons name="code-json" size={24} color="#3B82F6" />
+              <View style={[styles.exportOptionIcon, { backgroundColor: Neon.blue + '20' }]}>
+                <MaterialCommunityIcons name="code-json" size={24} color=Neon.blue />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.exportOptionTitle}>JSON Format</Text>
