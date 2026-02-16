@@ -1298,25 +1298,68 @@ async def get_balance_sheet(
     
     total_assets = non_current_assets["total"] + current_assets["total"]
     
-    # Liabilities (placeholder - would need separate loan tracking)
+    # Get loans for liabilities
+    loans = await db.loans.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    
+    # Calculate loan liabilities
+    long_term_loan_items = []
+    short_term_loan_items = []
+    total_long_term = 0
+    total_short_term = 0
+    
+    for loan in loans:
+        emi = loan.get("emi_amount") or calculate_emi(loan["principal_amount"], loan["interest_rate"], loan["tenure_months"])
+        schedule = generate_emi_schedule(
+            loan["principal_amount"],
+            loan["interest_rate"],
+            loan["tenure_months"],
+            loan["start_date"],
+            emi
+        )
+        
+        paid_emis = [s for s in schedule if s["status"] == "paid"]
+        total_principal_paid = sum(s["principal"] for s in paid_emis)
+        outstanding = loan["principal_amount"] - total_principal_paid
+        remaining_emis = loan["tenure_months"] - len(paid_emis)
+        
+        # Principal due within 12 months = short-term, rest = long-term
+        short_term_portion = min(outstanding, emi * min(12, remaining_emis) * (loan["principal_amount"] / (loan["principal_amount"] + loan["interest_rate"] * loan["tenure_months"] / 1200)))
+        long_term_portion = outstanding - short_term_portion
+        
+        if long_term_portion > 0:
+            long_term_loan_items.append({
+                "name": f"{loan['name']} ({loan['loan_type']})",
+                "amount": round(long_term_portion, 2),
+                "lender": loan.get("lender"),
+            })
+            total_long_term += long_term_portion
+        
+        if short_term_portion > 0:
+            short_term_loan_items.append({
+                "name": f"{loan['name']} (Current Portion)",
+                "amount": round(short_term_portion, 2),
+            })
+            total_short_term += short_term_portion
+    
+    # Liabilities
     non_current_liabilities = {
         "long_term_borrowings": {
-            "items": [],
-            "total": 0,
+            "items": long_term_loan_items,
+            "total": round(total_long_term, 2),
         },
-        "total": 0,
+        "total": round(total_long_term, 2),
     }
     
     current_liabilities = {
         "short_term_borrowings": {
-            "items": [],
-            "total": 0,
+            "items": short_term_loan_items,
+            "total": round(total_short_term, 2),
         },
         "payables": {
             "items": [],
             "total": 0,
         },
-        "total": 0,
+        "total": round(total_short_term, 2),
     }
     
     total_liabilities = non_current_liabilities["total"] + current_liabilities["total"]
