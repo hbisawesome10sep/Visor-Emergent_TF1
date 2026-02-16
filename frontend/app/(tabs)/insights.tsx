@@ -1187,7 +1187,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   insightCard: {
-    width: (SCREEN_WIDTH - 44) / 2,
+    width: 170,
+    minWidth: 150,
   },
 
   // Insight Card Front
