@@ -1059,6 +1059,68 @@ export default function DashboardScreen() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      {/* ═══ CUSTOM DATE RANGE MODAL ═══ */}
+      <Modal visible={showDatePicker} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface, paddingBottom: 30 }]}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                Custom Date Range
+              </Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {userCreatedAt ? (
+              <Text style={{ fontSize: 12, color: colors.textSecondary, paddingHorizontal: 4, marginBottom: 16 }}>
+                Account created: {new Date(userCreatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </Text>
+            ) : null}
+
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 8 }}>
+              From Date
+            </Text>
+            <TextInput
+              style={[styles.descInput, {
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+                color: colors.textPrimary,
+                marginBottom: 12,
+              }]}
+              value={customStartInput}
+              onChangeText={setCustomStartInput}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.textSecondary}
+            />
+
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 8 }}>
+              To Date
+            </Text>
+            <TextInput
+              style={[styles.descInput, {
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+                color: colors.textPrimary,
+                marginBottom: 20,
+              }]}
+              value={customEndInput}
+              onChangeText={setCustomEndInput}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.textSecondary}
+            />
+
+            <TouchableOpacity
+              style={[styles.saveBtn, { backgroundColor: colors.primary }]}
+              onPress={handleApplyCustomRange}
+            >
+              <Text style={styles.saveBtnText}>Apply Date Range</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
