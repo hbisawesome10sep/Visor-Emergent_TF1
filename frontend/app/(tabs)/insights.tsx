@@ -236,77 +236,104 @@ function InsightCard({
   gradientColors,
 }: InsightCardProps) {
   const { colors, isDark } = useTheme();
+  const [showBack, setShowBack] = useState(false);
   const statusColor = getStatusColor(status);
   const statusLabel = getStatusLabel(status);
 
-  const frontContent = (
-    <View style={styles.insightFront}>
-      <View style={styles.insightHeader}>
-        <View style={[styles.insightIconContainer, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
-          <MaterialCommunityIcons name={icon as any} size={24} color="#FFFFFF" />
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: `${statusColor}30` }]}>
-          <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
-        </View>
-      </View>
-
-      <Text style={styles.insightTitle}>{title}</Text>
-      <Text style={[styles.insightValue, { color: valueColor }]}>{value}</Text>
-      <Text style={styles.insightSubtitle}>{subtitle}</Text>
-
-      {/* Fill Progress Bar */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBg}>
-          <View
-            style={[
-              styles.progressFill,
-              {
-                width: `${Math.min(fillPercentage, 100)}%`,
-                backgroundColor: statusColor,
-              },
-            ]}
-          />
-        </View>
-      </View>
-    </View>
-  );
-
-  const backContent = (
-    <View style={styles.insightBack}>
-      <View style={styles.backHeader}>
-        <MaterialCommunityIcons name="information-outline" size={20} color="#FFFFFF" />
-        <Text style={styles.backTitle}>{benchmarkInfo.title}</Text>
-      </View>
-      
-      <Text style={styles.backDescription}>{benchmarkInfo.description}</Text>
-      
-      <View style={styles.backStats}>
-        <View style={styles.backStatRow}>
-          <Text style={styles.backStatLabel}>Your Value</Text>
-          <Text style={[styles.backStatValue, { color: valueColor }]}>{benchmarkInfo.yourValue}</Text>
-        </View>
-        <View style={styles.backStatRow}>
-          <Text style={styles.backStatLabel}>National Average</Text>
-          <Text style={styles.backStatValue}>{benchmarkInfo.nationalAverage}</Text>
-        </View>
-        <View style={styles.backStatRow}>
-          <Text style={styles.backStatLabel}>Recommended</Text>
-          <Text style={[styles.backStatValue, { color: '#10B981' }]}>{benchmarkInfo.recommended}</Text>
-        </View>
-      </View>
-      
-      <Text style={styles.backSource}>Source: {benchmarkInfo.source}</Text>
-    </View>
-  );
+  if (showBack) {
+    return (
+      <TouchableOpacity 
+        activeOpacity={0.95} 
+        onPress={() => setShowBack(false)}
+        style={[styles.insightCard, { height: 220 }]}
+      >
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.cardGradient, styles.cardBlur, { borderRadius: 20 }]}
+        >
+          <View style={styles.insightBack}>
+            <View style={styles.backHeader}>
+              <MaterialCommunityIcons name="information-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.backTitle}>{benchmarkInfo.title}</Text>
+            </View>
+            
+            <Text style={styles.backDescription}>{benchmarkInfo.description}</Text>
+            
+            <View style={styles.backStats}>
+              <View style={styles.backStatRow}>
+                <Text style={styles.backStatLabel}>Your Value</Text>
+                <Text style={[styles.backStatValue, { color: valueColor }]}>{benchmarkInfo.yourValue}</Text>
+              </View>
+              <View style={styles.backStatRow}>
+                <Text style={styles.backStatLabel}>National Avg</Text>
+                <Text style={styles.backStatValue}>{benchmarkInfo.nationalAverage}</Text>
+              </View>
+              <View style={styles.backStatRow}>
+                <Text style={styles.backStatLabel}>Recommended</Text>
+                <Text style={[styles.backStatValue, { color: '#10B981' }]}>{benchmarkInfo.recommended}</Text>
+              </View>
+            </View>
+            
+            <Text style={styles.backSource}>Source: {benchmarkInfo.source}</Text>
+          </View>
+          <View style={styles.flipIndicator}>
+            <MaterialCommunityIcons name="arrow-left" size={12} color="rgba(255,255,255,0.7)" />
+            <Text style={styles.flipText}>Tap to go back</Text>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
 
   return (
-    <FlippableCard
-      frontContent={frontContent}
-      backContent={backContent}
-      gradientColors={gradientColors}
-      height={220}
-      style={styles.insightCard}
-    />
+    <TouchableOpacity 
+      activeOpacity={0.95} 
+      onPress={() => setShowBack(true)}
+      style={[styles.insightCard, { height: 220 }]}
+    >
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.cardGradient, styles.cardBlur, { borderRadius: 20 }]}
+      >
+        <View style={styles.insightFront}>
+          <View style={styles.insightHeader}>
+            <View style={[styles.insightIconContainer, { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
+              <MaterialCommunityIcons name={icon as any} size={22} color="#FFFFFF" />
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: `${statusColor}40` }]}>
+              <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
+            </View>
+          </View>
+
+          <Text style={styles.insightTitle}>{title}</Text>
+          <Text style={[styles.insightValue, { color: valueColor }]}>{value}</Text>
+          <Text style={styles.insightSubtitle}>{subtitle}</Text>
+
+          {/* Fill Progress Bar */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBg}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${Math.min(fillPercentage, 100)}%`,
+                    backgroundColor: statusColor,
+                  },
+                ]}
+              />
+            </View>
+          </View>
+        </View>
+        <View style={styles.flipIndicator}>
+          <MaterialCommunityIcons name="gesture-tap" size={12} color="rgba(255,255,255,0.7)" />
+          <Text style={styles.flipText}>Tap to learn more</Text>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
   );
 }
 
