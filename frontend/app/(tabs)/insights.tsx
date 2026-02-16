@@ -432,45 +432,35 @@ export default function InsightsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      {/* Header */}
-      <View style={styles.stickyHeader}>
-        <BlurView
-          intensity={isDark ? 50 : 70}
-          tint={isDark ? 'dark' : 'light'}
-          style={[styles.headerBlur, {
-            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(255, 255, 255, 0.75)',
-            borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-          }]}
+      {/* Clean Header */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top }]}>
+        <View
+          style={[
+            styles.headerContent,
+            {
+              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+              borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+            },
+          ]}
         >
-          <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-            <View style={styles.headerContent}>
-              <View style={styles.headerLeft}>
-                <LinearGradient
-                  colors={['#059669', '#0D9488']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.gradientTitleBg}
-                >
-                  <Text style={styles.gradientTitle}>Financial Insights</Text>
-                </LinearGradient>
-                <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                  Real-time analysis based on Indian standards
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
-                onPress={onRefresh}
-              >
-                <MaterialCommunityIcons name="refresh" size={20} color="#10B981" />
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
-        </BlurView>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.headerTitle, { color: '#10B981' }]}>Financial Insights</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              Real-time analysis based on Indian standards
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+            onPress={onRefresh}
+          >
+            <MaterialCommunityIcons name="refresh" size={20} color="#10B981" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 16 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" />}
         showsVerticalScrollIndicator={false}
       >
