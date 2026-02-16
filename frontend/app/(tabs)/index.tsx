@@ -308,9 +308,11 @@ export default function DashboardScreen() {
   const runwayMonths = stats?.total_expenses ? ((stats.total_income - stats.total_expenses) * 6) / stats.total_expenses : 0;
 
   // Health Score
-  const { score: healthScore, breakdown } = calculateHealthScore(stats);
+  // Use backend-provided health score (consistent with Insights page)
+  const healthScore = stats?.health_score?.overall ?? 0;
   const scoreInfo = getScoreLabel(healthScore);
   const scoreColor = getScoreColor(healthScore);
+  const breakdown = stats?.health_score?.breakdown ?? { savings: 0, investments: 0, spending: 0, goals: 0 };
 
   // Prepare pie chart data
   const pieData = Object.entries(stats?.category_breakdown || {}).map(([category, amount]) => ({
