@@ -101,3 +101,70 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Build an AI Financial Advisor named "Visor" for the Insights screen that provides personalized 
+  financial advice based on user's in-app data. Visor should be an expert on Indian finance, 
+  taxes, and law. It should include built-in financial calculators (SIP, EMI, Tax, Retirement, etc.)
+
+backend:
+  - task: "AI Financial Advisor Chat API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported AI was broken, returning errors and was named 'Artha AI' instead of 'Visor'"
+      - working: true
+        agent: "main"
+        comment: "Fixed error by removing unsupported 'store_only' parameter from LlmChat.send_message(). Renamed from 'Artha AI' to 'Visor'. Tested SIP and EMI calculators - both working correctly."
+
+  - task: "Financial Calculators (SIP, EMI, Compound, FIRE, Tax)"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Tested SIP calculator (15000/month, 12%, 15 years = ₹75.68L) and EMI calculator (50L loan, 8.5%, 20 years = ₹43,391 EMI). Both return correct results with detailed breakdowns."
+
+frontend:
+  - task: "AI Advisor Chat UI Component"
+    implemented: true
+    working: true
+    file: "src/components/AIAdvisorChat.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported AI chat was showing 'Artha AI' instead of 'Visor'"
+      - working: true
+        agent: "main"
+        comment: "Updated all instances of 'Artha AI' to 'Visor' in the UI component including header, empty state, assistant messages, and loading indicator."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "AI Financial Advisor Chat API"
+    - "Financial Calculators"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Fixed critical bug in AI advisor - removed unsupported 'store_only' parameter. Renamed 'Artha AI' to 'Visor' in both backend system prompt and frontend UI. Tested backend endpoints with curl - AI responds correctly and calculators work as expected."
