@@ -73,66 +73,68 @@ export default function FAB({ actions, colors, isDark }: Props) {
           }]} />
         </Pressable>
 
-        {/* Actions Container - positioned from bottom-right */}
-        <View style={styles.actionsContainer} pointerEvents="box-none">
-          {actions.map((action, index) => {
-            const translateY = scaleAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, -(65 * (index + 1))],
-            });
-            const opacity = scaleAnim.interpolate({
-              inputRange: [0, 0.3, 1],
-              outputRange: [0, 0, 1],
-            });
-            const scale = scaleAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.6, 1],
-            });
+        {/* Actions Container - positioned from bottom, centered with padding */}
+        <View style={styles.actionsWrapper} pointerEvents="box-none">
+          <View style={styles.actionsContainer}>
+            {actions.map((action, index) => {
+              const translateY = scaleAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, -(60 * (index + 1))],
+              });
+              const opacity = scaleAnim.interpolate({
+                inputRange: [0, 0.3, 1],
+                outputRange: [0, 0, 1],
+              });
+              const scale = scaleAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.6, 1],
+              });
 
-            return (
-              <Animated.View
-                key={action.label}
-                style={[
-                  styles.actionRow,
-                  { 
-                    transform: [{ translateY }, { scale }], 
-                    opacity,
-                  }
-                ]}
-              >
-                <TouchableOpacity
-                  style={[styles.actionLabel, {
-                    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-                  }]}
-                  onPress={() => handleAction(action)}
-                  activeOpacity={0.8}
+              return (
+                <Animated.View
+                  key={action.label}
+                  style={[
+                    styles.actionRow,
+                    { 
+                      transform: [{ translateY }, { scale }], 
+                      opacity,
+                    }
+                  ]}
                 >
-                  <Text style={[styles.actionLabelText, { color: colors.textPrimary }]}>
-                    {action.label}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: action.color }]}
-                  onPress={() => handleAction(action)}
-                  activeOpacity={0.8}
-                >
-                  <MaterialCommunityIcons name={action.icon} size={22} color="#fff" />
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionLabel, {
+                      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                      borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+                    }]}
+                    onPress={() => handleAction(action)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.actionLabelText, { color: colors.textPrimary }]}>
+                      {action.label}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: action.color }]}
+                    onPress={() => handleAction(action)}
+                    activeOpacity={0.8}
+                  >
+                    <MaterialCommunityIcons name={action.icon} size={20} color="#fff" />
+                  </TouchableOpacity>
+                </Animated.View>
+              );
+            })}
+
+            {/* Close FAB button inside modal */}
+            <TouchableOpacity
+              style={[styles.mainBtn, { backgroundColor: colors.primary }]}
+              onPress={closeMenu}
+              activeOpacity={0.8}
+            >
+              <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+                <MaterialCommunityIcons name="plus" size={26} color="#fff" />
               </Animated.View>
-            );
-          })}
-
-          {/* Close FAB button inside modal */}
-          <TouchableOpacity
-            style={[styles.mainBtn, { backgroundColor: colors.primary }]}
-            onPress={closeMenu}
-            activeOpacity={0.8}
-          >
-            <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-              <MaterialCommunityIcons name="plus" size={28} color="#fff" />
-            </Animated.View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
 
@@ -145,7 +147,7 @@ export default function FAB({ actions, colors, isDark }: Props) {
             onPress={toggle}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="plus" size={28} color="#fff" />
+            <MaterialCommunityIcons name="plus" size={26} color="#fff" />
           </TouchableOpacity>
         </View>
       )}
@@ -156,7 +158,7 @@ export default function FAB({ actions, colors, isDark }: Props) {
 const styles = StyleSheet.create({
   fabContainer: {
     position: 'absolute',
-    right: 20,
+    right: 24,
     bottom: Platform.OS === 'ios' ? 100 : 90,
     zIndex: 100,
   },
@@ -166,16 +168,21 @@ const styles = StyleSheet.create({
   backdropOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
-  actionsContainer: {
+  actionsWrapper: {
     position: 'absolute',
-    right: 20,
     bottom: Platform.OS === 'ios' ? 100 : 90,
+    left: 0,
+    right: 0,
+    alignItems: 'flex-end',
+    paddingRight: 24,
+  },
+  actionsContainer: {
     alignItems: 'flex-end',
   },
   mainBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -190,12 +197,12 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   actionLabel: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
     borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -204,13 +211,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   actionLabelText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   actionBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
