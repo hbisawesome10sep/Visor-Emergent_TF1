@@ -1803,6 +1803,47 @@ export default function BooksScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Date Range Selector */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelector}>
+        {DATE_PRESETS.map(preset => (
+          <TouchableOpacity
+            key={preset.key}
+            style={[styles.dateSelectorChip, datePreset === preset.key && styles.dateSelectorChipActive]}
+            onPress={() => setDatePreset(preset.key)}
+          >
+            <Text style={[styles.dateSelectorChipText, datePreset === preset.key && styles.dateSelectorChipTextActive]}>
+              {preset.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Custom Date Input (when custom is selected) */}
+      {datePreset === 'custom' && (
+        <View style={{ flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12, gap: 8 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 4 }}>From</Text>
+            <TextInput
+              style={[styles.input, { paddingVertical: 10, fontSize: 13 }]}
+              value={customStartDate}
+              onChangeText={setCustomStartDate}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.textSecondary}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 4 }}>To</Text>
+            <TextInput
+              style={[styles.input, { paddingVertical: 10, fontSize: 13 }]}
+              value={customEndDate}
+              onChangeText={setCustomEndDate}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.textSecondary}
+            />
+          </View>
+        </View>
+      )}
+
       {/* Content */}
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         <ScrollView
