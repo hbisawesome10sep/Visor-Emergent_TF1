@@ -368,14 +368,14 @@ export default function DashboardScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      {/* Clean Header with proper safe area handling */}
-      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
+      {/* Header */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
         <View
           style={[
             styles.headerContent,
             {
-              backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
-              borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+              backgroundColor: isDark ? '#000000' : '#FFFFFF',
+              borderBottomColor: isDark ? '#18181B' : '#E4E4E7',
             },
           ]}
         >
