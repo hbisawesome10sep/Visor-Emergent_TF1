@@ -1872,19 +1872,21 @@ export default function BooksScreen() {
       </View>
 
       {/* Date Range Selector */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelector}>
-        {DATE_PRESETS.map(preset => (
-          <TouchableOpacity
-            key={preset.key}
-            style={[styles.dateSelectorChip, datePreset === preset.key && styles.dateSelectorChipActive]}
-            onPress={() => setDatePreset(preset.key)}
-          >
-            <Text style={[styles.dateSelectorChipText, datePreset === preset.key && styles.dateSelectorChipTextActive]}>
-              {preset.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.dateSelector}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+          {DATE_PRESETS.map(preset => (
+            <TouchableOpacity
+              key={preset.key}
+              style={[styles.dateSelectorChip, datePreset === preset.key && styles.dateSelectorChipActive]}
+              onPress={() => setDatePreset(preset.key)}
+            >
+              <Text style={[styles.dateSelectorChipText, datePreset === preset.key && styles.dateSelectorChipTextActive]}>
+                {preset.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Custom Date Input (when custom is selected) */}
       {datePreset === 'custom' && (
