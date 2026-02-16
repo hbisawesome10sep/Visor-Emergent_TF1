@@ -433,12 +433,12 @@ export default function InsightsScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Clean Header */}
-      <View style={[styles.stickyHeader, { paddingTop: insets.top }]}>
+      <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
         <View
           style={[
             styles.headerContent,
             {
-              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+              backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
               borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
             },
           ]}
