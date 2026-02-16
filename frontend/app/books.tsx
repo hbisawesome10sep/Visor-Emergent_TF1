@@ -488,9 +488,52 @@ export default function BooksScreen() {
   const handleExport = async (format: 'csv' | 'json' | 'excel' | 'pdf') => {
     setExporting(true);
     try {
-      let content = '';
       const dateRange = getDateRange();
       let filename = `Visor_${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'PnL' : 'BalanceSheet'}_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'excel' || format === 'pdf') {
+        // Call backend API for Excel/PDF export
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/books/export/${activeTab === 'balance' ? 'balance' : activeTab}/${format}?start_date=${dateRange.start}&end_date=${dateRange.end}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Export failed');
+        }
+        
+        const blob = await response.blob();
+        const fileUri = FileSystem.documentDirectory + filename + (format === 'excel' ? '.xlsx' : '.pdf');
+        
+        // Convert blob to base64
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = (reader.result as string).split(',')[1];
+          await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+          
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: format === 'excel' 
+                ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                : 'application/pdf',
+              dialogTitle: `Share ${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'P&L' : 'Balance Sheet'}`,
+            });
+          } else {
+            Alert.alert('Success', `File saved as ${filename}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
+          }
+          setExporting(false);
+          setShowExportModal(false);
+        };
+        reader.readAsDataURL(blob);
+        return;
+      }
+      
+      // CSV and JSON exports (handled locally)
+      let content = '';
       
       if (format === 'csv') {
         // Enhanced CSV export with proper formatting
@@ -567,14 +610,6 @@ export default function BooksScreen() {
         };
         content = JSON.stringify(exportData, null, 2);
         filename += '.json';
-      } else if (format === 'excel' || format === 'pdf') {
-        // For Excel/PDF, generate CSV that can be opened in Excel
-        Alert.alert(
-          format === 'excel' ? 'Excel Export' : 'PDF Export',
-          'A CSV file will be generated that can be opened in Excel or converted to PDF.',
-          [{ text: 'OK', onPress: () => handleExport('csv') }]
-        );
-        return;
       }
       
       // Write file and share
@@ -591,7 +626,7 @@ export default function BooksScreen() {
       }
     } catch (e) {
       console.error('Export error:', e);
-      Alert.alert('Error', 'Failed to export data');
+      Alert.alert('Error', 'Failed to export data. Please try again.');
     } finally {
       setExporting(false);
       setShowExportModal(false);
