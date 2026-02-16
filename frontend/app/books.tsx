@@ -790,7 +790,7 @@ export default function BooksScreen() {
     },
     tableHeader: {
       flexDirection: 'row',
-      backgroundColor: isDark ? colors.card : '#F1F5F9',
+      backgroundColor: isDark ? colors.surface : '#F1F5F9',
       paddingVertical: 10,
       paddingHorizontal: 12,
     },
@@ -862,7 +862,7 @@ export default function BooksScreen() {
       justifyContent: 'space-between',
       paddingVertical: 16,
       paddingHorizontal: 16,
-      backgroundColor: isDark ? colors.card : '#F1F5F9',
+      backgroundColor: isDark ? colors.surface : '#F1F5F9',
       marginTop: 8,
       borderRadius: 12,
       borderWidth: 2,
@@ -1278,7 +1278,7 @@ export default function BooksScreen() {
     },
     emiScheduleHeader: {
       flexDirection: 'row',
-      backgroundColor: isDark ? colors.card : '#F1F5F9',
+      backgroundColor: isDark ? colors.surface : '#F1F5F9',
       paddingVertical: 10,
       paddingHorizontal: 12,
       borderBottomWidth: 1,
