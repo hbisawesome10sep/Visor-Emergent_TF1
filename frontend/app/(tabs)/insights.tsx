@@ -488,8 +488,8 @@ export default function InsightsScreen() {
         recommended: '<40%',
       },
       gradientColors: isDark
-        ? ['rgba(59, 130, 246, 0.3)', 'rgba(37, 99, 235, 0.2)']
-        : ['rgba(59, 130, 246, 0.15)', 'rgba(219, 234, 254, 0.3)'],
+        ? ['rgba(59, 130, 246, 0.5)', 'rgba(37, 99, 235, 0.4)']
+        : ['rgba(59, 130, 246, 0.6)', 'rgba(37, 99, 235, 0.4)'],
     },
     {
       icon: 'chart-line',
