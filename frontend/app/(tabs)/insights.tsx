@@ -108,12 +108,12 @@ function InsightCard({
   // Gradient colors based on status
   const getGradient = (): [string, string] => {
     switch (status) {
-      case 'excellent': return [Neon.green, Neon.green];
-      case 'good': return [Neon.cyan, Neon.cyan];
+      case 'excellent': return [Neon.green, Neon.cyan];
+      case 'good': return [Neon.cyan, Neon.blue];
       case 'fair': return [Neon.yellow, Neon.orange];
-      case 'needs_work': return ['#F97316', '#EA580C'];
-      case 'critical': return [Neon.red, Neon.red];
-      default: return [Neon.purple, Neon.purple];
+      case 'needs_work': return [Neon.orange, Neon.red];
+      case 'critical': return [Neon.red, '#C2185B'];
+      default: return [Neon.purple, Neon.blue];
     }
   };
 
