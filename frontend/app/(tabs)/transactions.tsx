@@ -67,6 +67,10 @@ export default function TransactionsScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ type?: string }>();
+  const insets = useSafeAreaInsets();
+  
+  // Calculate header height dynamically
+  const HEADER_HEIGHT = 60 + insets.top;
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
