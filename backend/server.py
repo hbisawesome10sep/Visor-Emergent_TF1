@@ -170,6 +170,63 @@ class AccountResponse(BaseModel):
     created_at: str
 
 # ══════════════════════════════════════
+#  LOAN/LIABILITY MODELS
+# ══════════════════════════════════════
+
+class LoanCreate(BaseModel):
+    name: str
+    loan_type: str  # Home Loan, Car Loan, Personal Loan, Education Loan, Credit Card, Other
+    principal_amount: float
+    interest_rate: float  # Annual interest rate %
+    tenure_months: int
+    start_date: str
+    emi_amount: Optional[float] = None  # If not provided, will be calculated
+    lender: Optional[str] = None
+    account_number: Optional[str] = None
+    notes: Optional[str] = None
+
+class LoanUpdate(BaseModel):
+    name: Optional[str] = None
+    loan_type: Optional[str] = None
+    principal_amount: Optional[float] = None
+    interest_rate: Optional[float] = None
+    tenure_months: Optional[int] = None
+    start_date: Optional[str] = None
+    emi_amount: Optional[float] = None
+    lender: Optional[str] = None
+    account_number: Optional[str] = None
+    notes: Optional[str] = None
+
+class LoanResponse(BaseModel):
+    id: str
+    user_id: str
+    name: str
+    loan_type: str
+    principal_amount: float
+    interest_rate: float
+    tenure_months: int
+    start_date: str
+    emi_amount: float
+    lender: Optional[str]
+    account_number: Optional[str]
+    notes: Optional[str]
+    outstanding_principal: float
+    total_interest_paid: float
+    total_principal_paid: float
+    remaining_emis: int
+    created_at: str
+
+class EMIScheduleItem(BaseModel):
+    month: int
+    date: str
+    opening_balance: float
+    emi: float
+    principal: float
+    interest: float
+    closing_balance: float
+    status: str  # paid, upcoming, overdue
+
+# ══════════════════════════════════════
 #  AUTH HELPERS
 # ══════════════════════════════════════
 
