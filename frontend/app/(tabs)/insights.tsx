@@ -498,16 +498,20 @@ export default function InsightsScreen() {
               
               <View style={[styles.scoreBreakdown, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
                 <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Savings Rate ({savingsRate.toFixed(0)}%)</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{breakdown.savings}/40 pts</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Savings</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.savings)}/100</Text>
                 </View>
                 <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Emergency Fund ({runwayMonths.toFixed(1)}mo)</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{breakdown.emergency}/30 pts</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Spending Control</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.spending)}/100</Text>
                 </View>
                 <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Investment Rate ({investmentRate.toFixed(0)}%)</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{breakdown.investment}/30 pts</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Investments</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.investments)}/100</Text>
+                </View>
+                <View style={styles.breakdownRow}>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Goals Progress</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.goals)}/100</Text>
                 </View>
                 <View style={[styles.breakdownTotal, { borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
                   <Text style={[styles.breakdownTotalLabel, { color: colors.textPrimary }]}>Total Score</Text>
