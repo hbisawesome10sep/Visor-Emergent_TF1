@@ -1694,7 +1694,7 @@ def _compute_portfolio_values(transactions: list, market_data: dict) -> dict:
 @api_router.get("/portfolio-overview")
 async def get_portfolio_overview(user=Depends(get_current_user)):
     transactions = await db.transactions.find(
-        {"user_id": user["user_id"], "type": "investment"}, {"_id": 0}
+        {"user_id": user["id"], "type": "investment"}, {"_id": 0}
     ).to_list(1000)
     mkt_list = await db.market_data.find({}, {"_id": 0}).to_list(10)
     market_data = {m["key"]: m for m in mkt_list}
