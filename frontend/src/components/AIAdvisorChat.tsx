@@ -107,7 +107,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.response,
+        content: response.content,
         calculator_result: response.calculator_result,
         created_at: new Date().toISOString(),
       };
