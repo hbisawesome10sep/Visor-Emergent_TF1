@@ -903,6 +903,137 @@ export default function InvestmentsScreen() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.6: WHAT-IF SIMULATOR
+           ═══════════════════════════════════════════════════════════ */}
+        <TouchableOpacity data-testid="simulator-toggle" style={[styles.simToggle, {
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        }]} onPress={() => setShowSimulator(!showSimulator)}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={[styles.simIconWrap, { backgroundColor: 'rgba(99,102,241,0.12)' }]}>
+              <MaterialCommunityIcons name="tune-vertical" size={18} color="#6366F1" />
+            </View>
+            <View>
+              <Text style={[styles.simToggleTitle, { color: colors.textPrimary }]}>What-If Simulator</Text>
+              <Text style={[styles.simToggleSub, { color: colors.textSecondary }]}>Explore different allocation scenarios</Text>
+            </View>
+          </View>
+          <MaterialCommunityIcons name={showSimulator ? 'chevron-up' : 'chevron-down'} size={22} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {showSimulator && (
+          <View data-testid="simulator-panel" style={[styles.glassCard, {
+            backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+          }]}>
+            {/* Allocation sliders */}
+            {Object.entries(ASSET_METRICS).map(([bucket, m]) => (
+              <View key={bucket} data-testid={`sim-slider-${bucket}`} style={styles.simSliderRow}>
+                <View style={styles.simSliderHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={[styles.simDot, { backgroundColor: m.color }]} />
+                    <Text style={[styles.simSliderLabel, { color: colors.textPrimary }]}>{m.label}</Text>
+                  </View>
+                  <Text style={[styles.simSliderVal, { color: m.color }]}>{simAlloc[bucket as keyof typeof simAlloc]}%</Text>
+                </View>
+                <RNSlider
+                  style={{ width: '100%', height: 28 }}
+                  minimumValue={0}
+                  maximumValue={100}
+                  step={5}
+                  value={simAlloc[bucket as keyof typeof simAlloc]}
+                  onValueChange={(v: number) => updateSimSlider(bucket, v)}
+                  minimumTrackTintColor={m.color}
+                  maximumTrackTintColor={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}
+                  thumbTintColor={m.color}
+                />
+                <Text style={[styles.simSliderMeta, { color: colors.textSecondary }]}>
+                  Avg return: {m.ret}% | Volatility: {m.vol}%
+                </Text>
+              </View>
+            ))}
+
+            {/* Total allocation indicator */}
+            <View style={[styles.simTotalRow, {
+              backgroundColor: Object.values(simAlloc).reduce((s, v) => s + v, 0) === 100
+                ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+            }]}>
+              <Text style={[styles.simTotalText, {
+                color: Object.values(simAlloc).reduce((s, v) => s + v, 0) === 100
+                  ? Accent.emerald : Accent.ruby,
+              }]}>
+                Total: {Object.values(simAlloc).reduce((s, v) => s + v, 0)}%
+              </Text>
+            </View>
+
+            {/* Allocation visualization bar */}
+            <View style={styles.simAllocBar}>
+              {Object.entries(simAlloc).map(([bucket, pct]) => pct > 0 ? (
+                <View key={bucket} style={[styles.simAllocSegment, {
+                  width: `${pct}%`,
+                  backgroundColor: ASSET_METRICS[bucket].color,
+                }]}>
+                  {pct >= 12 && <Text style={styles.simAllocSegText}>{pct}%</Text>}
+                </View>
+              ) : null)}
+            </View>
+
+            {/* Projected results */}
+            <View style={styles.simResults}>
+              <View style={[styles.simResultCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
+                <Text style={[styles.simResultLabel, { color: colors.textSecondary }]}>Projected Return</Text>
+                <Text data-testid="sim-projected-return" style={[styles.simResultValue, { color: simProjected.ret >= 10 ? Accent.emerald : Accent.amber }]}>
+                  {simProjected.ret.toFixed(1)}% p.a.
+                </Text>
+              </View>
+              <View style={[styles.simResultCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
+                <Text style={[styles.simResultLabel, { color: colors.textSecondary }]}>Volatility</Text>
+                <Text data-testid="sim-volatility" style={[styles.simResultValue, { color: simProjected.vol > 12 ? Accent.ruby : Accent.emerald }]}>
+                  {simProjected.vol.toFixed(1)}%
+                </Text>
+              </View>
+              <View style={[styles.simResultCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
+                <Text style={[styles.simResultLabel, { color: colors.textSecondary }]}>Sharpe Ratio</Text>
+                <Text data-testid="sim-sharpe" style={[styles.simResultValue, { color: simProjected.sharpe >= 0.5 ? Accent.emerald : Accent.amber }]}>
+                  {simProjected.sharpe.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Projected portfolio value */}
+            <View style={[styles.simProjection, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+              <Text style={[styles.simProjectionLabel, { color: colors.textSecondary }]}>
+                Portfolio of {formatINRShort(rebalanceData?.total || 100000)} could become:
+              </Text>
+              <View style={styles.simProjectionRow}>
+                <View>
+                  <Text style={[styles.simProjectionPeriod, { color: colors.textSecondary }]}>5 Years</Text>
+                  <Text data-testid="sim-val-5y" style={[styles.simProjectionVal, { color: Accent.emerald }]}>
+                    {formatINRShort(simProjected.val5)}
+                  </Text>
+                </View>
+                <View style={[styles.simProjectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]} />
+                <View>
+                  <Text style={[styles.simProjectionPeriod, { color: colors.textSecondary }]}>10 Years</Text>
+                  <Text data-testid="sim-val-10y" style={[styles.simProjectionVal, { color: Accent.emerald }]}>
+                    {formatINRShort(simProjected.val10)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Reset to recommended */}
+            <TouchableOpacity data-testid="sim-reset-btn" style={styles.simResetBtn} onPress={() => {
+              const target = rebalanceData?.target || { Equity: 40, Debt: 30, Gold: 15, Alt: 15 };
+              setSimAlloc({ Equity: target.Equity || 0, Debt: target.Debt || 0, Gold: target.Gold || 0, Alt: target.Alt || 0 });
+            }}>
+              <MaterialCommunityIcons name="refresh" size={14} color="#F97316" />
+              <Text style={styles.simResetText}>Reset to recommended</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
            ═══════════════════════════════════════════════════════════ */}
         <View style={styles.sectionHeader}>
