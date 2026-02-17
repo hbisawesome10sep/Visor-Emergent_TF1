@@ -110,6 +110,56 @@ export default function InvestmentsScreen() {
   const [casPassword, setCasPassword] = useState('');
   const [taxData, setTaxData] = useState<any>(null);
   const [rebalanceData, setRebalanceData] = useState<any>(null);
+  const [showSimulator, setShowSimulator] = useState(false);
+  const [simAlloc, setSimAlloc] = useState({ Equity: 40, Debt: 30, Gold: 15, Alt: 15 });
+
+  // Historical avg annual returns & volatility for Indian markets
+  const ASSET_METRICS: Record<string, { ret: number; vol: number; label: string; color: string }> = {
+    Equity: { ret: 12.5, vol: 18, label: 'Equity', color: Accent.sapphire },
+    Debt: { ret: 7.2, vol: 3.5, label: 'Debt', color: Accent.emerald },
+    Gold: { ret: 9.5, vol: 12, label: 'Gold', color: Accent.amber },
+    Alt: { ret: 10, vol: 15, label: 'Alternatives', color: Accent.amethyst },
+  };
+
+  const simProjected = (() => {
+    const totalPct = simAlloc.Equity + simAlloc.Debt + simAlloc.Gold + simAlloc.Alt;
+    if (totalPct === 0) return { ret: 0, vol: 0, sharpe: 0, val5: 0, val10: 0 };
+    let wRet = 0, wVol2 = 0;
+    Object.entries(simAlloc).forEach(([k, pct]) => {
+      const m = ASSET_METRICS[k];
+      const w = pct / 100;
+      wRet += w * m.ret;
+      wVol2 += (w * m.vol) ** 2;
+    });
+    const vol = Math.sqrt(wVol2);
+    const sharpe = vol > 0 ? (wRet - 6) / vol : 0; // risk-free rate ~6% India
+    const total = rebalanceData?.total || 100000;
+    const val5 = total * Math.pow(1 + wRet / 100, 5);
+    const val10 = total * Math.pow(1 + wRet / 100, 10);
+    return { ret: wRet, vol, sharpe, val5, val10 };
+  })();
+
+  const updateSimSlider = (bucket: string, val: number) => {
+    const rounded = Math.round(val / 5) * 5;
+    setSimAlloc(prev => {
+      const others = Object.entries(prev).filter(([k]) => k !== bucket);
+      const remaining = 100 - rounded;
+      const othersTotal = others.reduce((s, [, v]) => s + v, 0);
+      const newAlloc = { ...prev, [bucket]: rounded };
+      if (othersTotal > 0) {
+        others.forEach(([k, v]) => {
+          newAlloc[k] = Math.round((v / othersTotal) * remaining / 5) * 5;
+        });
+        // Fix rounding to ensure exactly 100
+        const diff = 100 - Object.values(newAlloc).reduce((s, v) => s + v, 0);
+        if (diff !== 0) {
+          const adjustKey = others[0][0];
+          newAlloc[adjustKey] = Math.max(0, newAlloc[adjustKey] + diff);
+        }
+      }
+      return newAlloc;
+    });
+  };
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
