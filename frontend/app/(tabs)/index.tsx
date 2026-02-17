@@ -576,11 +576,12 @@ export default function DashboardScreen() {
               isDark={isDark}
             />
             <LiquidFillCard
-              title="Savings Rate"
-              amount={`${savingsRate.toFixed(0)}%`}
-              fillPercent={savingsRate}
+              title="Investments"
+              amount={formatINRShort(stats?.total_investments || 0)}
+              fillPercent={Math.min(100, ((stats?.total_investments || 0) / (stats?.total_income || 1)) * 100)}
               gradient={[Accent.sapphire, '#4F46E5']}
-              icon="piggy-bank"
+              icon="trending-up"
+              onPress={() => router.push('/(tabs)/investments')}
               colors={colors}
               isDark={isDark}
             />
