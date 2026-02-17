@@ -1497,80 +1497,84 @@ async def get_balance_sheet(
     }
 
 # ══════════════════════════════════════
-#  MARKET DATA (Alpha Vantage)
+#  MARKET DATA (Yahoo Finance — Live)
 # ══════════════════════════════════════
 
-import httpx
 import asyncio
+import yfinance as yf
+from concurrent.futures import ThreadPoolExecutor
 
-ALPHA_VANTAGE_BASE = "https://www.alphavantage.co/query"
 REFRESH_TIMES_IST = ["09:25", "11:30", "12:30", "15:15"]
+TROY_OZ_TO_GRAMS = 31.1035
+GOLD_DOMESTIC_PREMIUM = 1.082
+SILVER_DOMESTIC_PREMIUM = 1.209
 
-MARKET_CONFIG = [
-    {"key": "nifty_50", "name": "Nifty 50", "symbol": "NSE:NIFTY", "type": "index", "icon": "chart-line"},
-    {"key": "sensex", "name": "SENSEX", "symbol": "BSE:SENSEX", "type": "index", "icon": "chart-areaspline"},
-    {"key": "nifty_bank", "name": "Nifty Bank", "symbol": "NSE:NIFTYBANK", "type": "index", "icon": "bank"},
-    {"key": "gold_10g", "name": "Gold (10g)", "metal": "XAU", "grams": 10, "type": "commodity", "icon": "diamond-stone"},
-    {"key": "silver_1kg", "name": "Silver (1Kg)", "metal": "XAG", "grams": 1000, "type": "commodity", "icon": "diamond-outline"},
-]
+_yf_executor = ThreadPoolExecutor(max_workers=2)
 
-async def fetch_av_index(symbol: str) -> dict:
+def _fetch_yfinance_data() -> list:
+    """Synchronous yfinance fetch — runs in thread executor."""
+    results = []
     try:
-        async with httpx.AsyncClient() as c:
-            resp = await c.get(ALPHA_VANTAGE_BASE, params={
-                "function": "GLOBAL_QUOTE", "symbol": symbol, "apikey": ALPHA_VANTAGE_KEY,
-            }, timeout=15)
-            data = resp.json()
-            quote = data.get("Global Quote", {})
-            if quote and quote.get("05. price"):
-                return {
-                    "price": float(quote["05. price"]),
-                    "change": float(quote.get("09. change", 0)),
-                    "change_percent": float(quote.get("10. change percent", "0").replace("%", "")),
-                    "prev_close": float(quote.get("08. previous close", 0)),
-                }
-    except Exception as e:
-        logger.error(f"AV index fetch error ({symbol}): {e}")
-    return {}
+        tickers = yf.Tickers("^NSEI ^BSESN ^NSEBANK GC=F SI=F INR=X")
+        usd_inr = 87.0
+        try:
+            fx = tickers.tickers["INR=X"].fast_info
+            usd_inr = float(fx.last_price) if fx.last_price else 87.0
+        except Exception:
+            pass
 
-async def fetch_av_commodity_inr(metal: str, grams: float) -> dict:
-    try:
-        async with httpx.AsyncClient() as c:
-            resp = await c.get(ALPHA_VANTAGE_BASE, params={
-                "function": "CURRENCY_EXCHANGE_RATE",
-                "from_currency": metal, "to_currency": "INR",
-                "apikey": ALPHA_VANTAGE_KEY,
-            }, timeout=15)
-            data = resp.json()
-            rate_data = data.get("Realtime Currency Exchange Rate", {})
-            if rate_data and rate_data.get("5. Exchange Rate"):
-                price_per_oz = float(rate_data["5. Exchange Rate"])
-                price_per_gram = price_per_oz / 31.1035
-                total = round(price_per_gram * grams, 2)
-                return {"price": total}
+        configs = [
+            {"key": "nifty_50", "name": "Nifty 50", "yf": "^NSEI", "type": "index"},
+            {"key": "sensex", "name": "SENSEX", "yf": "^BSESN", "type": "index"},
+            {"key": "nifty_bank", "name": "Nifty Bank", "yf": "^NSEBANK", "type": "index"},
+            {"key": "gold_10g", "name": "Gold (10g)", "yf": "GC=F", "type": "gold"},
+            {"key": "silver_1kg", "name": "Silver (1Kg)", "yf": "SI=F", "type": "silver"},
+        ]
+
+        for cfg in configs:
+            try:
+                t = tickers.tickers[cfg["yf"]]
+                info = t.fast_info
+                last = float(info.last_price) if info.last_price else 0
+                prev = float(info.previous_close) if info.previous_close else 0
+
+                if cfg["type"] == "gold":
+                    price_per_gram = (last / TROY_OZ_TO_GRAMS) * usd_inr * GOLD_DOMESTIC_PREMIUM
+                    price = round(price_per_gram * 10, 0)
+                    prev_price_per_gram = (prev / TROY_OZ_TO_GRAMS) * usd_inr * GOLD_DOMESTIC_PREMIUM
+                    prev_price = round(prev_price_per_gram * 10, 0)
+                    change = round(price - prev_price, 0)
+                    change_pct = round((change / prev_price * 100), 2) if prev_price else 0
+                    results.append({"key": cfg["key"], "name": cfg["name"], "price": price, "change": change, "change_percent": change_pct, "prev_close": prev_price})
+                elif cfg["type"] == "silver":
+                    price_per_kg = (last * (1000 / TROY_OZ_TO_GRAMS)) * usd_inr * SILVER_DOMESTIC_PREMIUM
+                    price = round(price_per_kg, 0)
+                    prev_per_kg = (prev * (1000 / TROY_OZ_TO_GRAMS)) * usd_inr * SILVER_DOMESTIC_PREMIUM
+                    prev_price = round(prev_per_kg, 0)
+                    change = round(price - prev_price, 0)
+                    change_pct = round((change / prev_price * 100), 2) if prev_price else 0
+                    results.append({"key": cfg["key"], "name": cfg["name"], "price": price, "change": change, "change_percent": change_pct, "prev_close": prev_price})
+                else:
+                    price = round(last, 2)
+                    change = round(last - prev, 2)
+                    change_pct = round((change / prev * 100), 2) if prev else 0
+                    results.append({"key": cfg["key"], "name": cfg["name"], "price": price, "change": change, "change_percent": change_pct, "prev_close": round(prev, 2)})
+            except Exception as e:
+                logger.error(f"yfinance fetch error for {cfg['key']}: {e}")
     except Exception as e:
-        logger.error(f"AV commodity fetch error ({metal}): {e}")
-    return {}
+        logger.error(f"yfinance batch fetch error: {e}")
+    return results
 
 async def refresh_all_market_data():
-    if not ALPHA_VANTAGE_KEY:
-        logger.warning("No ALPHA_VANTAGE_KEY configured, skipping market refresh")
-        return
+    loop = asyncio.get_event_loop()
+    results = await loop.run_in_executor(_yf_executor, _fetch_yfinance_data)
     now = datetime.now(timezone.utc).isoformat()
-    for cfg in MARKET_CONFIG:
-        result = {}
-        if cfg["type"] == "index":
-            result = await fetch_av_index(cfg["symbol"])
-        elif cfg["type"] == "commodity":
-            result = await fetch_av_commodity_inr(cfg["metal"], cfg["grams"])
-        if result.get("price"):
-            await db.market_data.update_one(
-                {"key": cfg["key"]},
-                {"$set": {**result, "key": cfg["key"], "name": cfg["name"], "icon": cfg["icon"], "last_updated": now}},
-                upsert=True,
-            )
-            logger.info(f"Market updated: {cfg['name']} = {result['price']}")
-        await asyncio.sleep(12)  # rate limit: 5 calls/min
+    for item in results:
+        if item.get("price"):
+            item["last_updated"] = now
+            await db.market_data.update_one({"key": item["key"]}, {"$set": item}, upsert=True)
+            logger.info(f"Market LIVE: {item['name']} = {item['price']}")
+    return results
 
 async def market_data_scheduler():
     last_refresh = None
@@ -1585,20 +1589,23 @@ async def market_data_scheduler():
         await asyncio.sleep(30)
 
 async def seed_market_data():
-    count = await db.market_data.count_documents({})
-    if count >= 5:
-        return
-    now = datetime.now(timezone.utc).isoformat()
-    seeds = [
-        {"key": "nifty_50", "name": "Nifty 50", "icon": "chart-line", "price": 25682.00, "change": 152.30, "change_percent": 0.60, "prev_close": 25529.70, "last_updated": now},
-        {"key": "sensex", "name": "SENSEX", "icon": "chart-areaspline", "price": 83277.00, "change": 445.20, "change_percent": 0.54, "prev_close": 82831.80, "last_updated": now},
-        {"key": "nifty_bank", "name": "Nifty Bank", "icon": "bank", "price": 52890.00, "change": -123.45, "change_percent": -0.23, "prev_close": 53013.45, "last_updated": now},
-        {"key": "gold_10g", "name": "Gold (10g)", "icon": "diamond-stone", "price": 87450.00, "change": 320.00, "change_percent": 0.37, "prev_close": 87130.00, "last_updated": now},
-        {"key": "silver_1kg", "name": "Silver (1Kg)", "icon": "diamond-outline", "price": 104500.00, "change": -450.00, "change_percent": -0.43, "prev_close": 104950.00, "last_updated": now},
-    ]
-    for s in seeds:
-        await db.market_data.update_one({"key": s["key"]}, {"$set": s}, upsert=True)
-    logger.info("Seeded initial market data")
+    """Seed with live data from yfinance, or use accurate fallback values."""
+    await db.market_data.delete_many({})
+    logger.info("Fetching live market data for seed...")
+    results = await refresh_all_market_data()
+    if not results or len(results) < 5:
+        logger.warning("Live fetch incomplete, using accurate fallback seed data")
+        now = datetime.now(timezone.utc).isoformat()
+        fallback = [
+            {"key": "nifty_50", "name": "Nifty 50", "price": 25734.20, "change": 51.75, "change_percent": 0.20, "prev_close": 25682.45, "last_updated": now},
+            {"key": "sensex", "name": "SENSEX", "price": 83389.45, "change": 112.39, "change_percent": 0.13, "prev_close": 83277.06, "last_updated": now},
+            {"key": "nifty_bank", "name": "Nifty Bank", "price": 61126.95, "change": 133.10, "change_percent": 0.22, "prev_close": 60993.85, "last_updated": now},
+            {"key": "gold_10g", "name": "Gold (10g)", "price": 154910.0, "change": -1530.0, "change_percent": -0.98, "prev_close": 156440.0, "last_updated": now},
+            {"key": "silver_1kg", "name": "Silver (1Kg)", "price": 260000.0, "change": -8000.0, "change_percent": -2.99, "prev_close": 268000.0, "last_updated": now},
+        ]
+        for s in fallback:
+            await db.market_data.update_one({"key": s["key"]}, {"$set": s}, upsert=True)
+    logger.info("Market data seeded successfully")
 
 @api_router.get("/market-data")
 async def get_market_data():
