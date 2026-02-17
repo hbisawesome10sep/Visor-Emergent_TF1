@@ -110,16 +110,18 @@ export default function InvestmentsScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [statsData, goalsData, mktData, portfolioData] = await Promise.all([
+      const [statsData, goalsData, mktData, portfolioData, holdingsLive] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
         apiRequest('/market-data', {}),
         apiRequest('/portfolio-overview', { token }),
+        apiRequest('/holdings/live', { token }),
       ]);
       setStats(statsData);
       setGoals(goalsData);
       setMarketData(mktData || []);
       setPortfolio(portfolioData);
+      setHoldingsData(holdingsLive);
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     } catch (e) {
       console.error(e);
