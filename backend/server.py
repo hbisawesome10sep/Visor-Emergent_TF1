@@ -2408,7 +2408,7 @@ async def delete_holding(holding_id: str, user=Depends(get_current_user)):
     return {"message": "Deleted"}
 
 def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
-    """Parse NSDL/CDSL CAS PDF to extract holdings."""
+    """Parse NSDL/CDSL CAS PDF to extract holdings with proper invested amount and current value."""
     import pikepdf
     holdings = []
     decrypted_bytes = pdf_bytes
@@ -2434,115 +2434,141 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
         with pdfplumber.open(io.BytesIO(decrypted_bytes)) as pdf:
             logger.info(f"Parsing PDF with {len(pdf.pages)} pages")
             all_text = ""
+            
             for page_num, page in enumerate(pdf.pages):
-                # Extract text for logging
                 page_text = page.extract_text() or ""
                 all_text += page_text + "\n"
+                logger.info(f"Page {page_num + 1} text length: {len(page_text)}")
+            
+            # Parse the text line by line to find holdings
+            # CDSL eCAS format: Folio | ISIN | Scheme Name | Cost Value | Unit Balance | NAV Date | NAV | Market Value | Registrar
+            lines = all_text.split("\n")
+            
+            # Find lines containing ISIN codes (INF for MF, INE for stocks)
+            isin_pattern = re.compile(r'(INE[A-Z0-9]{7,10}|INF[A-Z0-9]{7,10})')
+            
+            for i, line in enumerate(lines):
+                isin_match = isin_pattern.search(line)
+                if not isin_match:
+                    continue
+                    
+                isin = isin_match.group(1)
+                logger.info(f"Processing line with ISIN {isin}: {line[:100]}")
                 
-                # Try table extraction first
-                tables = page.extract_tables()
-                logger.info(f"Page {page_num + 1}: Found {len(tables)} tables, text length: {len(page_text)}")
+                # Extract all numbers from the line
+                # Numbers can be like: 42,000.000 or 272.234 or 194.729 or 53,011.85
+                num_pattern = re.compile(r'[\d,]+\.?\d*')
+                all_nums = num_pattern.findall(line)
                 
-                for table in tables:
-                    if not table:
-                        continue
-                    for row in table:
-                        if not row:
-                            continue
-                        row_text = " ".join([str(c) for c in row if c])
-                        isin_match = re.search(r'(INE[A-Z0-9]{7,10}|INF[A-Z0-9]{7,10})', row_text)
-                        if isin_match:
-                            isin = isin_match.group(1)
-                            cells = [str(c).strip() if c else "" for c in row]
-                            name = ""
-                            qty = 0.0
-                            price = 0.0
-                            for i, cell in enumerate(cells):
-                                if isin in cell:
-                                    name_parts = cell.replace(isin, "").strip().split("\n")
-                                    name = name_parts[0].strip() if name_parts else cell
-                                    continue
-                                if not name and cell and not re.match(r'^[\d,.\s]+$', cell) and len(cell) > 3:
-                                    name = cell.strip()
-                            nums = []
-                            for cell in cells:
-                                clean = cell.replace(",", "").replace(" ", "")
-                                try:
-                                    nums.append(float(clean))
-                                except ValueError:
-                                    pass
-                            if len(nums) >= 1:
-                                qty = nums[0]
-                                price = nums[1] if len(nums) >= 2 else 0
-                            is_mf = isin.startswith("INF")
-                            category = "Mutual Fund" if is_mf else "Stock"
-                            if name and qty > 0:
-                                ticker = ""
-                                if not is_mf:
-                                    first_word = re.sub(r'[^A-Z]', '', name.split()[0].upper()) if name.split() else ""
-                                    if first_word and len(first_word) >= 3:
-                                        ticker = first_word + ".NS"
-                                holdings.append({
-                                    "name": name[:80],
-                                    "ticker": ticker,
-                                    "isin": isin,
-                                    "category": category,
-                                    "quantity": qty,
-                                    "buy_price": price,
-                                })
-                                logger.info(f"Found holding: {name[:30]} | {isin} | qty={qty}")
+                # Filter and convert to floats
+                nums = []
+                for n in all_nums:
+                    try:
+                        val = float(n.replace(",", ""))
+                        if val > 0:
+                            nums.append(val)
+                    except ValueError:
+                        pass
                 
-                # If no tables found, try text extraction
-                if not tables or len(holdings) == 0:
-                    lines = page_text.split("\n")
-                    for line in lines:
-                        isin_match = re.search(r'(INE[A-Z0-9]{7,10}|INF[A-Z0-9]{7,10})', line)
-                        if isin_match:
-                            isin = isin_match.group(1)
-                            # Try to extract name (text before ISIN)
-                            name = line[:line.index(isin)].strip() if isin in line else ""
-                            # Clean up name - remove common prefixes
-                            name = re.sub(r'^[A-Z]{2,5}\s+', '', name).strip()
-                            if not name:
-                                # Try to get name from next/previous context
-                                name = f"Security {isin}"
-                            
-                            # Extract numbers after ISIN
-                            after_isin = line[line.index(isin) + len(isin):] if isin in line else ""
-                            nums = re.findall(r'[\d,]+\.?\d*', after_isin)
-                            clean_nums = []
-                            for n in nums:
-                                try:
-                                    val = float(n.replace(",", ""))
-                                    if val > 0:
-                                        clean_nums.append(val)
-                                except ValueError:
-                                    pass
-                            
-                            qty = clean_nums[0] if clean_nums else 0
-                            price = clean_nums[1] if len(clean_nums) >= 2 else 0
-                            is_mf = isin.startswith("INF")
-                            
-                            # Only add if we have quantity
-                            if qty > 0:
-                                # Check for duplicate ISINs
-                                existing = next((h for h in holdings if h["isin"] == isin), None)
-                                if not existing:
-                                    holdings.append({
-                                        "name": name[:80],
-                                        "ticker": "",
-                                        "isin": isin,
-                                        "category": "Mutual Fund" if is_mf else "Stock",
-                                        "quantity": qty,
-                                        "buy_price": price,
-                                    })
-                                    logger.info(f"Found holding (text): {name[:30]} | {isin} | qty={qty}")
+                logger.info(f"Extracted numbers: {nums}")
+                
+                # Extract scheme name - text between folio and ISIN or after scheme code prefix
+                # Pattern: "70142267/52 INF740K01797 D157 - DSP Small Cap Fund..."
+                # Or: "91036288711/0INF247L01445 127FMGDG - Motilal Oswal Midcap Fund..."
+                
+                scheme_name = ""
+                
+                # Try to find scheme name after "- " in the line
+                name_match = re.search(r'[-–]\s*([A-Za-z][A-Za-z\s\(\)]+(?:Fund|Growth|Plan|Option)[^\d]*)', line)
+                if name_match:
+                    scheme_name = name_match.group(1).strip()
+                    # Clean up the name
+                    scheme_name = re.sub(r'\s*(CAMS|KFINTECH|Registrar).*$', '', scheme_name, flags=re.IGNORECASE)
+                    scheme_name = re.sub(r'\(Non-Demat\)', '', scheme_name).strip()
+                    scheme_name = re.sub(r'\(formerly.*?\)', '', scheme_name).strip()
+                
+                if not scheme_name:
+                    # Fallback: try to extract name from around ISIN
+                    parts = line.split(isin)
+                    if len(parts) > 1:
+                        after_isin = parts[1].strip()
+                        # Look for text pattern after ISIN
+                        name_match2 = re.search(r'([A-Za-z][A-Za-z\s\-]+(?:Fund|Growth|Plan))', after_isin)
+                        if name_match2:
+                            scheme_name = name_match2.group(1).strip()
+                
+                if not scheme_name:
+                    scheme_name = f"Fund {isin}"
+                
+                # For CDSL eCAS, typical column order is:
+                # Cost Value (invested) | Unit Balance | NAV Date | NAV | Market Value
+                # We need: Cost Value as invested_value, Unit Balance as quantity, Market Value as current_value
+                
+                cost_value = 0.0  # Invested amount
+                unit_balance = 0.0  # Quantity
+                nav = 0.0
+                market_value = 0.0  # Current value
+                
+                if len(nums) >= 5:
+                    # Full row with all values
+                    # nums typically: [cost_value, unit_balance, nav_date_parts..., nav, market_value]
+                    # But date parts might split numbers, so let's be smart about it
+                    
+                    # The pattern is usually: cost_value (large), unit_balance (decimal), nav, market_value (large)
+                    # Filter out small numbers that are likely date parts (day: 1-31, year: 2024-2026)
+                    significant_nums = [n for n in nums if n > 50 or (n < 50 and n != int(n))]
+                    
+                    if len(significant_nums) >= 4:
+                        cost_value = significant_nums[0]
+                        unit_balance = significant_nums[1]
+                        # NAV is usually a medium-sized number with decimals
+                        # Market value is the last large number
+                        nav = significant_nums[-2] if len(significant_nums) >= 3 else 0
+                        market_value = significant_nums[-1]
+                    elif len(significant_nums) >= 2:
+                        cost_value = significant_nums[0]
+                        market_value = significant_nums[-1]
+                        # Try to find unit balance
+                        unit_balance = nums[1] if len(nums) > 1 else 0
+                elif len(nums) >= 2:
+                    # At least cost and one more value
+                    cost_value = nums[0]
+                    unit_balance = nums[1] if len(nums) > 1 else 0
+                    market_value = nums[-1] if nums[-1] != cost_value else cost_value
+                
+                # Calculate buy_price from cost_value / unit_balance
+                buy_price = cost_value / unit_balance if unit_balance > 0 else 0
+                
+                # Determine category
+                is_mf = isin.startswith("INF")
+                category = "Mutual Fund" if is_mf else "Stock"
+                
+                # Only add if we have meaningful data
+                if unit_balance > 0 and cost_value > 0:
+                    # Check for duplicates
+                    existing = next((h for h in holdings if h["isin"] == isin), None)
+                    if not existing:
+                        holding = {
+                            "name": scheme_name[:100],
+                            "ticker": "",
+                            "isin": isin,
+                            "category": category,
+                            "quantity": round(unit_balance, 4),
+                            "buy_price": round(buy_price, 4),
+                            "invested_value": round(cost_value, 2),
+                            "current_value": round(market_value, 2),
+                        }
+                        holdings.append(holding)
+                        logger.info(f"✓ Parsed: {scheme_name[:40]} | {isin} | Qty: {unit_balance:.3f} | Invested: ₹{cost_value:,.2f} | Current: ₹{market_value:,.2f}")
             
             # Log summary
             logger.info(f"CAS parsing complete: Found {len(holdings)} holdings")
             if len(holdings) == 0:
-                # Log some text for debugging
-                logger.warning(f"No holdings found. Sample text: {all_text[:500]}")
+                logger.warning(f"No holdings found. Sample text: {all_text[:1000]}")
+            else:
+                total_invested = sum(h.get("invested_value", 0) for h in holdings)
+                total_current = sum(h.get("current_value", 0) for h in holdings)
+                logger.info(f"Total Invested: ₹{total_invested:,.2f} | Total Current: ₹{total_current:,.2f}")
                 
     except Exception as e:
         error_msg = str(e) if str(e) else "Unknown PDF parsing error"
