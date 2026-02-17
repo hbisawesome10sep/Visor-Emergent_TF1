@@ -1574,6 +1574,122 @@ export default function InvestmentsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ═══ SIP/Recurring Investment Modal ═══ */}
+      <Modal visible={showSipModal} animationType="slide" transparent>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={[styles.modalContent, styles.modalKav, { backgroundColor: colors.surface }]}>
+            <View style={styles.modalHandle} />
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>{editSip ? 'Edit SIP' : 'New SIP'}</Text>
+                <TouchableOpacity data-testid="sip-modal-close" onPress={() => setShowSipModal(false)}>
+                  <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>SIP Name *</Text>
+              <TextInput
+                data-testid="sip-name-input"
+                style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                value={sipForm.name}
+                onChangeText={(v) => setSipForm({ ...sipForm, name: v })}
+                placeholder="e.g., HDFC Mid-Cap Fund"
+                placeholderTextColor={colors.textSecondary}
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Amount (₹) *</Text>
+              <TextInput
+                data-testid="sip-amount-input"
+                style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                value={sipForm.amount}
+                onChangeText={(v) => setSipForm({ ...sipForm, amount: v.replace(/[^0-9.]/g, '') })}
+                placeholder="5000"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="numeric"
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
+                {SIP_CATS.map(cat => (
+                  <TouchableOpacity
+                    key={cat}
+                    data-testid={`sip-cat-${cat}`}
+                    style={[styles.catChip, {
+                      backgroundColor: sipForm.category === cat ? '#6366F1' : 'transparent',
+                      borderColor: sipForm.category === cat ? '#6366F1' : colors.border,
+                    }]}
+                    onPress={() => setSipForm({ ...sipForm, category: cat })}
+                  >
+                    <Text style={{ color: sipForm.category === cat ? '#fff' : colors.textPrimary, fontWeight: '600' as any, fontSize: 13 }}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Frequency</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
+                {SIP_FREQUENCIES.map(freq => (
+                  <TouchableOpacity
+                    key={freq}
+                    data-testid={`sip-freq-${freq}`}
+                    style={[styles.catChip, {
+                      backgroundColor: sipForm.frequency === freq ? '#6366F1' : 'transparent',
+                      borderColor: sipForm.frequency === freq ? '#6366F1' : colors.border,
+                    }]}
+                    onPress={() => setSipForm({ ...sipForm, frequency: freq })}
+                  >
+                    <Text style={{ color: sipForm.frequency === freq ? '#fff' : colors.textPrimary, fontWeight: '600' as any, fontSize: 13, textTransform: 'capitalize' }}>{freq}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <View style={styles.inputRow}>
+                <View style={styles.halfInput}>
+                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Start Date</Text>
+                  <TextInput
+                    data-testid="sip-start-input"
+                    style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                    value={sipForm.start_date}
+                    onChangeText={(v) => setSipForm({ ...sipForm, start_date: v })}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={colors.textSecondary}
+                  />
+                </View>
+                <View style={styles.halfInput}>
+                  <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Day of Month</Text>
+                  <TextInput
+                    data-testid="sip-day-input"
+                    style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                    value={sipForm.day_of_month}
+                    onChangeText={(v) => setSipForm({ ...sipForm, day_of_month: v.replace(/[^0-9]/g, '').slice(0, 2) })}
+                    placeholder="5"
+                    placeholderTextColor={colors.textSecondary}
+                    keyboardType="numeric"
+                    maxLength={2}
+                  />
+                </View>
+              </View>
+
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Notes (Optional)</Text>
+              <TextInput
+                data-testid="sip-notes-input"
+                style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary, height: 80, textAlignVertical: 'top' }]}
+                value={sipForm.notes}
+                onChangeText={(v) => setSipForm({ ...sipForm, notes: v })}
+                placeholder="Add any notes..."
+                placeholderTextColor={colors.textSecondary}
+                multiline
+              />
+
+              <TouchableOpacity data-testid="sip-save-btn" style={styles.saveBtn} onPress={handleSaveSip} disabled={saving}>
+                <LinearGradient colors={['#6366F1', '#4F46E5']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
+                  {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>{editSip ? 'Update SIP' : 'Create SIP'}</Text>}
+                </LinearGradient>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
