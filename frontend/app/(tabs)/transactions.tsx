@@ -528,7 +528,7 @@ export default function TransactionsScreen() {
                       <Text style={[styles.txnAmount, {
                         color: txn.type === 'income' ? colors.income : txn.type === 'investment' ? colors.investment : colors.expense,
                       }]}>
-                        {txn.type === 'income' ? '+' : '-'}{formatINR(txn.amount)}
+                        {txn.type === 'income' ? '+' : txn.type === 'investment' ? '' : '-'}{formatINR(txn.amount)}
                       </Text>
                     </View>
                   </TouchableOpacity>
