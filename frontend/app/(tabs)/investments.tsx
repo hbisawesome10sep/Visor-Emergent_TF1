@@ -1633,6 +1633,24 @@ export default function InvestmentsScreen() {
             </Text>
             <TextInput data-testid="cas-password-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
               value={casPassword} onChangeText={setCasPassword} placeholder="PDF Password (if any)" placeholderTextColor={colors.textSecondary} secureTextEntry />
+            
+            {/* Replace toggle */}
+            <TouchableOpacity 
+              data-testid="cas-replace-toggle"
+              style={[styles.replaceToggle, { borderColor: colors.border, backgroundColor: colors.background }]}
+              onPress={() => setReplaceOnUpload(!replaceOnUpload)}
+            >
+              <View style={[styles.toggleCheckbox, { 
+                backgroundColor: replaceOnUpload ? Accent.amber : 'transparent',
+                borderColor: replaceOnUpload ? Accent.amber : colors.border,
+              }]}>
+                {replaceOnUpload && <MaterialCommunityIcons name="check" size={14} color="#fff" />}
+              </View>
+              <Text style={[styles.replaceToggleText, { color: colors.textPrimary }]}>
+                Replace existing holdings (recommended)
+              </Text>
+            </TouchableOpacity>
+            
             <TouchableOpacity data-testid="cas-upload-btn" style={styles.saveBtn} onPress={handleCasUpload} disabled={saving}>
               <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
                 {saving ? <ActivityIndicator color="#fff" /> : (
@@ -1642,6 +1660,17 @@ export default function InvestmentsScreen() {
                   </View>
                 )}
               </LinearGradient>
+            </TouchableOpacity>
+            
+            {/* Clear Holdings Button */}
+            <TouchableOpacity 
+              data-testid="clear-holdings-btn" 
+              style={[styles.clearBtn, { borderColor: Accent.ruby }]} 
+              onPress={handleClearHoldings}
+              disabled={saving}
+            >
+              <MaterialCommunityIcons name="delete-outline" size={18} color={Accent.ruby} />
+              <Text style={[styles.clearBtnText, { color: Accent.ruby }]}>Clear All Holdings</Text>
             </TouchableOpacity>
           </View>
         </View>
