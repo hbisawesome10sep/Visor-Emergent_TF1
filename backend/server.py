@@ -2653,6 +2653,8 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     await seed_demo_data()
+    await seed_market_data()
+    asyncio.create_task(market_data_scheduler())
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
