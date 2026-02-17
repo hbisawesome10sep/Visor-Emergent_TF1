@@ -312,11 +312,15 @@ export default function DashboardScreen() {
     color: getCategoryColor(category, isDark),
   }));
 
-  // Prepare trend data
-  const trendData = [
-    { label: 'Jan', income: stats?.monthly_income || 0, expenses: stats?.monthly_expenses || 0 },
-    { label: 'Feb', income: (stats?.monthly_income || 0) * 0.9, expenses: (stats?.monthly_expenses || 0) * 1.1 },
-  ];
+  // Use real trend data from API or fallback to monthly data
+  const trendData = stats?.trend_data && stats.trend_data.length > 0 
+    ? stats.trend_data 
+    : [
+        { label: 'This Period', income: stats?.total_income || 0, expenses: stats?.total_expenses || 0, investments: stats?.total_investments || 0 },
+      ];
+  
+  // Trend insights from API
+  const trendInsights = stats?.trend_insights || [];
 
   const fabActions = [
     {
