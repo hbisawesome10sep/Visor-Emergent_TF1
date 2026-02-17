@@ -2611,11 +2611,6 @@ async def upload_cas(
         }
     }
 
-@api_router.delete("/holdings/clear-all")
-async def clear_all_holdings(user=Depends(get_current_user)):
-    result = await db.holdings.delete_many({"user_id": user["id"]})
-    return {"message": f"Deleted {result.deleted_count} holdings"}
-
 async def seed_demo_data():
     # Check if demo users already exist
     demo1 = await db.users.find_one({"email": "rajesh@visor.demo"}, {"_id": 0})
