@@ -1518,4 +1518,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'DM Sans', fontWeight: '600' as any,
   },
+  
+  // Buy/Sell Toggle for Investments
+  buySellToggle: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  buySellBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  buySellBtnActive: {
+    borderWidth: 2,
+  },
+  buySellText: {
+    fontSize: 14,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
+  },
+  unitsRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  taxNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  taxNoteText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    lineHeight: 16,
+  },
 });
