@@ -301,12 +301,11 @@ export default function InvestmentsScreen() {
            ═══════════════════════════════════════════════════════════ */}
         <Text data-testid="portfolio-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 28 }]}>Portfolio Overview</Text>
 
-        {portfolio && portfolio.total_invested > 0 ? (
+        {portfolio && portfolio.total_invested > 0 && (
           <View data-testid="portfolio-card" style={[styles.portfolioCard, {
             backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF',
             borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
           }]}>
-            {/* Top summary: Invested vs Current */}
             <View style={styles.portfolioSummaryRow}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.portfolioSmallLabel, { color: colors.textSecondary }]}>Invested</Text>
@@ -322,8 +321,6 @@ export default function InvestmentsScreen() {
                 </Text>
               </View>
             </View>
-
-            {/* Gain/Loss badge */}
             <View style={[styles.gainLossBadge, {
               backgroundColor: portfolio.total_gain_loss >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
             }]}>
@@ -338,36 +335,32 @@ export default function InvestmentsScreen() {
                 {portfolio.total_gain_loss >= 0 ? '+' : ''}{formatINR(portfolio.total_gain_loss)} ({portfolio.total_gain_loss >= 0 ? '+' : ''}{portfolio.total_gain_loss_pct.toFixed(2)}%)
               </Text>
             </View>
-
-            {/* Category-wise breakdown */}
             <View style={[styles.categoryBreakdownHeader, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
               <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, flex: 1 }]}>Category</Text>
-              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 80, textAlign: 'right' }]}>Invested</Text>
-              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 80, textAlign: 'right' }]}>Current</Text>
-              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 70, textAlign: 'right' }]}>Return</Text>
+              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 80, textAlign: 'right' as any }]}>Invested</Text>
+              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 80, textAlign: 'right' as any }]}>Current</Text>
+              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 70, textAlign: 'right' as any }]}>Return</Text>
             </View>
-            {portfolio.categories.map((cat, idx) => {
-              const isGain = cat.gain_loss >= 0;
-              const isLastCat = idx === portfolio.categories.length - 1;
-              return (
-                <View key={cat.category} data-testid={`portfolio-cat-${cat.category}`} style={[styles.categoryRow, !isLastCat && { borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View style={[styles.catDot, { backgroundColor: ASSET_CATEGORIES[cat.category]?.color || '#94A3B8' }]} />
-                    <View>
-                      <Text style={[styles.catName, { color: colors.textPrimary }]}>{cat.category}</Text>
-                      <Text style={[styles.catTxnCount, { color: colors.textSecondary }]}>{cat.transactions} txn{cat.transactions > 1 ? 's' : ''}</Text>
-                    </View>
+            {portfolio.categories.map((cat, idx) => (
+              <View key={cat.category} data-testid={`portfolio-cat-${cat.category}`} style={[styles.categoryRow, idx < portfolio.categories.length - 1 && { borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
+                <View style={{ flex: 1, flexDirection: 'row' as any, alignItems: 'center' as any, gap: 8 }}>
+                  <View style={[styles.catDot, { backgroundColor: ASSET_CATEGORIES[cat.category]?.color || '#94A3B8' }]} />
+                  <View>
+                    <Text style={[styles.catName, { color: colors.textPrimary }]}>{cat.category}</Text>
+                    <Text style={[styles.catTxnCount, { color: colors.textSecondary }]}>{cat.transactions} txn{cat.transactions > 1 ? 's' : ''}</Text>
                   </View>
-                  <Text style={[styles.catNum, { color: colors.textSecondary, width: 80 }]}>{formatINRShort(cat.invested)}</Text>
-                  <Text style={[styles.catNum, { color: colors.textPrimary, width: 80 }]}>{formatINRShort(cat.current_value)}</Text>
-                  <Text style={[styles.catReturn, { color: isGain ? Accent.emerald : Accent.ruby, width: 70 }]}>
-                    {isGain ? '+' : ''}{cat.gain_loss_pct.toFixed(1)}%
-                  </Text>
                 </View>
-              );
-            })}
+                <Text style={[styles.catNum, { color: colors.textSecondary, width: 80 }]}>{formatINRShort(cat.invested)}</Text>
+                <Text style={[styles.catNum, { color: colors.textPrimary, width: 80 }]}>{formatINRShort(cat.current_value)}</Text>
+                <Text style={[styles.catReturn, { color: cat.gain_loss >= 0 ? Accent.emerald : Accent.ruby, width: 70 }]}>
+                  {cat.gain_loss >= 0 ? '+' : ''}{cat.gain_loss_pct.toFixed(1)}%
+                </Text>
+              </View>
+            ))}
           </View>
-        ) : (
+        )}
+
+        {(!portfolio || portfolio.total_invested === 0) && (
           <View style={[styles.emptyPortfolio, { backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
             <MaterialCommunityIcons name="wallet-outline" size={36} color={colors.textSecondary} />
             <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No investments yet</Text>
