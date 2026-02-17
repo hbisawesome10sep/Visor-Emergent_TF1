@@ -7,75 +7,50 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle, G, Path, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, G } from 'react-native-svg';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { Accent } from '../../src/utils/theme';
 import { apiRequest } from '../../src/utils/api';
 import { formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
+import PieChart from '../../src/components/PieChart';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Goal categories
+// ── Investment asset categories for allocation pie chart ──
+const ASSET_CATEGORIES: Record<string, { label: string; color: string }> = {
+  'Stocks': { label: 'Stocks', color: Accent.sapphire },
+  'Mutual Funds': { label: 'Mutual Funds', color: Accent.amethyst },
+  'SIP': { label: 'SIP', color: '#6366F1' },
+  'FD': { label: 'Fixed Deposits', color: '#0891B2' },
+  'Fixed Deposit': { label: 'Fixed Deposits', color: '#0891B2' },
+  'PPF': { label: 'PPF', color: '#14B8A6' },
+  'Gold': { label: 'Gold', color: '#EAB308' },
+  'Sovereign Gold Bond': { label: 'Gold', color: '#CA8A04' },
+  'Silver': { label: 'Silver', color: '#94A3B8' },
+  'NPS': { label: 'NPS', color: Accent.emerald },
+  'EPF': { label: 'EPF', color: '#14B8A6' },
+  'Crypto': { label: 'Crypto', color: '#F59E0B' },
+  'ETFs': { label: 'ETFs', color: '#2563EB' },
+  'Bonds': { label: 'Bonds', color: '#0284C7' },
+  'Real Estate': { label: 'Real Estate', color: '#78716C' },
+  'ULIP': { label: 'ULIP', color: '#7C3AED' },
+};
+
+// ── Goal categories ──
 const GOAL_CATS = ['Safety', 'Travel', 'Purchase', 'Property', 'Education', 'Retirement', 'Wedding', 'Other'];
 
-// Investment categories
-const INVEST_CATEGORIES = [
-  { key: 'stocks', name: 'Stocks', color: Accent.sapphire, icon: 'chart-areaspline' },
-  { key: 'mutual_funds', name: 'Mutual Funds', color: Accent.amethyst, icon: 'chart-pie' },
-  { key: 'fd', name: 'Fixed Deposits', color: Accent.emerald, icon: 'bank' },
-  { key: 'ppf', name: 'PPF', color: '#14B8A6', icon: 'shield-check' },
-  { key: 'gold', name: 'Gold', color: Accent.amber, icon: 'diamond-stone' },
-  { key: 'nps', name: 'NPS', color: Accent.amethyst, icon: 'account-cash' },
-];
-
-// Risk assessment questions
-const RISK_QUESTIONS = [
-  {
-    question: 'What is your investment time horizon?',
-    options: [
-      { label: 'Short (1-3 years)', value: 1 },
-      { label: 'Medium (3-7 years)', value: 2 },
-      { label: 'Long (7+ years)', value: 3 },
-    ],
-  },
-  {
-    question: 'How would you react if your portfolio dropped 20%?',
-    options: [
-      { label: 'Sell everything', value: 1 },
-      { label: 'Sell some', value: 2 },
-      { label: 'Hold and wait', value: 3 },
-      { label: 'Buy more', value: 4 },
-    ],
-  },
-  {
-    question: 'What percentage of income can you invest?',
-    options: [
-      { label: 'Less than 10%', value: 1 },
-      { label: '10-20%', value: 2 },
-      { label: '20-30%', value: 3 },
-      { label: 'More than 30%', value: 4 },
-    ],
-  },
-];
-
-// Market indices
-const MARKET_INDICES = [
-  { name: 'Nifty 50', value: 22456.80, change: 1.23, up: true },
-  { name: 'Sensex', value: 73890.45, change: 1.18, up: true },
-  { name: 'Nifty Bank', value: 47234.65, change: -0.34, up: false },
-  { name: 'Gold (10g)', value: 62450, change: 0.56, up: true },
-];
-
+// ── Types ──
+type MarketItem = {
+  key: string; name: string; price: number; change: number;
+  change_percent: number; prev_close: number; icon: string; last_updated: string;
+};
 type Goal = {
   id: string; title: string; target_amount: number; current_amount: number;
   deadline: string; category: string;
 };
-
 type DashboardStats = {
-  total_income: number;
-  total_expenses: number;
-  total_investments: number;
+  total_income: number; total_expenses: number; total_investments: number;
   invest_breakdown: Record<string, number>;
 };
 
@@ -85,6 +60,7 @@ export default function InvestmentsScreen() {
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 70 + insets.top;
 
+  const [marketData, setMarketData] = useState<MarketItem[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,12 +79,14 @@ export default function InvestmentsScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [statsData, goalsData] = await Promise.all([
+      const [statsData, goalsData, mktData] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
+        apiRequest('/market-data', {}),
       ]);
       setStats(statsData);
       setGoals(goalsData);
+      setMarketData(mktData || []);
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     } catch (e) {
       console.error(e);
@@ -118,121 +96,68 @@ export default function InvestmentsScreen() {
     }
   }, [token]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchData();
-  };
+  const onRefresh = () => { setRefreshing(true); fetchData(); };
 
-  // Goal handlers
+  // ── Goal handlers ──
   const openAddGoal = () => {
     setEditGoal(null);
     setGoalForm({ title: '', target_amount: '', current_amount: '0', deadline: '', category: 'Safety' });
     setShowGoalModal(true);
   };
-
   const openEditGoal = (g: Goal) => {
     setEditGoal(g);
-    setGoalForm({
-      title: g.title,
-      target_amount: g.target_amount.toString(),
-      current_amount: g.current_amount.toString(),
-      deadline: g.deadline,
-      category: g.category,
-    });
+    setGoalForm({ title: g.title, target_amount: g.target_amount.toString(), current_amount: g.current_amount.toString(), deadline: g.deadline, category: g.category });
     setShowGoalModal(true);
   };
-
   const handleSaveGoal = async () => {
-    if (!goalForm.title || !goalForm.target_amount || !goalForm.category) {
-      Alert.alert('Error', 'Please fill required fields');
-      return;
-    }
+    if (!goalForm.title || !goalForm.target_amount || !goalForm.category) { Alert.alert('Error', 'Please fill required fields'); return; }
     setSaving(true);
     try {
-      const body = {
-        title: goalForm.title,
-        target_amount: parseFloat(goalForm.target_amount),
-        current_amount: parseFloat(goalForm.current_amount || '0'),
-        deadline: goalForm.deadline || '2026-12-31',
-        category: goalForm.category,
-      };
-      if (editGoal) {
-        await apiRequest(`/goals/${editGoal.id}`, { method: 'PUT', token, body });
-      } else {
-        await apiRequest('/goals', { method: 'POST', token, body });
-      }
+      const body = { title: goalForm.title, target_amount: parseFloat(goalForm.target_amount), current_amount: parseFloat(goalForm.current_amount || '0'), deadline: goalForm.deadline || '2026-12-31', category: goalForm.category };
+      if (editGoal) { await apiRequest(`/goals/${editGoal.id}`, { method: 'PUT', token, body }); }
+      else { await apiRequest('/goals', { method: 'POST', token, body }); }
       setShowGoalModal(false);
       fetchData();
-    } catch (e: any) {
-      Alert.alert('Error', e.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (e: any) { Alert.alert('Error', e.message); }
+    finally { setSaving(false); }
   };
-
   const handleDeleteGoal = (id: string, title: string) => {
     Alert.alert('Delete Goal', `Delete "${title}"?`, [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await apiRequest(`/goals/${id}`, { method: 'DELETE', token });
-          fetchData();
-        },
-      },
+      { text: 'Delete', style: 'destructive', onPress: async () => { await apiRequest(`/goals/${id}`, { method: 'DELETE', token }); fetchData(); } },
     ]);
   };
 
-  // Risk assessment
+  // ── Risk assessment (simple 3-question version for now) ──
+  const RISK_QUESTIONS = [
+    { question: 'What is your investment time horizon?', options: [{ label: 'Short (1-3 years)', value: 1 }, { label: 'Medium (3-7 years)', value: 2 }, { label: 'Long (7+ years)', value: 3 }] },
+    { question: 'How would you react if your portfolio dropped 20%?', options: [{ label: 'Sell everything', value: 1 }, { label: 'Sell some', value: 2 }, { label: 'Hold and wait', value: 3 }, { label: 'Buy more', value: 4 }] },
+    { question: 'What percentage of income can you invest?', options: [{ label: 'Less than 10%', value: 1 }, { label: '10-20%', value: 2 }, { label: '20-30%', value: 3 }, { label: 'More than 30%', value: 4 }] },
+  ];
   const handleRiskAnswer = (value: number) => {
     const newAnswers = [...riskAnswers, value];
     setRiskAnswers(newAnswers);
-    if (riskStep < RISK_QUESTIONS.length - 1) {
-      setRiskStep(riskStep + 1);
-    } else {
-      const total = newAnswers.reduce((s, a) => s + a, 0);
-      const avg = total / newAnswers.length;
-      const profile = avg <= 1.5 ? 'Conservative' : avg <= 2.8 ? 'Moderate' : 'Aggressive';
-      setRiskProfile(profile);
-      setShowRiskModal(false);
-      setRiskStep(0);
-      setRiskAnswers([]);
+    if (riskStep < RISK_QUESTIONS.length - 1) { setRiskStep(riskStep + 1); }
+    else {
+      const avg = newAnswers.reduce((s, a) => s + a, 0) / newAnswers.length;
+      setRiskProfile(avg <= 1.5 ? 'Conservative' : avg <= 2.8 ? 'Moderate' : 'Aggressive');
+      setShowRiskModal(false); setRiskStep(0); setRiskAnswers([]);
     }
   };
 
-  // Calculations
+  // ── Computed values ──
   const totalInvested = stats?.total_investments || 0;
-  const returns = Math.round(totalInvested * 0.127);
-  const portfolioValue = totalInvested + returns;
-  const xirr = 14.2;
-  const monthlyChange = Math.round(portfolioValue * 0.0399);
-
-  // Goals summary
-  const totalGoalTarget = goals.reduce((s, g) => s + g.target_amount, 0);
-  const totalGoalCurrent = goals.reduce((s, g) => s + g.current_amount, 0);
-  const overallGoalProgress = totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
-
-  // Asset allocation
   const allocation = stats?.invest_breakdown || {};
-  const allocationData = INVEST_CATEGORIES.map(cat => ({
-    ...cat,
-    amount: allocation[cat.name] || allocation[cat.key] || 0,
-  })).filter(a => a.amount > 0);
 
-  const mockAllocation = allocationData.length === 0 ? [
-    { ...INVEST_CATEGORIES[0], amount: totalInvested * 0.30 },
-    { ...INVEST_CATEGORIES[1], amount: totalInvested * 0.35 },
-    { ...INVEST_CATEGORIES[2], amount: totalInvested * 0.15 },
-    { ...INVEST_CATEGORIES[3], amount: totalInvested * 0.10 },
-    { ...INVEST_CATEGORIES[4], amount: totalInvested * 0.10 },
-  ] : allocationData;
-
-  const totalAllocation = mockAllocation.reduce((s, a) => s + a.amount, 0) || 1;
+  // Build allocation data for pie chart from real investment breakdown
+  const allocationEntries = Object.entries(allocation).filter(([_, amt]) => amt > 0);
+  const pieData = allocationEntries.map(([cat, amt]) => ({
+    category: ASSET_CATEGORIES[cat]?.label || cat,
+    amount: amt,
+    color: ASSET_CATEGORIES[cat]?.color || '#94A3B8',
+  }));
 
   // Strategy based on risk
   const strategies = {
@@ -242,15 +167,35 @@ export default function InvestmentsScreen() {
   };
   const currentStrategy = strategies[riskProfile];
 
+  // Market data last updated
+  const lastUpdatedStr = marketData.length > 0 ? (() => {
+    const d = new Date(marketData[0].last_updated);
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const ist = new Date(d.getTime() + istOffset);
+    return ist.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
+  })() : '';
+
   // Tax saving
   const section80CUsed = Math.min(totalInvested * 0.4, 150000);
+
+  // Goals summary
+  const totalGoalTarget = goals.reduce((s, g) => s + g.target_amount, 0);
+  const totalGoalCurrent = goals.reduce((s, g) => s + g.current_amount, 0);
+  const overallGoalProgress = totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
+
+  // ── Helper: format price for markets ──
+  const fmtPrice = (p: number) => {
+    if (p >= 100000) return `${(p / 1000).toFixed(0).replace(/\B(?=(\d{2})+(?!\d))/g, ',')}`;
+    if (p >= 10000) return p.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    return p.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  };
 
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#F97316" />
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading investments...</Text>
         </View>
       </View>
     );
@@ -262,15 +207,12 @@ export default function InvestmentsScreen() {
 
       {/* ═══ HEADER ═══ */}
       <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
-        <View style={[styles.headerContent, {
-          backgroundColor: isDark ? '#000000' : '#FFFFFF',
-          borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-        }]}>
+        <View style={[styles.headerContent, { backgroundColor: isDark ? '#000000' : '#FFFFFF', borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]}>
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: isDark ? Accent.amber : '#D97706' }]}>Investments</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Goals & Portfolio Management</Text>
+            <Text data-testid="invest-header-title" style={[styles.headerTitle, { color: isDark ? Accent.amber : '#D97706' }]}>Invest</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Markets & Portfolio</Text>
           </View>
-          <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={onRefresh}>
+          <TouchableOpacity data-testid="invest-refresh-btn" style={[styles.refreshBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={onRefresh}>
             <MaterialCommunityIcons name="refresh" size={20} color="#F97316" />
           </TouchableOpacity>
         </View>
@@ -278,215 +220,197 @@ export default function InvestmentsScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 8 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: HEADER_HEIGHT + 12 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
         showsVerticalScrollIndicator={false}
       >
-        {/* ═══ FINANCIAL GOALS SECTION ═══ */}
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 1: INDIAN MARKETS (TOP)
+           ═══════════════════════════════════════════════════════════ */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Financial Goals</Text>
-          <TouchableOpacity style={[styles.addGoalBtn, { backgroundColor: '#F97316' }]} onPress={openAddGoal}>
-            <MaterialCommunityIcons name="plus" size={18} color="#fff" />
-            <Text style={styles.addGoalText}>Add Goal</Text>
-          </TouchableOpacity>
+          <View>
+            <Text data-testid="markets-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 2 }]}>Indian Markets</Text>
+            {lastUpdatedStr ? (
+              <Text style={[styles.updatedAt, { color: colors.textSecondary }]}>Updated {lastUpdatedStr}</Text>
+            ) : null}
+          </View>
         </View>
 
-        {/* Goals Overview Card */}
-        {goals.length > 0 && (
-          <View style={[styles.goalsOverviewCard, {
-            backgroundColor: isDark ? 'rgba(249, 115, 22, 0.1)' : 'rgba(249, 115, 22, 0.06)',
-            borderColor: isDark ? 'rgba(249, 115, 22, 0.2)' : 'rgba(249, 115, 22, 0.15)',
-          }]}>
-            <View style={styles.goalsOverviewRow}>
-              <View>
-                <Text style={[styles.goalsOverviewLabel, { color: colors.textSecondary }]}>Total Goal Progress</Text>
-                <Text style={[styles.goalsOverviewAmount, { color: colors.textPrimary }]}>
-                  {formatINRShort(totalGoalCurrent)} / {formatINRShort(totalGoalTarget)}
+        {/* Market Cards - 2x grid for top 4, full width for 5th */}
+        <View data-testid="market-cards-grid" style={styles.marketGrid}>
+          {marketData.slice(0, 4).map((item) => {
+            const isUp = item.change_percent >= 0;
+            return (
+              <View key={item.key} data-testid={`market-card-${item.key}`} style={[styles.marketCard, {
+                backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+              }]}>
+                <View style={styles.marketCardTop}>
+                  <View style={[styles.marketIconWrap, { backgroundColor: isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.08)' }]}>
+                    <MaterialCommunityIcons name={(item.icon || 'chart-line') as any} size={16} color="#F97316" />
+                  </View>
+                  <View style={[styles.marketChangeBadge, { backgroundColor: isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)' }]}>
+                    <MaterialCommunityIcons name={isUp ? 'arrow-up' : 'arrow-down'} size={10} color={isUp ? Accent.emerald : Accent.ruby} />
+                    <Text style={[styles.marketChangeText, { color: isUp ? Accent.emerald : Accent.ruby }]}>{Math.abs(item.change_percent).toFixed(2)}%</Text>
+                  </View>
+                </View>
+                <Text style={[styles.marketName, { color: colors.textSecondary }]}>{item.name}</Text>
+                <Text data-testid={`market-price-${item.key}`} style={[styles.marketPrice, { color: colors.textPrimary }]}>{fmtPrice(item.price)}</Text>
+                <Text style={[styles.marketChangeAbs, { color: isUp ? Accent.emerald : Accent.ruby }]}>
+                  {isUp ? '+' : ''}{item.change.toFixed(2)}
                 </Text>
               </View>
-              <View style={[styles.goalsPercentBadge, { backgroundColor: overallGoalProgress >= 50 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(249, 115, 22, 0.15)' }]}>
-                <Text style={[styles.goalsPercentText, { color: overallGoalProgress >= 50 ? Accent.emerald : '#F97316' }]}>
-                  {overallGoalProgress.toFixed(0)}%
+            );
+          })}
+        </View>
+        {/* 5th item (Silver) - full width */}
+        {marketData.length > 4 && (() => {
+          const item = marketData[4];
+          const isUp = item.change_percent >= 0;
+          return (
+            <View data-testid={`market-card-${item.key}`} style={[styles.marketCardWide, {
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            }]}>
+              <View style={styles.marketWideLeft}>
+                <View style={[styles.marketIconWrap, { backgroundColor: isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.08)' }]}>
+                  <MaterialCommunityIcons name={(item.icon || 'diamond-outline') as any} size={16} color="#F97316" />
+                </View>
+                <View style={{ marginLeft: 12 }}>
+                  <Text style={[styles.marketName, { color: colors.textSecondary }]}>{item.name}</Text>
+                  <Text style={[styles.marketPrice, { color: colors.textPrimary, fontSize: 18 }]}>{fmtPrice(item.price)}</Text>
+                </View>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <View style={[styles.marketChangeBadge, { backgroundColor: isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)' }]}>
+                  <MaterialCommunityIcons name={isUp ? 'arrow-up' : 'arrow-down'} size={10} color={isUp ? Accent.emerald : Accent.ruby} />
+                  <Text style={[styles.marketChangeText, { color: isUp ? Accent.emerald : Accent.ruby }]}>{Math.abs(item.change_percent).toFixed(2)}%</Text>
+                </View>
+                <Text style={[styles.marketChangeAbs, { color: isUp ? Accent.emerald : Accent.ruby, marginTop: 4 }]}>
+                  {isUp ? '+' : ''}{item.change.toFixed(2)}
                 </Text>
               </View>
             </View>
-            <View style={[styles.goalsProgressBar, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-              <View style={[styles.goalsProgressFill, { width: `${Math.min(overallGoalProgress, 100)}%`, backgroundColor: '#F97316' }]} />
-            </View>
-          </View>
-        )}
+          );
+        })()}
 
-        {/* Goals List */}
-        {goals.length === 0 ? (
-          <View style={[styles.emptyGoals, {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-            borderColor: colors.border,
-          }]}>
-            <MaterialCommunityIcons name="flag-variant-outline" size={40} color={colors.textSecondary} />
-            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No goals yet</Text>
-            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Set financial goals to track progress</Text>
-          </View>
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.goalsScroll}>
-            {goals.map(goal => {
-              const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-              const progressColor = progress >= 75 ? Accent.emerald : progress >= 40 ? Accent.amber : Accent.ruby;
-              return (
-                <TouchableOpacity
-                  key={goal.id}
-                  style={[styles.goalCard, {
-                    backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.9)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                  }]}
-                  onPress={() => openEditGoal(goal)}
-                  onLongPress={() => handleDeleteGoal(goal.id, goal.title)}
-                >
-                  <View style={styles.goalCardHeader}>
-                    <View style={[styles.goalIconWrap, { backgroundColor: `${getCategoryColor(goal.category, isDark)}20` }]}>
-                      <MaterialCommunityIcons name={getCategoryIcon(goal.category) as any} size={18} color={getCategoryColor(goal.category, isDark)} />
-                    </View>
-                    <Text style={[styles.goalPercent, { color: progressColor }]}>{progress.toFixed(0)}%</Text>
-                  </View>
-                  <Text style={[styles.goalTitle, { color: colors.textPrimary }]} numberOfLines={1}>{goal.title}</Text>
-                  <Text style={[styles.goalCategory, { color: colors.textSecondary }]}>{goal.category}</Text>
-                  <View style={[styles.goalBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-                    <View style={[styles.goalBarFill, { width: `${Math.min(progress, 100)}%`, backgroundColor: progressColor }]} />
-                  </View>
-                  <Text style={[styles.goalAmounts, { color: colors.textSecondary }]}>
-                    {formatINRShort(goal.current_amount)} / {formatINRShort(goal.target_amount)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
-
-        {/* ═══ PORTFOLIO SUMMARY ═══ */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 24 }]}>Portfolio Overview</Text>
-        <Animated.View style={[styles.portfolioCard, {
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 2: PORTFOLIO OVERVIEW
+           ═══════════════════════════════════════════════════════════ */}
+        <Text data-testid="portfolio-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 28 }]}>Portfolio Overview</Text>
+        <Animated.View data-testid="portfolio-card" style={[styles.portfolioCard, {
           backgroundColor: isDark ? 'rgba(249, 115, 22, 0.08)' : 'rgba(249, 115, 22, 0.05)',
           borderColor: isDark ? 'rgba(249, 115, 22, 0.2)' : 'rgba(249, 115, 22, 0.15)',
           opacity: fadeAnim,
         }]}>
-          <View style={styles.portfolioHeader}>
-            <Text style={[styles.portfolioLabel, { color: colors.textSecondary }]}>Total Portfolio Value</Text>
-            <View style={[styles.changeBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-              <MaterialCommunityIcons name="arrow-up" size={14} color={Accent.emerald} />
-              <Text style={[styles.changeText, { color: Accent.emerald }]}>+3.99%</Text>
-            </View>
-          </View>
-          <Text style={[styles.portfolioValue, { color: colors.textPrimary }]}>₹{portfolioValue.toLocaleString('en-IN')}</Text>
-          <Text style={[styles.portfolioChange, { color: Accent.emerald }]}>+₹{monthlyChange.toLocaleString('en-IN')} this month</Text>
+          <Text style={[styles.portfolioLabel, { color: colors.textSecondary }]}>Total Invested</Text>
+          <Text data-testid="portfolio-total-value" style={[styles.portfolioValue, { color: colors.textPrimary }]}>
+            {formatINRShort(totalInvested)}
+          </Text>
 
-          <View style={styles.summaryPillsRow}>
-            <View style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-              <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>Invested</Text>
-              <Text style={[styles.pillValue, { color: colors.textPrimary }]}>₹{formatINRShort(totalInvested)}</Text>
-            </View>
-            <View style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-              <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>Returns</Text>
-              <Text style={[styles.pillValue, { color: Accent.emerald }]}>+₹{formatINRShort(returns)}</Text>
-            </View>
-            <View style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-              <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>XIRR</Text>
-              <Text style={[styles.pillValue, { color: Accent.emerald }]}>{xirr}%</Text>
-            </View>
-          </View>
-        </Animated.View>
-
-        {/* ═══ ASSET ALLOCATION ═══ */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Asset Allocation</Text>
-        <View style={[styles.glassCard, {
-          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-        }]}>
-          <View style={styles.donutContainer}>
-            <Svg width={140} height={140}>
-              <G rotation="-90" origin="70, 70">
-                {mockAllocation.map((item, index) => {
-                  const percent = (item.amount / totalAllocation) * 100;
-                  const circumference = 2 * Math.PI * 50;
-                  const offset = mockAllocation.slice(0, index).reduce((s, a) => s + (a.amount / totalAllocation) * circumference, 0);
-                  return (
-                    <Circle key={item.key} cx="70" cy="70" r="50" stroke={item.color} strokeWidth="20" fill="transparent"
-                      strokeDasharray={`${(percent / 100) * circumference} ${circumference}`} strokeDashoffset={-offset} />
-                  );
-                })}
-              </G>
-            </Svg>
-            <View style={styles.donutCenter}>
-              <Text style={[styles.donutValue, { color: colors.textPrimary }]}>₹{formatINRShort(portfolioValue)}</Text>
-            </View>
-          </View>
-          <View style={styles.legendGrid}>
-            {mockAllocation.map(item => (
-              <View key={item.key} style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                <Text style={[styles.legendName, { color: colors.textPrimary }]}>{item.name}</Text>
-                <Text style={[styles.legendAmount, { color: colors.textSecondary }]}>{((item.amount / totalAllocation) * 100).toFixed(0)}%</Text>
+          {/* Breakdown pills */}
+          <View style={styles.pillsRow}>
+            {allocationEntries.slice(0, 3).map(([cat, amt]) => (
+              <View key={cat} style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+                <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>{cat}</Text>
+                <Text style={[styles.pillValue, { color: colors.textPrimary }]}>{formatINRShort(amt)}</Text>
               </View>
             ))}
           </View>
+          {allocationEntries.length > 3 && (
+            <View style={[styles.pillsRow, { marginTop: 0 }]}>
+              {allocationEntries.slice(3).map(([cat, amt]) => (
+                <View key={cat} style={[styles.summaryPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+                  <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>{cat}</Text>
+                  <Text style={[styles.pillValue, { color: colors.textPrimary }]}>{formatINRShort(amt)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </Animated.View>
+
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 3: ASSET ALLOCATION (Pie Chart)
+           ═══════════════════════════════════════════════════════════ */}
+        <Text data-testid="allocation-section-title" style={[styles.sectionTitle, { color: colors.textPrimary }]}>Asset Allocation</Text>
+        <View data-testid="allocation-card" style={[styles.glassCard, {
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        }]}>
+          {pieData.length > 0 ? (
+            <>
+              <View style={styles.pieContainer}>
+                <PieChart data={pieData} size={170} colors={colors} isDark={isDark} />
+              </View>
+              <View style={styles.legendGrid}>
+                {pieData.map((item, idx) => {
+                  const pct = totalInvested > 0 ? ((item.amount / totalInvested) * 100).toFixed(1) : '0';
+                  return (
+                    <View key={idx} data-testid={`allocation-legend-${item.category}`} style={styles.legendItem}>
+                      <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                      <Text style={[styles.legendName, { color: colors.textPrimary }]}>{item.category}</Text>
+                      <Text style={[styles.legendPercent, { color: colors.textSecondary }]}>{pct}%</Text>
+                      <Text style={[styles.legendAmount, { color: colors.textSecondary }]}>{formatINRShort(item.amount)}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          ) : (
+            <View style={styles.emptyPie}>
+              <MaterialCommunityIcons name="chart-pie" size={40} color={colors.textSecondary} />
+              <Text style={[styles.emptyPieText, { color: colors.textSecondary }]}>Add investment transactions to see allocation</Text>
+            </View>
+          )}
         </View>
 
-        {/* ═══ INDIAN MARKETS ═══ */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Indian Markets</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.marketsScroll}>
-          {MARKET_INDICES.map((idx, i) => (
-            <View key={i} style={[styles.marketCard, {
-              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-            }]}>
-              <Text style={[styles.marketName, { color: colors.textSecondary }]}>{idx.name}</Text>
-              <Text style={[styles.marketValue, { color: colors.textPrimary }]}>₹{idx.value.toLocaleString('en-IN')}</Text>
-              <View style={[styles.marketChangeBadge, { backgroundColor: idx.up ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
-                <MaterialCommunityIcons name={idx.up ? 'arrow-up' : 'arrow-down'} size={12} color={idx.up ? Accent.emerald : Accent.ruby} />
-                <Text style={[styles.marketChangeText, { color: idx.up ? Accent.emerald : Accent.ruby }]}>{idx.change}%</Text>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* ═══ RISK PROFILE ═══ */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Risk Profile & Strategy</Text>
-        <View style={[styles.riskCard, {
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 4: RISK PROFILE & STRATEGY
+           ═══════════════════════════════════════════════════════════ */}
+        <Text data-testid="risk-section-title" style={[styles.sectionTitle, { color: colors.textPrimary }]}>Risk Profile & Strategy</Text>
+        <View data-testid="risk-card" style={[styles.riskCard, {
           backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
         }]}>
           <View style={styles.riskHeader}>
             <View style={[styles.riskBadge, {
-              backgroundColor: riskProfile === 'Conservative' ? 'rgba(59, 130, 246, 0.15)' : riskProfile === 'Moderate' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              backgroundColor: riskProfile === 'Conservative' ? 'rgba(59,130,246,0.15)' : riskProfile === 'Moderate' ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)',
             }]}>
               <MaterialCommunityIcons
                 name={riskProfile === 'Conservative' ? 'shield-check' : riskProfile === 'Moderate' ? 'scale-balance' : 'rocket-launch'}
-                size={20} color={riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby} />
-              <Text style={[styles.riskBadgeText, { color: riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby }]}>
+                size={20}
+                color={riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby}
+              />
+              <Text data-testid="risk-profile-label" style={[styles.riskBadgeText, { color: riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby }]}>
                 {riskProfile}
               </Text>
             </View>
-            <TouchableOpacity style={[styles.retakeBtn, { borderColor: colors.border }]} onPress={() => { setShowRiskModal(true); setRiskStep(0); setRiskAnswers([]); }}>
-              <Text style={[styles.retakeBtnText, { color: colors.textSecondary }]}>Retake</Text>
+            <TouchableOpacity data-testid="risk-retake-btn" style={[styles.retakeBtn, { borderColor: colors.border }]} onPress={() => { setShowRiskModal(true); setRiskStep(0); setRiskAnswers([]); }}>
+              <Text style={[styles.retakeBtnText, { color: colors.textSecondary }]}>Retake Assessment</Text>
             </TouchableOpacity>
           </View>
           <Text style={[styles.strategyName, { color: colors.textPrimary }]}>{currentStrategy.name} Strategy</Text>
-          <View style={styles.allocationBar}>
+          <View style={styles.strategyBar}>
             {currentStrategy.allocation.map((item, i) => (
-              <View key={i} style={[styles.allocationSegment, { width: `${item.p}%`, backgroundColor: item.c }]}>
-                {item.p >= 15 && <Text style={styles.allocationSegmentText}>{item.p}%</Text>}
+              <View key={i} style={[styles.strategySegment, { width: `${item.p}%`, backgroundColor: item.c }]}>
+                {item.p >= 15 && <Text style={styles.strategySegmentText}>{item.p}%</Text>}
               </View>
             ))}
           </View>
-          <View style={styles.allocationLegend}>
+          <View style={styles.strategyLegend}>
             {currentStrategy.allocation.map((item, i) => (
-              <View key={i} style={styles.allocationLegendItem}>
-                <View style={[styles.allocationLegendDot, { backgroundColor: item.c }]} />
-                <Text style={[styles.allocationLegendText, { color: colors.textSecondary }]}>{item.name}</Text>
+              <View key={i} style={styles.strategyLegendItem}>
+                <View style={[styles.strategyLegendDot, { backgroundColor: item.c }]} />
+                <Text style={[styles.strategyLegendText, { color: colors.textSecondary }]}>{item.name} ({item.p}%)</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* ═══ TAX SAVING ═══ */}
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 5: TAX SAVING (80C)
+           ═══════════════════════════════════════════════════════════ */}
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Tax Saving</Text>
         <View style={[styles.glassCard, {
           backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
@@ -494,9 +418,9 @@ export default function InvestmentsScreen() {
           <View style={styles.taxHeader}>
             <View>
               <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>Section 80C</Text>
-              <Text style={[styles.taxUsed, { color: colors.textSecondary }]}>₹{formatINRShort(section80CUsed)} / ₹1.5L</Text>
+              <Text style={[styles.taxUsed, { color: colors.textSecondary }]}>{formatINRShort(section80CUsed)} / 1.5L</Text>
             </View>
-            <View style={[styles.taxPercentBadge, { backgroundColor: section80CUsed >= 150000 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)' }]}>
+            <View style={[styles.taxPercentBadge, { backgroundColor: section80CUsed >= 150000 ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' }]}>
               <Text style={[styles.taxPercentText, { color: section80CUsed >= 150000 ? Accent.emerald : Accent.amber }]}>
                 {((section80CUsed / 150000) * 100).toFixed(0)}%
               </Text>
@@ -507,11 +431,76 @@ export default function InvestmentsScreen() {
           </View>
         </View>
 
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 6: FINANCIAL GOALS
+           ═══════════════════════════════════════════════════════════ */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Financial Goals</Text>
+          <TouchableOpacity data-testid="add-goal-btn" style={[styles.addGoalBtn, { backgroundColor: '#F97316' }]} onPress={openAddGoal}>
+            <MaterialCommunityIcons name="plus" size={16} color="#fff" />
+            <Text style={styles.addGoalText}>Add</Text>
+          </TouchableOpacity>
+        </View>
+
+        {goals.length === 0 ? (
+          <View style={[styles.emptyGoals, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}>
+            <MaterialCommunityIcons name="flag-variant-outline" size={36} color={colors.textSecondary} />
+            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No goals yet</Text>
+            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Set financial goals to track your progress</Text>
+          </View>
+        ) : (
+          <>
+            {goals.length > 0 && (
+              <View style={[styles.goalsOverviewCard, {
+                backgroundColor: isDark ? 'rgba(249,115,22,0.1)' : 'rgba(249,115,22,0.06)',
+                borderColor: isDark ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.15)',
+              }]}>
+                <View style={styles.goalsOverviewRow}>
+                  <View>
+                    <Text style={[styles.goalsOverviewLabel, { color: colors.textSecondary }]}>Overall Progress</Text>
+                    <Text style={[styles.goalsOverviewAmount, { color: colors.textPrimary }]}>{formatINRShort(totalGoalCurrent)} / {formatINRShort(totalGoalTarget)}</Text>
+                  </View>
+                  <View style={[styles.goalsPercentBadge, { backgroundColor: overallGoalProgress >= 50 ? 'rgba(16,185,129,0.15)' : 'rgba(249,115,22,0.15)' }]}>
+                    <Text style={[styles.goalsPercentText, { color: overallGoalProgress >= 50 ? Accent.emerald : '#F97316' }]}>{overallGoalProgress.toFixed(0)}%</Text>
+                  </View>
+                </View>
+                <View style={[styles.goalsProgressBar, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+                  <View style={[styles.goalsProgressFill, { width: `${Math.min(overallGoalProgress, 100)}%`, backgroundColor: '#F97316' }]} />
+                </View>
+              </View>
+            )}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.goalsScroll}>
+              {goals.map(goal => {
+                const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
+                const progressColor = progress >= 75 ? Accent.emerald : progress >= 40 ? Accent.amber : Accent.ruby;
+                return (
+                  <TouchableOpacity key={goal.id} data-testid={`goal-card-${goal.id}`} style={[styles.goalCard, {
+                    backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.9)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                  }]} onPress={() => openEditGoal(goal)} onLongPress={() => handleDeleteGoal(goal.id, goal.title)}>
+                    <View style={styles.goalCardHeader}>
+                      <View style={[styles.goalIconWrap, { backgroundColor: `${getCategoryColor(goal.category, isDark)}20` }]}>
+                        <MaterialCommunityIcons name={getCategoryIcon(goal.category) as any} size={16} color={getCategoryColor(goal.category, isDark)} />
+                      </View>
+                      <Text style={[styles.goalPercent, { color: progressColor }]}>{progress.toFixed(0)}%</Text>
+                    </View>
+                    <Text style={[styles.goalTitle, { color: colors.textPrimary }]} numberOfLines={1}>{goal.title}</Text>
+                    <View style={[styles.goalBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+                      <View style={[styles.goalBarFill, { width: `${Math.min(progress, 100)}%`, backgroundColor: progressColor }]} />
+                    </View>
+                    <Text style={[styles.goalAmounts, { color: colors.textSecondary }]}>{formatINRShort(goal.current_amount)} / {formatINRShort(goal.target_amount)}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
+
         <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* ═══ ADD GOAL FAB ═══ */}
-      <TouchableOpacity style={styles.fab} onPress={openAddGoal}>
+      <TouchableOpacity data-testid="goal-fab" style={styles.fab} onPress={openAddGoal}>
         <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
           <MaterialCommunityIcons name="plus" size={28} color="#fff" />
         </LinearGradient>
@@ -525,47 +514,24 @@ export default function InvestmentsScreen() {
               <View style={styles.modalHandle} />
               <View style={styles.modalHeader}>
                 <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>{editGoal ? 'Edit Goal' : 'New Goal'}</Text>
-                <TouchableOpacity onPress={() => setShowGoalModal(false)}>
+                <TouchableOpacity data-testid="goal-modal-close" onPress={() => setShowGoalModal(false)}>
                   <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
-
-              <TextInput
-                style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                value={goalForm.title}
-                onChangeText={v => setGoalForm(p => ({ ...p, title: v }))}
-                placeholder="Goal title (e.g., Emergency Fund)"
-                placeholderTextColor={colors.textSecondary}
-              />
+              <TextInput data-testid="goal-title-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                value={goalForm.title} onChangeText={v => setGoalForm(p => ({ ...p, title: v }))} placeholder="Goal title" placeholderTextColor={colors.textSecondary} />
               <View style={styles.inputRow}>
-                <TextInput
-                  style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                  value={goalForm.target_amount}
-                  onChangeText={v => setGoalForm(p => ({ ...p, target_amount: v }))}
-                  placeholder="Target ₹"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="decimal-pad"
-                />
-                <TextInput
-                  style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                  value={goalForm.current_amount}
-                  onChangeText={v => setGoalForm(p => ({ ...p, current_amount: v }))}
-                  placeholder="Saved ₹"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="decimal-pad"
-                />
+                <TextInput data-testid="goal-target-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={goalForm.target_amount} onChangeText={v => setGoalForm(p => ({ ...p, target_amount: v }))} placeholder="Target" placeholderTextColor={colors.textSecondary} keyboardType="decimal-pad" />
+                <TextInput data-testid="goal-current-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={goalForm.current_amount} onChangeText={v => setGoalForm(p => ({ ...p, current_amount: v }))} placeholder="Saved" placeholderTextColor={colors.textSecondary} keyboardType="decimal-pad" />
               </View>
-              <TextInput
-                style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                value={goalForm.deadline}
-                onChangeText={v => setGoalForm(p => ({ ...p, deadline: v }))}
-                placeholder="Deadline (YYYY-MM-DD)"
-                placeholderTextColor={colors.textSecondary}
-              />
+              <TextInput data-testid="goal-deadline-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                value={goalForm.deadline} onChangeText={v => setGoalForm(p => ({ ...p, deadline: v }))} placeholder="Deadline (YYYY-MM-DD)" placeholderTextColor={colors.textSecondary} />
               <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
                 {GOAL_CATS.map(c => (
-                  <TouchableOpacity key={c} style={[styles.catChip, {
+                  <TouchableOpacity key={c} data-testid={`goal-cat-${c}`} style={[styles.catChip, {
                     backgroundColor: goalForm.category === c ? '#F97316' : colors.background,
                     borderColor: goalForm.category === c ? '#F97316' : colors.border,
                   }]} onPress={() => setGoalForm(p => ({ ...p, category: c }))}>
@@ -573,8 +539,7 @@ export default function InvestmentsScreen() {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveGoal} disabled={saving}>
+              <TouchableOpacity data-testid="goal-save-btn" style={styles.saveBtn} onPress={handleSaveGoal} disabled={saving}>
                 <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
                   {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>{editGoal ? 'Update Goal' : 'Create Goal'}</Text>}
                 </LinearGradient>
@@ -591,7 +556,7 @@ export default function InvestmentsScreen() {
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Risk Assessment</Text>
-              <TouchableOpacity onPress={() => setShowRiskModal(false)}>
+              <TouchableOpacity data-testid="risk-modal-close" onPress={() => setShowRiskModal(false)}>
                 <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -603,7 +568,7 @@ export default function InvestmentsScreen() {
             <Text style={[styles.questionText, { color: colors.textPrimary }]}>{RISK_QUESTIONS[riskStep].question}</Text>
             <View style={styles.optionsContainer}>
               {RISK_QUESTIONS[riskStep].options.map((opt, i) => (
-                <TouchableOpacity key={i} style={[styles.optionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}
+                <TouchableOpacity key={i} data-testid={`risk-option-${i}`} style={[styles.optionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}
                   onPress={() => handleRiskAnswer(opt.value)}>
                   <Text style={[styles.optionText, { color: colors.textPrimary }]}>{opt.label}</Text>
                 </TouchableOpacity>
@@ -623,120 +588,113 @@ const styles = StyleSheet.create({
 
   // Header
   stickyHeader: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100 },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
+  headerContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1 },
   headerLeft: { flex: 1 },
-  headerTitle: { fontSize: 22, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  headerTitle: { fontSize: 24, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -0.5 },
   headerSubtitle: { fontSize: 13, marginTop: 2 },
   refreshBtn: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
 
   // Scroll
   scrollView: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16 },
+  scrollContent: { paddingHorizontal: 20 },
 
   // Section
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  sectionTitle: { fontSize: 18, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 14 },
-  addGoalBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
-  addGoalText: { color: '#fff', fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  sectionTitle: { fontSize: 18, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 14, letterSpacing: -0.3 },
+  updatedAt: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '500' as any },
 
-  // Goals Overview
-  goalsOverviewCard: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 16 },
-  goalsOverviewRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  goalsOverviewLabel: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
-  goalsOverviewAmount: { fontSize: 18, fontFamily: 'DM Sans', fontWeight: '700' as any, marginTop: 2 },
-  goalsPercentBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
-  goalsPercentText: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
-  goalsProgressBar: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  goalsProgressFill: { height: '100%', borderRadius: 4 },
+  // ── Market Cards ──
+  marketGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 },
+  marketCard: { width: (SCREEN_WIDTH - 50) / 2, padding: 14, borderRadius: 16, borderWidth: 1 },
+  marketCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  marketIconWrap: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  marketName: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  marketPrice: { fontSize: 20, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -0.5 },
+  marketChangeBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  marketChangeText: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  marketChangeAbs: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any, marginTop: 2 },
 
-  // Empty Goals
-  emptyGoals: { alignItems: 'center', padding: 32, borderRadius: 18, borderWidth: 1, marginBottom: 16 },
-  emptyGoalsTitle: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, marginTop: 12 },
-  emptyGoalsSubtitle: { fontSize: 13, marginTop: 4 },
+  // Wide card (Silver)
+  marketCardWide: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 6 },
+  marketWideLeft: { flexDirection: 'row', alignItems: 'center' },
 
-  // Goals Scroll
-  goalsScroll: { marginBottom: 8 },
-  goalCard: { width: 160, padding: 14, borderRadius: 18, borderWidth: 1, marginRight: 12 },
-  goalCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  goalIconWrap: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  goalPercent: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
-  goalTitle: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 2 },
-  goalCategory: { fontSize: 11, marginBottom: 10 },
-  goalBarBg: { height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: 6 },
-  goalBarFill: { height: '100%', borderRadius: 3 },
-  goalAmounts: { fontSize: 11 },
-
-  // Portfolio
-  portfolioCard: { borderRadius: 18, padding: 18, borderWidth: 1, marginBottom: 20 },
-  portfolioHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  portfolioLabel: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any },
-  changeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  changeText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' as any },
-  portfolioValue: { fontSize: 28, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -1 },
-  portfolioChange: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any, marginTop: 4 },
-  summaryPillsRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
+  // ── Portfolio ──
+  portfolioCard: { borderRadius: 20, padding: 20, borderWidth: 1, marginBottom: 24 },
+  portfolioLabel: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any, textTransform: 'uppercase', letterSpacing: 0.5 },
+  portfolioValue: { fontSize: 32, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -1, marginTop: 4 },
+  pillsRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
   summaryPill: { flex: 1, padding: 10, borderRadius: 12, alignItems: 'center' },
-  pillLabel: { fontSize: 11, marginBottom: 4 },
+  pillLabel: { fontSize: 10, marginBottom: 3, fontFamily: 'DM Sans', fontWeight: '500' as any },
   pillValue: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any },
 
-  // Glass Card
-  glassCard: { borderRadius: 20, padding: 18, borderWidth: 1, marginBottom: 16 },
+  // ── Glass Card ──
+  glassCard: { borderRadius: 20, padding: 20, borderWidth: 1, marginBottom: 20 },
 
-  // Donut
-  donutContainer: { alignItems: 'center', marginBottom: 16, position: 'relative' },
-  donutCenter: { position: 'absolute', top: 50, alignItems: 'center' },
-  donutValue: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any },
-  legendGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', width: '47%', gap: 8 },
+  // ── Pie Chart ──
+  pieContainer: { alignItems: 'center', marginBottom: 20 },
+  legendGrid: { gap: 10 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendName: { flex: 1, fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
-  legendAmount: { fontSize: 11 },
+  legendName: { flex: 1, fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any },
+  legendPercent: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' as any, width: 40, textAlign: 'right' },
+  legendAmount: { fontSize: 12, width: 60, textAlign: 'right' },
+  emptyPie: { alignItems: 'center', padding: 32, gap: 10 },
+  emptyPieText: { fontSize: 13, textAlign: 'center' },
 
-  // Markets
-  marketsScroll: { marginBottom: 16 },
-  marketCard: { width: 120, padding: 14, borderRadius: 16, borderWidth: 1, marginRight: 10 },
-  marketName: { fontSize: 10, fontFamily: 'DM Sans', fontWeight: '600' as any, marginBottom: 4 },
-  marketValue: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any },
-  marketChangeBadge: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 6, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 8, alignSelf: 'flex-start' },
-  marketChangeText: { fontSize: 10, fontFamily: 'DM Sans', fontWeight: '700' as any },
-
-  // Risk
-  riskCard: { borderRadius: 20, padding: 18, borderWidth: 1, marginBottom: 16 },
-  riskHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  // ── Risk Profile ──
+  riskCard: { borderRadius: 20, padding: 20, borderWidth: 1, marginBottom: 20 },
+  riskHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   riskBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 14 },
   riskBadgeText: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
-  retakeBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
+  retakeBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   retakeBtnText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
-  strategyName: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 12 },
-  allocationBar: { flexDirection: 'row', height: 20, borderRadius: 10, overflow: 'hidden', marginBottom: 10 },
-  allocationSegment: { justifyContent: 'center', alignItems: 'center' },
-  allocationSegmentText: { fontSize: 9, fontFamily: 'DM Sans', fontWeight: '700' as any, color: '#fff' },
-  allocationLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  allocationLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  allocationLegendDot: { width: 8, height: 8, borderRadius: 4 },
-  allocationLegendText: { fontSize: 11 },
+  strategyName: { fontSize: 17, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 14 },
+  strategyBar: { flexDirection: 'row', height: 22, borderRadius: 11, overflow: 'hidden', marginBottom: 12 },
+  strategySegment: { justifyContent: 'center', alignItems: 'center' },
+  strategySegmentText: { fontSize: 10, fontFamily: 'DM Sans', fontWeight: '700' as any, color: '#fff' },
+  strategyLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  strategyLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  strategyLegendDot: { width: 8, height: 8, borderRadius: 4 },
+  strategyLegendText: { fontSize: 12 },
 
-  // Tax
+  // ── Tax ──
   taxHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  taxTitle: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  taxTitle: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any },
   taxUsed: { fontSize: 12, marginTop: 2 },
   taxPercentBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
-  taxPercentText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  taxPercentText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any },
   taxBarBg: { height: 8, borderRadius: 4, overflow: 'hidden' },
   taxBarFill: { height: '100%', borderRadius: 4 },
 
-  // FAB
+  // ── Goals ──
+  addGoalBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
+  addGoalText: { color: '#fff', fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  goalsOverviewCard: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 14 },
+  goalsOverviewRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  goalsOverviewLabel: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
+  goalsOverviewAmount: { fontSize: 17, fontFamily: 'DM Sans', fontWeight: '700' as any, marginTop: 2 },
+  goalsPercentBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  goalsPercentText: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  goalsProgressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
+  goalsProgressFill: { height: '100%', borderRadius: 3 },
+  emptyGoals: { alignItems: 'center', padding: 28, borderRadius: 18, borderWidth: 1, marginBottom: 16 },
+  emptyGoalsTitle: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700' as any, marginTop: 10 },
+  emptyGoalsSubtitle: { fontSize: 12, marginTop: 4 },
+  goalsScroll: { marginBottom: 8 },
+  goalCard: { width: 155, padding: 14, borderRadius: 16, borderWidth: 1, marginRight: 10 },
+  goalCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  goalIconWrap: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  goalPercent: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  goalTitle: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 8 },
+  goalBarBg: { height: 5, borderRadius: 3, overflow: 'hidden', marginBottom: 6 },
+  goalBarFill: { height: '100%', borderRadius: 3 },
+  goalAmounts: { fontSize: 10 },
+
+  // ── FAB ──
   fab: { position: 'absolute', right: 20, bottom: 90, zIndex: 99999, borderRadius: 24, shadowColor: '#EA580C', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
   fabGradient: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
 
-  // Modal
+  // ── Modals ──
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalKav: { maxHeight: '90%' },
   modalContent: { borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
@@ -746,7 +704,7 @@ const styles = StyleSheet.create({
   input: { height: 52, borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, fontSize: 15, marginBottom: 12 },
   inputRow: { flexDirection: 'row', gap: 10 },
   halfInput: { flex: 1 },
-  fieldLabel: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  fieldLabel: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   catScroll: { maxHeight: 40, marginBottom: 16 },
   catChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, borderWidth: 1, marginRight: 8 },
   saveBtn: { borderRadius: 999, overflow: 'hidden', marginTop: 8 },
