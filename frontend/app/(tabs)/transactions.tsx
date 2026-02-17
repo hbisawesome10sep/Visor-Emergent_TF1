@@ -654,8 +654,8 @@ export default function TransactionsScreen() {
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
                 {Platform.OS === 'web' ? (
                   <View
-                    ref={mountDateInput}
-                    style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: 'center', overflow: 'hidden' }]}
+                    nativeID="visor-date-picker"
+                    style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: 'center', overflow: 'visible' }]}
                     data-testid="date-picker-container"
                   />
                 ) : (
