@@ -1704,6 +1704,18 @@ async def get_portfolio_overview(user=Depends(get_current_user)):
     )
 
     # Merge holdings data into portfolio categories
+    # Normalize category names to avoid duplicates
+    CATEGORY_NORMALIZE = {"Stocks": "Stock", "Fixed Deposit": "FD", "Mutual Funds": "Mutual Fund"}
+    normalized_categories = {}
+    for cat_key, data in categories.items():
+        norm_key = CATEGORY_NORMALIZE.get(cat_key, cat_key)
+        if norm_key not in normalized_categories:
+            normalized_categories[norm_key] = {"invested": 0, "current_value": 0, "gain_loss": 0, "gain_loss_pct": 0, "transactions": 0}
+        normalized_categories[norm_key]["invested"] += data["invested"]
+        normalized_categories[norm_key]["current_value"] += data["current_value"]
+        normalized_categories[norm_key]["transactions"] += data["transactions"]
+    categories = normalized_categories
+
     holdings_cursor = db.holdings.find({"user_id": user["id"]})
     holdings_list = []
     async for doc in holdings_cursor:
