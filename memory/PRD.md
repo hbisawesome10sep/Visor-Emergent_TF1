@@ -9,15 +9,16 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - **AI**: OpenAI GPT-5.2 via Emergent Integrations (with risk profile context)
 - **Market Data**: Yahoo Finance (yfinance) — LIVE Indian market data
 
-## Invest Screen Layout (v7 — Feb 17, 2026)
+## Invest Screen Layout (v8 — Feb 17, 2026)
 1. **Indian Markets** — Live Nifty 50, SENSEX, Nifty Bank, Gold, Silver
 2. **Portfolio Overview** — Invested vs Current Value, category breakdown (includes holdings)
 3. **My Holdings** — Manual add + CAS PDF upload, live prices
 4. **Asset Allocation** — Donut pie chart
 5. **Risk Profile & Strategy** — 12-question behavioral finance assessment, score breakdown bars
-6. **Tax Planning** — Multi-section (80C, 80D, 80CCD1B, 80E, 80TTA), auto-mapped from transactions/holdings, progress bars, item lists, estimated tax saved
-7. **Rebalancing Actions** — Actual vs target allocation bars (based on risk profile), specific reduce/increase suggestions with amounts
-8. **Financial Goals** — CRUD with progress tracking
+6. **Tax Planning** — Multi-section (80C, 80D, 80CCD1B, 80E, 80TTA), auto-mapped, progress bars, tax saved estimates
+7. **Rebalancing Actions** — Actual vs target allocation bars, specific reduce/increase suggestions
+8. **What-If Simulator** — Interactive sliders (Equity/Debt/Gold/Alt), projected returns, volatility, Sharpe ratio, 5y/10y portfolio projections
+9. **Financial Goals** — CRUD with progress tracking
 
 ## Key API Endpoints
 - `GET /api/market-data` — Live Indian market data
@@ -26,7 +27,7 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - `GET /api/holdings/live` — Holdings with live prices
 - `POST /api/holdings/upload-cas` — CAS PDF upload
 - `GET/POST /api/risk-profile` — Risk profile CRUD
-- `GET /api/tax-summary` — Tax deductions by section with limits, usage, items
+- `GET /api/tax-summary` — Tax deductions by section
 - `GET /api/portfolio-rebalancing` — Actual vs target allocation with actions
 - `POST /api/ai/chat` — AI advisor (includes risk profile in context)
 
@@ -45,8 +46,9 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - ✅ Phase 2.5: Holdings Management (manual + CAS upload)
 - ✅ Holdings integrated into Portfolio Overview
 - ✅ Phase 3: Risk Appetite Questionnaire (12 questions, backend persistence, AI integration)
-- ✅ Phase 4: Tax Planning (80C/80D/80CCD1B/80E/80TTA with auto-mapping, progress, tax saved estimates)
+- ✅ Phase 4: Tax Planning (80C/80D/80CCD1B/80E/80TTA, auto-mapping, tax saved estimates)
 - ✅ Phase 4.5: Portfolio Rebalancing (actual vs target allocation, actionable suggestions)
+- ✅ Phase 4.6: What-If Simulator (interactive sliders, projected returns/volatility/Sharpe, 5y/10y projections)
 
 ## Prioritized Backlog
 
