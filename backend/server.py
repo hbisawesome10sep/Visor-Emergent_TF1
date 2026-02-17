@@ -67,6 +67,9 @@ class TransactionCreate(BaseModel):
     is_split: bool = False
     split_count: int = 1
     notes: Optional[str] = None
+    buy_sell: Optional[str] = None  # "buy" or "sell" for investment transactions
+    units: Optional[float] = None   # Number of units bought/sold
+    price_per_unit: Optional[float] = None  # Price per unit
 
 class TransactionResponse(BaseModel):
     id: str
