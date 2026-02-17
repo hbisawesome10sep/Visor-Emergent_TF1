@@ -882,7 +882,7 @@ export default function DashboardScreen() {
         >
           <View style={styles.cardHeader}>
             <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Financial Goals</Text>
-            <TouchableOpacity onPress={() => setShowGoalModal(true)}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/investments')}>
               <Text style={[styles.viewAllLink, { color: colors.primary }]}>+ Add Goal</Text>
             </TouchableOpacity>
           </View>
@@ -1851,6 +1851,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
     marginTop: 2,
+  },
+  trendMetricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  trendMetricLabel: {
+    fontSize: 14,
+    fontFamily: 'DM Sans', fontWeight: '500' as any,
+  },
+  trendMetricValue: {
+    fontSize: 16,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   trendInsightsList: {
     gap: 8,
