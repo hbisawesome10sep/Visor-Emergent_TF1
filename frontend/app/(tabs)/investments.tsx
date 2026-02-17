@@ -142,6 +142,10 @@ export default function InvestmentsScreen() {
   const [rebalanceData, setRebalanceData] = useState<any>(null);
   const [showSimulator, setShowSimulator] = useState(false);
   const [simAlloc, setSimAlloc] = useState({ Equity: 40, Debt: 30, Gold: 15, Alt: 15 });
+  const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
+  const [showSipModal, setShowSipModal] = useState(false);
+  const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
+  const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
 
   // Historical avg annual returns & volatility for Indian markets
   const ASSET_METRICS: Record<string, { ret: number; vol: number; label: string; color: string }> = {
