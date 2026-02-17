@@ -620,15 +620,41 @@ export default function TransactionsScreen() {
                   })}
                 </View>
 
-                {/* Date Input */}
+                {/* Date Picker */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
-                <TextInput
-                  style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                  value={form.date}
-                  onChangeText={v => setForm(p => ({ ...p, date: v }))}
-                  placeholder="YYYY-MM-DD (leave blank for today)"
-                  placeholderTextColor={colors.textSecondary}
-                />
+                {Platform.OS === 'web' ? (
+                  <View style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: 'center' }]}>
+                    <input
+                      type="date"
+                      value={form.date || new Date().toISOString().split('T')[0]}
+                      onChange={(e: any) => setForm(p => ({ ...p, date: e.target.value }))}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        outline: 'none',
+                        backgroundColor: 'transparent',
+                        color: isDark ? '#F9FAFB' : '#111827',
+                        fontFamily: 'DM Sans, sans-serif',
+                        fontSize: 15,
+                        cursor: 'pointer',
+                      } as any}
+                    />
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                    onPress={() => {
+                      // On native, show the date picker
+                      setShowDatePicker(true);
+                    }}
+                  >
+                    <Text style={{ color: form.date ? colors.textPrimary : colors.textSecondary, fontFamily: 'DM Sans', fontSize: 15 }}>
+                      {form.date || 'Select date'}
+                    </Text>
+                    <MaterialCommunityIcons name="calendar" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                )}
 
                 {/* Notes Input */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Notes (optional)</Text>
