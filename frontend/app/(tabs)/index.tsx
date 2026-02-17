@@ -642,13 +642,13 @@ export default function DashboardScreen() {
         >
           {!showTrendBack ? (
             <>
-              {/* Front: Summary Stats */}
+              {/* Front: Spending Trends & Key Metrics */}
               <View style={styles.trendHeader}>
                 <View>
-                  <Text style={[styles.trendTitle, { color: colors.textPrimary }]}>
-                    {selectedFrequency === 'Month' ? 'This Month' : selectedFrequency === 'Quarter' ? 'This Quarter' : selectedFrequency === 'Year' ? 'This Year' : 'All Time'}
+                  <Text style={[styles.trendTitle, { color: colors.textPrimary }]}>Trend Analysis</Text>
+                  <Text style={[styles.trendSubtitle, { color: colors.textSecondary }]}>
+                    {selectedFrequency === 'Month' ? 'This Month' : selectedFrequency === 'Quarter' ? 'This Quarter' : selectedFrequency === 'Year' ? 'This Year' : 'All Time'} · Tap for insights
                   </Text>
-                  <Text style={[styles.trendSubtitle, { color: colors.textSecondary }]}>Financial Summary</Text>
                 </View>
                 <TouchableOpacity 
                   style={[styles.trendFlipBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
@@ -659,42 +659,56 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Stats Row */}
-              <View style={styles.trendStatsRow}>
-                <View style={[styles.trendStatBox, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)' }]}>
-                  <MaterialCommunityIcons name="arrow-down-circle" size={20} color={Accent.emerald} />
-                  <Text style={[styles.trendStatLabel, { color: colors.textSecondary }]}>Income</Text>
-                  <Text style={[styles.trendStatValue, { color: Accent.emerald }]}>{formatINRShort(stats?.total_income || 0)}</Text>
-                </View>
-                <View style={[styles.trendStatBox, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.08)' }]}>
-                  <MaterialCommunityIcons name="arrow-up-circle" size={20} color={Accent.ruby} />
-                  <Text style={[styles.trendStatLabel, { color: colors.textSecondary }]}>Expenses</Text>
-                  <Text style={[styles.trendStatValue, { color: Accent.ruby }]}>{formatINRShort(stats?.total_expenses || 0)}</Text>
-                </View>
-                <View style={[styles.trendStatBox, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.08)' }]}>
-                  <MaterialCommunityIcons name="chart-line" size={20} color={Accent.sapphire} />
-                  <Text style={[styles.trendStatLabel, { color: colors.textSecondary }]}>Invested</Text>
-                  <Text style={[styles.trendStatValue, { color: Accent.sapphire }]}>{formatINRShort(stats?.total_investments || 0)}</Text>
-                </View>
-              </View>
-
-              {/* Savings Banner */}
-              <View style={[styles.trendSavingsBanner, { 
-                backgroundColor: (stats?.savings || 0) >= 0 
-                  ? isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)'
-                  : isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)',
-              }]}>
-                <MaterialCommunityIcons 
-                  name={(stats?.savings || 0) >= 0 ? "piggy-bank" : "alert-circle"} 
-                  size={22} 
-                  color={(stats?.savings || 0) >= 0 ? Accent.emerald : Accent.ruby} 
-                />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.trendSavingsLabel, { color: colors.textSecondary }]}>
-                    {(stats?.savings || 0) >= 0 ? 'Net Savings' : 'Over Budget'}
+              {/* Key Ratios */}
+              <View style={{ gap: 10 }}>
+                {/* Savings Rate */}
+                <View style={[styles.trendMetricRow, { backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)' }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                    <MaterialCommunityIcons name="piggy-bank" size={18} color={Accent.emerald} />
+                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>Savings Rate</Text>
+                  </View>
+                  <Text style={[styles.trendMetricValue, { color: (stats?.savings_rate || 0) >= 0 ? Accent.emerald : Accent.ruby }]}>
+                    {stats?.savings_rate?.toFixed(1) || 0}%
                   </Text>
-                  <Text style={[styles.trendSavingsValue, { color: (stats?.savings || 0) >= 0 ? Accent.emerald : Accent.ruby }]}>
-                    {formatINR(Math.abs(stats?.savings || 0))} ({stats?.savings_rate?.toFixed(1) || 0}%)
+                </View>
+                {/* Expense to Income */}
+                <View style={[styles.trendMetricRow, { backgroundColor: isDark ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.05)' }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                    <MaterialCommunityIcons name="cash-minus" size={18} color={Accent.ruby} />
+                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>Spend / Income</Text>
+                  </View>
+                  <Text style={[styles.trendMetricValue, { color: (stats?.total_income || 1) > 0 && ((stats?.total_expenses || 0) / (stats?.total_income || 1)) > 0.7 ? Accent.ruby : Accent.emerald }]}>
+                    {stats?.total_income ? ((stats.total_expenses / stats.total_income) * 100).toFixed(0) : 0}%
+                  </Text>
+                </View>
+                {/* Investment Rate */}
+                <View style={[styles.trendMetricRow, { backgroundColor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)' }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                    <MaterialCommunityIcons name="chart-line" size={18} color={Accent.sapphire} />
+                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>Investment Rate</Text>
+                  </View>
+                  <Text style={[styles.trendMetricValue, { color: investmentRate >= 15 ? Accent.emerald : investmentRate >= 5 ? Accent.amber : Accent.ruby }]}>
+                    {investmentRate.toFixed(1)}%
+                  </Text>
+                </View>
+                {/* Net Position */}
+                <View style={[styles.trendMetricRow, { 
+                  backgroundColor: (stats?.savings || 0) >= 0 
+                    ? isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)'
+                    : isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.08)',
+                }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                    <MaterialCommunityIcons 
+                      name={(stats?.savings || 0) >= 0 ? "trending-up" : "trending-down"} 
+                      size={18} 
+                      color={(stats?.savings || 0) >= 0 ? Accent.emerald : Accent.ruby} 
+                    />
+                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>
+                      {(stats?.savings || 0) >= 0 ? 'Net Savings' : 'Over Budget'}
+                    </Text>
+                  </View>
+                  <Text style={[styles.trendMetricValue, { color: (stats?.savings || 0) >= 0 ? Accent.emerald : Accent.ruby }]}>
+                    {formatINRShort(Math.abs(stats?.savings || 0))}
                   </Text>
                 </View>
               </View>
