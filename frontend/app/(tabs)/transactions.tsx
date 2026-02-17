@@ -1294,6 +1294,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'DM Sans', fontWeight: '500' as any,
   },
+  dropdownList: {
+    borderWidth: 1,
+    borderRadius: 14,
+    marginBottom: 16,
+    marginTop: -8,
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  suggestionChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
 
   // Toggle Cards
   toggleCard: {
