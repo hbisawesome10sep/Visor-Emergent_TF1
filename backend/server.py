@@ -2492,8 +2492,14 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
                                     "buy_price": price,
                                 })
     except Exception as e:
-        logger.error(f"CAS PDF parse error: {e}")
-        raise HTTPException(400, f"Failed to parse PDF: {str(e)}")
+        error_msg = str(e) if str(e) else "Unknown PDF parsing error"
+        logger.error(f"CAS PDF parse error: {error_msg}")
+        # Check for common encryption/password errors
+        if "password" in error_msg.lower() or "encrypted" in error_msg.lower() or "decrypt" in error_msg.lower():
+            raise HTTPException(400, "PDF is password-protected. Please enter the correct password.")
+        if "invalid" in error_msg.lower() or "corrupt" in error_msg.lower():
+            raise HTTPException(400, "PDF file appears to be corrupted or invalid.")
+        raise HTTPException(400, f"Failed to parse PDF: {error_msg}")
     return holdings
 
 @api_router.post("/holdings/upload-cas")
