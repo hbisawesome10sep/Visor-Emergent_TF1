@@ -415,6 +415,7 @@ export default function InsightsScreen() {
   const expenses = stats?.total_expenses || 0;
   const investments = stats?.total_investments || 0;
   const savingsRate = stats?.savings_rate || 0;
+  const goalProgress = stats?.goal_progress || 0;
 
   // Use backend-provided health score (consistent with Dashboard)
   const healthScore = stats?.health_score?.overall ?? 0;
