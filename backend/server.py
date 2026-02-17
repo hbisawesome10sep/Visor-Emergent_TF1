@@ -1702,6 +1702,39 @@ async def get_portfolio_overview(user=Depends(get_current_user)):
     categories = await loop.run_in_executor(
         _yf_executor, _compute_portfolio_values, transactions, market_data
     )
+
+    # Merge holdings data into portfolio categories
+    holdings_cursor = db.holdings.find({"user_id": user["id"]})
+    holdings_list = []
+    async for doc in holdings_cursor:
+        doc["id"] = str(doc.pop("_id"))
+        holdings_list.append(doc)
+    if holdings_list:
+        tickers = list(set(h["ticker"] for h in holdings_list if h.get("ticker")))
+        prices = await loop.run_in_executor(_yf_executor, _fetch_live_prices, tickers)
+        for h in holdings_list:
+            cat = h.get("category", "Stock")
+            # Map holding categories to portfolio categories
+            cat_key = cat
+            if cat in ("Mutual Fund", "ETF"):
+                cat_key = cat
+            invested = h["quantity"] * h["buy_price"]
+            current_price = h["buy_price"]
+            if h.get("ticker") and h["ticker"] in prices:
+                current_price = prices[h["ticker"]]["price"]
+            current_value = h["quantity"] * current_price
+            if cat_key not in categories:
+                categories[cat_key] = {"invested": 0, "current_value": 0, "gain_loss": 0, "gain_loss_pct": 0, "transactions": 0}
+            categories[cat_key]["invested"] = round(categories[cat_key]["invested"] + invested, 2)
+            categories[cat_key]["current_value"] = round(categories[cat_key]["current_value"] + current_value, 2)
+            categories[cat_key]["transactions"] += 1
+        # Recalculate gain/loss for each category
+        for cat_key in categories:
+            inv = categories[cat_key]["invested"]
+            cur = categories[cat_key]["current_value"]
+            categories[cat_key]["gain_loss"] = round(cur - inv, 2)
+            categories[cat_key]["gain_loss_pct"] = round((cur - inv) / inv * 100, 2) if inv else 0
+
     total_invested = sum(c["invested"] for c in categories.values())
     total_current = sum(c["current_value"] for c in categories.values())
     total_gain = round(total_current - total_invested, 2)
