@@ -625,30 +625,30 @@ export default function TransactionsScreen() {
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
                 {Platform.OS === 'web' ? (
                   <View style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: 'center' }]}>
-                    <input
-                      type="date"
-                      value={form.date || new Date().toISOString().split('T')[0]}
-                      onChange={(e: any) => setForm(p => ({ ...p, date: e.target.value }))}
-                      style={{
+                    {React.createElement('input', {
+                      type: 'date',
+                      value: form.date || new Date().toISOString().split('T')[0],
+                      onChange: (e: any) => setForm(p => ({ ...p, date: e.target.value })),
+                      'data-testid': 'date-picker-input',
+                      style: {
                         width: '100%',
                         height: '100%',
                         border: 'none',
                         outline: 'none',
-                        backgroundColor: 'transparent',
+                        background: 'transparent',
                         color: isDark ? '#F9FAFB' : '#111827',
                         fontFamily: 'DM Sans, sans-serif',
-                        fontSize: 15,
+                        fontSize: '15px',
                         cursor: 'pointer',
-                      } as any}
-                    />
+                        colorScheme: isDark ? 'dark' : 'light',
+                      },
+                    })}
                   </View>
                 ) : (
                   <TouchableOpacity
                     style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
-                    onPress={() => {
-                      // On native, show the date picker
-                      setShowDatePicker(true);
-                    }}
+                    onPress={() => setShowDatePicker(true)}
+                    data-testid="date-picker-native"
                   >
                     <Text style={{ color: form.date ? colors.textPrimary : colors.textSecondary, fontFamily: 'DM Sans', fontSize: 15 }}>
                       {form.date || 'Select date'}
