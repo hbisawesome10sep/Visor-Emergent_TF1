@@ -1505,7 +1505,7 @@ export default function InvestmentsScreen() {
 
       {/* ═══ ADD GOAL FAB ═══ */}
       <TouchableOpacity data-testid="goal-fab" style={styles.fab} onPress={openAddGoal}>
-        <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
+        <LinearGradient colors={[Accent.emerald, Accent.teal]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
           <MaterialCommunityIcons name="plus" size={28} color="#fff" />
         </LinearGradient>
       </TouchableOpacity>
