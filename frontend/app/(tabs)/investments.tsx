@@ -1155,6 +1155,136 @@ export default function InvestmentsScreen() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.7: RECURRING INVESTMENTS (SIPs)
+           ═══════════════════════════════════════════════════════════ */}
+        <View style={styles.sectionHeader}>
+          <Text data-testid="sip-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Recurring Investments</Text>
+          <TouchableOpacity data-testid="add-sip-btn" style={[styles.addGoalBtn, { backgroundColor: '#6366F1' }]} onPress={openAddSip}>
+            <MaterialCommunityIcons name="plus" size={16} color="#fff" />
+            <Text style={styles.addGoalText}>Add SIP</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* SIP Summary Card */}
+        {recurringData && recurringData.recurring.length > 0 && (
+          <View data-testid="sip-summary-card" style={[styles.sipSummaryCard, {
+            backgroundColor: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)',
+            borderColor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.15)',
+          }]}>
+            <View style={styles.sipSummaryRow}>
+              <View>
+                <Text style={[styles.sipSummaryLabel, { color: colors.textSecondary }]}>Monthly Commitment</Text>
+                <Text data-testid="sip-monthly-commitment" style={[styles.sipSummaryAmount, { color: '#6366F1' }]}>
+                  {formatINR(recurringData.summary.monthly_commitment)}/mo
+                </Text>
+              </View>
+              <View style={styles.sipCountBadge}>
+                <Text style={styles.sipCountText}>{recurringData.summary.active_count} Active</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Empty State */}
+        {(!recurringData || recurringData.recurring.length === 0) && (
+          <View style={[styles.emptyGoals, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}>
+            <MaterialCommunityIcons name="calendar-sync-outline" size={36} color={colors.textSecondary} />
+            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No recurring investments</Text>
+            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Set up SIPs to automate your investments</Text>
+          </View>
+        )}
+
+        {/* SIP Cards */}
+        {recurringData && recurringData.recurring.length > 0 && (
+          <View style={styles.sipList}>
+            {recurringData.recurring.map(sip => {
+              const catColor = ASSET_CATEGORIES[sip.category]?.color || '#6366F1';
+              const freqLabel = sip.frequency.charAt(0).toUpperCase() + sip.frequency.slice(1);
+              const nextDate = sip.next_execution ? new Date(sip.next_execution).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '-';
+              return (
+                <View key={sip.id} data-testid={`sip-card-${sip.id}`} style={[styles.sipCard, {
+                  backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : '#FFFFFF',
+                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                  opacity: sip.is_active ? 1 : 0.6,
+                }]}>
+                  {/* SIP Header */}
+                  <View style={styles.sipCardHeader}>
+                    <View style={[styles.sipIconWrap, { backgroundColor: catColor + '20' }]}>
+                      <MaterialCommunityIcons name="calendar-sync" size={18} color={catColor} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.sipName, { color: colors.textPrimary }]} numberOfLines={1}>{sip.name}</Text>
+                      <Text style={[styles.sipCategory, { color: colors.textSecondary }]}>{sip.category} • {freqLabel}</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={[styles.sipAmount, { color: colors.textPrimary }]}>{formatINR(sip.amount)}</Text>
+                      {!sip.is_active && (
+                        <View style={[styles.sipPausedBadge, { backgroundColor: '#F59E0B20' }]}>
+                          <Text style={[styles.sipPausedText, { color: '#F59E0B' }]}>Paused</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Next Execution & Stats */}
+                  <View style={[styles.sipStatsRow, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
+                    <View style={styles.sipStat}>
+                      <Text style={[styles.sipStatLabel, { color: colors.textSecondary }]}>Next</Text>
+                      <Text style={[styles.sipStatValue, { color: colors.textPrimary }]}>{nextDate}</Text>
+                    </View>
+                    <View style={styles.sipStatDivider} />
+                    <View style={styles.sipStat}>
+                      <Text style={[styles.sipStatLabel, { color: colors.textSecondary }]}>Invested</Text>
+                      <Text style={[styles.sipStatValue, { color: Accent.emerald }]}>{formatINRShort(sip.total_invested)}</Text>
+                    </View>
+                    <View style={styles.sipStatDivider} />
+                    <View style={styles.sipStat}>
+                      <Text style={[styles.sipStatLabel, { color: colors.textSecondary }]}>Count</Text>
+                      <Text style={[styles.sipStatValue, { color: colors.textPrimary }]}>{sip.execution_count}</Text>
+                    </View>
+                  </View>
+
+                  {/* Action Buttons */}
+                  <View style={styles.sipActions}>
+                    <TouchableOpacity
+                      data-testid={`sip-execute-${sip.id}`}
+                      style={[styles.sipActionBtn, { backgroundColor: Accent.emerald + '15', borderColor: Accent.emerald + '30' }]}
+                      onPress={() => handleExecuteSip(sip)}
+                      disabled={!sip.is_active}
+                    >
+                      <MaterialCommunityIcons name="check-circle-outline" size={16} color={Accent.emerald} />
+                      <Text style={[styles.sipActionText, { color: Accent.emerald }]}>Execute</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      data-testid={`sip-pause-${sip.id}`}
+                      style={[styles.sipActionBtn, { backgroundColor: '#F59E0B15', borderColor: '#F59E0B30' }]}
+                      onPress={() => handlePauseSip(sip)}
+                    >
+                      <MaterialCommunityIcons name={sip.is_active ? 'pause-circle-outline' : 'play-circle-outline'} size={16} color="#F59E0B" />
+                      <Text style={[styles.sipActionText, { color: '#F59E0B' }]}>{sip.is_active ? 'Pause' : 'Resume'}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      data-testid={`sip-edit-${sip.id}`}
+                      style={[styles.sipActionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: colors.border }]}
+                      onPress={() => openEditSip(sip)}
+                    >
+                      <MaterialCommunityIcons name="pencil-outline" size={16} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      data-testid={`sip-delete-${sip.id}`}
+                      style={[styles.sipActionBtn, { backgroundColor: Accent.ruby + '10', borderColor: Accent.ruby + '20' }]}
+                      onPress={() => handleDeleteSip(sip.id, sip.name)}
+                    >
+                      <MaterialCommunityIcons name="delete-outline" size={16} color={Accent.ruby} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
            ═══════════════════════════════════════════════════════════ */}
         <View style={styles.sectionHeader}>
