@@ -201,7 +201,7 @@ export default function TransactionsScreen() {
     setSaving(true);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const body = {
+      const body: any = {
         type: form.type,
         amount: parseFloat(form.amount),
         category: form.category,
@@ -213,6 +213,13 @@ export default function TransactionsScreen() {
         is_split: form.is_split,
         split_count: form.is_split ? parseInt(form.split_count) || 2 : 1,
       };
+      
+      // Add investment-specific fields
+      if (form.type === 'investment') {
+        body.buy_sell = form.buy_sell || 'buy';
+        if (form.units) body.units = parseFloat(form.units);
+        if (form.price_per_unit) body.price_per_unit = parseFloat(form.price_per_unit);
+      }
 
       if (editingTxn) {
         await apiRequest(`/transactions/${editingTxn.id}`, { method: 'PUT', token, body });
