@@ -1355,6 +1355,87 @@ export default function InvestmentsScreen() {
         })}
 
         {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.10: CAPITAL GAINS
+           ═══════════════════════════════════════════════════════════ */}
+        {capitalGainsData && (capitalGainsData.gains?.length > 0 || capitalGainsData.summary?.total_estimated_tax > 0) && (
+          <View data-testid="capital-gains-section">
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 8 }]}>Capital Gains Tax</Text>
+            
+            {/* Summary Card */}
+            <View style={[styles.glassCard, {
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+              marginBottom: 12,
+            }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.taxUsed, { color: colors.textSecondary, marginBottom: 4 }]}>Short Term (STCG)</Text>
+                  <Text style={[styles.taxTitle, { color: Accent.ruby }]}>{formatINR(capitalGainsData.summary?.total_stcg || 0)}</Text>
+                  <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>Tax: {formatINR(capitalGainsData.summary?.estimated_stcg_tax || 0)}</Text>
+                </View>
+                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                  <Text style={[styles.taxUsed, { color: colors.textSecondary, marginBottom: 4 }]}>Long Term (LTCG)</Text>
+                  <Text style={[styles.taxTitle, { color: Accent.sapphire }]}>{formatINR(capitalGainsData.summary?.total_ltcg || 0)}</Text>
+                  <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>Tax: {formatINR(capitalGainsData.summary?.estimated_ltcg_tax || 0)}</Text>
+                </View>
+              </View>
+              
+              {capitalGainsData.summary?.ltcg_exemption > 0 && capitalGainsData.summary?.total_ltcg > 0 && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8, borderRadius: 8, backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)', marginBottom: 10 }}>
+                  <MaterialCommunityIcons name="information" size={14} color={Accent.sapphire} />
+                  <Text style={{ fontSize: 11, color: colors.textSecondary, flex: 1 }}>
+                    LTCG exemption: {formatINR(capitalGainsData.summary.ltcg_exemption)} (Taxable: {formatINR(capitalGainsData.summary.ltcg_taxable)})
+                  </Text>
+                </View>
+              )}
+
+              <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>Total Estimated Tax</Text>
+                <Text style={[styles.taxTitle, { color: Accent.ruby, fontSize: 16 }]}>{formatINR(capitalGainsData.summary?.total_estimated_tax || 0)}</Text>
+              </View>
+            </View>
+
+            {/* Individual Gains */}
+            {capitalGainsData.gains?.length > 0 && capitalGainsData.gains.map((gain: any, idx: number) => (
+              <View key={idx} data-testid={`capital-gain-item-${idx}`} style={[styles.glassCard, {
+                backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                marginBottom: 8, padding: 14,
+              }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={[styles.taxTitle, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>{gain.description}</Text>
+                  <View style={[styles.taxPercentBadge, { backgroundColor: gain.is_long_term ? 'rgba(59,130,246,0.1)' : 'rgba(239,68,68,0.1)' }]}>
+                    <Text style={[styles.taxPercentText, { color: gain.is_long_term ? Accent.sapphire : Accent.ruby, fontSize: 10 }]}>
+                      {gain.is_long_term ? 'LTCG' : 'STCG'}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    Sold: {formatINR(gain.sell_amount)} · Cost: {formatINR(gain.cost_basis)}
+                  </Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700' as any, color: gain.gain_loss >= 0 ? Accent.emerald : Accent.ruby }}>
+                    {gain.gain_loss >= 0 ? '+' : ''}{formatINR(gain.gain_loss)}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
+                  {gain.holding_days} days · Tax: {formatINR(gain.tax_liability)} @ {(gain.tax_rate * 100).toFixed(1)}%
+                </Text>
+              </View>
+            ))}
+
+            {/* Tax Notes */}
+            {capitalGainsData.notes?.length > 0 && (
+              <View style={{ marginBottom: 16, paddingHorizontal: 4 }}>
+                {capitalGainsData.notes.map((note: string, idx: number) => (
+                  <Text key={idx} style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 2 }}>• {note}</Text>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
            ═══════════════════════════════════════════════════════════ */}
         <View style={styles.sectionHeader}>
