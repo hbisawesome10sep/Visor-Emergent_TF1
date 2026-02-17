@@ -95,8 +95,12 @@ export default function InvestmentsScreen() {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
   const [riskStep, setRiskStep] = useState(0);
-  const [riskAnswers, setRiskAnswers] = useState<number[]>([]);
+  const [riskAnswers, setRiskAnswers] = useState<{question_id: number; value: number; category: string}[]>([]);
   const [riskProfile, setRiskProfile] = useState<'Conservative' | 'Moderate' | 'Aggressive'>('Moderate');
+  const [riskScore, setRiskScore] = useState(0);
+  const [riskBreakdown, setRiskBreakdown] = useState<Record<string, number>>({});
+  const [riskSaved, setRiskSaved] = useState(false);
+  const [showRiskResult, setShowRiskResult] = useState(false);
   const [goalForm, setGoalForm] = useState({ title: '', target_amount: '', current_amount: '0', deadline: '', category: 'Safety' });
   const [saving, setSaving] = useState(false);
   const [holdingsData, setHoldingsData] = useState<HoldingsData | null>(null);
