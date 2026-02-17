@@ -902,7 +902,7 @@ export default function DashboardScreen() {
               </Text>
               <TouchableOpacity
                 style={[styles.emptyBtn, { backgroundColor: colors.primary }]}
-                onPress={() => setShowGoalModal(true)}
+                onPress={() => router.push('/(tabs)/investments')}
               >
                 <Text style={styles.emptyBtnText}>Create Your First Goal</Text>
               </TouchableOpacity>
