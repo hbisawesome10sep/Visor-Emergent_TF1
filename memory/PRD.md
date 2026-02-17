@@ -52,11 +52,11 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - ✅ Recurring Transactions (SIPs) - Full CRUD, pause/resume, manual execution (Feb 17, 2026)
 - ✅ Bug Fix: AI Chat endpoint alignment (Feb 17, 2026)
 - ✅ Bug Fix: Investment transactions display without negative sign (Feb 17, 2026)
+- ✅ eCAS PDF Parser overhaul - Now correctly extracts invested amount, current value, units, NAV for CDSL eCAS format (Feb 17, 2026)
 
 ## Prioritized Backlog
 
 ### P0 (Next)
-- eCAS Statement parsing improvements (user can provide sample file for exact field extraction)
 - Transaction Buy/Sell toggle + Capital Gains Tax calculation
 
 ### P1
