@@ -1283,6 +1283,75 @@ export default function InvestmentsScreen() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.9: TAX PLANNING
+           ═══════════════════════════════════════════════════════════ */}
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Tax Planning</Text>
+        <Text data-testid="tax-fy-label" style={[styles.taxFyLabel, { color: colors.textSecondary }]}>FY {taxData?.fy || '2025-26'}</Text>
+
+        {taxData?.tax_saved_30_slab > 0 && (
+          <View data-testid="tax-saved-badge" style={[styles.taxSavedBadge, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
+            <MaterialCommunityIcons name="cash-check" size={16} color={Accent.emerald} />
+            <Text style={[styles.taxSavedText, { color: Accent.emerald }]}>
+              Est. tax saved: {formatINR(taxData.tax_saved_30_slab)} (30% slab) / {formatINR(taxData.tax_saved_20_slab)} (20% slab)
+            </Text>
+          </View>
+        )}
+
+        {taxSections.map((sec: any) => {
+          const pct = sec.limit > 0 ? Math.min((sec.used / sec.limit) * 100, 100) : 0;
+          const isFull = sec.limit > 0 && sec.used >= sec.limit;
+          const barColor = isFull ? Accent.emerald : '#F97316';
+          return (
+            <View key={sec.section} data-testid={`tax-section-${sec.section}`} style={[styles.glassCard, {
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+              marginBottom: 12,
+            }]}>
+              <View style={styles.taxHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={[styles.taxIconWrap, { backgroundColor: isFull ? 'rgba(16,185,129,0.12)' : 'rgba(249,115,22,0.12)' }]}>
+                    <MaterialCommunityIcons name={sec.icon || 'file-document-outline'} size={18} color={isFull ? Accent.emerald : '#F97316'} />
+                  </View>
+                  <View>
+                    <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>{sec.label}</Text>
+                    <Text style={[styles.taxUsed, { color: colors.textSecondary }]}>
+                      {formatINRShort(sec.used)} {sec.limit > 0 ? `/ ${formatINRShort(sec.limit)}` : '(no limit)'}
+                    </Text>
+                  </View>
+                </View>
+                {sec.limit > 0 && (
+                  <View style={[styles.taxPercentBadge, { backgroundColor: isFull ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)' }]}>
+                    <Text style={[styles.taxPercentText, { color: isFull ? Accent.emerald : Accent.amber }]}>
+                      {pct.toFixed(0)}%
+                    </Text>
+                  </View>
+                )}
+              </View>
+              {sec.limit > 0 && (
+                <View style={[styles.taxBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                  <View style={[styles.taxBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
+                </View>
+              )}
+              {sec.items && sec.items.length > 0 && (
+                <View style={styles.taxItemsList}>
+                  {sec.items.map((item: any, idx: number) => (
+                    <View key={idx} style={styles.taxItemRow}>
+                      <Text style={[styles.taxItemName, { color: colors.textSecondary }]}>{item.name}</Text>
+                      <Text style={[styles.taxItemAmt, { color: colors.textPrimary }]}>{formatINR(item.amount)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {sec.remaining > 0 && (
+                <Text style={[styles.taxRemaining, { color: colors.textSecondary }]}>
+                  {formatINRShort(sec.remaining)} remaining
+                </Text>
+              )}
+            </View>
+          );
+        })}
+
+        {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
            ═══════════════════════════════════════════════════════════ */}
         <View style={styles.sectionHeader}>
