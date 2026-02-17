@@ -2472,21 +2472,38 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
                 # Calculate buy price (average cost per unit)
                 buy_price = cost_value / unit_balance if unit_balance > 0 else 0
                 
-                # Extract scheme name
-                # Pattern: after ISIN and scheme code (like D157, 127FMGDG), find text before numbers
-                # Remove folio, ISIN, scheme code prefix
+                # Extract scheme name using multiple patterns
                 scheme_name = ""
                 
-                # Try to find scheme name after "- " pattern
+                # Pattern 1: Text after "- " that contains common fund keywords
                 name_match = re.search(r'[-–]\s*([A-Za-z][A-Za-z\s\(\)\-]+(?:Fund|Growth|Plan|Option|Cap)[^\d]*)', line)
                 if name_match:
                     scheme_name = name_match.group(1).strip()
-                    # Clean up the name
+                
+                # Pattern 2: For all caps names like "NIPPON INDIA SMALL CAP"
+                if not scheme_name or len(scheme_name) < 5:
+                    # Look for all-caps fund names after scheme code
+                    caps_match = re.search(r'[A-Z0-9]{6,}\s*[-–]?\s*([A-Z][A-Z\s]+(?:FUND|CAP|GROWTH)[^\d]*)', line, re.IGNORECASE)
+                    if caps_match:
+                        scheme_name = caps_match.group(1).strip().title()  # Convert to title case
+                
+                # Pattern 3: Look for name after ISIN in the format "CODE - Name"
+                if not scheme_name or len(scheme_name) < 5:
+                    after_isin = line.split(isin)[-1] if isin in line else ""
+                    code_name_match = re.search(r'^[\s/0-9]*[A-Z0-9]+\s*[-–]\s*([A-Za-z][A-Za-z\s]+)', after_isin)
+                    if code_name_match:
+                        scheme_name = code_name_match.group(1).strip()
+                
+                # Clean up the extracted name
+                if scheme_name:
                     scheme_name = re.sub(r'\s*[-–]\s*$', '', scheme_name)  # Remove trailing dash
                     scheme_name = re.sub(r'\(Non-Demat\)', '', scheme_name).strip()
                     scheme_name = re.sub(r'\(formerly.*?\)', '', scheme_name).strip()
                     scheme_name = re.sub(r'\s+', ' ', scheme_name).strip()  # Normalize whitespace
+                    # Remove any numeric suffixes
+                    scheme_name = re.sub(r'\s*\d+[\.,]?\d*\s*$', '', scheme_name).strip()
                 
+                # Fallback to ISIN if no name found
                 if not scheme_name or len(scheme_name) < 5:
                     scheme_name = f"Fund {isin}"
                 
