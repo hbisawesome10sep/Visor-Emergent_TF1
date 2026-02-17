@@ -2390,13 +2390,26 @@ async def get_holdings_live(user=Depends(get_current_user)):
     prices = await loop.run_in_executor(_yf_executor, _fetch_live_prices, tickers)
     result = []
     for h in holdings:
-        invested = h["quantity"] * h["buy_price"]
-        current_price = 0
-        if h.get("ticker") and h["ticker"] in prices:
-            current_price = prices[h["ticker"]]["price"]
+        # For CAS-uploaded holdings, use stored invested_value and current_value
+        # For manual entries without these values, calculate from buy_price
+        stored_invested = h.get("invested_value", 0)
+        stored_current = h.get("current_value", 0)
+        
+        if stored_invested > 0 and stored_current > 0:
+            # Use eCAS values directly
+            invested = stored_invested
+            current_value = stored_current
+            current_price = current_value / h["quantity"] if h["quantity"] > 0 else 0
         else:
-            current_price = h["buy_price"]
-        current_value = h["quantity"] * current_price
+            # Calculate from buy_price (manual entries)
+            invested = h["quantity"] * h["buy_price"]
+            current_price = 0
+            if h.get("ticker") and h["ticker"] in prices:
+                current_price = prices[h["ticker"]]["price"]
+            else:
+                current_price = h["buy_price"]
+            current_value = h["quantity"] * current_price
+        
         gain = current_value - invested
         gain_pct = round((gain / invested * 100), 2) if invested else 0
         result.append({
