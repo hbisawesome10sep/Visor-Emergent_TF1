@@ -183,8 +183,18 @@ export default function InvestmentsScreen() {
   const totalGoalCurrent = goals.reduce((s, g) => s + g.current_amount, 0);
   const overallGoalProgress = totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
 
-  // ── Helper: format price for markets ──
-  const fmtPrice = (p: number) => p.toLocaleString('en-IN', { maximumFractionDigits: p >= 1000 ? 0 : 2 });
+  // ── Helper: format price for markets (Indian comma system) ──
+  const fmtPrice = (p: number) => {
+    const num = Math.round(p);
+    const str = num.toString();
+    const digits = str.split('').reverse();
+    let formatted = '';
+    for (let i = 0; i < digits.length; i++) {
+      if (i === 3 || (i > 3 && (i - 3) % 2 === 0)) formatted = ',' + formatted;
+      formatted = digits[i] + formatted;
+    }
+    return formatted;
+  };
 
   if (loading) {
     return (
