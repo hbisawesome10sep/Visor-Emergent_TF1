@@ -2559,6 +2559,9 @@ async def upload_cas(
             "category": h["category"],
             "quantity": h["quantity"],
             "buy_price": h.get("buy_price", 0),
+            "invested_value": h.get("invested_value", 0),
+            "current_value": h.get("current_value", 0),
+            "nav": h.get("nav", 0),
             "buy_date": "",
             "source": "cas_upload",
             "created_at": now,
@@ -2567,7 +2570,23 @@ async def upload_cas(
         doc["id"] = str(result.inserted_id)
         doc.pop("_id", None)
         created.append(doc)
-    return {"message": f"Imported {len(created)} holdings from CAS", "holdings": created}
+    
+    # Calculate totals for response
+    total_invested = sum(h.get("invested_value", 0) for h in parsed)
+    total_current = sum(h.get("current_value", 0) for h in parsed)
+    gain = total_current - total_invested
+    gain_pct = (gain / total_invested * 100) if total_invested > 0 else 0
+    
+    return {
+        "message": f"Imported {len(created)} holdings from CAS",
+        "holdings": created,
+        "summary": {
+            "total_invested": round(total_invested, 2),
+            "total_current": round(total_current, 2),
+            "gain_loss": round(gain, 2),
+            "gain_loss_pct": round(gain_pct, 2),
+        }
+    }
 
 @api_router.delete("/holdings/clear-all")
 async def clear_all_holdings(user=Depends(get_current_user)):
