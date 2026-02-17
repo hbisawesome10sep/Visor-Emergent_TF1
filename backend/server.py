@@ -1497,6 +1497,120 @@ async def get_balance_sheet(
     }
 
 # ══════════════════════════════════════
+#  MARKET DATA (Alpha Vantage)
+# ══════════════════════════════════════
+
+import httpx
+import asyncio
+
+ALPHA_VANTAGE_BASE = "https://www.alphavantage.co/query"
+REFRESH_TIMES_IST = ["09:25", "11:30", "12:30", "15:15"]
+
+MARKET_CONFIG = [
+    {"key": "nifty_50", "name": "Nifty 50", "symbol": "NSE:NIFTY", "type": "index", "icon": "chart-line"},
+    {"key": "sensex", "name": "SENSEX", "symbol": "BSE:SENSEX", "type": "index", "icon": "chart-areaspline"},
+    {"key": "nifty_bank", "name": "Nifty Bank", "symbol": "NSE:NIFTYBANK", "type": "index", "icon": "bank"},
+    {"key": "gold_10g", "name": "Gold (10g)", "metal": "XAU", "grams": 10, "type": "commodity", "icon": "diamond-stone"},
+    {"key": "silver_1kg", "name": "Silver (1Kg)", "metal": "XAG", "grams": 1000, "type": "commodity", "icon": "diamond-outline"},
+]
+
+async def fetch_av_index(symbol: str) -> dict:
+    try:
+        async with httpx.AsyncClient() as c:
+            resp = await c.get(ALPHA_VANTAGE_BASE, params={
+                "function": "GLOBAL_QUOTE", "symbol": symbol, "apikey": ALPHA_VANTAGE_KEY,
+            }, timeout=15)
+            data = resp.json()
+            quote = data.get("Global Quote", {})
+            if quote and quote.get("05. price"):
+                return {
+                    "price": float(quote["05. price"]),
+                    "change": float(quote.get("09. change", 0)),
+                    "change_percent": float(quote.get("10. change percent", "0").replace("%", "")),
+                    "prev_close": float(quote.get("08. previous close", 0)),
+                }
+    except Exception as e:
+        logger.error(f"AV index fetch error ({symbol}): {e}")
+    return {}
+
+async def fetch_av_commodity_inr(metal: str, grams: float) -> dict:
+    try:
+        async with httpx.AsyncClient() as c:
+            resp = await c.get(ALPHA_VANTAGE_BASE, params={
+                "function": "CURRENCY_EXCHANGE_RATE",
+                "from_currency": metal, "to_currency": "INR",
+                "apikey": ALPHA_VANTAGE_KEY,
+            }, timeout=15)
+            data = resp.json()
+            rate_data = data.get("Realtime Currency Exchange Rate", {})
+            if rate_data and rate_data.get("5. Exchange Rate"):
+                price_per_oz = float(rate_data["5. Exchange Rate"])
+                price_per_gram = price_per_oz / 31.1035
+                total = round(price_per_gram * grams, 2)
+                return {"price": total}
+    except Exception as e:
+        logger.error(f"AV commodity fetch error ({metal}): {e}")
+    return {}
+
+async def refresh_all_market_data():
+    if not ALPHA_VANTAGE_KEY:
+        logger.warning("No ALPHA_VANTAGE_KEY configured, skipping market refresh")
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    for cfg in MARKET_CONFIG:
+        result = {}
+        if cfg["type"] == "index":
+            result = await fetch_av_index(cfg["symbol"])
+        elif cfg["type"] == "commodity":
+            result = await fetch_av_commodity_inr(cfg["metal"], cfg["grams"])
+        if result.get("price"):
+            await db.market_data.update_one(
+                {"key": cfg["key"]},
+                {"$set": {**result, "key": cfg["key"], "name": cfg["name"], "icon": cfg["icon"], "last_updated": now}},
+                upsert=True,
+            )
+            logger.info(f"Market updated: {cfg['name']} = {result['price']}")
+        await asyncio.sleep(12)  # rate limit: 5 calls/min
+
+async def market_data_scheduler():
+    last_refresh = None
+    while True:
+        utc_now = datetime.now(timezone.utc)
+        ist_now = utc_now + timedelta(hours=5, minutes=30)
+        ist_hhmm = ist_now.strftime("%H:%M")
+        if ist_hhmm in REFRESH_TIMES_IST and last_refresh != ist_hhmm:
+            logger.info(f"Scheduled market refresh at IST {ist_hhmm}")
+            last_refresh = ist_hhmm
+            await refresh_all_market_data()
+        await asyncio.sleep(30)
+
+async def seed_market_data():
+    count = await db.market_data.count_documents({})
+    if count >= 5:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    seeds = [
+        {"key": "nifty_50", "name": "Nifty 50", "icon": "chart-line", "price": 25682.00, "change": 152.30, "change_percent": 0.60, "prev_close": 25529.70, "last_updated": now},
+        {"key": "sensex", "name": "SENSEX", "icon": "chart-areaspline", "price": 83277.00, "change": 445.20, "change_percent": 0.54, "prev_close": 82831.80, "last_updated": now},
+        {"key": "nifty_bank", "name": "Nifty Bank", "icon": "bank", "price": 52890.00, "change": -123.45, "change_percent": -0.23, "prev_close": 53013.45, "last_updated": now},
+        {"key": "gold_10g", "name": "Gold (10g)", "icon": "diamond-stone", "price": 87450.00, "change": 320.00, "change_percent": 0.37, "prev_close": 87130.00, "last_updated": now},
+        {"key": "silver_1kg", "name": "Silver (1Kg)", "icon": "diamond-outline", "price": 104500.00, "change": -450.00, "change_percent": -0.43, "prev_close": 104950.00, "last_updated": now},
+    ]
+    for s in seeds:
+        await db.market_data.update_one({"key": s["key"]}, {"$set": s}, upsert=True)
+    logger.info("Seeded initial market data")
+
+@api_router.get("/market-data")
+async def get_market_data():
+    data = await db.market_data.find({}, {"_id": 0}).to_list(10)
+    return data
+
+@api_router.post("/market-data/refresh")
+async def trigger_market_refresh(user=Depends(get_current_user)):
+    asyncio.create_task(refresh_all_market_data())
+    return {"message": "Market data refresh triggered"}
+
+# ══════════════════════════════════════
 #  DEMO DATA SEEDING
 # ══════════════════════════════════════
 
