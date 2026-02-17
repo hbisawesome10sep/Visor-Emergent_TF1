@@ -147,6 +147,7 @@ export default function InvestmentsScreen() {
   const [showSipModal, setShowSipModal] = useState(false);
   const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
   const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
+  const [replaceOnUpload, setReplaceOnUpload] = useState(true); // Replace existing holdings when uploading CAS
 
   // Historical avg annual returns & volatility for Indian markets
   const ASSET_METRICS: Record<string, { ret: number; vol: number; label: string; color: string }> = {
