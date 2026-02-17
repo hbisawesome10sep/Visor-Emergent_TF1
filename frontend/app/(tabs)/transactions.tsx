@@ -109,6 +109,7 @@ export default function TransactionsScreen() {
     type: 'expense', amount: '', category: '', description: '',
     date: '', notes: '', is_recurring: false, recurring_frequency: 'Monthly',
     is_split: false, split_count: '2',
+    buy_sell: 'buy', units: '', price_per_unit: '',
   });
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
