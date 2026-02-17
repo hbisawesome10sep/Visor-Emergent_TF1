@@ -797,11 +797,20 @@ export default function InsightsScreen() {
             fillPercentage={foirRatio}
             benchmarkInfo={{
               title: 'Fixed Obligations',
-              description: 'All fixed payments (EMI, rent, insurance) vs income.',
+              description: 'All fixed EMIs, rent, insurance as % of income.',
               source: 'Banking Standards',
               yourValue: `${foirRatio.toFixed(1)}%`,
               nationalAverage: '45%',
               recommended: '<50%',
+              calculation: `(EMIs + 15% of Expenses) ÷ Income × 100`,
+              actualAmounts: {
+                label1: 'Monthly Income',
+                value1: `₹${formatINRShort(income)}`,
+                label2: 'Fixed Obligations Est.',
+                value2: `₹${formatINRShort(emiEstimate + (expenses * 0.15))}`,
+                label3: 'FOIR Ratio',
+                value3: `${foirRatio.toFixed(1)}%`,
+              },
             }}
             isDark={isDark}
             colors={colors}
