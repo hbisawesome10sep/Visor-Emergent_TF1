@@ -176,8 +176,7 @@ export default function TransactionsScreen() {
       };
 
       if (editingTxn) {
-        // Update not implemented in backend, just close for now
-        Alert.alert('Info', 'Edit saved (demo)');
+        await apiRequest(`/transactions/${editingTxn.id}`, { method: 'PUT', token, body });
       } else {
         await apiRequest('/transactions', { method: 'POST', token, body });
       }
