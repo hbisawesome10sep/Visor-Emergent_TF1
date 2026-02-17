@@ -373,7 +373,7 @@ export default function InvestmentsScreen() {
             <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No investments yet</Text>
             <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Add investment transactions to track your portfolio</Text>
           </View>
-        )
+        )}
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 3: ASSET ALLOCATION (Pie Chart)
