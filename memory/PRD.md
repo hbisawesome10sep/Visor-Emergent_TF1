@@ -7,7 +7,7 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - **Frontend**: Expo, React Native, TypeScript, expo-router, DM Sans font
 - **Backend**: Python, FastAPI, MongoDB
 - **AI**: OpenAI GPT-4 via Emergent Integrations
-- **Market Data**: Alpha Vantage API (scheduled 4x daily IST: 9:25, 11:30, 12:30, 15:15)
+- **Market Data**: Yahoo Finance (yfinance) — LIVE Indian market data, no API key needed. Scheduled 4x daily IST: 9:25, 11:30, 12:30, 15:15. Gold/Silver converted from international USD price to domestic INR with import duty premiums (Gold: 8.2%, Silver: 20.9%).
 
 ## Core Features
 - Auth (login/register), Dashboard (health score, liquid fill cards, charts, date filters, FAB)
@@ -22,7 +22,7 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - Font: DM Sans (400-700)
 
 ## Invest Screen Layout (v3 — Feb 2026)
-1. **Indian Markets** (TOP) — Nifty 50, SENSEX, Nifty Bank, Gold (10g), Silver (1Kg) with live pricing
+1. **Indian Markets** (TOP) — Clean table-row layout: Nifty 50, SENSEX, Nifty Bank, Gold (10g as 24K), Silver (1Kg as 999) with LIVE pricing from Yahoo Finance
 2. **Portfolio Overview** — Total invested from user transactions, breakdown by category
 3. **Asset Allocation** — Donut pie chart of Stocks, MF, FD, Gold, Silver, PPF, NPS, Crypto etc.
 4. **Risk Profile & Strategy** — Assessment + recommended allocation strategy
@@ -39,7 +39,7 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - rajesh@visor.demo / Demo@123
 
 ## Key API Endpoints
-- `GET /api/market-data` — Returns cached Indian market data (no auth)
+- `GET /api/market-data` — Returns cached LIVE Indian market data (no auth)
 - `POST /api/market-data/refresh` — Trigger manual refresh (auth required)
 - `GET /api/dashboard/stats` — Dashboard stats with invest_breakdown
 - CRUD: `/api/transactions`, `/api/goals`
@@ -48,14 +48,13 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 
 ### P0 (In Progress)
 - Phase 2: Portfolio Overview with current market value comparison
-- Phase 3: Risk Profile Assessment (10-15 behavioral finance questions)
+- Phase 3: Risk Profile Assessment (10-15 behavioral finance questions + Visor AI integration)
 - Phase 4: Tax Planning (Chapter VI deductions)
 - Phase 5: Transaction Buy/Sell + Capital Gains Tax
 
 ### P1
 - Recurring Transactions (monthly SIPs)
 - PAN-based auto-fetch of holdings
-- Alpha Vantage API key upgrade from demo to production
 
 ### P2
 - Backend migration: Python/FastAPI → Node.js/Express/PostgreSQL
