@@ -162,16 +162,21 @@ export default function InvestmentsScreen() {
   };
 
   // ── Computed values ──
-  const totalInvested = stats?.total_investments || 0;
+  const totalInvested = portfolio?.total_invested || stats?.total_investments || 0;
   const allocation = stats?.invest_breakdown || {};
 
-  // Build allocation data for pie chart from real investment breakdown
-  const allocationEntries = Object.entries(allocation).filter(([_, amt]) => amt > 0);
-  const pieData = allocationEntries.map(([cat, amt]) => ({
-    category: ASSET_CATEGORIES[cat]?.label || cat,
-    amount: amt,
-    color: ASSET_CATEGORIES[cat]?.color || '#94A3B8',
-  }));
+  // Build allocation data for pie chart - prefer portfolio categories if available
+  const pieData = portfolio?.categories?.length
+    ? portfolio.categories.map(cat => ({
+        category: ASSET_CATEGORIES[cat.category]?.label || cat.category,
+        amount: cat.invested,
+        color: ASSET_CATEGORIES[cat.category]?.color || '#94A3B8',
+      }))
+    : Object.entries(allocation).filter(([_, amt]) => amt > 0).map(([cat, amt]) => ({
+        category: ASSET_CATEGORIES[cat]?.label || cat,
+        amount: amt,
+        color: ASSET_CATEGORIES[cat]?.color || '#94A3B8',
+      }));
 
   // Strategy based on risk
   const strategies = {
