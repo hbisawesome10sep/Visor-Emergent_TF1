@@ -539,15 +539,10 @@ async def get_dashboard_stats(
     # Get user's account creation date for date range limits
     user_created_at = user.get("created_at", now.isoformat())
 
-    # ── Compute Health Score from ALL-TIME data (not filtered) ──
-    all_txns = txns
-    if start_date and end_date:
-        # If date-filtered, fetch ALL transactions for health score
-        all_txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
-    
-    hs_income = sum(t["amount"] for t in all_txns if t["type"] == "income") or 1
-    hs_expenses = sum(t["amount"] for t in all_txns if t["type"] == "expense")
-    hs_investments = sum(t["amount"] for t in all_txns if t["type"] == "investment")
+    # ── Compute Health Score based on filtered date range ──
+    hs_income = sum(t["amount"] for t in txns if t["type"] == "income") or 1
+    hs_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
+    hs_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
     
     hs_savings_rate = max(0, (hs_income - hs_expenses) / hs_income * 100)
     hs_investment_rate = (hs_investments / hs_income * 100)
