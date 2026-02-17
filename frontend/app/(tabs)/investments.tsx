@@ -766,6 +766,85 @@ export default function InvestmentsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ═══ ADD HOLDING MODAL ═══ */}
+      <Modal visible={showHoldingModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalKav}>
+            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+              <View style={styles.modalHandle} />
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Add Holding</Text>
+                <TouchableOpacity data-testid="holding-modal-close" onPress={() => setShowHoldingModal(false)}>
+                  <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              <TextInput data-testid="holding-name-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                value={holdingForm.name} onChangeText={v => setHoldingForm(p => ({ ...p, name: v }))} placeholder="Name (e.g. Reliance Industries)" placeholderTextColor={colors.textSecondary} />
+              <View style={styles.inputRow}>
+                <TextInput data-testid="holding-ticker-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={holdingForm.ticker} onChangeText={v => setHoldingForm(p => ({ ...p, ticker: v }))} placeholder="Ticker (e.g. RELIANCE.NS)" placeholderTextColor={colors.textSecondary} autoCapitalize="characters" />
+                <TextInput data-testid="holding-isin-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={holdingForm.isin} onChangeText={v => setHoldingForm(p => ({ ...p, isin: v }))} placeholder="ISIN (optional)" placeholderTextColor={colors.textSecondary} />
+              </View>
+              <View style={styles.inputRow}>
+                <TextInput data-testid="holding-qty-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={holdingForm.quantity} onChangeText={v => setHoldingForm(p => ({ ...p, quantity: v }))} placeholder="Quantity" placeholderTextColor={colors.textSecondary} keyboardType="decimal-pad" />
+                <TextInput data-testid="holding-price-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={holdingForm.buy_price} onChangeText={v => setHoldingForm(p => ({ ...p, buy_price: v }))} placeholder="Buy Price" placeholderTextColor={colors.textSecondary} keyboardType="decimal-pad" />
+              </View>
+              <TextInput data-testid="holding-date-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                value={holdingForm.buy_date} onChangeText={v => setHoldingForm(p => ({ ...p, buy_date: v }))} placeholder="Buy Date (YYYY-MM-DD)" placeholderTextColor={colors.textSecondary} />
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
+                {HOLDING_CATS.map(c => (
+                  <TouchableOpacity key={c} data-testid={`holding-cat-${c}`} style={[styles.catChip, {
+                    backgroundColor: holdingForm.category === c ? '#F97316' : colors.background,
+                    borderColor: holdingForm.category === c ? '#F97316' : colors.border,
+                  }]} onPress={() => setHoldingForm(p => ({ ...p, category: c }))}>
+                    <Text style={{ color: holdingForm.category === c ? '#fff' : colors.textSecondary, fontSize: 13 }}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity data-testid="holding-save-btn" style={styles.saveBtn} onPress={handleSaveHolding} disabled={saving}>
+                <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
+                  {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Add Holding</Text>}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
+      {/* ═══ CAS UPLOAD MODAL ═══ */}
+      <Modal visible={showCasModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Upload CAS Statement</Text>
+              <TouchableOpacity data-testid="cas-modal-close" onPress={() => setShowCasModal(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={[styles.casDesc, { color: colors.textSecondary }]}>
+              Upload your NSDL/CDSL Consolidated Account Statement (CAS) PDF to auto-import your holdings.
+            </Text>
+            <TextInput data-testid="cas-password-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+              value={casPassword} onChangeText={setCasPassword} placeholder="PDF Password (if any)" placeholderTextColor={colors.textSecondary} secureTextEntry />
+            <TouchableOpacity data-testid="cas-upload-btn" style={styles.saveBtn} onPress={handleCasUpload} disabled={saving}>
+              <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
+                {saving ? <ActivityIndicator color="#fff" /> : (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <MaterialCommunityIcons name="file-upload-outline" size={20} color="#fff" />
+                    <Text style={styles.saveBtnText}>Choose PDF & Upload</Text>
+                  </View>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
