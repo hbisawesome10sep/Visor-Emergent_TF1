@@ -770,14 +770,29 @@ export default function TransactionsScreen() {
 
                 {/* Date Picker */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
-                <TextInput
-                  style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                  value={form.date}
-                  onChangeText={v => setForm(p => ({ ...p, date: v }))}
-                  placeholder={new Date().toISOString().split('T')[0] + ' (today if blank)'}
-                  placeholderTextColor={colors.textSecondary}
-                  {...(Platform.OS === 'web' ? { nativeID: 'visor-date-input' } : {})}
-                />
+                <TouchableOpacity
+                  style={[styles.datePickerBtn, { borderColor: colors.border, backgroundColor: colors.background }]}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <MaterialCommunityIcons name="calendar" size={20} color={colors.textSecondary} />
+                  <Text style={[styles.datePickerText, { color: form.date ? colors.textPrimary : colors.textSecondary }]}>
+                    {form.date || new Date().toISOString().split('T')[0] + ' (today)'}
+                  </Text>
+                </TouchableOpacity>
+                
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={form.date ? new Date(form.date) : new Date()}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(event, selectedDate) => {
+                      setShowDatePicker(Platform.OS === 'ios');
+                      if (selectedDate) {
+                        setForm(p => ({ ...p, date: selectedDate.toISOString().split('T')[0] }));
+                      }
+                    }}
+                  />
+                )}
 
                 {/* Notes Input */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Notes (optional)</Text>
