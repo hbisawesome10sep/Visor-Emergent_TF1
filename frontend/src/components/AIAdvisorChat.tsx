@@ -66,7 +66,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
     if (!token) return;
     setIsLoadingHistory(true);
     try {
-      const history = await apiRequest('/ai-advisor/history', { token });
+      const history = await apiRequest('/ai/history', { token });
       setMessages(history.map((h: any) => ({
         id: h.id,
         role: h.role,
@@ -98,7 +98,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
 
     try {
-      const response = await apiRequest('/ai-advisor/chat', {
+      const response = await apiRequest('/ai/chat', {
         method: 'POST',
         token,
         body: { message: text.trim() },
@@ -131,7 +131,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
   const clearChat = async () => {
     if (!token) return;
     try {
-      await apiRequest('/ai-advisor/history', { method: 'DELETE', token });
+      await apiRequest('/ai/history', { method: 'DELETE', token });
       setMessages([]);
     } catch (e) {
       console.error('Failed to clear history:', e);
