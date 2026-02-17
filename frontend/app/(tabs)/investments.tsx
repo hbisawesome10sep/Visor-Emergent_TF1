@@ -12,7 +12,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { Accent } from '../../src/utils/theme';
 import { apiRequest } from '../../src/utils/api';
-import { formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
+import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
 import PieChart from '../../src/components/PieChart';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
