@@ -182,6 +182,63 @@ export default function InvestmentsScreen() {
     }
   };
 
+  // ── Holdings handlers ──
+  const openAddHolding = () => {
+    setHoldingForm({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
+    setShowHoldingModal(true);
+  };
+  const handleSaveHolding = async () => {
+    if (!holdingForm.name || !holdingForm.quantity || !holdingForm.buy_price) { Alert.alert('Error', 'Name, Quantity, and Buy Price are required'); return; }
+    setSaving(true);
+    try {
+      await apiRequest('/holdings', { method: 'POST', token, body: {
+        name: holdingForm.name, ticker: holdingForm.ticker, isin: holdingForm.isin,
+        category: holdingForm.category, quantity: parseFloat(holdingForm.quantity),
+        buy_price: parseFloat(holdingForm.buy_price), buy_date: holdingForm.buy_date,
+      }});
+      setShowHoldingModal(false);
+      fetchData();
+    } catch (e: any) { Alert.alert('Error', e.message); }
+    finally { setSaving(false); }
+  };
+  const handleDeleteHolding = (id: string, name: string) => {
+    Alert.alert('Delete Holding', `Remove "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => { await apiRequest(`/holdings/${id}`, { method: 'DELETE', token }); fetchData(); } },
+    ]);
+  };
+  const handleCasUpload = async () => {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.pdf';
+      input.onchange = async (e: any) => {
+        const file = e.target?.files?.[0];
+        if (!file) return;
+        setSaving(true);
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('password', casPassword);
+          const resp = await fetch(`${BACKEND_URL}/api/holdings/upload-cas`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData,
+          });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.detail || 'Upload failed');
+          Alert.alert('Success', data.message);
+          setShowCasModal(false);
+          setCasPassword('');
+          fetchData();
+        } catch (err: any) {
+          Alert.alert('Upload Error', err.message || 'Failed to parse CAS');
+        } finally { setSaving(false); }
+      };
+      input.click();
+    } catch (e: any) { Alert.alert('Error', 'File upload is not supported on this platform'); }
+  };
+
   // ── Computed values ──
   const totalInvested = portfolio?.total_invested || stats?.total_investments || 0;
   const allocation = stats?.invest_breakdown || {};
