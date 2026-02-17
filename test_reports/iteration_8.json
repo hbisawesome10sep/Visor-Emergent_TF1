@@ -70,7 +70,7 @@
     "frontend_section_order": "PASS - Markets > Portfolio > Allocation > Risk > Tax > Goals"
   },
   "test_environment": {
-    "url": "https://wealth-tracker-374.preview.emergentagent.com",
+    "url": "https://finpulse-96.preview.emergentagent.com",
     "backend_status": "Running",
     "frontend_status": "Running"
   },
