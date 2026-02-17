@@ -388,6 +388,9 @@ async def create_transaction(txn: TransactionCreate, user=Depends(get_current_us
         "is_split": txn.is_split,
         "split_count": txn.split_count,
         "notes": txn.notes,
+        "buy_sell": txn.buy_sell,
+        "units": txn.units,
+        "price_per_unit": txn.price_per_unit,
         "created_at": now,
     }
     await db.transactions.insert_one(txn_doc)
@@ -416,6 +419,9 @@ async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(g
         "is_split": txn.is_split,
         "split_count": txn.split_count,
         "notes": txn.notes,
+        "buy_sell": txn.buy_sell,
+        "units": txn.units,
+        "price_per_unit": txn.price_per_unit,
     }
     await db.transactions.update_one({"id": txn_id, "user_id": user["id"]}, {"$set": update_data})
     updated = await db.transactions.find_one({"id": txn_id}, {"_id": 0})
