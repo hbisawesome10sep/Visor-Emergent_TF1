@@ -94,6 +94,7 @@ export default function TransactionsScreen() {
   });
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const dateInputRef = useRef<any>(null);
 
   // Animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
