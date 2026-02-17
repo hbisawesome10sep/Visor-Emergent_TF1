@@ -695,6 +695,78 @@ export default function TransactionsScreen() {
                   </View>
                 )}
 
+                {/* Buy/Sell Toggle for Investments */}
+                {form.type === 'investment' && (
+                  <>
+                    <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Transaction Type</Text>
+                    <View style={styles.buySellToggle}>
+                      <TouchableOpacity
+                        style={[
+                          styles.buySellBtn,
+                          form.buy_sell === 'buy' && styles.buySellBtnActive,
+                          { borderColor: form.buy_sell === 'buy' ? colors.income : colors.border }
+                        ]}
+                        onPress={() => setForm(p => ({ ...p, buy_sell: 'buy' }))}
+                      >
+                        <MaterialCommunityIcons name="arrow-down-circle" size={18} color={form.buy_sell === 'buy' ? colors.income : colors.textSecondary} />
+                        <Text style={[styles.buySellText, { color: form.buy_sell === 'buy' ? colors.income : colors.textSecondary }]}>Buy</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.buySellBtn,
+                          form.buy_sell === 'sell' && styles.buySellBtnActive,
+                          { borderColor: form.buy_sell === 'sell' ? colors.expense : colors.border }
+                        ]}
+                        onPress={() => setForm(p => ({ ...p, buy_sell: 'sell' }))}
+                      >
+                        <MaterialCommunityIcons name="arrow-up-circle" size={18} color={form.buy_sell === 'sell' ? colors.expense : colors.textSecondary} />
+                        <Text style={[styles.buySellText, { color: form.buy_sell === 'sell' ? colors.expense : colors.textSecondary }]}>Sell</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.unitsRow}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Units (optional)</Text>
+                        <TextInput
+                          style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                          value={form.units}
+                          onChangeText={v => {
+                            setForm(p => ({ ...p, units: v }));
+                            // Auto-calculate price per unit if amount is set
+                            if (form.amount && v) {
+                              const ppu = parseFloat(form.amount) / parseFloat(v);
+                              if (!isNaN(ppu)) setForm(p => ({ ...p, price_per_unit: ppu.toFixed(4) }));
+                            }
+                          }}
+                          placeholder="e.g., 100"
+                          placeholderTextColor={colors.textSecondary}
+                          keyboardType="decimal-pad"
+                        />
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Price/Unit (auto)</Text>
+                        <TextInput
+                          style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                          value={form.price_per_unit}
+                          onChangeText={v => setForm(p => ({ ...p, price_per_unit: v }))}
+                          placeholder="Auto"
+                          placeholderTextColor={colors.textSecondary}
+                          keyboardType="decimal-pad"
+                        />
+                      </View>
+                    </View>
+                    
+                    {form.buy_sell === 'sell' && (
+                      <View style={[styles.taxNote, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.08)' }]}>
+                        <MaterialCommunityIcons name="information" size={16} color={Accent.amber} />
+                        <Text style={[styles.taxNoteText, { color: colors.textSecondary }]}>
+                          Capital gains tax will be calculated in Tax Planning
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                )}
+
                 {/* Date Picker */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
                 <TextInput
