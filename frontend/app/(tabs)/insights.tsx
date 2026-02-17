@@ -183,7 +183,7 @@ function InsightCard({
       <TouchableOpacity 
         activeOpacity={0.95} 
         onPress={() => setShowBack(false)}
-        style={[styles.insightCard, { backgroundColor: cardBg, borderColor }]}
+        style={[styles.insightCard, styles.insightCardBack, { backgroundColor: cardBg, borderColor }]}
       >
         <TouchableOpacity 
           style={[styles.flipIconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
@@ -194,15 +194,47 @@ function InsightCard({
 
         <View style={styles.backContent}>
           <Text style={[styles.backTitle, { color: colors.textPrimary }]}>{benchmarkInfo.title}</Text>
-          <Text style={[styles.backDesc, { color: colors.textSecondary }]}>{benchmarkInfo.description}</Text>
           
+          {/* Show calculation formula if provided */}
+          {benchmarkInfo.calculation && (
+            <View style={[styles.calculationBox, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)' }]}>
+              <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>How it's calculated:</Text>
+              <Text style={[styles.calculationFormula, { color: Accent.emerald }]}>{benchmarkInfo.calculation}</Text>
+            </View>
+          )}
+          
+          {/* Show actual rupee amounts if provided */}
+          {benchmarkInfo.actualAmounts && (
+            <View style={[styles.amountsBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+              {benchmarkInfo.actualAmounts.label1 && (
+                <View style={styles.amountRow}>
+                  <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label1}</Text>
+                  <Text style={[styles.amountValue, { color: colors.textPrimary }]}>{benchmarkInfo.actualAmounts.value1}</Text>
+                </View>
+              )}
+              {benchmarkInfo.actualAmounts.label2 && (
+                <View style={styles.amountRow}>
+                  <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label2}</Text>
+                  <Text style={[styles.amountValue, { color: colors.textPrimary }]}>{benchmarkInfo.actualAmounts.value2}</Text>
+                </View>
+              )}
+              {benchmarkInfo.actualAmounts.label3 && (
+                <View style={styles.amountRow}>
+                  <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label3}</Text>
+                  <Text style={[styles.amountValue, { color: statusColor, fontWeight: '700' as any }]}>{benchmarkInfo.actualAmounts.value3}</Text>
+                </View>
+              )}
+            </View>
+          )}
+          
+          {/* Comparison stats */}
           <View style={[styles.backStatsBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
             <View style={styles.backStatRow}>
-              <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>You</Text>
+              <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>Your Score</Text>
               <Text style={[styles.backStatValue, { color: statusColor }]}>{benchmarkInfo.yourValue}</Text>
             </View>
             <View style={styles.backStatRow}>
-              <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>Avg</Text>
+              <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>India Avg</Text>
               <Text style={[styles.backStatValue, { color: colors.textPrimary }]}>{benchmarkInfo.nationalAverage}</Text>
             </View>
             <View style={styles.backStatRow}>
@@ -211,7 +243,8 @@ function InsightCard({
             </View>
           </View>
           
-          <Text style={[styles.backSource, { color: colors.textSecondary }]}>{benchmarkInfo.source}</Text>
+          <Text style={[styles.backDesc, { color: colors.textSecondary }]}>{benchmarkInfo.description}</Text>
+          <Text style={[styles.backSource, { color: colors.textSecondary }]}>Source: {benchmarkInfo.source}</Text>
         </View>
       </TouchableOpacity>
     );
