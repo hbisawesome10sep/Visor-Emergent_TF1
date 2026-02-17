@@ -65,6 +65,20 @@ type PortfolioData = {
   }>;
 };
 
+type Holding = {
+  id: string; name: string; ticker: string; isin: string; category: string;
+  quantity: number; buy_price: number; buy_date: string; source: string;
+  current_price: number; invested_value: number; current_value: number;
+  gain_loss: number; gain_loss_pct: number;
+};
+type HoldingsData = {
+  holdings: Holding[];
+  summary: { total_invested: number; total_current: number; total_gain_loss: number; total_gain_loss_pct: number; count: number };
+};
+
+const HOLDING_CATS = ['Stock', 'Mutual Fund', 'ETF', 'Gold', 'Silver', 'Bond', 'Other'];
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
 export default function InvestmentsScreen() {
   const { token } = useAuth();
   const { colors, isDark } = useTheme();
