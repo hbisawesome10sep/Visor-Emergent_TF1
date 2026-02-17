@@ -689,6 +689,7 @@ async def ai_chat(msg: AIMessageCreate, user=Depends(get_current_user)):
     # Build financial context
     txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(500)
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(50)
+    risk_doc = await db.risk_profiles.find_one({"user_id": user_id}, {"_id": 0})
     
     total_income = sum(t["amount"] for t in txns if t["type"] == "income")
     total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
@@ -702,6 +703,12 @@ async def ai_chat(msg: AIMessageCreate, user=Depends(get_current_user)):
     
     goal_summary = [f"{g['title']}: ₹{g['current_amount']:,.0f}/₹{g['target_amount']:,.0f}" for g in goals]
     
+    risk_context = ""
+    if risk_doc:
+        risk_context = f"""
+- Risk Profile: {risk_doc.get('profile', 'Not assessed')} (Score: {risk_doc.get('score', 0):.1f}/5)
+- Risk Breakdown: {', '.join(f"{k}: {v:.1f}" for k, v in risk_doc.get('breakdown', {}).items())}"""
+
     context = f"""User Financial Profile:
 - Total Income: ₹{total_income:,.2f}
 - Total Expenses: ₹{total_expenses:,.2f}
@@ -709,7 +716,7 @@ async def ai_chat(msg: AIMessageCreate, user=Depends(get_current_user)):
 - Net Balance: ₹{total_income - total_expenses - total_investments:,.2f}
 - Savings Rate: {((total_income - total_expenses) / max(total_income, 1) * 100):.1f}%
 - Top Expense Categories: {', '.join(f'{k}: ₹{v:,.0f}' for k, v in sorted(category_breakdown.items(), key=lambda x: -x[1])[:5])}
-- Financial Goals: {', '.join(goal_summary) if goal_summary else 'None set'}
+- Financial Goals: {', '.join(goal_summary) if goal_summary else 'None set'}{risk_context}
 """
     
     system_msg = """You are Visor AI, an expert Indian personal finance advisor. You provide advice in the context of Indian financial markets, tax laws (Income Tax Act, GST), investment instruments (PPF, NPS, ELSS, FD, SIP, Mutual Funds, Stocks), and banking.
