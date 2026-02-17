@@ -247,36 +247,6 @@ export default function DashboardScreen() {
     }
   };
 
-  const handleAddGoal = async () => {
-    if (!goalForm.title || !goalForm.target_amount) {
-      Alert.alert('Error', 'Please fill all fields');
-      return;
-    }
-    setSaving(true);
-    try {
-      const deadline = new Date();
-      deadline.setMonth(deadline.getMonth() + 6);
-      await apiRequest('/goals', {
-        method: 'POST',
-        token,
-        body: {
-          title: goalForm.title,
-          target_amount: parseFloat(goalForm.target_amount),
-          current_amount: 0,
-          deadline: deadline.toISOString().split('T')[0],
-          category: goalForm.category,
-        },
-      });
-      setShowGoalModal(false);
-      setGoalForm({ title: '', target_amount: '', category: 'Safety' });
-      fetchData();
-    } catch (e: any) {
-      Alert.alert('Error', e.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const toggleTheme = () => {
     setThemeMode(isDark ? 'light' : 'dark');
   };
