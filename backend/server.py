@@ -808,6 +808,201 @@ async def get_risk_profile(user=Depends(get_current_user)):
     return doc
 
 # ══════════════════════════════════════
+#  TAX PLANNING
+# ══════════════════════════════════════
+
+# Tax section mapping: category -> tax section
+TAX_SECTION_MAP = {
+    "PPF": "80C", "ELSS": "80C", "NPS": "80C", "EPF": "80C",
+    "Life Insurance": "80C", "FD": "80C", "Fixed Deposit": "80C", "NSC": "80C",
+    "ULIP": "80C", "Sukanya Samriddhi": "80C", "Tax Saver FD": "80C",
+    "Health Insurance": "80D",
+    "NPS Additional": "80CCD1B",
+    "Education Loan": "80E",
+}
+TAX_LIMITS = {
+    "80C": 150000,
+    "80D": 25000,      # 50000 for senior citizens
+    "80CCD1B": 50000,
+    "80E": 0,          # No limit
+    "80TTA": 10000,
+}
+TAX_SECTION_LABELS = {
+    "80C": "Section 80C",
+    "80D": "Section 80D",
+    "80CCD1B": "Section 80CCD(1B)",
+    "80E": "Section 80E",
+    "80TTA": "Section 80TTA",
+}
+TAX_SECTION_ICONS = {
+    "80C": "shield-lock-outline",
+    "80D": "hospital-box-outline",
+    "80CCD1B": "cash-plus",
+    "80E": "school-outline",
+    "80TTA": "bank-outline",
+}
+
+@api_router.get("/tax-summary")
+async def get_tax_summary(user=Depends(get_current_user)):
+    # Fetch investments
+    txns = await db.transactions.find(
+        {"user_id": user["id"], "type": "investment"}, {"_id": 0}
+    ).to_list(1000)
+    holdings_list = []
+    async for doc in db.holdings.find({"user_id": user["id"]}):
+        doc["id"] = str(doc.pop("_id"))
+        holdings_list.append(doc)
+
+    sections: dict = {}
+    for sec_id, limit in TAX_LIMITS.items():
+        sections[sec_id] = {
+            "section": sec_id,
+            "label": TAX_SECTION_LABELS.get(sec_id, sec_id),
+            "icon": TAX_SECTION_ICONS.get(sec_id, "file-document-outline"),
+            "limit": limit,
+            "used": 0,
+            "items": [],
+        }
+
+    # Map transactions to sections
+    for t in txns:
+        cat = t.get("category", "")
+        sec = TAX_SECTION_MAP.get(cat)
+        if sec and sec in sections:
+            amt = t.get("amount", 0)
+            sections[sec]["used"] += amt
+            sections[sec]["items"].append({"name": cat, "amount": amt, "source": "transaction"})
+
+    # Map holdings to sections
+    for h in holdings_list:
+        cat = h.get("category", "")
+        sec = TAX_SECTION_MAP.get(cat)
+        if sec and sec in sections:
+            amt = h.get("quantity", 0) * h.get("buy_price", 0)
+            sections[sec]["used"] += amt
+            sections[sec]["items"].append({"name": h.get("name", cat), "amount": amt, "source": "holding"})
+
+    # Cap used at limit (except unlimited sections like 80E)
+    for sec_id in sections:
+        sections[sec_id]["used"] = round(sections[sec_id]["used"], 2)
+        limit = sections[sec_id]["limit"]
+        pct = (sections[sec_id]["used"] / limit * 100) if limit > 0 else 0
+        sections[sec_id]["percentage"] = round(min(pct, 100), 1)
+        remaining = max(limit - sections[sec_id]["used"], 0) if limit > 0 else 0
+        sections[sec_id]["remaining"] = round(remaining, 2)
+
+    # Total tax saved estimate (30% slab)
+    total_deductions = sum(
+        min(s["used"], s["limit"]) if s["limit"] > 0 else s["used"]
+        for s in sections.values()
+    )
+    tax_saved_30 = round(total_deductions * 0.30, 2)
+    tax_saved_20 = round(total_deductions * 0.20, 2)
+
+    # Only include sections that have usage or are important
+    active = [s for s in sections.values() if s["used"] > 0 or s["section"] in ("80C", "80D")]
+
+    return {
+        "sections": active,
+        "total_deductions": round(total_deductions, 2),
+        "tax_saved_30_slab": tax_saved_30,
+        "tax_saved_20_slab": tax_saved_20,
+        "fy": "2025-26",
+    }
+
+# ══════════════════════════════════════
+#  PORTFOLIO REBALANCING
+# ══════════════════════════════════════
+
+STRATEGY_ALLOCATIONS = {
+    "Conservative": {"Equity": 25, "Debt": 60, "Gold": 15},
+    "Moderate": {"Equity": 40, "Debt": 30, "Gold": 15, "Alt": 15},
+    "Aggressive": {"Equity": 70, "Debt": 10, "Gold": 5, "Alt": 15},
+}
+
+# Map portfolio categories to allocation buckets
+CATEGORY_TO_BUCKET = {
+    "Stock": "Equity", "Stocks": "Equity", "Mutual Fund": "Equity", "ELSS": "Equity", "ETF": "Equity",
+    "SIP": "Equity",
+    "PPF": "Debt", "FD": "Debt", "Fixed Deposit": "Debt", "EPF": "Debt", "NPS": "Debt",
+    "NSC": "Debt", "Bonds": "Debt",
+    "Gold": "Gold", "Sovereign Gold Bond": "Gold", "Silver": "Gold",
+    "Crypto": "Alt", "Real Estate": "Alt", "REIT": "Alt",
+}
+
+@api_router.get("/portfolio-rebalancing")
+async def get_rebalancing(user=Depends(get_current_user)):
+    # Get risk profile
+    risk_doc = await db.risk_profiles.find_one({"user_id": user["id"]}, {"_id": 0})
+    profile = risk_doc.get("profile", "Moderate") if risk_doc else "Moderate"
+    target = STRATEGY_ALLOCATIONS.get(profile, STRATEGY_ALLOCATIONS["Moderate"])
+
+    # Get portfolio overview for actual allocation
+    txns = await db.transactions.find(
+        {"user_id": user["id"], "type": "investment"}, {"_id": 0}
+    ).to_list(1000)
+    holdings_list = []
+    async for doc in db.holdings.find({"user_id": user["id"]}):
+        doc["id"] = str(doc.pop("_id"))
+        holdings_list.append(doc)
+
+    # Calculate actual allocation by bucket
+    actual_amounts: dict = {}
+    for t in txns:
+        cat = t.get("category", "")
+        bucket = CATEGORY_TO_BUCKET.get(cat, "Alt")
+        actual_amounts[bucket] = actual_amounts.get(bucket, 0) + t.get("amount", 0)
+
+    for h in holdings_list:
+        cat = h.get("category", "")
+        bucket = CATEGORY_TO_BUCKET.get(cat, "Alt")
+        invested = h.get("quantity", 0) * h.get("buy_price", 0)
+        actual_amounts[bucket] = actual_amounts.get(bucket, 0) + invested
+
+    total = sum(actual_amounts.values())
+    if total == 0:
+        return {"profile": profile, "total": 0, "actions": [], "actual": {}, "target": target}
+
+    actual_pct: dict = {}
+    for bucket in set(list(target.keys()) + list(actual_amounts.keys())):
+        actual_pct[bucket] = round((actual_amounts.get(bucket, 0) / total) * 100, 1)
+
+    # Generate rebalancing actions
+    actions = []
+    for bucket in sorted(set(list(target.keys()) + list(actual_pct.keys()))):
+        t_pct = target.get(bucket, 0)
+        a_pct = actual_pct.get(bucket, 0)
+        diff_pct = round(a_pct - t_pct, 1)
+        diff_amount = round(total * diff_pct / 100, 0)
+        if abs(diff_pct) >= 2:  # Only flag if >2% off
+            actions.append({
+                "bucket": bucket,
+                "target_pct": t_pct,
+                "actual_pct": a_pct,
+                "diff_pct": diff_pct,
+                "diff_amount": diff_amount,
+                "action": "reduce" if diff_pct > 0 else "increase",
+                "suggestion": f"{'Reduce' if diff_pct > 0 else 'Increase'} {bucket} by {abs(diff_pct):.1f}% ({formatINR_py(abs(diff_amount))})"
+            })
+
+    return {
+        "profile": profile,
+        "strategy_name": {"Conservative": "Safe Harbor", "Moderate": "Balanced Growth", "Aggressive": "High Growth"}.get(profile, profile),
+        "total": round(total, 2),
+        "actual": actual_pct,
+        "target": target,
+        "actions": sorted(actions, key=lambda x: abs(x["diff_pct"]), reverse=True),
+    }
+
+def formatINR_py(amount: float) -> str:
+    """Format amount in Indian Rupee style"""
+    if abs(amount) >= 100000:
+        return f"₹{amount/100000:.1f}L"
+    elif abs(amount) >= 1000:
+        return f"₹{amount/1000:.1f}K"
+    return f"₹{amount:,.0f}"
+
+# ══════════════════════════════════════
 #  FIXED ASSETS ENDPOINTS
 # ══════════════════════════════════════
 
