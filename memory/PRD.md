@@ -53,6 +53,11 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - ✅ Bug Fix: AI Chat endpoint alignment (Feb 17, 2026)
 - ✅ Bug Fix: Investment transactions display without negative sign (Feb 17, 2026)
 - ✅ eCAS PDF Parser overhaul - Now correctly extracts invested amount, current value, units, NAV for CDSL eCAS format (Feb 17, 2026)
+- ✅ Bug Fix: Holdings now show different invested vs current values (Feb 17, 2026)
+- ✅ Bug Fix: AI Bot now reads eCAS holdings data (portfolio value, individual funds, gains) (Feb 17, 2026)
+- ✅ Bug Fix: Greeting changed from "Good Night" to "Good Evening" (Feb 17, 2026)
+- ✅ Dashboard: Changed "Savings Rate" card to "Investments" card with navigation to Invest screen (Feb 17, 2026)
+- ✅ Insights: Enhanced card backs to show actual calculations with rupee amounts (Feb 17, 2026)
 
 ## Prioritized Backlog
 
