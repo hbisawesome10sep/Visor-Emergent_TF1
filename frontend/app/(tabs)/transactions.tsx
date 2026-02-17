@@ -94,15 +94,16 @@ export default function TransactionsScreen() {
   });
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const dateInputRef = useRef<any>(null);
 
-  // Inject native HTML date input on web (bypasses RN Web TextInput conversion)
-  useEffect(() => {
-    if (Platform.OS !== 'web' || !dateInputRef.current || !showModal) return;
-    const domNode = dateInputRef.current;
-    if (!domNode || typeof domNode.appendChild !== 'function') return;
-
-    // Clear previous inputs
+  // Callback ref for injecting native date input on web
+  const mountDateInput = useCallback((node: any) => {
+    if (Platform.OS !== 'web' || !node) return;
+    // RN Web refs are DOM nodes
+    const domNode = node;
+    if (typeof domNode.appendChild !== 'function') return;
+    // Avoid duplicate injection
+    if (domNode.querySelector && domNode.querySelector('input[type="date"]')) return;
+    // Clear any existing content
     while (domNode.firstChild) domNode.removeChild(domNode.firstChild);
 
     const input = document.createElement('input');
@@ -110,7 +111,7 @@ export default function TransactionsScreen() {
     input.value = form.date || new Date().toISOString().split('T')[0];
     input.setAttribute('data-testid', 'date-picker-input');
     input.style.cssText = `
-      width: 100%; height: 100%; border: none; outline: none;
+      width: 100%; height: 44px; border: none; outline: none;
       background: transparent; cursor: pointer;
       font-family: 'DM Sans', sans-serif; font-size: 15px;
       color: ${isDark ? '#F9FAFB' : '#111827'};
@@ -118,10 +119,10 @@ export default function TransactionsScreen() {
       padding: 0 4px;
     `;
     input.addEventListener('change', (e: any) => {
-      setForm((p: any) => ({ ...p, date: e.target.value }));
+      setForm((prev: any) => ({ ...prev, date: e.target.value }));
     });
     domNode.appendChild(input);
-  }, [showModal, isDark]);
+  }, [isDark, form.date]);
 
   // Animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
