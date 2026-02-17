@@ -59,7 +59,7 @@ class TransactionCreate(BaseModel):
     type: str
     amount: float
     category: str
-    description: str
+    description: str = ""
     date: str
     is_recurring: bool = False
     recurring_frequency: Optional[str] = None
