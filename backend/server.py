@@ -84,6 +84,9 @@ class TransactionResponse(BaseModel):
     is_split: bool = False
     split_count: int = 1
     notes: Optional[str] = None
+    buy_sell: Optional[str] = None
+    units: Optional[float] = None
+    price_per_unit: Optional[float] = None
     created_at: str
 
 class GoalCreate(BaseModel):
