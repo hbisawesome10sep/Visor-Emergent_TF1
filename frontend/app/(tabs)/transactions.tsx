@@ -169,6 +169,7 @@ export default function TransactionsScreen() {
       type: type || 'expense', amount: '', category: '', description: '',
       date: '', notes: '', is_recurring: false, recurring_frequency: 'Monthly',
       is_split: false, split_count: '2',
+      buy_sell: 'buy', units: '', price_per_unit: '',
     });
     setShowModal(true);
   };
@@ -186,6 +187,9 @@ export default function TransactionsScreen() {
       recurring_frequency: txn.recurring_frequency || 'Monthly',
       is_split: txn.is_split || false,
       split_count: String(txn.split_count || 2),
+      buy_sell: (txn as any).buy_sell || 'buy',
+      units: (txn as any).units ? String((txn as any).units) : '',
+      price_per_unit: (txn as any).price_per_unit ? String((txn as any).price_per_unit) : '',
     });
     setShowModal(true);
   };
