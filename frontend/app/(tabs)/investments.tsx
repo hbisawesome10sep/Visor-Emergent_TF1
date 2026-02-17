@@ -479,14 +479,6 @@ export default function InvestmentsScreen() {
       setSaving(true);
       
       try {
-        // Clear existing holdings first if option is selected
-        if (replaceOnUpload) {
-          await fetch(`${BACKEND_URL}/api/holdings/clear-all`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-        }
-        
         const formData = new FormData();
         
         // Handle file data for both web and native
