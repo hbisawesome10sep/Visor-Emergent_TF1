@@ -99,6 +99,11 @@ export default function InvestmentsScreen() {
   const [riskProfile, setRiskProfile] = useState<'Conservative' | 'Moderate' | 'Aggressive'>('Moderate');
   const [goalForm, setGoalForm] = useState({ title: '', target_amount: '', current_amount: '0', deadline: '', category: 'Safety' });
   const [saving, setSaving] = useState(false);
+  const [holdingsData, setHoldingsData] = useState<HoldingsData | null>(null);
+  const [showHoldingModal, setShowHoldingModal] = useState(false);
+  const [showCasModal, setShowCasModal] = useState(false);
+  const [holdingForm, setHoldingForm] = useState({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
+  const [casPassword, setCasPassword] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
