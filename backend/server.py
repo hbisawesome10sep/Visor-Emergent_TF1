@@ -1726,8 +1726,275 @@ async def get_portfolio_overview(user=Depends(get_current_user)):
     }
 
 # ══════════════════════════════════════
-#  DEMO DATA SEEDING
+#  HOLDINGS (Manual + CAS Upload)
 # ══════════════════════════════════════
+
+from fastapi import File, UploadFile, Form
+import pdfplumber
+import re
+import io
+from bson import ObjectId
+
+class HoldingCreate(BaseModel):
+    name: str
+    ticker: str = ""
+    isin: str = ""
+    category: str = "Stock"
+    quantity: float
+    buy_price: float
+    buy_date: str = ""
+
+def _fetch_live_prices(tickers: list[str]) -> dict:
+    """Fetch live prices for a list of tickers via yfinance."""
+    result = {}
+    if not tickers:
+        return result
+    try:
+        batch = yf.Tickers(" ".join(tickers))
+        for t_str in tickers:
+            try:
+                info = batch.tickers[t_str].fast_info
+                price = float(info.last_price) if info.last_price else 0
+                prev = float(info.previous_close) if info.previous_close else 0
+                result[t_str] = {"price": price, "prev_close": prev}
+            except Exception:
+                pass
+    except Exception as e:
+        logger.error(f"Batch price fetch error: {e}")
+    return result
+
+def _search_ticker(name: str, category: str) -> str:
+    """Try to find a Yahoo Finance ticker for a given name."""
+    try:
+        suffix = ".NS"
+        clean = re.sub(r'[^a-zA-Z0-9 ]', '', name).strip()
+        search = yf.Ticker(clean.split()[0].upper() + suffix)
+        if search.fast_info.last_price:
+            return clean.split()[0].upper() + suffix
+    except Exception:
+        pass
+    return ""
+
+@api_router.post("/holdings")
+async def add_holding(holding: HoldingCreate, user=Depends(get_current_user)):
+    doc = {
+        "user_id": user["id"],
+        "name": holding.name,
+        "ticker": holding.ticker,
+        "isin": holding.isin,
+        "category": holding.category,
+        "quantity": holding.quantity,
+        "buy_price": holding.buy_price,
+        "buy_date": holding.buy_date or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "source": "manual",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    result = await db.holdings.insert_one(doc)
+    doc["id"] = str(result.inserted_id)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/holdings")
+async def get_holdings(user=Depends(get_current_user)):
+    holdings = []
+    cursor = db.holdings.find({"user_id": user["id"]})
+    async for doc in cursor:
+        doc["id"] = str(doc.pop("_id"))
+        holdings.append(doc)
+    return holdings
+
+@api_router.get("/holdings/live")
+async def get_holdings_live(user=Depends(get_current_user)):
+    holdings = []
+    cursor = db.holdings.find({"user_id": user["id"]})
+    async for doc in cursor:
+        doc["id"] = str(doc.pop("_id"))
+        holdings.append(doc)
+    tickers = list(set(h["ticker"] for h in holdings if h.get("ticker")))
+    loop = asyncio.get_event_loop()
+    prices = await loop.run_in_executor(_yf_executor, _fetch_live_prices, tickers)
+    result = []
+    for h in holdings:
+        invested = h["quantity"] * h["buy_price"]
+        current_price = 0
+        if h.get("ticker") and h["ticker"] in prices:
+            current_price = prices[h["ticker"]]["price"]
+        else:
+            current_price = h["buy_price"]
+        current_value = h["quantity"] * current_price
+        gain = current_value - invested
+        gain_pct = round((gain / invested * 100), 2) if invested else 0
+        result.append({
+            **{k: v for k, v in h.items()},
+            "current_price": round(current_price, 2),
+            "invested_value": round(invested, 2),
+            "current_value": round(current_value, 2),
+            "gain_loss": round(gain, 2),
+            "gain_loss_pct": gain_pct,
+        })
+    total_invested = sum(r["invested_value"] for r in result)
+    total_current = sum(r["current_value"] for r in result)
+    total_gain = round(total_current - total_invested, 2)
+    return {
+        "holdings": result,
+        "summary": {
+            "total_invested": round(total_invested, 2),
+            "total_current": round(total_current, 2),
+            "total_gain_loss": total_gain,
+            "total_gain_loss_pct": round((total_gain / total_invested * 100), 2) if total_invested else 0,
+            "count": len(result),
+        },
+    }
+
+@api_router.put("/holdings/{holding_id}")
+async def update_holding(holding_id: str, holding: HoldingCreate, user=Depends(get_current_user)):
+    update = {
+        "name": holding.name, "ticker": holding.ticker, "isin": holding.isin,
+        "category": holding.category, "quantity": holding.quantity,
+        "buy_price": holding.buy_price, "buy_date": holding.buy_date,
+    }
+    result = await db.holdings.update_one(
+        {"_id": ObjectId(holding_id), "user_id": user["id"]}, {"$set": update}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "Holding not found")
+    return {"message": "Updated"}
+
+@api_router.delete("/holdings/{holding_id}")
+async def delete_holding(holding_id: str, user=Depends(get_current_user)):
+    result = await db.holdings.delete_one({"_id": ObjectId(holding_id), "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Holding not found")
+    return {"message": "Deleted"}
+
+def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
+    """Parse NSDL/CDSL CAS PDF to extract holdings."""
+    holdings = []
+    try:
+        open_kwargs = {}
+        if password:
+            open_kwargs["password"] = password
+        with pdfplumber.open(io.BytesIO(pdf_bytes), **open_kwargs) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                for table in tables:
+                    if not table:
+                        continue
+                    for row in table:
+                        if not row:
+                            continue
+                        row_text = " ".join([str(c) for c in row if c])
+                        isin_match = re.search(r'(INE[A-Z0-9]{7,10}|INF[A-Z0-9]{7,10})', row_text)
+                        if isin_match:
+                            isin = isin_match.group(1)
+                            cells = [str(c).strip() if c else "" for c in row]
+                            name = ""
+                            qty = 0.0
+                            price = 0.0
+                            for i, cell in enumerate(cells):
+                                if isin in cell:
+                                    name_parts = cell.replace(isin, "").strip().split("\n")
+                                    name = name_parts[0].strip() if name_parts else cell
+                                    continue
+                                if not name and cell and not re.match(r'^[\d,.\s]+$', cell) and len(cell) > 3:
+                                    name = cell.strip()
+                            nums = []
+                            for cell in cells:
+                                clean = cell.replace(",", "").replace(" ", "")
+                                try:
+                                    nums.append(float(clean))
+                                except ValueError:
+                                    pass
+                            if len(nums) >= 2:
+                                qty = nums[0]
+                                price = nums[1] if len(nums) >= 3 else nums[-1]
+                            is_mf = isin.startswith("INF")
+                            category = "Mutual Fund" if is_mf else "Stock"
+                            if name and qty > 0:
+                                ticker = ""
+                                if not is_mf:
+                                    first_word = re.sub(r'[^A-Z]', '', name.split()[0].upper()) if name.split() else ""
+                                    if first_word and len(first_word) >= 3:
+                                        ticker = first_word + ".NS"
+                                holdings.append({
+                                    "name": name[:80],
+                                    "ticker": ticker,
+                                    "isin": isin,
+                                    "category": category,
+                                    "quantity": qty,
+                                    "buy_price": price,
+                                })
+                if not tables:
+                    text = page.extract_text() or ""
+                    lines = text.split("\n")
+                    for line in lines:
+                        isin_match = re.search(r'(INE[A-Z0-9]{7,10}|INF[A-Z0-9]{7,10})', line)
+                        if isin_match:
+                            isin = isin_match.group(1)
+                            name = line[:line.index(isin)].strip() if isin in line else ""
+                            nums = re.findall(r'[\d,]+\.?\d*', line[line.index(isin):]) if isin in line else []
+                            clean_nums = []
+                            for n in nums:
+                                try:
+                                    clean_nums.append(float(n.replace(",", "")))
+                                except ValueError:
+                                    pass
+                            qty = clean_nums[0] if clean_nums else 0
+                            price = clean_nums[1] if len(clean_nums) >= 2 else 0
+                            is_mf = isin.startswith("INF")
+                            if name and qty > 0:
+                                holdings.append({
+                                    "name": name[:80],
+                                    "ticker": "",
+                                    "isin": isin,
+                                    "category": "Mutual Fund" if is_mf else "Stock",
+                                    "quantity": qty,
+                                    "buy_price": price,
+                                })
+    except Exception as e:
+        logger.error(f"CAS PDF parse error: {e}")
+        raise HTTPException(400, f"Failed to parse PDF: {str(e)}")
+    return holdings
+
+@api_router.post("/holdings/upload-cas")
+async def upload_cas(
+    file: UploadFile = File(...),
+    password: str = Form(""),
+    user=Depends(get_current_user),
+):
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(400, "Please upload a PDF file")
+    pdf_bytes = await file.read()
+    if len(pdf_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(400, "File too large (max 10MB)")
+    parsed = _parse_cas_pdf(pdf_bytes, password)
+    if not parsed:
+        raise HTTPException(400, "No holdings found in the PDF. Please check the file format or password.")
+    created = []
+    now = datetime.now(timezone.utc).isoformat()
+    for h in parsed:
+        doc = {
+            "user_id": user["id"],
+            "name": h["name"],
+            "ticker": h.get("ticker", ""),
+            "isin": h["isin"],
+            "category": h["category"],
+            "quantity": h["quantity"],
+            "buy_price": h.get("buy_price", 0),
+            "buy_date": "",
+            "source": "cas_upload",
+            "created_at": now,
+        }
+        result = await db.holdings.insert_one(doc)
+        doc["id"] = str(result.inserted_id)
+        doc.pop("_id", None)
+        created.append(doc)
+    return {"message": f"Imported {len(created)} holdings from CAS", "holdings": created}
+
+@api_router.delete("/holdings/clear-all")
+async def clear_all_holdings(user=Depends(get_current_user)):
+    result = await db.holdings.delete_many({"user_id": user["id"]})
+    return {"message": f"Deleted {result.deleted_count} holdings"}
 
 async def seed_demo_data():
     # Check if demo users already exist
