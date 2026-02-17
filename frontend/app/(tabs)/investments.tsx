@@ -54,6 +54,17 @@ type DashboardStats = {
   invest_breakdown: Record<string, number>;
 };
 
+type PortfolioData = {
+  total_invested: number;
+  total_current_value: number;
+  total_gain_loss: number;
+  total_gain_loss_pct: number;
+  categories: Array<{
+    category: string; invested: number; current_value: number;
+    gain_loss: number; gain_loss_pct: number; transactions: number;
+  }>;
+};
+
 export default function InvestmentsScreen() {
   const { token } = useAuth();
   const { colors, isDark } = useTheme();
@@ -62,6 +73,7 @@ export default function InvestmentsScreen() {
 
   const [marketData, setMarketData] = useState<MarketItem[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
