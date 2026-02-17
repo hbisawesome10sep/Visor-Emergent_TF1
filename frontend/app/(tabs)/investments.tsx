@@ -464,34 +464,64 @@ export default function InvestmentsScreen() {
   };
   const handleCasUpload = async () => {
     try {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.pdf';
-      input.onchange = async (e: any) => {
-        const file = e.target?.files?.[0];
-        if (!file) return;
-        setSaving(true);
-        try {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('password', casPassword);
-          const resp = await fetch(`${BACKEND_URL}/api/holdings/upload-cas`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData,
-          });
-          const data = await resp.json();
-          if (!resp.ok) throw new Error(data.detail || 'Upload failed');
-          Alert.alert('Success', data.message);
-          setShowCasModal(false);
-          setCasPassword('');
-          fetchData();
-        } catch (err: any) {
-          Alert.alert('Upload Error', err.message || 'Failed to parse CAS');
-        } finally { setSaving(false); }
-      };
-      input.click();
-    } catch (e: any) { Alert.alert('Error', 'File upload is not supported on this platform'); }
+      // Use expo-document-picker for cross-platform file selection
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+      
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return; // User cancelled
+      }
+      
+      const file = result.assets[0];
+      setSaving(true);
+      
+      try {
+        const formData = new FormData();
+        
+        // Handle file data for both web and native
+        if (Platform.OS === 'web') {
+          // For web, fetch the file and convert to blob
+          const response = await fetch(file.uri);
+          const blob = await response.blob();
+          formData.append('file', blob, file.name || 'cas.pdf');
+        } else {
+          // For native (Android/iOS)
+          formData.append('file', {
+            uri: file.uri,
+            name: file.name || 'cas.pdf',
+            type: 'application/pdf',
+          } as any);
+        }
+        
+        formData.append('password', casPassword || '');
+        
+        const resp = await fetch(`${BACKEND_URL}/api/holdings/upload-cas`, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+        
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Upload failed');
+        
+        Alert.alert('Success', data.message || `Imported ${data.holdings?.length || 0} holdings`);
+        setShowCasModal(false);
+        setCasPassword('');
+        fetchData();
+      } catch (err: any) {
+        console.error('CAS Upload Error:', err);
+        Alert.alert('Upload Error', err.message || 'Failed to parse CAS. Please check the file and password.');
+      } finally { 
+        setSaving(false); 
+      }
+    } catch (e: any) { 
+      console.error('File picker error:', e);
+      Alert.alert('Error', 'Could not open file picker. Please try again.'); 
+    }
   };
 
   // ── Computed values ──
