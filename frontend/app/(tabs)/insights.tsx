@@ -1000,7 +1000,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: { fontSize: 13, marginBottom: 16 },
 
   // Insight Grid
-  insightGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
+  insightGrid: { flexDirection: 'column', gap: 12, marginBottom: 24 },
   insightCard: {
     width: CARD_WIDTH,
     minHeight: 180,
