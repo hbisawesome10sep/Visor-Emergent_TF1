@@ -95,34 +95,34 @@ export default function TransactionsScreen() {
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Callback ref for injecting native date input on web
-  const mountDateInput = useCallback((node: any) => {
-    if (Platform.OS !== 'web' || !node) return;
-    // RN Web refs are DOM nodes
-    const domNode = node;
-    if (typeof domNode.appendChild !== 'function') return;
-    // Avoid duplicate injection
-    if (domNode.querySelector && domNode.querySelector('input[type="date"]')) return;
-    // Clear any existing content
-    while (domNode.firstChild) domNode.removeChild(domNode.firstChild);
+  // Inject native HTML date input on web using DOM ID
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !showModal) return;
+    const timer = setTimeout(() => {
+      const container = document.getElementById('visor-date-picker');
+      if (!container) return;
+      if (container.querySelector('input[type="date"]')) return;
+      while (container.firstChild) container.removeChild(container.firstChild);
 
-    const input = document.createElement('input');
-    input.type = 'date';
-    input.value = form.date || new Date().toISOString().split('T')[0];
-    input.setAttribute('data-testid', 'date-picker-input');
-    input.style.cssText = `
-      width: 100%; height: 44px; border: none; outline: none;
-      background: transparent; cursor: pointer;
-      font-family: 'DM Sans', sans-serif; font-size: 15px;
-      color: ${isDark ? '#F9FAFB' : '#111827'};
-      color-scheme: ${isDark ? 'dark' : 'light'};
-      padding: 0 4px;
-    `;
-    input.addEventListener('change', (e: any) => {
-      setForm((prev: any) => ({ ...prev, date: e.target.value }));
-    });
-    domNode.appendChild(input);
-  }, [isDark, form.date]);
+      const input = document.createElement('input');
+      input.type = 'date';
+      input.value = form.date || new Date().toISOString().split('T')[0];
+      input.setAttribute('data-testid', 'date-picker-input');
+      Object.assign(input.style, {
+        width: '100%', height: '44px', border: 'none', outline: 'none',
+        background: 'transparent', cursor: 'pointer',
+        fontFamily: "'DM Sans', sans-serif", fontSize: '15px',
+        color: isDark ? '#F9FAFB' : '#111827',
+        colorScheme: isDark ? 'dark' : 'light',
+        padding: '0 4px', boxSizing: 'border-box',
+      });
+      input.addEventListener('change', (e: any) => {
+        setForm((prev: any) => ({ ...prev, date: e.target.value }));
+      });
+      container.appendChild(input);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [showModal, isDark]);
 
   // Animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
