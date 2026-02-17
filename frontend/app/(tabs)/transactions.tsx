@@ -96,6 +96,35 @@ export default function TransactionsScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dateInputRef = useRef<any>(null);
 
+  // Inject native HTML date input on web (bypasses RN Web TextInput conversion)
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !dateInputRef.current || !showModal) return;
+    const container = (dateInputRef.current as any);
+    // Access the underlying DOM node
+    const domNode = container._nativeTag || container;
+    if (!domNode || typeof domNode.appendChild !== 'function') return;
+
+    // Clear previous inputs
+    while (domNode.firstChild) domNode.removeChild(domNode.firstChild);
+
+    const input = document.createElement('input');
+    input.type = 'date';
+    input.value = form.date || new Date().toISOString().split('T')[0];
+    input.dataset.testid = 'date-picker-input';
+    input.style.cssText = `
+      width: 100%; height: 100%; border: none; outline: none;
+      background: transparent; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 15px;
+      color: ${isDark ? '#F9FAFB' : '#111827'};
+      color-scheme: ${isDark ? 'dark' : 'light'};
+      padding: 0 4px;
+    `;
+    input.addEventListener('change', (e: any) => {
+      setForm(p => ({ ...p, date: e.target.value }));
+    });
+    domNode.appendChild(input);
+  }, [showModal, form.date, isDark]);
+
   // Animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
