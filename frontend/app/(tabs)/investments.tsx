@@ -78,7 +78,36 @@ type HoldingsData = {
 };
 
 const HOLDING_CATS = ['Stock', 'Mutual Fund', 'ETF', 'Gold', 'Silver', 'Bond', 'Other'];
+const SIP_CATS = ['SIP', 'PPF', 'NPS', 'EPF', 'ELSS', 'Insurance', 'FD', 'Gold', 'Other'];
+const SIP_FREQUENCIES = ['monthly', 'weekly', 'quarterly', 'yearly'];
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+// ── Recurring Transaction Types ──
+type RecurringTransaction = {
+  id: string;
+  name: string;
+  amount: number;
+  frequency: string;
+  category: string;
+  start_date: string;
+  end_date: string | null;
+  day_of_month: number;
+  notes: string | null;
+  is_active: boolean;
+  next_execution: string;
+  total_invested: number;
+  execution_count: number;
+  upcoming: Array<{ date: string; amount: number; status: string }>;
+};
+type RecurringData = {
+  recurring: RecurringTransaction[];
+  summary: {
+    total_count: number;
+    active_count: number;
+    monthly_commitment: number;
+    categories: string[];
+  };
+};
 
 export default function InvestmentsScreen() {
   const { token } = useAuth();
