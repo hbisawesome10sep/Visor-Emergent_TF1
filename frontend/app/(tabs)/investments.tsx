@@ -447,6 +447,78 @@ export default function InvestmentsScreen() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════
+             SECTION 2.5: MY HOLDINGS (Manual + CAS)
+           ═══════════════════════════════════════════════════════════ */}
+        <View style={styles.sectionHeader}>
+          <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>My Holdings</Text>
+          <View style={{ flexDirection: 'row' as any, gap: 8 }}>
+            <TouchableOpacity data-testid="upload-cas-btn" style={[styles.casBtn, { borderColor: '#F97316' }]} onPress={() => setShowCasModal(true)}>
+              <MaterialCommunityIcons name="file-upload-outline" size={14} color="#F97316" />
+              <Text style={[styles.casBtnText, { color: '#F97316' }]}>CAS</Text>
+            </TouchableOpacity>
+            <TouchableOpacity data-testid="add-holding-btn" style={[styles.addGoalBtn, { backgroundColor: '#F97316' }]} onPress={openAddHolding}>
+              <MaterialCommunityIcons name="plus" size={14} color="#fff" />
+              <Text style={styles.addGoalText}>Add</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {holdingsData && holdingsData.holdings.length > 0 ? (
+          <View data-testid="holdings-card" style={[styles.holdingsCard, {
+            backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+          }]}>
+            {/* Holdings summary */}
+            <View style={styles.holdingsSummaryRow}>
+              <View>
+                <Text style={[styles.portfolioSmallLabel, { color: colors.textSecondary }]}>Holdings Value</Text>
+                <Text style={[styles.holdingsSummaryNum, { color: colors.textPrimary }]}>{formatINR(holdingsData.summary.total_current)}</Text>
+              </View>
+              <View style={[styles.gainLossBadge, {
+                backgroundColor: holdingsData.summary.total_gain_loss >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                marginHorizontal: 0, marginBottom: 0,
+              }]}>
+                <Text style={[styles.gainLossText, {
+                  color: holdingsData.summary.total_gain_loss >= 0 ? Accent.emerald : Accent.ruby,
+                }]}>
+                  {holdingsData.summary.total_gain_loss >= 0 ? '+' : ''}{holdingsData.summary.total_gain_loss_pct.toFixed(2)}%
+                </Text>
+              </View>
+            </View>
+
+            {/* Holdings list */}
+            {holdingsData.holdings.map((h, idx) => {
+              const isGain = h.gain_loss >= 0;
+              const isLast = idx === holdingsData.holdings.length - 1;
+              return (
+                <TouchableOpacity key={h.id} data-testid={`holding-row-${h.id}`}
+                  style={[styles.holdingRow, !isLast && { borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}
+                  onLongPress={() => handleDeleteHolding(h.id, h.name)}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.holdingName, { color: colors.textPrimary }]} numberOfLines={1}>{h.name}</Text>
+                    <Text style={[styles.holdingSub, { color: colors.textSecondary }]}>
+                      {h.quantity} {h.category === 'Mutual Fund' ? 'units' : 'shares'} @ {fmtPrice(Math.round(h.buy_price))}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' as any }}>
+                    <Text style={[styles.holdingValue, { color: colors.textPrimary }]}>{formatINRShort(h.current_value)}</Text>
+                    <Text style={[styles.holdingGain, { color: isGain ? Accent.emerald : Accent.ruby }]}>
+                      {isGain ? '+' : ''}{h.gain_loss_pct.toFixed(1)}%
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : (
+          <View style={[styles.emptyPortfolio, { backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
+            <MaterialCommunityIcons name="briefcase-outline" size={36} color={colors.textSecondary} />
+            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No holdings added</Text>
+            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Add stocks and mutual funds manually or upload your CAS statement</Text>
+          </View>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
              SECTION 3: ASSET ALLOCATION (Pie Chart)
            ═══════════════════════════════════════════════════════════ */}
         <Text data-testid="allocation-section-title" style={[styles.sectionTitle, { color: colors.textPrimary }]}>Asset Allocation</Text>
