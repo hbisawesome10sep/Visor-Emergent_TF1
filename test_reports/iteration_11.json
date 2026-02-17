@@ -1,0 +1,98 @@
+{
+  "summary": "Iteration 11 - Tax Planning & Portfolio Rebalancing Features Testing. Backend APIs 100% PASS (18/18 tests). Frontend all sections verified. Tax Planning shows FY 2025-26, tax saved estimates, 80C (₹10K/₹1.5L, 7%) with PPF items, 80D (₹0/₹25K). Rebalancing shows Balanced Growth/Moderate strategy, actual vs target allocation bars, 4 action items (Reduce Equity 49.9%, Increase Debt/Alt/Gold).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tax_rebalancing.py",
+    "/app/test_reports/pytest/pytest_tax_rebalancing.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Tax summary endpoint correctly maps PPF transactions to Section 80C",
+    "Portfolio rebalancing uses saved Moderate risk profile for target allocations",
+    "Rebalancing actions only show when diff >= 2% (good threshold logic)",
+    "All data-testid attributes present for key elements (tax-section-80C, tax-section-80D, rebalance-card)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_tax_rebalancing.py"
+  ],
+  "success_rate": {
+    "backend": "100% (18/18 tests passed)",
+    "frontend": "100% - All Tax Planning & Rebalancing features verified"
+  },
+  "test_credentials": "rajesh@visor.demo / Demo@123",
+  "seed_data_creation": "Used existing PPF transactions (2x ₹5,000) for tax 80C testing. Risk profile already set to Moderate.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Tax Planning and Portfolio Rebalancing features fully tested. Tax API returns sections array with 80C/80D with used/limit/percentage/items. Rebalancing API returns profile, strategy_name, actual/target allocations, and actions array with reduce/increase suggestions. Frontend displays both sections after Risk Profile & Strategy section. All 8 Invest screen sections render correctly: Markets, Portfolio Overview, My Holdings, Asset Allocation, Risk Profile, Tax Planning, Rebalancing Actions, Financial Goals.",
+  "features_verified": {
+    "Backend": {
+      "GET /api/tax-summary": "PASS - Returns sections (80C, 80D), fy, tax_saved estimates",
+      "Tax 80C structure": "PASS - limit=150000, used=10000, percentage=6.7, items=[PPF x2]",
+      "Tax 80D structure": "PASS - limit=25000, used=0, percentage=0",
+      "Tax auth required": "PASS - Returns 401 without token",
+      "GET /api/portfolio-rebalancing": "PASS - Returns profile, strategy_name, actual, target, actions",
+      "Rebalancing profile": "PASS - Returns Moderate (from saved risk profile)",
+      "Rebalancing strategy": "PASS - Returns 'Balanced Growth' for Moderate profile",
+      "Rebalancing actual allocation": "PASS - {Equity: 89.9, Debt: 10.1, Gold: 0, Alt: 0}",
+      "Rebalancing target allocation": "PASS - {Equity: 40, Debt: 30, Gold: 15, Alt: 15}",
+      "Rebalancing actions": "PASS - 4 actions with correct reduce/increase suggestions",
+      "Rebalancing auth required": "PASS - Returns 401 without token"
+    },
+    "Frontend": {
+      "Tax Planning section": "PASS - Shows 'Tax Planning' header",
+      "FY label": "PASS - Shows 'FY 2025-26'",
+      "Tax saved badge": "PASS - Shows '₹3,000.00 (30% slab) / ₹2,000.00 (20% slab)'",
+      "Section 80C card": "PASS - Shows ₹10.0K/₹1.5L with 7% badge",
+      "Section 80C progress bar": "PASS - Orange progress bar at 7%",
+      "Section 80C items": "PASS - Two PPF items at ₹5,000 each",
+      "Section 80C remaining": "PASS - Shows '₹1.4L remaining'",
+      "Section 80D card": "PASS - Shows ₹0/₹25.0K with 0% badge",
+      "Section 80D remaining": "PASS - Shows '₹25.0K remaining'",
+      "Rebalancing Actions header": "PASS - Shows 'Rebalancing Actions'",
+      "Rebalancing strategy/profile": "PASS - Shows 'Balanced Growth' / 'Moderate'",
+      "Rebalancing bars": "PASS - 4 bars for Equity/Debt/Gold/Alt with actual vs target",
+      "Rebalancing Equity bar": "PASS - 90% actual vs 40% target",
+      "Rebalancing Debt bar": "PASS - 10% actual vs 30% target",
+      "Rebalancing Gold bar": "PASS - 0% actual vs 15% target",
+      "Rebalancing Alt bar": "PASS - 0% actual vs 15% target",
+      "Rebalancing legend": "PASS - Shows 'Actual' and 'Target' legend",
+      "Rebalancing action 1": "PASS - 'Reduce Equity by 49.9% (₹49.3K)'",
+      "Rebalancing action 2": "PASS - 'Increase Debt by 19.9% (₹19.7K)'",
+      "Rebalancing action 3": "PASS - 'Increase Alt by 15.0% (₹14.8K)'",
+      "Rebalancing action 4": "PASS - 'Increase Gold by 15.0% (₹14.8K)'",
+      "Other sections intact": "PASS - Markets, Portfolio, Holdings, Risk Profile, Goals all render"
+    }
+  },
+  "api_data_snapshot": {
+    "tax_summary": {
+      "fy": "2025-26",
+      "total_deductions": 10000,
+      "tax_saved_30_slab": 3000,
+      "tax_saved_20_slab": 2000,
+      "sections": [
+        {"section": "80C", "limit": 150000, "used": 10000, "percentage": 6.7},
+        {"section": "80D", "limit": 25000, "used": 0, "percentage": 0}
+      ]
+    },
+    "portfolio_rebalancing": {
+      "profile": "Moderate",
+      "strategy_name": "Balanced Growth",
+      "total": 98824.1,
+      "actual": {"Equity": 89.9, "Debt": 10.1, "Gold": 0, "Alt": 0},
+      "target": {"Equity": 40, "Debt": 30, "Gold": 15, "Alt": 15},
+      "actions_count": 4
+    }
+  },
+  "screenshots_captured": [
+    "08_tax_planning.png - Tax Planning section with 80C/80D cards",
+    "09_rebalancing.png - Rebalancing Actions with actual vs target bars and 4 action items"
+  ]
+}
