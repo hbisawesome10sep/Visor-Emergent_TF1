@@ -16,6 +16,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { apiRequest } from '../../src/utils/api';
 import {
+  formatINR,
   formatINRShort,
   getGreeting,
   getCurrentMonthYear,
