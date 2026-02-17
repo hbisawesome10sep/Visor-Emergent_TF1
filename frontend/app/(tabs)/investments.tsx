@@ -2019,6 +2019,11 @@ const styles = StyleSheet.create({
   casBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   casBtnText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' as any },
   casDesc: { fontSize: 13, lineHeight: 20, marginBottom: 16 },
+  replaceToggle: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 16 },
+  toggleCheckbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  replaceToggleText: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '500' as any, flex: 1 },
+  clearBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 12, borderWidth: 1, marginTop: 12 },
+  clearBtnText: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '600' as any },
 
   // ── SIP/Recurring ──
   sipSummaryCard: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 16 },
