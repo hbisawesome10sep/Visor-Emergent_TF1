@@ -106,6 +106,7 @@ export default function DashboardScreen() {
   // Calculate header height dynamically based on safe area
   const HEADER_HEIGHT = 70 + insets.top;
   const [showScoreBack, setShowScoreBack] = useState(false);
+  const [showTrendBack, setShowTrendBack] = useState(false);
   const [userCreatedAt, setUserCreatedAt] = useState<string>('');
   
   // Date range state
