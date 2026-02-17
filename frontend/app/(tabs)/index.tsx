@@ -627,19 +627,86 @@ export default function DashboardScreen() {
           </View>
         )}
 
-        {/* ═══ TREND ANALYSIS ═══ */}
-        <View
+        {/* ═══ TREND ANALYSIS (Flippable Card) ═══ */}
+        <TouchableOpacity
+          activeOpacity={0.95}
+          onPress={() => setShowTrendBack(!showTrendBack)}
           style={[
             styles.glassCard,
             {
               backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
               borderColor: isDark ? '#1F2937' : '#E5E7EB',
+              minHeight: showTrendBack ? 280 : 180,
             },
           ]}
         >
-          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Trend Analysis</Text>
-          <TrendChart data={trendData} colors={colors} isDark={isDark} />
-        </View>
+          <TouchableOpacity 
+            style={[styles.flipIconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', position: 'absolute', top: 12, right: 12, zIndex: 10 }]}
+            onPress={() => setShowTrendBack(!showTrendBack)}
+          >
+            <MaterialCommunityIcons name={showTrendBack ? "rotate-left" : "information-outline"} size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          {!showTrendBack ? (
+            <>
+              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Trend Analysis</Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textSecondary, marginTop: -8, marginBottom: 8 }]}>
+                {selectedFrequency === 'Month' ? 'This Month' : selectedFrequency === 'Quarter' ? 'This Quarter' : selectedFrequency === 'Year' ? 'This Year' : 'All Time'} • Tap for insights
+              </Text>
+              <TrendChart data={trendData} colors={colors} isDark={isDark} />
+            </>
+          ) : (
+            <View style={{ flex: 1, paddingTop: 8 }}>
+              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Spending Insights</Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textSecondary, marginTop: -8, marginBottom: 12 }]}>
+                Based on your transactions for {selectedFrequency === 'Month' ? 'this month' : selectedFrequency === 'Quarter' ? 'this quarter' : selectedFrequency === 'Year' ? 'this year' : 'all time'}
+              </Text>
+              
+              {trendInsights.length > 0 ? (
+                <View style={{ gap: 10 }}>
+                  {trendInsights.map((insight: any, idx: number) => (
+                    <View 
+                      key={idx} 
+                      style={[
+                        styles.insightItem, 
+                        { 
+                          backgroundColor: insight.type === 'success' 
+                            ? isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)'
+                            : insight.type === 'warning'
+                            ? isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.08)'
+                            : isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.08)',
+                          borderColor: insight.type === 'success' 
+                            ? 'rgba(16, 185, 129, 0.2)'
+                            : insight.type === 'warning'
+                            ? 'rgba(245, 158, 11, 0.2)'
+                            : 'rgba(59, 130, 246, 0.2)',
+                        }
+                      ]}
+                    >
+                      <MaterialCommunityIcons 
+                        name={insight.icon || 'information'} 
+                        size={20} 
+                        color={insight.type === 'success' ? Accent.emerald : insight.type === 'warning' ? Accent.amber : Accent.sapphire}
+                        style={{ marginRight: 10 }}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>{insight.title}</Text>
+                        <Text style={[styles.insightMessage, { color: colors.textSecondary }]}>{insight.message}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                  <MaterialCommunityIcons name="chart-timeline-variant" size={40} color={colors.textSecondary} />
+                  <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 10 }]}>
+                    Add more transactions to see trends
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </TouchableOpacity>
 
         {/* ═══ RECENT TRANSACTIONS ═══ */}
         {stats && stats.recent_transactions.length > 0 && (
