@@ -114,18 +114,25 @@ export default function InvestmentsScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [statsData, goalsData, mktData, portfolioData, holdingsLive] = await Promise.all([
+      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
         apiRequest('/market-data', {}),
         apiRequest('/portfolio-overview', { token }),
         apiRequest('/holdings/live', { token }),
+        apiRequest('/risk-profile', { token }),
       ]);
       setStats(statsData);
       setGoals(goalsData);
       setMarketData(mktData || []);
       setPortfolio(portfolioData);
       setHoldingsData(holdingsLive);
+      if (savedRisk && savedRisk.profile) {
+        setRiskProfile(savedRisk.profile);
+        setRiskScore(savedRisk.score || 0);
+        setRiskBreakdown(savedRisk.breakdown || {});
+        setRiskSaved(true);
+      }
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     } catch (e) {
       console.error(e);
