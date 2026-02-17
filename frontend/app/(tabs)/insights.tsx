@@ -960,6 +960,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
+  insightCardBack: {
+    minHeight: 220,
+    padding: 12,
+  },
   insightGradient: {
     flex: 1,
     minHeight: 180,
