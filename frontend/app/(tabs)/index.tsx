@@ -1708,4 +1708,33 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
+  
+  // Trend Analysis card styles
+  cardSubtitle: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    marginBottom: 4,
+  },
+  insightItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  insightTitle: {
+    fontSize: 13,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
+    marginBottom: 2,
+  },
+  insightMessage: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    lineHeight: 16,
+  },
+  emptyText: {
+    fontSize: 13,
+    fontFamily: 'DM Sans',
+    textAlign: 'center',
+  },
 });
