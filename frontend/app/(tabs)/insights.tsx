@@ -90,6 +90,15 @@ interface InsightCardProps {
     yourValue: string;
     nationalAverage: string;
     recommended: string;
+    calculation?: string;  // Show actual calculation formula
+    actualAmounts?: {     // Show rupee amounts
+      label1?: string;
+      value1?: string;
+      label2?: string;
+      value2?: string;
+      label3?: string;
+      value3?: string;
+    };
   };
   isDark: boolean;
   colors: any;
