@@ -13,41 +13,30 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - Auth (login/register), Dashboard (health score, liquid fill cards, charts, date filters, FAB)
 - Transactions (CRUD with PUT/POST/DELETE, dropdown categories, optional descriptions, calendar date picker)
 - Insights (6 animated cards, national averages, AI recommendations)
-- Investments (Indian Markets live data, portfolio overview, asset allocation pie chart, risk profile, goals, tax saving)
+- Investments (Indian Markets live data, portfolio overview with invested vs current value, asset allocation pie chart, risk profile, goals, tax saving)
 - Settings (theme toggle, profile, export), Bookkeeping, AI Advisor chat
 
-## Visual Design (v2.1 — Refined Jewel Tones)
-- Dark: True black (#000000), Light: Pure white (#FFFFFF)
-- Accents: Emerald, Ruby, Amber, Teal, Sapphire, Amethyst, Rose
-- Font: DM Sans (400-700)
-
-## Invest Screen Layout (v3 — Feb 2026)
-1. **Indian Markets** (TOP) — Clean table-row layout: Nifty 50, SENSEX, Nifty Bank, Gold (10g as 24K), Silver (1Kg as 999) with LIVE pricing from Yahoo Finance
-2. **Portfolio Overview** — Total invested from user transactions, breakdown by category
-3. **Asset Allocation** — Donut pie chart of Stocks, MF, FD, Gold, Silver, PPF, NPS, Crypto etc.
+## Invest Screen Layout (v4 — Feb 17, 2026)
+1. **Indian Markets** (TOP) — Clean table-row layout: Nifty 50, SENSEX, Nifty Bank, Gold (10g/24K), Silver (1Kg/999) with LIVE pricing from Yahoo Finance
+2. **Portfolio Overview** — Invested vs Current Value with gain/loss %, category-wise breakdown (SIP, PPF, Stocks etc) with invested, current, and return columns. Returns calculated using: Nifty performance for equities, fixed interest rates for FD/PPF/NPS, commodity prices for Gold/Silver
+3. **Asset Allocation** — Donut pie chart of all investment categories
 4. **Risk Profile & Strategy** — Assessment + recommended allocation strategy
 5. **Tax Saving** — Section 80C progress
 6. **Financial Goals** — CRUD with progress tracking
 
-## Transaction Form (v2 — Feb 2026)
-- **Category Dropdown**: 27 expense, 13 income, 18 investment categories with icons
-- **Description**: Optional, context-specific suggestions per type
-- **Date**: Native calendar picker (HTML input type=date on web)
-- **Investment Linkage**: Investment transactions auto-reflect in Invest screen via invest_breakdown
+## Key API Endpoints
+- `GET /api/market-data` — Returns cached LIVE Indian market data (no auth)
+- `POST /api/market-data/refresh` — Trigger manual refresh (auth required)
+- `GET /api/portfolio-overview` — Returns invested vs current value per category (auth required)
+- `GET /api/dashboard/stats` — Dashboard stats with invest_breakdown
+- CRUD: `/api/transactions`, `/api/goals`
 
 ## Test Credentials
 - rajesh@visor.demo / Demo@123
 
-## Key API Endpoints
-- `GET /api/market-data` — Returns cached LIVE Indian market data (no auth)
-- `POST /api/market-data/refresh` — Trigger manual refresh (auth required)
-- `GET /api/dashboard/stats` — Dashboard stats with invest_breakdown
-- CRUD: `/api/transactions`, `/api/goals`
-
 ## Prioritized Backlog
 
 ### P0 (In Progress)
-- Phase 2: Portfolio Overview with current market value comparison
 - Phase 3: Risk Profile Assessment (10-15 behavioral finance questions + Visor AI integration)
 - Phase 4: Tax Planning (Chapter VI deductions)
 - Phase 5: Transaction Buy/Sell + Capital Gains Tax
