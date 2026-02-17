@@ -951,6 +951,151 @@ async def get_tax_summary(user=Depends(get_current_user)):
         "fy": "2025-26",
     }
 
+
+@api_router.get("/capital-gains")
+async def get_capital_gains(user=Depends(get_current_user)):
+    """Calculate capital gains tax on sold investments."""
+    # Get all investment transactions with buy_sell field
+    txns = await db.transactions.find(
+        {"user_id": user["id"], "type": "investment"}, {"_id": 0}
+    ).to_list(1000)
+    
+    # Group by category/description for FIFO matching
+    buys = {}  # {category: [{date, amount, units, price_per_unit}]}
+    sells = []  # [{date, amount, units, price_per_unit, category, description}]
+    
+    for t in txns:
+        key = t.get("description", t.get("category", "Unknown"))
+        buy_sell = t.get("buy_sell", "buy")  # Default to buy for legacy data
+        
+        if buy_sell == "sell":
+            sells.append({
+                "date": t.get("date", ""),
+                "amount": t.get("amount", 0),
+                "units": t.get("units", 0),
+                "price_per_unit": t.get("price_per_unit", 0),
+                "category": t.get("category", ""),
+                "description": t.get("description", ""),
+                "key": key,
+            })
+        else:
+            if key not in buys:
+                buys[key] = []
+            buys[key].append({
+                "date": t.get("date", ""),
+                "amount": t.get("amount", 0),
+                "units": t.get("units", t.get("amount", 0)),  # Fallback to amount if units not set
+                "price_per_unit": t.get("price_per_unit", 1),
+            })
+    
+    # Calculate gains for each sell using FIFO
+    gains = []
+    total_stcg = 0  # Short term (<1 year for equity, <3 years for others)
+    total_ltcg = 0  # Long term
+    
+    for sell in sells:
+        key = sell["key"]
+        sell_date = datetime.strptime(sell["date"], "%Y-%m-%d") if sell["date"] else datetime.now(timezone.utc)
+        sell_amount = sell["amount"]
+        sell_units = sell["units"] or 1
+        
+        cost_basis = 0
+        is_long_term = False
+        holding_days = 0
+        
+        # FIFO matching with buys
+        if key in buys and buys[key]:
+            buy_entry = buys[key][0]  # Get oldest buy
+            buy_date = datetime.strptime(buy_entry["date"], "%Y-%m-%d") if buy_entry["date"] else sell_date
+            holding_days = (sell_date - buy_date).days
+            
+            # Equity: 1 year = LTCG, Others: 2 years = LTCG
+            is_equity = sell["category"] in ("Stocks", "Stock", "Mutual Funds", "ETF", "ELSS", "SIP")
+            ltcg_threshold = 365 if is_equity else 730
+            is_long_term = holding_days >= ltcg_threshold
+            
+            # Calculate cost basis
+            if sell_units > 0 and buy_entry.get("price_per_unit", 0) > 0:
+                cost_basis = sell_units * buy_entry["price_per_unit"]
+            else:
+                cost_basis = buy_entry.get("amount", sell_amount)
+        else:
+            # No matching buy found, assume short-term with zero cost basis
+            cost_basis = 0
+        
+        gain = sell_amount - cost_basis
+        gain_pct = (gain / cost_basis * 100) if cost_basis > 0 else 0
+        
+        # Tax calculation based on Indian tax rules (FY 2025-26)
+        # STCG on equity: 20%, LTCG on equity: 12.5% (above ₹1.25L exemption)
+        # STCG on others: As per slab, LTCG on others: 20% with indexation
+        is_equity = sell["category"] in ("Stocks", "Stock", "Mutual Funds", "ETF", "ELSS", "SIP")
+        
+        if is_long_term:
+            if is_equity:
+                # LTCG on equity: 12.5% above ₹1.25L exemption
+                taxable_gain = max(gain, 0)
+                tax_rate = 0.125
+                total_ltcg += taxable_gain
+            else:
+                # LTCG on debt: 12.5% without indexation (new rules)
+                taxable_gain = max(gain, 0)
+                tax_rate = 0.125
+                total_ltcg += taxable_gain
+        else:
+            if is_equity:
+                # STCG on equity: 20%
+                taxable_gain = max(gain, 0)
+                tax_rate = 0.20
+                total_stcg += taxable_gain
+            else:
+                # STCG on debt: As per slab (assume 30%)
+                taxable_gain = max(gain, 0)
+                tax_rate = 0.30
+                total_stcg += taxable_gain
+        
+        tax_liability = taxable_gain * tax_rate
+        
+        gains.append({
+            "description": sell["description"] or sell["category"],
+            "category": sell["category"],
+            "sell_date": sell["date"],
+            "sell_amount": round(sell_amount, 2),
+            "cost_basis": round(cost_basis, 2),
+            "gain_loss": round(gain, 2),
+            "gain_loss_pct": round(gain_pct, 2),
+            "holding_days": holding_days,
+            "is_long_term": is_long_term,
+            "tax_rate": tax_rate,
+            "tax_liability": round(tax_liability, 2),
+        })
+    
+    # LTCG exemption for equity: ₹1.25L
+    ltcg_exemption = 125000
+    ltcg_taxable = max(total_ltcg - ltcg_exemption, 0)
+    ltcg_tax = ltcg_taxable * 0.125 if ltcg_taxable > 0 else 0
+    stcg_tax = total_stcg * 0.20  # Simplified, assuming equity STCG
+    
+    return {
+        "gains": gains,
+        "summary": {
+            "total_stcg": round(total_stcg, 2),
+            "total_ltcg": round(total_ltcg, 2),
+            "ltcg_exemption": ltcg_exemption,
+            "ltcg_taxable": round(ltcg_taxable, 2),
+            "estimated_stcg_tax": round(stcg_tax, 2),
+            "estimated_ltcg_tax": round(ltcg_tax, 2),
+            "total_estimated_tax": round(stcg_tax + ltcg_tax, 2),
+        },
+        "notes": [
+            "STCG on equity: 20% (holding < 1 year)",
+            "LTCG on equity: 12.5% above ₹1.25L exemption (holding ≥ 1 year)",
+            "Debt funds: 12.5% LTCG (≥2 years), slab rate STCG",
+        ],
+        "fy": "2025-26",
+    }
+
+
 # ══════════════════════════════════════
 #  PORTFOLIO REBALANCING
 # ══════════════════════════════════════
