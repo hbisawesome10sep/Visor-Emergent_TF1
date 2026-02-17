@@ -662,11 +662,20 @@ export default function InsightsScreen() {
             fillPercentage={(savingsRate / 30) * 100}
             benchmarkInfo={{
               title: 'Savings Rate',
-              description: 'Percentage of income saved monthly. Higher is better.',
+              description: 'Your monthly savings as a % of income.',
               source: 'RBI Guidelines',
               yourValue: `${savingsRate.toFixed(1)}%`,
               nationalAverage: '5.1%',
               recommended: '20%+',
+              calculation: `(Income - Expenses) ÷ Income × 100`,
+              actualAmounts: {
+                label1: 'Total Income',
+                value1: `₹${formatINRShort(income)}`,
+                label2: 'Total Expenses',
+                value2: `₹${formatINRShort(expenses)}`,
+                label3: 'Monthly Savings',
+                value3: `₹${formatINRShort(monthlySavings)}`,
+              },
             }}
             isDark={isDark}
             colors={colors}
@@ -680,11 +689,20 @@ export default function InsightsScreen() {
             fillPercentage={emiRatio}
             benchmarkInfo={{
               title: 'EMI-to-Income',
-              description: 'Total EMIs as percentage of income. Lower is safer.',
+              description: 'Estimated monthly EMI burden.',
               source: 'RBI Lending Rules',
               yourValue: `${emiRatio.toFixed(1)}%`,
               nationalAverage: '28%',
               recommended: '<40%',
+              calculation: `Estimated EMIs ÷ Income × 100`,
+              actualAmounts: {
+                label1: 'Monthly Income',
+                value1: `₹${formatINRShort(income)}`,
+                label2: 'Est. EMI (35% of expenses)',
+                value2: `₹${formatINRShort(emiEstimate)}`,
+                label3: 'EMI Ratio',
+                value3: `${emiRatio.toFixed(1)}%`,
+              },
             }}
             isDark={isDark}
             colors={colors}
