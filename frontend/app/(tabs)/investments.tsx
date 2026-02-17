@@ -184,11 +184,7 @@ export default function InvestmentsScreen() {
   const overallGoalProgress = totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
 
   // ── Helper: format price for markets ──
-  const fmtPrice = (p: number) => {
-    if (p >= 100000) return `${(p / 1000).toFixed(0).replace(/\B(?=(\d{2})+(?!\d))/g, ',')}`;
-    if (p >= 10000) return p.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-    return p.toLocaleString('en-IN', { maximumFractionDigits: 2 });
-  };
+  const fmtPrice = (p: number) => p.toLocaleString('en-IN', { maximumFractionDigits: p >= 1000 ? 0 : 2 });
 
   if (loading) {
     return (
