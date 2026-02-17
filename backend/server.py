@@ -2386,6 +2386,12 @@ async def get_holdings_live(user=Depends(get_current_user)):
         },
     }
 
+@api_router.delete("/holdings/clear-all")
+async def clear_all_holdings(user=Depends(get_current_user)):
+    """Clear all holdings for the user. Must be defined before /holdings/{holding_id}."""
+    result = await db.holdings.delete_many({"user_id": user["id"]})
+    return {"message": f"Deleted {result.deleted_count} holdings"}
+
 @api_router.put("/holdings/{holding_id}")
 async def update_holding(holding_id: str, holding: HoldingCreate, user=Depends(get_current_user)):
     update = {
