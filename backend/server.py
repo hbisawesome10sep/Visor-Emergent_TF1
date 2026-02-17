@@ -22,6 +22,7 @@ db = client[os.environ['DB_NAME']]
 
 JWT_SECRET = os.environ['JWT_SECRET']
 EMERGENT_LLM_KEY = os.environ['EMERGENT_LLM_KEY']
+ALPHA_VANTAGE_KEY = os.environ.get('ALPHA_VANTAGE_KEY', '')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
