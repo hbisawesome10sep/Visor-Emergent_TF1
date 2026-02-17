@@ -169,21 +169,86 @@ export default function InvestmentsScreen() {
     ]);
   };
 
-  // ── Risk assessment (simple 3-question version for now) ──
+  // ── Risk assessment (12 behavioral finance questions) ──
   const RISK_QUESTIONS = [
-    { question: 'What is your investment time horizon?', options: [{ label: 'Short (1-3 years)', value: 1 }, { label: 'Medium (3-7 years)', value: 2 }, { label: 'Long (7+ years)', value: 3 }] },
-    { question: 'How would you react if your portfolio dropped 20%?', options: [{ label: 'Sell everything', value: 1 }, { label: 'Sell some', value: 2 }, { label: 'Hold and wait', value: 3 }, { label: 'Buy more', value: 4 }] },
-    { question: 'What percentage of income can you invest?', options: [{ label: 'Less than 10%', value: 1 }, { label: '10-20%', value: 2 }, { label: '20-30%', value: 3 }, { label: 'More than 30%', value: 4 }] },
+    { id: 1, category: 'horizon', question: 'What is your primary investment time horizon?', options: [
+      { label: '< 1 year', value: 1 }, { label: '1-3 years', value: 2 }, { label: '3-7 years', value: 3 }, { label: '7-15 years', value: 4 }, { label: '15+ years', value: 5 }
+    ]},
+    { id: 2, category: 'loss_tolerance', question: 'If your portfolio dropped 25% in a month, what would you do?', options: [
+      { label: 'Sell everything immediately', value: 1 }, { label: 'Sell half to limit damage', value: 2 }, { label: 'Hold and wait for recovery', value: 3 }, { label: 'Buy more at lower prices', value: 5 }
+    ]},
+    { id: 3, category: 'experience', question: 'How much investment experience do you have?', options: [
+      { label: 'None — I\'m new to investing', value: 1 }, { label: 'Beginner (FDs, PPF only)', value: 2 }, { label: 'Intermediate (MFs, SIPs)', value: 3 }, { label: 'Advanced (Stocks, F&O, crypto)', value: 5 }
+    ]},
+    { id: 4, category: 'income_stability', question: 'How stable is your primary source of income?', options: [
+      { label: 'Unstable / Freelance', value: 1 }, { label: 'Somewhat stable', value: 2 }, { label: 'Stable salaried job', value: 4 }, { label: 'Multiple income streams', value: 5 }
+    ]},
+    { id: 5, category: 'emergency_fund', question: 'How many months of expenses do you have as an emergency fund?', options: [
+      { label: 'None', value: 1 }, { label: '1-3 months', value: 2 }, { label: '3-6 months', value: 3 }, { label: '6-12 months', value: 4 }, { label: '12+ months', value: 5 }
+    ]},
+    { id: 6, category: 'return_expectation', question: 'What annual return do you expect from your investments?', options: [
+      { label: '6-8% (FD-like safety)', value: 1 }, { label: '8-12% (Balanced growth)', value: 2 }, { label: '12-18% (Equity-like returns)', value: 4 }, { label: '18%+ (High growth, high risk)', value: 5 }
+    ]},
+    { id: 7, category: 'loss_tolerance', question: 'What is the maximum portfolio loss you can stomach in a year?', options: [
+      { label: '0% — I can\'t afford any loss', value: 1 }, { label: 'Up to 10%', value: 2 }, { label: 'Up to 20%', value: 3 }, { label: 'Up to 30%', value: 4 }, { label: '30%+ if long-term gains are high', value: 5 }
+    ]},
+    { id: 8, category: 'concentration', question: 'How comfortable are you putting 50%+ of your portfolio in equities?', options: [
+      { label: 'Very uncomfortable', value: 1 }, { label: 'Slightly uncomfortable', value: 2 }, { label: 'Neutral', value: 3 }, { label: 'Comfortable', value: 4 }, { label: 'Very comfortable', value: 5 }
+    ]},
+    { id: 9, category: 'behavior', question: 'When markets are at all-time highs, what do you typically do?', options: [
+      { label: 'Sell and book profits', value: 2 }, { label: 'Stop investing and wait', value: 1 }, { label: 'Continue my SIPs normally', value: 3 }, { label: 'Invest more aggressively', value: 5 }
+    ]},
+    { id: 10, category: 'goal_priority', question: 'What matters more to you in investing?', options: [
+      { label: 'Capital preservation above all', value: 1 }, { label: 'Steady income with low risk', value: 2 }, { label: 'Balance of growth and safety', value: 3 }, { label: 'Maximum growth, even with volatility', value: 5 }
+    ]},
+    { id: 11, category: 'behavior', question: 'A friend recommends a "hot stock tip". What do you do?', options: [
+      { label: 'Ignore it completely', value: 3 }, { label: 'Research before acting', value: 4 }, { label: 'Invest a small amount to test', value: 2 }, { label: 'Go all-in if it sounds good', value: 1 }
+    ]},
+    { id: 12, category: 'age_capacity', question: 'What is your age group?', options: [
+      { label: '18-25', value: 5 }, { label: '26-35', value: 4 }, { label: '36-45', value: 3 }, { label: '46-55', value: 2 }, { label: '55+', value: 1 }
+    ]},
   ];
-  const handleRiskAnswer = (value: number) => {
-    const newAnswers = [...riskAnswers, value];
+
+  const handleRiskAnswer = async (value: number) => {
+    const q = RISK_QUESTIONS[riskStep];
+    const newAnswers = [...riskAnswers, { question_id: q.id, value, category: q.category }];
     setRiskAnswers(newAnswers);
-    if (riskStep < RISK_QUESTIONS.length - 1) { setRiskStep(riskStep + 1); }
-    else {
-      const avg = newAnswers.reduce((s, a) => s + a, 0) / newAnswers.length;
-      setRiskProfile(avg <= 1.5 ? 'Conservative' : avg <= 2.8 ? 'Moderate' : 'Aggressive');
-      setShowRiskModal(false); setRiskStep(0); setRiskAnswers([]);
+    if (riskStep < RISK_QUESTIONS.length - 1) {
+      setRiskStep(riskStep + 1);
+    } else {
+      // Calculate score and breakdown
+      const catScores: Record<string, number[]> = {};
+      newAnswers.forEach(a => {
+        if (!catScores[a.category]) catScores[a.category] = [];
+        catScores[a.category].push(a.value);
+      });
+      const breakdown: Record<string, number> = {};
+      Object.entries(catScores).forEach(([cat, vals]) => {
+        breakdown[cat] = parseFloat((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2));
+      });
+      const avgScore = parseFloat((newAnswers.reduce((s, a) => s + a.value, 0) / newAnswers.length).toFixed(2));
+      const profile: 'Conservative' | 'Moderate' | 'Aggressive' = avgScore <= 2.0 ? 'Conservative' : avgScore <= 3.5 ? 'Moderate' : 'Aggressive';
+
+      setRiskScore(avgScore);
+      setRiskBreakdown(breakdown);
+      setRiskProfile(profile);
+      setShowRiskResult(true);
+
+      // Save to backend
+      try {
+        await apiRequest('/risk-profile', { method: 'POST', token, body: {
+          answers: newAnswers, score: avgScore, profile, breakdown,
+        }});
+        setRiskSaved(true);
+      } catch (e) { console.error('Failed to save risk profile', e); }
     }
+  };
+
+  const closeRiskModal = () => {
+    setShowRiskModal(false);
+    setShowRiskResult(false);
+    setRiskStep(0);
+    setRiskAnswers([]);
   };
 
   // ── Holdings handlers ──
