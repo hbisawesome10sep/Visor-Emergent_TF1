@@ -49,14 +49,18 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - ✅ Phase 4: Tax Planning (80C/80D/80CCD1B/80E/80TTA, auto-mapping, tax saved estimates)
 - ✅ Phase 4.5: Portfolio Rebalancing (actual vs target allocation, actionable suggestions)
 - ✅ Phase 4.6: What-If Simulator (interactive sliders, projected returns/volatility/Sharpe, 5y/10y projections)
+- ✅ Recurring Transactions (SIPs) - Full CRUD, pause/resume, manual execution (Feb 17, 2026)
+- ✅ Bug Fix: AI Chat endpoint alignment (Feb 17, 2026)
+- ✅ Bug Fix: Investment transactions display without negative sign (Feb 17, 2026)
 
 ## Prioritized Backlog
 
 ### P0 (Next)
+- eCAS Statement parsing improvements (user can provide sample file for exact field extraction)
 - Transaction Buy/Sell toggle + Capital Gains Tax calculation
 
 ### P1
-- Recurring Transactions (monthly SIPs)
+- Component Refactoring: Break down investments.tsx (~1800 lines) into smaller components
 
 ### P2
 - Backend migration: Python/FastAPI → Node.js/Express/PostgreSQL
