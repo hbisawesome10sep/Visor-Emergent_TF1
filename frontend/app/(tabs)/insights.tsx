@@ -621,24 +621,24 @@ export default function InsightsScreen() {
           ) : (
             <View style={styles.healthScoreBack}>
               <Text style={[styles.scoreBackTitle, { color: colors.textPrimary }]}>How Your Score is Calculated</Text>
-              <Text style={[styles.scoreBackDesc, { color: colors.textSecondary }]}>Based on RBI's financial health framework</Text>
+              <Text style={[styles.scoreBackDesc, { color: colors.textSecondary }]}>Based on RBI financial health framework</Text>
               
               <View style={[styles.scoreBreakdown, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
                 <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Savings</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.savings)}/100</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Savings ({savingsRate.toFixed(0)}% of income)</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.savings)}/25</Text>
                 </View>
                 <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Spending Control</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.spending)}/100</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Spending ({spendingRate.toFixed(0)}% of income)</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.spending)}/25</Text>
                 </View>
                 <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Investments</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.investments)}/100</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Investments ({investmentRate.toFixed(0)}% of income)</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.investments)}/25</Text>
                 </View>
                 <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Goals Progress</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.goals)}/100</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Goals ({goalProgress.toFixed(0)}% achieved)</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.goals)}/25</Text>
                 </View>
                 <View style={[styles.breakdownTotal, { borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
                   <Text style={[styles.breakdownTotalLabel, { color: colors.textPrimary }]}>Total Score</Text>
