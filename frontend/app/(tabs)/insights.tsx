@@ -16,7 +16,7 @@ import { Accent } from '../../src/utils/theme';
 import AIAdvisorChat from '../../src/components/AIAdvisorChat';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = Math.max((SCREEN_WIDTH - 48) / 2, 160);
+const CARD_WIDTH = SCREEN_WIDTH - 32; // Full width minus padding
 
 type DashboardStats = {
   total_income: number;
