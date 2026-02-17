@@ -778,6 +778,10 @@ export default function InvestmentsScreen() {
         <View style={styles.sectionHeader}>
           <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>My Holdings</Text>
           <View style={{ flexDirection: 'row' as any, gap: 8 }}>
+            <TouchableOpacity data-testid="clear-holdings-quick-btn" style={[styles.casBtn, { borderColor: Accent.ruby }]} onPress={handleClearHoldings}>
+              <MaterialCommunityIcons name="delete-outline" size={14} color={Accent.ruby} />
+              <Text style={[styles.casBtnText, { color: Accent.ruby }]}>Clear</Text>
+            </TouchableOpacity>
             <TouchableOpacity data-testid="upload-cas-btn" style={[styles.casBtn, { borderColor: '#F97316' }]} onPress={() => setShowCasModal(true)}>
               <MaterialCommunityIcons name="file-upload-outline" size={14} color="#F97316" />
               <Text style={[styles.casBtnText, { color: '#F97316' }]}>CAS</Text>
