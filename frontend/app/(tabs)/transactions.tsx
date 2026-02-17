@@ -204,8 +204,8 @@ export default function TransactionsScreen() {
   };
 
   const handleSave = async () => {
-    if (!form.amount || !form.category || !form.description) {
-      Alert.alert('Missing Info', 'Please fill in amount, category, and description'); return;
+    if (!form.amount || !form.category) {
+      Alert.alert('Missing Info', 'Please fill in amount and category'); return;
     }
     setSaving(true);
     try {
