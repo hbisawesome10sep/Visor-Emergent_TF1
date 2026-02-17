@@ -2417,8 +2417,6 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
     try:
         pdf_stream = io.BytesIO(pdf_bytes)
         with pikepdf.open(pdf_stream, password=password or "") as pike_pdf:
-            # If we get here, either PDF wasn't encrypted or password worked
-            # Save decrypted version to memory
             decrypted_stream = io.BytesIO()
             pike_pdf.save(decrypted_stream)
             decrypted_bytes = decrypted_stream.getvalue()
@@ -2428,7 +2426,6 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
         raise HTTPException(400, "Incorrect PDF password. Please check and try again.")
     except Exception as e:
         logger.warning(f"pikepdf decryption warning: {e}")
-        # Continue with original bytes, pdfplumber might handle it
     
     try:
         with pdfplumber.open(io.BytesIO(decrypted_bytes)) as pdf:
@@ -2441,105 +2438,59 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
                 logger.info(f"Page {page_num + 1} text length: {len(page_text)}")
             
             # Parse the text line by line to find holdings
-            # CDSL eCAS format: Folio | ISIN | Scheme Name | Cost Value | Unit Balance | NAV Date | NAV | Market Value | Registrar
             lines = all_text.split("\n")
             
-            # Find lines containing ISIN codes (INF for MF, INE for stocks)
+            # ISIN pattern for Indian securities
             isin_pattern = re.compile(r'(INE[A-Z0-9]{7,10}|INF[A-Z0-9]{7,10})')
             
-            for i, line in enumerate(lines):
+            # Pattern to extract financial data from CDSL eCAS:
+            # cost_value units_balance DD-Mon-YYYY nav market_value
+            # Example: 42,000.000 272.234 16-Feb-2026 194.729 53,011.85
+            financial_pattern = re.compile(
+                r'([\d,]+\.\d+)\s+([\d,]+\.\d+)\s+\d{1,2}-[A-Za-z]{3}-\d{4}\s+([\d,]+\.\d+)\s+([\d,]+\.\d+)'
+            )
+            
+            for line in lines:
                 isin_match = isin_pattern.search(line)
                 if not isin_match:
                     continue
                     
                 isin = isin_match.group(1)
-                logger.info(f"Processing line with ISIN {isin}: {line[:100]}")
+                logger.info(f"Processing line with ISIN {isin}")
                 
-                # Extract all numbers from the line
-                # Numbers can be like: 42,000.000 or 272.234 or 194.729 or 53,011.85
-                num_pattern = re.compile(r'[\d,]+\.?\d*')
-                all_nums = num_pattern.findall(line)
+                # Extract financial data using the precise pattern
+                fin_match = financial_pattern.search(line)
+                if not fin_match:
+                    logger.warning(f"Could not extract financial data for {isin}")
+                    continue
                 
-                # Filter and convert to floats
-                nums = []
-                for n in all_nums:
-                    try:
-                        val = float(n.replace(",", ""))
-                        if val > 0:
-                            nums.append(val)
-                    except ValueError:
-                        pass
+                cost_value = float(fin_match.group(1).replace(",", ""))  # Invested amount
+                unit_balance = float(fin_match.group(2).replace(",", ""))  # Quantity
+                nav = float(fin_match.group(3).replace(",", ""))  # NAV
+                market_value = float(fin_match.group(4).replace(",", ""))  # Current value
                 
-                logger.info(f"Extracted numbers: {nums}")
+                # Calculate buy price (average cost per unit)
+                buy_price = cost_value / unit_balance if unit_balance > 0 else 0
                 
-                # Extract scheme name - text between folio and ISIN or after scheme code prefix
-                # Pattern: "70142267/52 INF740K01797 D157 - DSP Small Cap Fund..."
-                # Or: "91036288711/0INF247L01445 127FMGDG - Motilal Oswal Midcap Fund..."
-                
+                # Extract scheme name
+                # Pattern: after ISIN and scheme code (like D157, 127FMGDG), find text before numbers
+                # Remove folio, ISIN, scheme code prefix
                 scheme_name = ""
                 
-                # Try to find scheme name after "- " in the line
-                name_match = re.search(r'[-–]\s*([A-Za-z][A-Za-z\s\(\)]+(?:Fund|Growth|Plan|Option)[^\d]*)', line)
+                # Try to find scheme name after "- " pattern
+                name_match = re.search(r'[-–]\s*([A-Za-z][A-Za-z\s\(\)\-]+(?:Fund|Growth|Plan|Option|Cap)[^\d]*)', line)
                 if name_match:
                     scheme_name = name_match.group(1).strip()
                     # Clean up the name
-                    scheme_name = re.sub(r'\s*(CAMS|KFINTECH|Registrar).*$', '', scheme_name, flags=re.IGNORECASE)
+                    scheme_name = re.sub(r'\s*[-–]\s*$', '', scheme_name)  # Remove trailing dash
                     scheme_name = re.sub(r'\(Non-Demat\)', '', scheme_name).strip()
                     scheme_name = re.sub(r'\(formerly.*?\)', '', scheme_name).strip()
+                    scheme_name = re.sub(r'\s+', ' ', scheme_name).strip()  # Normalize whitespace
                 
-                if not scheme_name:
-                    # Fallback: try to extract name from around ISIN
-                    parts = line.split(isin)
-                    if len(parts) > 1:
-                        after_isin = parts[1].strip()
-                        # Look for text pattern after ISIN
-                        name_match2 = re.search(r'([A-Za-z][A-Za-z\s\-]+(?:Fund|Growth|Plan))', after_isin)
-                        if name_match2:
-                            scheme_name = name_match2.group(1).strip()
-                
-                if not scheme_name:
+                if not scheme_name or len(scheme_name) < 5:
                     scheme_name = f"Fund {isin}"
                 
-                # For CDSL eCAS, typical column order is:
-                # Cost Value (invested) | Unit Balance | NAV Date | NAV | Market Value
-                # We need: Cost Value as invested_value, Unit Balance as quantity, Market Value as current_value
-                
-                cost_value = 0.0  # Invested amount
-                unit_balance = 0.0  # Quantity
-                nav = 0.0
-                market_value = 0.0  # Current value
-                
-                if len(nums) >= 5:
-                    # Full row with all values
-                    # nums typically: [cost_value, unit_balance, nav_date_parts..., nav, market_value]
-                    # But date parts might split numbers, so let's be smart about it
-                    
-                    # The pattern is usually: cost_value (large), unit_balance (decimal), nav, market_value (large)
-                    # Filter out small numbers that are likely date parts (day: 1-31, year: 2024-2026)
-                    significant_nums = [n for n in nums if n > 50 or (n < 50 and n != int(n))]
-                    
-                    if len(significant_nums) >= 4:
-                        cost_value = significant_nums[0]
-                        unit_balance = significant_nums[1]
-                        # NAV is usually a medium-sized number with decimals
-                        # Market value is the last large number
-                        nav = significant_nums[-2] if len(significant_nums) >= 3 else 0
-                        market_value = significant_nums[-1]
-                    elif len(significant_nums) >= 2:
-                        cost_value = significant_nums[0]
-                        market_value = significant_nums[-1]
-                        # Try to find unit balance
-                        unit_balance = nums[1] if len(nums) > 1 else 0
-                elif len(nums) >= 2:
-                    # At least cost and one more value
-                    cost_value = nums[0]
-                    unit_balance = nums[1] if len(nums) > 1 else 0
-                    market_value = nums[-1] if nums[-1] != cost_value else cost_value
-                
-                # Calculate buy_price from cost_value / unit_balance
-                buy_price = cost_value / unit_balance if unit_balance > 0 else 0
-                
-                # Determine category
+                # Determine category based on ISIN prefix
                 is_mf = isin.startswith("INF")
                 category = "Mutual Fund" if is_mf else "Stock"
                 
@@ -2557,9 +2508,10 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
                             "buy_price": round(buy_price, 4),
                             "invested_value": round(cost_value, 2),
                             "current_value": round(market_value, 2),
+                            "nav": round(nav, 4),
                         }
                         holdings.append(holding)
-                        logger.info(f"✓ Parsed: {scheme_name[:40]} | {isin} | Qty: {unit_balance:.3f} | Invested: ₹{cost_value:,.2f} | Current: ₹{market_value:,.2f}")
+                        logger.info(f"✓ Parsed: {scheme_name[:40]} | Invested: ₹{cost_value:,.2f} | Current: ₹{market_value:,.2f} | Qty: {unit_balance:.3f}")
             
             # Log summary
             logger.info(f"CAS parsing complete: Found {len(holdings)} holdings")
@@ -2568,7 +2520,9 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
             else:
                 total_invested = sum(h.get("invested_value", 0) for h in holdings)
                 total_current = sum(h.get("current_value", 0) for h in holdings)
-                logger.info(f"Total Invested: ₹{total_invested:,.2f} | Total Current: ₹{total_current:,.2f}")
+                gain = total_current - total_invested
+                gain_pct = (gain / total_invested * 100) if total_invested > 0 else 0
+                logger.info(f"Total Invested: ₹{total_invested:,.2f} | Total Current: ₹{total_current:,.2f} | Gain: ₹{gain:,.2f} ({gain_pct:+.2f}%)")
                 
     except Exception as e:
         error_msg = str(e) if str(e) else "Unknown PDF parsing error"
