@@ -625,26 +625,11 @@ export default function TransactionsScreen() {
                 {/* Date Picker */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
                 {Platform.OS === 'web' ? (
-                  <View style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: 'center' }]}>
-                    {React.createElement('input', {
-                      type: 'date',
-                      value: form.date || new Date().toISOString().split('T')[0],
-                      onChange: (e: any) => setForm(p => ({ ...p, date: e.target.value })),
-                      'data-testid': 'date-picker-input',
-                      style: {
-                        width: '100%',
-                        height: '100%',
-                        border: 'none',
-                        outline: 'none',
-                        background: 'transparent',
-                        color: isDark ? '#F9FAFB' : '#111827',
-                        fontFamily: 'DM Sans, sans-serif',
-                        fontSize: '15px',
-                        cursor: 'pointer',
-                        colorScheme: isDark ? 'dark' : 'light',
-                      },
-                    })}
-                  </View>
+                  <View
+                    ref={dateInputRef}
+                    style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: 'center', overflow: 'hidden' }]}
+                    data-testid="date-picker-container"
+                  />
                 ) : (
                   <TouchableOpacity
                     style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
