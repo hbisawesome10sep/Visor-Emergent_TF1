@@ -1766,7 +1766,116 @@ const styles = StyleSheet.create({
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   
-  // Trend Analysis card styles
+  // Redesigned Trend Analysis card styles
+  trendCard: {
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  trendHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  trendTitle: {
+    fontSize: 18,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
+    letterSpacing: -0.3,
+  },
+  trendSubtitle: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    marginTop: 2,
+  },
+  trendFlipBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  trendFlipText: {
+    fontSize: 12,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
+  },
+  trendStatsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  trendStatBox: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 14,
+    gap: 4,
+  },
+  trendStatLabel: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    marginTop: 4,
+  },
+  trendStatValue: {
+    fontSize: 15,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
+  },
+  trendSavingsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 14,
+  },
+  trendSavingsLabel: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+  },
+  trendSavingsValue: {
+    fontSize: 18,
+    fontFamily: 'DM Sans', fontWeight: '700' as any,
+    marginTop: 2,
+  },
+  trendInsightsList: {
+    gap: 8,
+  },
+  trendInsightItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 12,
+    gap: 10,
+  },
+  trendInsightIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trendInsightTitle: {
+    fontSize: 13,
+    fontFamily: 'DM Sans', fontWeight: '600' as any,
+    marginBottom: 2,
+  },
+  trendInsightMsg: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    lineHeight: 16,
+  },
+  trendEmptyState: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 10,
+  },
+  trendEmptyText: {
+    fontSize: 13,
+    fontFamily: 'DM Sans',
+    textAlign: 'center',
+  },
+  
+  // Legacy styles kept for compatibility
   cardSubtitle: {
     fontSize: 12,
     fontFamily: 'DM Sans',
