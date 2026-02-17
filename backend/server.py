@@ -393,6 +393,27 @@ async def delete_transaction(txn_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Transaction not found")
     return {"message": "Transaction deleted"}
 
+@api_router.put("/transactions/{txn_id}", response_model=TransactionResponse)
+async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(get_current_user)):
+    existing = await db.transactions.find_one({"id": txn_id, "user_id": user["id"]}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    update_data = {
+        "type": txn.type,
+        "amount": txn.amount,
+        "category": txn.category,
+        "description": txn.description,
+        "date": txn.date,
+        "is_recurring": txn.is_recurring,
+        "recurring_frequency": txn.recurring_frequency,
+        "is_split": txn.is_split,
+        "split_count": txn.split_count,
+        "notes": txn.notes,
+    }
+    await db.transactions.update_one({"id": txn_id, "user_id": user["id"]}, {"$set": update_data})
+    updated = await db.transactions.find_one({"id": txn_id}, {"_id": 0})
+    return TransactionResponse(**updated)
+
 # ══════════════════════════════════════
 #  GOAL ENDPOINTS
 # ══════════════════════════════════════
