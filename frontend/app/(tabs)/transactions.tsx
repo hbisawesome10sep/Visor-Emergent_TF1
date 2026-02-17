@@ -99,9 +99,7 @@ export default function TransactionsScreen() {
   // Inject native HTML date input on web (bypasses RN Web TextInput conversion)
   useEffect(() => {
     if (Platform.OS !== 'web' || !dateInputRef.current || !showModal) return;
-    const container = (dateInputRef.current as any);
-    // Access the underlying DOM node
-    const domNode = container._nativeTag || container;
+    const domNode = dateInputRef.current;
     if (!domNode || typeof domNode.appendChild !== 'function') return;
 
     // Clear previous inputs
@@ -110,7 +108,7 @@ export default function TransactionsScreen() {
     const input = document.createElement('input');
     input.type = 'date';
     input.value = form.date || new Date().toISOString().split('T')[0];
-    input.dataset.testid = 'date-picker-input';
+    input.setAttribute('data-testid', 'date-picker-input');
     input.style.cssText = `
       width: 100%; height: 100%; border: none; outline: none;
       background: transparent; cursor: pointer;
@@ -120,10 +118,10 @@ export default function TransactionsScreen() {
       padding: 0 4px;
     `;
     input.addEventListener('change', (e: any) => {
-      setForm(p => ({ ...p, date: e.target.value }));
+      setForm((p: any) => ({ ...p, date: e.target.value }));
     });
     domNode.appendChild(input);
-  }, [showModal, form.date, isDark]);
+  }, [showModal, isDark]);
 
   // Animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
