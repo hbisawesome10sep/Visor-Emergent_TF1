@@ -992,4 +992,17 @@ const styles = StyleSheet.create({
   optionsContainer: { gap: 10 },
   optionBtn: { padding: 16, borderRadius: 14, borderWidth: 1 },
   optionText: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '500' as any, textAlign: 'center' },
+
+  // ── Holdings ──
+  holdingsCard: { borderRadius: 18, borderWidth: 1, overflow: 'hidden', marginBottom: 24 },
+  holdingsSummaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, paddingBottom: 14 },
+  holdingsSummaryNum: { fontSize: 20, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -0.4, marginTop: 4 },
+  holdingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 14 },
+  holdingName: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '600' as any, maxWidth: 180 },
+  holdingSub: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '500' as any, marginTop: 2 },
+  holdingValue: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  holdingGain: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any, marginTop: 2 },
+  casBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
+  casBtnText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  casDesc: { fontSize: 13, lineHeight: 20, marginBottom: 16 },
 });
