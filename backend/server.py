@@ -2260,11 +2260,23 @@ async def get_portfolio_overview(user=Depends(get_current_user)):
             cat_key = cat
             if cat in ("Mutual Fund", "ETF"):
                 cat_key = cat
-            invested = h["quantity"] * h["buy_price"]
-            current_price = h["buy_price"]
-            if h.get("ticker") and h["ticker"] in prices:
-                current_price = prices[h["ticker"]]["price"]
-            current_value = h["quantity"] * current_price
+            
+            # Use stored invested_value and current_value from CAS if available
+            stored_invested = h.get("invested_value", 0)
+            stored_current = h.get("current_value", 0)
+            
+            if stored_invested > 0 and stored_current > 0:
+                # Use eCAS values directly
+                invested = stored_invested
+                current_value = stored_current
+            else:
+                # Calculate from buy_price for manual entries
+                invested = h["quantity"] * h["buy_price"]
+                current_price = h["buy_price"]
+                if h.get("ticker") and h["ticker"] in prices:
+                    current_price = prices[h["ticker"]]["price"]
+                current_value = h["quantity"] * current_price
+            
             if cat_key not in categories:
                 categories[cat_key] = {"invested": 0, "current_value": 0, "gain_loss": 0, "gain_loss_pct": 0, "transactions": 0}
             categories[cat_key]["invested"] = round(categories[cat_key]["invested"] + invested, 2)
