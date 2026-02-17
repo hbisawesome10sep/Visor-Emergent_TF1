@@ -575,6 +575,120 @@ async def get_dashboard_stats(
     else:
         hs_grade = "Critical"
 
+    # ── Trend Analysis Data (for the selected date range) ──
+    # Group transactions by week/period for trend visualization
+    trend_data = []
+    trend_insights = []
+    
+    if txns:
+        # Sort by date
+        sorted_txns = sorted(txns, key=lambda x: x.get("date", ""))
+        
+        # Group by week
+        weekly_data = {}
+        for t in sorted_txns:
+            date_str = t.get("date", "")
+            if not date_str:
+                continue
+            try:
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                week_start = dt - timedelta(days=dt.weekday())
+                week_key = week_start.strftime("%b %d")
+            except:
+                continue
+            
+            if week_key not in weekly_data:
+                weekly_data[week_key] = {"income": 0, "expenses": 0, "investments": 0}
+            
+            if t["type"] == "income":
+                weekly_data[week_key]["income"] += t["amount"]
+            elif t["type"] == "expense":
+                weekly_data[week_key]["expenses"] += t["amount"]
+            elif t["type"] == "investment":
+                weekly_data[week_key]["investments"] += t["amount"]
+        
+        # Convert to list for frontend
+        for week_label, data in weekly_data.items():
+            trend_data.append({
+                "label": week_label,
+                "income": round(data["income"], 2),
+                "expenses": round(data["expenses"], 2),
+                "investments": round(data["investments"], 2),
+            })
+        
+        # Generate insights based on trend
+        if len(weekly_data) >= 2:
+            weeks = list(weekly_data.keys())
+            last_week = weekly_data.get(weeks[-1], {})
+            prev_week = weekly_data.get(weeks[-2], {})
+            
+            # Expense trend
+            exp_change = last_week.get("expenses", 0) - prev_week.get("expenses", 0)
+            if exp_change > 0:
+                exp_pct = (exp_change / max(prev_week.get("expenses", 1), 1)) * 100
+                trend_insights.append({
+                    "type": "warning",
+                    "icon": "trending-up",
+                    "title": "Expenses Increasing",
+                    "message": f"Your spending increased by ₹{exp_change:,.0f} ({exp_pct:.1f}%) from last week",
+                })
+            elif exp_change < 0:
+                exp_pct = abs(exp_change / max(prev_week.get("expenses", 1), 1)) * 100
+                trend_insights.append({
+                    "type": "success",
+                    "icon": "trending-down",
+                    "title": "Expenses Decreasing",
+                    "message": f"Great! You saved ₹{abs(exp_change):,.0f} ({exp_pct:.1f}%) compared to last week",
+                })
+            
+            # Income trend
+            inc_change = last_week.get("income", 0) - prev_week.get("income", 0)
+            if inc_change > 0:
+                inc_pct = (inc_change / max(prev_week.get("income", 1), 1)) * 100
+                trend_insights.append({
+                    "type": "success",
+                    "icon": "cash-plus",
+                    "title": "Income Growing",
+                    "message": f"Income increased by ₹{inc_change:,.0f} ({inc_pct:.1f}%)",
+                })
+            
+            # Investment trend
+            inv_change = last_week.get("investments", 0) - prev_week.get("investments", 0)
+            if inv_change > 0:
+                trend_insights.append({
+                    "type": "success",
+                    "icon": "chart-line",
+                    "title": "Investing More",
+                    "message": f"You invested ₹{last_week.get('investments', 0):,.0f} this week",
+                })
+        
+        # Top spending category
+        if category_breakdown:
+            top_cat = max(category_breakdown.items(), key=lambda x: x[1])
+            top_pct = (top_cat[1] / total_expenses * 100) if total_expenses > 0 else 0
+            trend_insights.append({
+                "type": "info",
+                "icon": "tag",
+                "title": f"Top Spending: {top_cat[0]}",
+                "message": f"₹{top_cat[1]:,.0f} ({top_pct:.1f}% of total expenses)",
+            })
+        
+        # Savings insight
+        if savings > 0:
+            trend_insights.append({
+                "type": "success",
+                "icon": "piggy-bank",
+                "title": "Savings Summary",
+                "message": f"You saved ₹{savings:,.0f} ({savings_rate:.1f}% of income) in this period",
+            })
+        elif savings < 0:
+            trend_insights.append({
+                "type": "warning",
+                "icon": "alert",
+                "title": "Spending Exceeds Income",
+                "message": f"You're ₹{abs(savings):,.0f} over budget. Review your expenses.",
+            })
+
     return {
         "total_income": total_income,
         "total_expenses": total_expenses,
@@ -600,6 +714,8 @@ async def get_dashboard_stats(
             "start": start_date,
             "end": end_date,
         } if start_date and end_date else None,
+        "trend_data": trend_data,
+        "trend_insights": trend_insights,
         "health_score": {
             "overall": round(hs_overall, 1),
             "grade": hs_grade,
