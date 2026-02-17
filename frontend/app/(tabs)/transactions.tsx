@@ -17,9 +17,27 @@ import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const EXPENSE_CATS = ['Food', 'Transport', 'Shopping', 'Utilities', 'Rent', 'Entertainment', 'Health', 'Education', 'EMI', 'Other'];
-const INCOME_CATS = ['Salary', 'Freelance', 'Business', 'Investments', 'Rental', 'Bonus', 'Interest', 'Other'];
-const INVEST_CATS = ['Stocks', 'Mutual Funds', 'FD', 'PPF', 'Gold', 'Crypto', 'Real Estate', 'NPS', 'Other'];
+const EXPENSE_CATS = [
+  'Groceries', 'Rent', 'Food & Dining', 'Transport', 'Fuel', 'Shopping', 'Utilities',
+  'Electricity', 'Water', 'Internet', 'Mobile Recharge', 'Entertainment', 'Health', 'Medicine',
+  'Insurance', 'Education', 'EMI', 'Loan Repayment', 'Subscriptions', 'Personal Care',
+  'Clothing', 'Home Maintenance', 'Travel', 'Gifts', 'Donations', 'Taxes', 'Other',
+];
+const INCOME_CATS = [
+  'Salary', 'Business Income', 'Freelance', 'Consulting', 'Interest', 'Dividends',
+  'Rental Income', 'Bonus', 'Commission', 'Capital Gains', 'Pension', 'Refund', 'Other',
+];
+const INVEST_CATS = [
+  'Mutual Funds', 'SIP', 'Stocks', 'ETFs', 'Fixed Deposit', 'PPF', 'NPS', 'EPF',
+  'Gold', 'Silver', 'Copper', 'Bonds', 'Real Estate', 'Crypto', 'ULIP',
+  'Sovereign Gold Bond', 'Government Securities', 'Other',
+];
+
+const DESCRIPTION_SUGGESTIONS: Record<string, string[]> = {
+  income: ['Monthly Salary', 'Freelance Project', 'Business Revenue', 'Interest Credit', 'Dividend Payout', 'Rental Income', 'Performance Bonus'],
+  expense: ['Grocery Shopping', 'Monthly Rent', 'Electricity Bill', 'Fuel', 'Restaurant', 'Online Shopping', 'Medical Expenses', 'Movie/OTT'],
+  investment: ['SIP - Axis Bluechip', 'SIP - HDFC Mid Cap', 'Stock Purchase', 'FD Renewal', 'PPF Contribution', 'NPS Monthly', 'Gold Purchase', 'ETF Purchase'],
+};
 const RECURRING_FREQ = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly'];
 const DATE_PRESETS = ['This Week', 'This Month', 'Last 30 Days', 'All Time'];
 
