@@ -112,33 +112,19 @@ export default function TransactionsScreen() {
   });
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  // Inject native HTML date input on web using DOM ID
+  // Convert the date TextInput to type="date" on web for calendar picker
   useEffect(() => {
     if (Platform.OS !== 'web' || !showModal) return;
     const timer = setTimeout(() => {
-      const container = document.getElementById('visor-date-picker');
-      if (!container) return;
-      if (container.querySelector('input[type="date"]')) return;
-      while (container.firstChild) container.removeChild(container.firstChild);
-
-      const input = document.createElement('input');
-      input.type = 'date';
-      input.value = form.date || new Date().toISOString().split('T')[0];
-      input.setAttribute('data-testid', 'date-picker-input');
-      Object.assign(input.style, {
-        width: '100%', height: '44px', border: 'none', outline: 'none',
-        background: 'transparent', cursor: 'pointer',
-        fontFamily: "'DM Sans', sans-serif", fontSize: '15px',
-        color: isDark ? '#F9FAFB' : '#111827',
-        colorScheme: isDark ? 'dark' : 'light',
-        padding: '0 4px', boxSizing: 'border-box',
-      });
-      input.addEventListener('change', (e: any) => {
-        setForm((prev: any) => ({ ...prev, date: e.target.value }));
-      });
-      container.appendChild(input);
-    }, 200);
+      const input = document.getElementById('visor-date-input');
+      if (input && input.tagName === 'INPUT') {
+        (input as HTMLInputElement).type = 'date';
+        (input as HTMLInputElement).style.cursor = 'pointer';
+        (input as HTMLInputElement).style.colorScheme = isDark ? 'dark' : 'light';
+      }
+    }, 300);
     return () => clearTimeout(timer);
   }, [showModal, isDark]);
 
