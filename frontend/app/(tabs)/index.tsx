@@ -35,7 +35,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const EXPENSE_CATS = ['Rent', 'Groceries', 'Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'EMI', 'Other'];
 const INCOME_CATS = ['Salary', 'Freelance', 'Bonus', 'Interest', 'Dividend', 'Other'];
 const INVEST_CATS = ['SIP', 'PPF', 'Stocks', 'Mutual Funds', 'FD', 'Gold', 'NPS', 'Other'];
-const GOAL_CATS = ['Safety', 'Travel', 'Purchase', 'Property', 'Other'];
 
 type FrequencyOption = 'Quarter' | 'Month' | 'Year' | 'Custom';
 
