@@ -2571,6 +2571,14 @@ async def upload_cas(
     parsed = _parse_cas_pdf(pdf_bytes, password)
     if not parsed:
         raise HTTPException(400, "No holdings found in the PDF. Please check the file format or password.")
+    # ALWAYS delete existing CAS-uploaded holdings for this user before importing
+    # This prevents duplicates when re-uploading the same CAS statement
+    deleted = await db.holdings.delete_many({
+        "user_id": user["id"],
+        "source": "cas_upload"
+    })
+    logger.info(f"Cleared {deleted.deleted_count} existing CAS holdings before import")
+    
     created = []
     now = datetime.now(timezone.utc).isoformat()
     for h in parsed:
@@ -2601,7 +2609,7 @@ async def upload_cas(
     gain_pct = (gain / total_invested * 100) if total_invested > 0 else 0
     
     return {
-        "message": f"Imported {len(created)} holdings from CAS",
+        "message": f"Replaced {deleted.deleted_count} → Imported {len(created)} holdings from CAS",
         "holdings": created,
         "summary": {
             "total_invested": round(total_invested, 2),
