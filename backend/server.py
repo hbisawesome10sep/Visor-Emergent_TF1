@@ -691,9 +691,29 @@ async def ai_chat(msg: AIMessageCreate, user=Depends(get_current_user)):
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(50)
     risk_doc = await db.risk_profiles.find_one({"user_id": user_id}, {"_id": 0})
     
+    # Fetch holdings data (from eCAS uploads and manual entries)
+    holdings = await db.holdings.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    
     total_income = sum(t["amount"] for t in txns if t["type"] == "income")
     total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
-    total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+    total_investments_txn = sum(t["amount"] for t in txns if t["type"] == "investment")
+    
+    # Calculate holdings portfolio value
+    total_holdings_invested = sum(h.get("invested_value", 0) or (h.get("buy_price", 0) * h.get("quantity", 0)) for h in holdings)
+    total_holdings_current = sum(h.get("current_value", 0) or (h.get("buy_price", 0) * h.get("quantity", 0)) for h in holdings)
+    holdings_gain_loss = total_holdings_current - total_holdings_invested
+    holdings_gain_pct = (holdings_gain_loss / total_holdings_invested * 100) if total_holdings_invested > 0 else 0
+    
+    # Build holdings summary for AI
+    holdings_summary = []
+    for h in holdings[:10]:  # Top 10 holdings
+        name = h.get("name", "Unknown")
+        qty = h.get("quantity", 0)
+        invested = h.get("invested_value", 0) or (h.get("buy_price", 0) * qty)
+        current = h.get("current_value", 0) or invested
+        gain = current - invested
+        gain_pct = (gain / invested * 100) if invested > 0 else 0
+        holdings_summary.append(f"{name}: ₹{invested:,.0f} → ₹{current:,.0f} ({gain_pct:+.1f}%)")
     
     category_breakdown = {}
     for t in txns:
@@ -709,14 +729,29 @@ async def ai_chat(msg: AIMessageCreate, user=Depends(get_current_user)):
 - Risk Profile: {risk_doc.get('profile', 'Not assessed')} (Score: {risk_doc.get('score', 0):.1f}/5)
 - Risk Breakdown: {', '.join(f"{k}: {v:.1f}" for k, v in risk_doc.get('breakdown', {}).items())}"""
 
+    # Build portfolio context
+    portfolio_context = ""
+    if holdings:
+        portfolio_context = f"""
+
+INVESTMENT PORTFOLIO (from eCAS/Holdings):
+- Total Invested: ₹{total_holdings_invested:,.2f}
+- Current Value: ₹{total_holdings_current:,.2f}
+- Total Gain/Loss: ₹{holdings_gain_loss:,.2f} ({holdings_gain_pct:+.1f}%)
+- Number of Holdings: {len(holdings)}
+- Holdings Details:
+  {chr(10).join('  • ' + h for h in holdings_summary) if holdings_summary else '  None'}"""
+
     context = f"""User Financial Profile:
+INCOME & EXPENSES (from Transactions):
 - Total Income: ₹{total_income:,.2f}
 - Total Expenses: ₹{total_expenses:,.2f}
-- Total Investments: ₹{total_investments:,.2f}
-- Net Balance: ₹{total_income - total_expenses - total_investments:,.2f}
+- Investment Transactions: ₹{total_investments_txn:,.2f}
+- Net Balance: ₹{total_income - total_expenses - total_investments_txn:,.2f}
 - Savings Rate: {((total_income - total_expenses) / max(total_income, 1) * 100):.1f}%
-- Top Expense Categories: {', '.join(f'{k}: ₹{v:,.0f}' for k, v in sorted(category_breakdown.items(), key=lambda x: -x[1])[:5])}
-- Financial Goals: {', '.join(goal_summary) if goal_summary else 'None set'}{risk_context}
+- Top Expense Categories: {', '.join(f'{k}: ₹{v:,.0f}' for k, v in sorted(category_breakdown.items(), key=lambda x: -x[1])[:5])}{portfolio_context}
+
+GOALS: {', '.join(goal_summary) if goal_summary else 'None set'}{risk_context}
 """
     
     system_msg = """You are Visor AI, an expert Indian personal finance advisor. You provide advice in the context of Indian financial markets, tax laws (Income Tax Act, GST), investment instruments (PPF, NPS, ELSS, FD, SIP, Mutual Funds, Stocks), and banking.
