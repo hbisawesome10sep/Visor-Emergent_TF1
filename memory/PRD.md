@@ -58,14 +58,19 @@ Visor is a personal finance management app built with React Native/Expo (fronten
 - ✅ Bug Fix: Greeting changed from "Good Night" to "Good Evening" (Feb 17, 2026)
 - ✅ Dashboard: Changed "Savings Rate" card to "Investments" card with navigation to Invest screen (Feb 17, 2026)
 - ✅ Insights: Enhanced card backs to show actual calculations with rupee amounts (Feb 17, 2026)
+- ✅ Invest: Tax Planning section moved to bottom (above Financial Goals) (Feb 17, 2026)
+- ✅ Transaction Buy/Sell toggle for investments with units and price_per_unit (Feb 17, 2026)
+- ✅ Capital Gains Tax API with STCG/LTCG calculation (Feb 17, 2026)
+- ✅ Dashboard Trend Analysis: Flippable card with real-time insights based on transactions (Feb 17, 2026)
+- ✅ Dashboard Trend Analysis: Now respects date range filter (Feb 17, 2026)
 
 ## Prioritized Backlog
 
 ### P0 (Next)
-- Transaction Buy/Sell toggle + Capital Gains Tax calculation
+- Display Capital Gains in Tax Planning section
 
 ### P1
-- Component Refactoring: Break down investments.tsx (~1800 lines) into smaller components
+- Component Refactoring: Break down investments.tsx (~2000 lines) into smaller components
 
 ### P2
 - Backend migration: Python/FastAPI → Node.js/Express/PostgreSQL
