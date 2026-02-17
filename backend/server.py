@@ -769,6 +769,38 @@ async def clear_chat_history(user=Depends(get_current_user)):
     return {"message": "Chat history cleared"}
 
 # ══════════════════════════════════════
+#  RISK PROFILE
+# ══════════════════════════════════════
+
+class RiskProfileCreate(BaseModel):
+    answers: list  # list of {question_id, value, category}
+    score: float
+    profile: str  # Conservative, Moderate, Aggressive
+    breakdown: dict  # category scores
+
+@api_router.post("/risk-profile")
+async def save_risk_profile(data: RiskProfileCreate, user=Depends(get_current_user)):
+    doc = {
+        "user_id": user["id"],
+        "answers": data.answers,
+        "score": data.score,
+        "profile": data.profile,
+        "breakdown": data.breakdown,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.risk_profiles.delete_many({"user_id": user["id"]})
+    await db.risk_profiles.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/risk-profile")
+async def get_risk_profile(user=Depends(get_current_user)):
+    doc = await db.risk_profiles.find_one({"user_id": user["id"]}, {"_id": 0})
+    if not doc:
+        return None
+    return doc
+
+# ══════════════════════════════════════
 #  FIXED ASSETS ENDPOINTS
 # ══════════════════════════════════════
 
