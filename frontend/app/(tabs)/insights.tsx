@@ -716,11 +716,20 @@ export default function InsightsScreen() {
             fillPercentage={(investmentRate / 30) * 100}
             benchmarkInfo={{
               title: 'Investment Rate',
-              description: 'Percentage allocated to wealth building assets.',
+              description: 'Monthly allocation to wealth-building.',
               source: 'SEBI Guidelines',
               yourValue: `${investmentRate.toFixed(1)}%`,
               nationalAverage: '11.4%',
               recommended: '20%+',
+              calculation: `Investments ÷ Income × 100`,
+              actualAmounts: {
+                label1: 'Monthly Income',
+                value1: `₹${formatINRShort(income)}`,
+                label2: 'Monthly Investments',
+                value2: `₹${formatINRShort(investments)}`,
+                label3: 'Investment Rate',
+                value3: `${investmentRate.toFixed(1)}%`,
+              },
             }}
             isDark={isDark}
             colors={colors}
@@ -734,11 +743,20 @@ export default function InsightsScreen() {
             fillPercentage={spendingRate}
             benchmarkInfo={{
               title: 'Expense Ratio',
-              description: 'Percentage of income going to expenses.',
+              description: 'How much of income goes to expenses.',
               source: 'NSO Survey',
               yourValue: `${spendingRate.toFixed(1)}%`,
               nationalAverage: '75%',
               recommended: '<70%',
+              calculation: `Expenses ÷ Income × 100`,
+              actualAmounts: {
+                label1: 'Monthly Income',
+                value1: `₹${formatINRShort(income)}`,
+                label2: 'Monthly Expenses',
+                value2: `₹${formatINRShort(expenses)}`,
+                label3: 'Spending Rate',
+                value3: `${spendingRate.toFixed(1)}%`,
+              },
             }}
             isDark={isDark}
             colors={colors}
@@ -752,11 +770,20 @@ export default function InsightsScreen() {
             fillPercentage={(runwayMonths / 12) * 100}
             benchmarkInfo={{
               title: 'Emergency Runway',
-              description: 'Months of expenses covered by savings.',
+              description: 'How long savings can cover expenses.',
               source: 'RBI Financial Literacy',
               yourValue: `${runwayMonths.toFixed(1)} months`,
               nationalAverage: '2.5 mo',
               recommended: '6+ months',
+              calculation: `(Savings × 6) ÷ Monthly Expenses`,
+              actualAmounts: {
+                label1: 'Monthly Savings',
+                value1: `₹${formatINRShort(monthlySavings)}`,
+                label2: 'Monthly Expenses',
+                value2: `₹${formatINRShort(expenses)}`,
+                label3: 'Runway',
+                value3: `${runwayMonths.toFixed(1)} months`,
+              },
             }}
             isDark={isDark}
             colors={colors}
