@@ -586,20 +586,19 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 14, letterSpacing: -0.3 },
   updatedAt: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '500' as any },
 
-  // ── Market Cards ──
-  marketGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 },
-  marketCard: { width: (SCREEN_WIDTH - 50) / 2, padding: 14, borderRadius: 16, borderWidth: 1 },
-  marketCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  marketIconWrap: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  marketName: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '600' as any, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  marketPrice: { fontSize: 20, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -0.5 },
-  marketChangeBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  marketChangeText: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '700' as any },
-  marketChangeAbs: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any, marginTop: 2 },
-
-  // Wide card (Silver)
-  marketCardWide: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 6 },
-  marketWideLeft: { flexDirection: 'row', alignItems: 'center' },
+  // ── Market Section ──
+  marketSection: { marginBottom: 24 },
+  marketSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  marketTable: { borderRadius: 18, borderWidth: 1, overflow: 'hidden' },
+  marketRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 16 },
+  marketRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  marketDot: { width: 8, height: 8, borderRadius: 4 },
+  marketRowName: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -0.2 },
+  marketRowSub: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '500' as any, marginTop: 1 },
+  marketRowRight: { alignItems: 'flex-end' },
+  marketRowPrice: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, letterSpacing: -0.3 },
+  marketRowChangeWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  marketRowChange: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
 
   // ── Portfolio ──
   portfolioCard: { borderRadius: 20, padding: 20, borderWidth: 1, marginBottom: 24 },
