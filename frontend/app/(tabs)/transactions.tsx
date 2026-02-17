@@ -601,7 +601,7 @@ export default function TransactionsScreen() {
                           backgroundColor: isActive ? tColor : 'transparent',
                           borderColor: isActive ? tColor : isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
                         }]}
-                        onPress={() => setForm(p => ({ ...p, type: t, category: '' }))}
+                        onPress={() => setForm(p => ({ ...p, type: t, category: '', description: '' }))}
                       >
                         <MaterialCommunityIcons
                           name={t === 'income' ? 'arrow-down-circle' : t === 'investment' ? 'trending-up' : 'arrow-up-circle'}
@@ -616,18 +616,50 @@ export default function TransactionsScreen() {
                   })}
                 </View>
 
-                {/* Title Input */}
-                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>What was this for?</Text>
-                <TextInput
-                  style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                  value={form.description}
-                  onChangeText={v => setForm(p => ({ ...p, description: v }))}
-                  placeholder="e.g., Grocery shopping at D-Mart"
-                  placeholderTextColor={colors.textSecondary}
-                />
+                {/* Category Dropdown */}
+                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category *</Text>
+                <TouchableOpacity
+                  style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                  onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  data-testid="category-dropdown-btn"
+                >
+                  <Text style={{ color: form.category ? colors.textPrimary : colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '500' as any, fontSize: 15 }}>
+                    {form.category || 'Select category'}
+                  </Text>
+                  <MaterialCommunityIcons name={showCategoryDropdown ? 'chevron-up' : 'chevron-down'} size={22} color={colors.textSecondary} />
+                </TouchableOpacity>
+                {showCategoryDropdown && (
+                  <View style={[styles.dropdownList, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <ScrollView nestedScrollEnabled style={{ maxHeight: 200 }} showsVerticalScrollIndicator>
+                      {cats.map(cat => (
+                        <TouchableOpacity
+                          key={cat}
+                          style={[styles.dropdownItem, { borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)' }]}
+                          onPress={() => { setForm(p => ({ ...p, category: cat })); setShowCategoryDropdown(false); }}
+                          data-testid={`cat-option-${cat}`}
+                        >
+                          <MaterialCommunityIcons
+                            name={getCategoryIcon(cat) as any}
+                            size={18}
+                            color={form.category === cat ? colors.primary : colors.textSecondary}
+                          />
+                          <Text style={{
+                            color: form.category === cat ? colors.primary : colors.textPrimary,
+                            fontFamily: 'DM Sans', fontWeight: form.category === cat ? '600' as any : '400' as any, fontSize: 15, marginLeft: 12,
+                          }}>
+                            {cat}
+                          </Text>
+                          {form.category === cat && (
+                            <MaterialCommunityIcons name="check" size={18} color={colors.primary} style={{ marginLeft: 'auto' }} />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
 
                 {/* Amount Input */}
-                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Amount</Text>
+                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Amount *</Text>
                 <View style={[styles.amountInputWrap, { borderColor: colors.border, backgroundColor: colors.background }]}>
                   <Text style={[styles.rupeeSymbol, { color: colors.primary }]}>₹</Text>
                   <TextInput
@@ -640,54 +672,41 @@ export default function TransactionsScreen() {
                   />
                 </View>
 
-                {/* Category Grid */}
-                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category</Text>
-                <View style={styles.categoryGrid}>
-                  {cats.map(cat => {
-                    const isActive = form.category === cat;
-                    const catColor = getCategoryColor(cat, isDark);
-                    return (
+                {/* Description (optional) with suggestions */}
+                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                  {form.type === 'investment' ? 'Investment Name' : 'Description'} (optional)
+                </Text>
+                <TextInput
+                  style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={form.description}
+                  onChangeText={v => setForm(p => ({ ...p, description: v }))}
+                  placeholder={form.type === 'investment' ? 'e.g., Axis Bluechip Fund' : form.type === 'income' ? 'e.g., Monthly Salary' : 'e.g., Grocery Shopping'}
+                  placeholderTextColor={colors.textSecondary}
+                />
+                {!form.description && (
+                  <View style={styles.suggestionRow}>
+                    {(DESCRIPTION_SUGGESTIONS[form.type] || []).slice(0, 4).map(s => (
                       <TouchableOpacity
-                        key={cat}
-                        style={[styles.categoryOption, {
-                          backgroundColor: isActive ? `${catColor}15` : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-                          borderColor: isActive ? catColor : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                        }]}
-                        onPress={() => setForm(p => ({ ...p, category: cat }))}
+                        key={s}
+                        style={[styles.suggestionChip, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}
+                        onPress={() => setForm(p => ({ ...p, description: s }))}
                       >
-                        <MaterialCommunityIcons
-                          name={getCategoryIcon(cat) as any}
-                          size={16}
-                          color={isActive ? catColor : colors.textSecondary}
-                        />
-                        <Text style={[styles.categoryOptionText, { color: isActive ? catColor : colors.textPrimary }]}>
-                          {cat}
-                        </Text>
+                        <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'DM Sans' }}>{s}</Text>
                       </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                    ))}
+                  </View>
+                )}
 
                 {/* Date Picker */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
-                {Platform.OS === 'web' ? (
-                  <View
-                    nativeID="visor-date-picker"
-                    style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: 'center', overflow: 'visible' }]}
-                    data-testid="date-picker-container"
-                  />
-                ) : (
-                  <TouchableOpacity
-                    style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
-                    onPress={() => setShowDatePicker(true)}
-                    data-testid="date-picker-native"
-                  >
-                    <Text style={{ color: form.date ? colors.textPrimary : colors.textSecondary, fontFamily: 'DM Sans', fontSize: 15 }}>
-                      {form.date || 'Select date'}
-                    </Text>
-                    <MaterialCommunityIcons name="calendar" size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                )}
+                <TextInput
+                  style={[styles.textInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+                  value={form.date}
+                  onChangeText={v => setForm(p => ({ ...p, date: v }))}
+                  placeholder={new Date().toISOString().split('T')[0] + ' (today if blank)'}
+                  placeholderTextColor={colors.textSecondary}
+                  {...(Platform.OS === 'web' ? { nativeID: 'visor-date-input' } : {})}
+                />
 
                 {/* Notes Input */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Notes (optional)</Text>
