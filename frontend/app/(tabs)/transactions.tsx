@@ -1576,4 +1576,21 @@ const styles = StyleSheet.create({
     fontFamily: 'DM Sans',
     lineHeight: 16,
   },
+
+  // Date Picker
+  datePickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+  },
+  datePickerText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'DM Sans',
+  },
 });

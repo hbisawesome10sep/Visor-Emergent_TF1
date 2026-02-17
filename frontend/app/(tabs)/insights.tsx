@@ -347,35 +347,27 @@ export default function InsightsScreen() {
 
   const fetchData = useCallback(async () => {
     if (!token) {
-      // Demo data when not logged in
       setStats({
-        total_income: 150000,
-        total_expenses: 95000,
-        total_investments: 25000,
+        total_income: 150000, total_expenses: 95000, total_investments: 25000,
         savings_rate: 36.7,
-        category_breakdown: {
-          'Housing': 25000,
-          'Food': 15000,
-          'Transport': 10000,
-          'Utilities': 5000,
-          'Shopping': 12000,
-          'Entertainment': 8000,
-        },
+        category_breakdown: { 'Housing': 25000, 'Food': 15000, 'Transport': 10000, 'Utilities': 5000, 'Shopping': 12000, 'Entertainment': 8000 },
       });
       setLoading(false);
       return;
     }
     try {
-      const data = await apiRequest('/dashboard/stats', { token });
+      // Use current month date range to stay consistent with Dashboard default
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = now.toISOString().split('T')[0];
+      const data = await apiRequest(`/dashboard/stats?start_date=${startStr}&end_date=${endStr}`, { token });
       setStats(data);
     } catch (e) {
       console.error(e);
       setStats({
-        total_income: 150000,
-        total_expenses: 95000,
-        total_investments: 25000,
-        savings_rate: 36.7,
-        category_breakdown: {},
+        total_income: 150000, total_expenses: 95000, total_investments: 25000,
+        savings_rate: 36.7, category_breakdown: {},
       });
     } finally {
       setLoading(false);
