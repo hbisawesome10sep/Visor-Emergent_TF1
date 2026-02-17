@@ -1003,7 +1003,7 @@ const styles = StyleSheet.create({
   insightGrid: { flexDirection: 'column', gap: 12, marginBottom: 24 },
   insightCard: {
     width: CARD_WIDTH,
-    minHeight: 180,
+    minHeight: 140,
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
@@ -1015,12 +1015,12 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   insightCardBack: {
-    minHeight: 220,
-    padding: 12,
+    minHeight: 180,
+    padding: 16,
   },
   insightGradient: {
     flex: 1,
-    minHeight: 180,
+    minHeight: 140,
     position: 'relative',
   },
   liquidContainer: {
