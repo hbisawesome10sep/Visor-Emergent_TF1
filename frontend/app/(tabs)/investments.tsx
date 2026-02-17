@@ -268,6 +268,92 @@ export default function InvestmentsScreen() {
     ]);
   };
 
+  // ── SIP/Recurring handlers ──
+  const openAddSip = () => {
+    setEditSip(null);
+    const today = new Date().toISOString().split('T')[0];
+    setSipForm({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: today, day_of_month: '5', notes: '' });
+    setShowSipModal(true);
+  };
+  const openEditSip = (sip: RecurringTransaction) => {
+    setEditSip(sip);
+    setSipForm({
+      name: sip.name,
+      amount: sip.amount.toString(),
+      frequency: sip.frequency,
+      category: sip.category,
+      start_date: sip.start_date,
+      day_of_month: sip.day_of_month.toString(),
+      notes: sip.notes || '',
+    });
+    setShowSipModal(true);
+  };
+  const handleSaveSip = async () => {
+    if (!sipForm.name || !sipForm.amount || !sipForm.category) {
+      Alert.alert('Error', 'Please fill required fields');
+      return;
+    }
+    setSaving(true);
+    try {
+      const body = {
+        name: sipForm.name,
+        amount: parseFloat(sipForm.amount),
+        frequency: sipForm.frequency,
+        category: sipForm.category,
+        start_date: sipForm.start_date || new Date().toISOString().split('T')[0],
+        day_of_month: parseInt(sipForm.day_of_month) || 5,
+        notes: sipForm.notes || null,
+        is_active: true,
+      };
+      if (editSip) {
+        await apiRequest(`/recurring/${editSip.id}`, { method: 'PUT', token, body });
+      } else {
+        await apiRequest('/recurring', { method: 'POST', token, body });
+      }
+      setShowSipModal(false);
+      fetchData();
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const handleDeleteSip = (id: string, name: string) => {
+    Alert.alert('Delete SIP', `Delete "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        await apiRequest(`/recurring/${id}`, { method: 'DELETE', token });
+        fetchData();
+      }},
+    ]);
+  };
+  const handlePauseSip = async (sip: RecurringTransaction) => {
+    try {
+      await apiRequest(`/recurring/${sip.id}/pause`, { method: 'POST', token });
+      fetchData();
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    }
+  };
+  const handleExecuteSip = async (sip: RecurringTransaction) => {
+    Alert.alert(
+      'Execute SIP',
+      `Record investment of ${formatINR(sip.amount)} for ${sip.name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Execute', onPress: async () => {
+          try {
+            await apiRequest(`/recurring/${sip.id}/execute`, { method: 'POST', token });
+            Alert.alert('Success', 'SIP executed successfully!');
+            fetchData();
+          } catch (e: any) {
+            Alert.alert('Error', e.message);
+          }
+        }},
+      ]
+    );
+  };
+
   // ── Risk assessment (12 behavioral finance questions) ──
   const RISK_QUESTIONS = [
     { id: 1, category: 'horizon', question: 'What is your primary investment time horizon?', options: [
