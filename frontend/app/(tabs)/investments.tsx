@@ -479,6 +479,14 @@ export default function InvestmentsScreen() {
       setSaving(true);
       
       try {
+        // Clear existing holdings first if option is selected
+        if (replaceOnUpload) {
+          await fetch(`${BACKEND_URL}/api/holdings/clear-all`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+        }
+        
         const formData = new FormData();
         
         // Handle file data for both web and native
@@ -509,7 +517,8 @@ export default function InvestmentsScreen() {
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.detail || 'Upload failed');
         
-        Alert.alert('Success', data.message || `Imported ${data.holdings?.length || 0} holdings`);
+        const summary = data.summary ? `\n\nTotal Invested: ₹${data.summary.total_invested?.toLocaleString('en-IN')}\nCurrent Value: ₹${data.summary.total_current?.toLocaleString('en-IN')}\nGain/Loss: ${data.summary.gain_loss_pct >= 0 ? '+' : ''}${data.summary.gain_loss_pct?.toFixed(2)}%` : '';
+        Alert.alert('Success', `${data.message || `Imported ${data.holdings?.length || 0} holdings`}${summary}`);
         setShowCasModal(false);
         setCasPassword('');
         fetchData();
@@ -523,6 +532,37 @@ export default function InvestmentsScreen() {
       console.error('File picker error:', e);
       Alert.alert('Error', 'Could not open file picker. Please try again.'); 
     }
+  };
+
+  const handleClearHoldings = async () => {
+    Alert.alert(
+      'Clear All Holdings',
+      'Are you sure you want to delete all your holdings? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setSaving(true);
+              const resp = await fetch(`${BACKEND_URL}/api/holdings/clear-all`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              const data = await resp.json();
+              if (!resp.ok) throw new Error(data.detail || 'Failed to clear');
+              Alert.alert('Success', data.message || 'Holdings cleared');
+              fetchData();
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to clear holdings');
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   // ── Computed values ──
