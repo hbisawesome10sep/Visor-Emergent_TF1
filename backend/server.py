@@ -2409,14 +2409,40 @@ async def delete_holding(holding_id: str, user=Depends(get_current_user)):
 
 def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
     """Parse NSDL/CDSL CAS PDF to extract holdings."""
+    import pikepdf
     holdings = []
+    decrypted_bytes = pdf_bytes
+    
+    # First, try to decrypt using pikepdf if password-protected
     try:
-        open_kwargs = {}
-        if password:
-            open_kwargs["password"] = password
-        with pdfplumber.open(io.BytesIO(pdf_bytes), **open_kwargs) as pdf:
-            for page in pdf.pages:
+        pdf_stream = io.BytesIO(pdf_bytes)
+        with pikepdf.open(pdf_stream, password=password or "") as pike_pdf:
+            # If we get here, either PDF wasn't encrypted or password worked
+            # Save decrypted version to memory
+            decrypted_stream = io.BytesIO()
+            pike_pdf.save(decrypted_stream)
+            decrypted_bytes = decrypted_stream.getvalue()
+            logger.info(f"PDF decrypted successfully, {len(pike_pdf.pages)} pages")
+    except pikepdf.PasswordError:
+        logger.error("PDF password is incorrect")
+        raise HTTPException(400, "Incorrect PDF password. Please check and try again.")
+    except Exception as e:
+        logger.warning(f"pikepdf decryption warning: {e}")
+        # Continue with original bytes, pdfplumber might handle it
+    
+    try:
+        with pdfplumber.open(io.BytesIO(decrypted_bytes)) as pdf:
+            logger.info(f"Parsing PDF with {len(pdf.pages)} pages")
+            all_text = ""
+            for page_num, page in enumerate(pdf.pages):
+                # Extract text for logging
+                page_text = page.extract_text() or ""
+                all_text += page_text + "\n"
+                
+                # Try table extraction first
                 tables = page.extract_tables()
+                logger.info(f"Page {page_num + 1}: Found {len(tables)} tables, text length: {len(page_text)}")
+                
                 for table in tables:
                     if not table:
                         continue
@@ -2445,9 +2471,9 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
                                     nums.append(float(clean))
                                 except ValueError:
                                     pass
-                            if len(nums) >= 2:
+                            if len(nums) >= 1:
                                 qty = nums[0]
-                                price = nums[1] if len(nums) >= 3 else nums[-1]
+                                price = nums[1] if len(nums) >= 2 else 0
                             is_mf = isin.startswith("INF")
                             category = "Mutual Fund" if is_mf else "Stock"
                             if name and qty > 0:
@@ -2464,37 +2490,63 @@ def _parse_cas_pdf(pdf_bytes: bytes, password: str = "") -> list:
                                     "quantity": qty,
                                     "buy_price": price,
                                 })
-                if not tables:
-                    text = page.extract_text() or ""
-                    lines = text.split("\n")
+                                logger.info(f"Found holding: {name[:30]} | {isin} | qty={qty}")
+                
+                # If no tables found, try text extraction
+                if not tables or len(holdings) == 0:
+                    lines = page_text.split("\n")
                     for line in lines:
                         isin_match = re.search(r'(INE[A-Z0-9]{7,10}|INF[A-Z0-9]{7,10})', line)
                         if isin_match:
                             isin = isin_match.group(1)
+                            # Try to extract name (text before ISIN)
                             name = line[:line.index(isin)].strip() if isin in line else ""
-                            nums = re.findall(r'[\d,]+\.?\d*', line[line.index(isin):]) if isin in line else []
+                            # Clean up name - remove common prefixes
+                            name = re.sub(r'^[A-Z]{2,5}\s+', '', name).strip()
+                            if not name:
+                                # Try to get name from next/previous context
+                                name = f"Security {isin}"
+                            
+                            # Extract numbers after ISIN
+                            after_isin = line[line.index(isin) + len(isin):] if isin in line else ""
+                            nums = re.findall(r'[\d,]+\.?\d*', after_isin)
                             clean_nums = []
                             for n in nums:
                                 try:
-                                    clean_nums.append(float(n.replace(",", "")))
+                                    val = float(n.replace(",", ""))
+                                    if val > 0:
+                                        clean_nums.append(val)
                                 except ValueError:
                                     pass
+                            
                             qty = clean_nums[0] if clean_nums else 0
                             price = clean_nums[1] if len(clean_nums) >= 2 else 0
                             is_mf = isin.startswith("INF")
-                            if name and qty > 0:
-                                holdings.append({
-                                    "name": name[:80],
-                                    "ticker": "",
-                                    "isin": isin,
-                                    "category": "Mutual Fund" if is_mf else "Stock",
-                                    "quantity": qty,
-                                    "buy_price": price,
-                                })
+                            
+                            # Only add if we have quantity
+                            if qty > 0:
+                                # Check for duplicate ISINs
+                                existing = next((h for h in holdings if h["isin"] == isin), None)
+                                if not existing:
+                                    holdings.append({
+                                        "name": name[:80],
+                                        "ticker": "",
+                                        "isin": isin,
+                                        "category": "Mutual Fund" if is_mf else "Stock",
+                                        "quantity": qty,
+                                        "buy_price": price,
+                                    })
+                                    logger.info(f"Found holding (text): {name[:30]} | {isin} | qty={qty}")
+            
+            # Log summary
+            logger.info(f"CAS parsing complete: Found {len(holdings)} holdings")
+            if len(holdings) == 0:
+                # Log some text for debugging
+                logger.warning(f"No holdings found. Sample text: {all_text[:500]}")
+                
     except Exception as e:
         error_msg = str(e) if str(e) else "Unknown PDF parsing error"
         logger.error(f"CAS PDF parse error: {error_msg}")
-        # Check for common encryption/password errors
         if "password" in error_msg.lower() or "encrypted" in error_msg.lower() or "decrypt" in error_msg.lower():
             raise HTTPException(400, "PDF is password-protected. Please enter the correct password.")
         if "invalid" in error_msg.lower() or "corrupt" in error_msg.lower():
