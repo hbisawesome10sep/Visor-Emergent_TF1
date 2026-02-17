@@ -649,11 +649,42 @@ export default function InvestmentsScreen() {
               <Text data-testid="risk-profile-label" style={[styles.riskBadgeText, { color: riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby }]}>
                 {riskProfile}
               </Text>
+              {riskSaved && riskScore > 0 && (
+                <Text style={[styles.riskScoreText, { color: colors.textSecondary }]}>
+                  {riskScore.toFixed(1)}/5
+                </Text>
+              )}
             </View>
-            <TouchableOpacity data-testid="risk-retake-btn" style={[styles.retakeBtn, { borderColor: colors.border }]} onPress={() => { setShowRiskModal(true); setRiskStep(0); setRiskAnswers([]); }}>
-              <Text style={[styles.retakeBtnText, { color: colors.textSecondary }]}>Retake Assessment</Text>
+            <TouchableOpacity data-testid="risk-retake-btn" style={[styles.retakeBtn, { borderColor: colors.border }]} onPress={() => { setShowRiskModal(true); setRiskStep(0); setRiskAnswers([]); setShowRiskResult(false); }}>
+              <Text style={[styles.retakeBtnText, { color: colors.textSecondary }]}>{riskSaved ? 'Retake' : 'Take Assessment'}</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Score breakdown bars */}
+          {riskSaved && Object.keys(riskBreakdown).length > 0 && (
+            <View style={styles.breakdownSection}>
+              {Object.entries(riskBreakdown).map(([cat, val]) => {
+                const labels: Record<string, string> = {
+                  horizon: 'Time Horizon', loss_tolerance: 'Loss Tolerance', experience: 'Experience',
+                  income_stability: 'Income Stability', emergency_fund: 'Emergency Fund',
+                  return_expectation: 'Return Expectation', concentration: 'Equity Comfort',
+                  behavior: 'Behavioral Discipline', goal_priority: 'Goal Priority', age_capacity: 'Age Capacity',
+                };
+                const pct = (val / 5) * 100;
+                const barColor = val <= 2 ? Accent.sapphire : val <= 3.5 ? Accent.amber : Accent.ruby;
+                return (
+                  <View key={cat} data-testid={`risk-breakdown-${cat}`} style={styles.breakdownRow}>
+                    <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>{labels[cat] || cat}</Text>
+                    <View style={[styles.breakdownBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                      <View style={[styles.breakdownBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
+                    </View>
+                    <Text style={[styles.breakdownVal, { color: colors.textPrimary }]}>{val.toFixed(1)}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
           <Text style={[styles.strategyName, { color: colors.textPrimary }]}>{currentStrategy.name} Strategy</Text>
           <View style={styles.strategyBar}>
             {currentStrategy.allocation.map((item, i) => (
