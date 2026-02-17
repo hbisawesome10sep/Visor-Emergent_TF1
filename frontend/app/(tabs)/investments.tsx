@@ -1440,7 +1440,7 @@ export default function InvestmentsScreen() {
            ═══════════════════════════════════════════════════════════ */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Financial Goals</Text>
-          <TouchableOpacity data-testid="add-goal-btn" style={[styles.addGoalBtn, { backgroundColor: '#F97316' }]} onPress={openAddGoal}>
+          <TouchableOpacity data-testid="add-goal-btn" style={[styles.addGoalBtn, { backgroundColor: Accent.emerald }]} onPress={openAddGoal}>
             <MaterialCommunityIcons name="plus" size={16} color="#fff" />
             <Text style={styles.addGoalText}>Add</Text>
           </TouchableOpacity>
@@ -1456,20 +1456,20 @@ export default function InvestmentsScreen() {
           <>
             {goals.length > 0 && (
               <View style={[styles.goalsOverviewCard, {
-                backgroundColor: isDark ? 'rgba(249,115,22,0.1)' : 'rgba(249,115,22,0.06)',
-                borderColor: isDark ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.15)',
+                backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.06)',
+                borderColor: isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)',
               }]}>
                 <View style={styles.goalsOverviewRow}>
                   <View>
                     <Text style={[styles.goalsOverviewLabel, { color: colors.textSecondary }]}>Overall Progress</Text>
                     <Text style={[styles.goalsOverviewAmount, { color: colors.textPrimary }]}>{formatINRShort(totalGoalCurrent)} / {formatINRShort(totalGoalTarget)}</Text>
                   </View>
-                  <View style={[styles.goalsPercentBadge, { backgroundColor: overallGoalProgress >= 50 ? 'rgba(16,185,129,0.15)' : 'rgba(249,115,22,0.15)' }]}>
-                    <Text style={[styles.goalsPercentText, { color: overallGoalProgress >= 50 ? Accent.emerald : '#F97316' }]}>{overallGoalProgress.toFixed(0)}%</Text>
+                  <View style={[styles.goalsPercentBadge, { backgroundColor: overallGoalProgress >= 50 ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }]}>
+                    <Text style={[styles.goalsPercentText, { color: overallGoalProgress >= 50 ? Accent.emerald : Accent.amber }]}>{overallGoalProgress.toFixed(0)}%</Text>
                   </View>
                 </View>
                 <View style={[styles.goalsProgressBar, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-                  <View style={[styles.goalsProgressFill, { width: `${Math.min(overallGoalProgress, 100)}%`, backgroundColor: '#F97316' }]} />
+                  <View style={[styles.goalsProgressFill, { width: `${Math.min(overallGoalProgress, 100)}%`, backgroundColor: Accent.emerald }]} />
                 </View>
               </View>
             )}
