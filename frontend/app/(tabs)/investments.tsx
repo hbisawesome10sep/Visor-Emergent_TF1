@@ -202,7 +202,7 @@ export default function InvestmentsScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, taxSummary, rebalancing, recurringTxns] = await Promise.all([
+      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, taxSummary, rebalancing, recurringTxns, capGains] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
         apiRequest('/market-data', {}),
@@ -212,6 +212,7 @@ export default function InvestmentsScreen() {
         apiRequest('/tax-summary', { token }),
         apiRequest('/portfolio-rebalancing', { token }),
         apiRequest('/recurring', { token }),
+        apiRequest('/capital-gains', { token }),
       ]);
       setStats(statsData);
       setGoals(goalsData);
@@ -221,6 +222,7 @@ export default function InvestmentsScreen() {
       setTaxData(taxSummary);
       setRebalanceData(rebalancing);
       setRecurringData(recurringTxns);
+      setCapitalGainsData(capGains);
       if (savedRisk && savedRisk.profile) {
         setRiskProfile(savedRisk.profile);
         setRiskScore(savedRisk.score || 0);
