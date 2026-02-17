@@ -233,72 +233,49 @@ export default function InvestmentsScreen() {
         {/* ═══════════════════════════════════════════════════════════
              SECTION 1: INDIAN MARKETS (TOP)
            ═══════════════════════════════════════════════════════════ */}
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text data-testid="markets-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 2 }]}>Indian Markets</Text>
+        <View style={styles.marketSection}>
+          <View style={styles.marketSectionHeader}>
+            <Text data-testid="markets-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Indian Markets</Text>
             {lastUpdatedStr ? (
-              <Text style={[styles.updatedAt, { color: colors.textSecondary }]}>Updated {lastUpdatedStr}</Text>
+              <Text style={[styles.updatedAt, { color: colors.textSecondary }]}>Live  {lastUpdatedStr}</Text>
             ) : null}
           </View>
-        </View>
 
-        {/* Market Cards - 2x grid for top 4, full width for 5th */}
-        <View data-testid="market-cards-grid" style={styles.marketGrid}>
-          {marketData.slice(0, 4).map((item) => {
-            const isUp = item.change_percent >= 0;
-            return (
-              <View key={item.key} data-testid={`market-card-${item.key}`} style={[styles.marketCard, {
-                backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-              }]}>
-                <View style={styles.marketCardTop}>
-                  <View style={[styles.marketIconWrap, { backgroundColor: isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.08)' }]}>
-                    <MaterialCommunityIcons name={(item.icon || 'chart-line') as any} size={16} color="#F97316" />
+          <View data-testid="market-cards-grid" style={[styles.marketTable, {
+            backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+          }]}>
+            {marketData.map((item, idx) => {
+              const isUp = item.change_percent >= 0;
+              const isLast = idx === marketData.length - 1;
+              const isIndex = !item.key.includes('gold') && !item.key.includes('silver');
+              return (
+                <View key={item.key} data-testid={`market-card-${item.key}`} style={[styles.marketRow, !isLast && { borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
+                  <View style={styles.marketRowLeft}>
+                    <View style={[styles.marketDot, { backgroundColor: isUp ? Accent.emerald : Accent.ruby }]} />
+                    <View>
+                      <Text style={[styles.marketRowName, { color: colors.textPrimary }]}>{item.name}</Text>
+                      <Text style={[styles.marketRowSub, { color: colors.textSecondary }]}>
+                        {isIndex ? 'Index' : item.key.includes('gold') ? '24K / 10g' : '999 / 1Kg'}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={[styles.marketChangeBadge, { backgroundColor: isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)' }]}>
-                    <MaterialCommunityIcons name={isUp ? 'arrow-up' : 'arrow-down'} size={10} color={isUp ? Accent.emerald : Accent.ruby} />
-                    <Text style={[styles.marketChangeText, { color: isUp ? Accent.emerald : Accent.ruby }]}>{Math.abs(item.change_percent).toFixed(2)}%</Text>
+                  <View style={styles.marketRowRight}>
+                    <Text data-testid={`market-price-${item.key}`} style={[styles.marketRowPrice, { color: colors.textPrimary }]}>
+                      {isIndex ? '' : '₹'}{fmtPrice(item.price)}
+                    </Text>
+                    <View style={styles.marketRowChangeWrap}>
+                      <MaterialCommunityIcons name={isUp ? 'triangle' : 'triangle-down'} size={10} color={isUp ? Accent.emerald : Accent.ruby} />
+                      <Text style={[styles.marketRowChange, { color: isUp ? Accent.emerald : Accent.ruby }]}>
+                        {fmtPrice(Math.abs(Math.round(item.change)))} ({Math.abs(item.change_percent).toFixed(2)}%)
+                      </Text>
+                    </View>
                   </View>
                 </View>
-                <Text style={[styles.marketName, { color: colors.textSecondary }]}>{item.name}</Text>
-                <Text data-testid={`market-price-${item.key}`} style={[styles.marketPrice, { color: colors.textPrimary }]}>{fmtPrice(item.price)}</Text>
-                <Text style={[styles.marketChangeAbs, { color: isUp ? Accent.emerald : Accent.ruby }]}>
-                  {isUp ? '+' : ''}{item.change.toFixed(2)}
-                </Text>
-              </View>
-            );
-          })}
+              );
+            })}
+          </View>
         </View>
-        {/* 5th item (Silver) - full width */}
-        {marketData.length > 4 && (() => {
-          const item = marketData[4];
-          const isUp = item.change_percent >= 0;
-          return (
-            <View data-testid={`market-card-${item.key}`} style={[styles.marketCardWide, {
-              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-            }]}>
-              <View style={styles.marketWideLeft}>
-                <View style={[styles.marketIconWrap, { backgroundColor: isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.08)' }]}>
-                  <MaterialCommunityIcons name={(item.icon || 'diamond-outline') as any} size={16} color="#F97316" />
-                </View>
-                <View style={{ marginLeft: 12 }}>
-                  <Text style={[styles.marketName, { color: colors.textSecondary }]}>{item.name}</Text>
-                  <Text style={[styles.marketPrice, { color: colors.textPrimary, fontSize: 18 }]}>{fmtPrice(item.price)}</Text>
-                </View>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <View style={[styles.marketChangeBadge, { backgroundColor: isUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)' }]}>
-                  <MaterialCommunityIcons name={isUp ? 'arrow-up' : 'arrow-down'} size={10} color={isUp ? Accent.emerald : Accent.ruby} />
-                  <Text style={[styles.marketChangeText, { color: isUp ? Accent.emerald : Accent.ruby }]}>{Math.abs(item.change_percent).toFixed(2)}%</Text>
-                </View>
-                <Text style={[styles.marketChangeAbs, { color: isUp ? Accent.emerald : Accent.ruby, marginTop: 4 }]}>
-                  {isUp ? '+' : ''}{item.change.toFixed(2)}
-                </Text>
-              </View>
-            </View>
-          );
-        })()}
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 2: PORTFOLIO OVERVIEW
