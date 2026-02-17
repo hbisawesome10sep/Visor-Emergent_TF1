@@ -848,29 +848,94 @@ export default function InvestmentsScreen() {
       {/* ═══ RISK MODAL ═══ */}
       <Modal visible={showRiskModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Risk Assessment</Text>
-              <TouchableOpacity data-testid="risk-modal-close" onPress={() => setShowRiskModal(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.progressRow}>
-              {RISK_QUESTIONS.map((_, i) => (
-                <View key={i} style={[styles.progressDot, { backgroundColor: i <= riskStep ? '#F97316' : colors.border, width: i === riskStep ? 24 : 8 }]} />
-              ))}
-            </View>
-            <Text style={[styles.questionText, { color: colors.textPrimary }]}>{RISK_QUESTIONS[riskStep].question}</Text>
-            <View style={styles.optionsContainer}>
-              {RISK_QUESTIONS[riskStep].options.map((opt, i) => (
-                <TouchableOpacity key={i} data-testid={`risk-option-${i}`} style={[styles.optionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}
-                  onPress={() => handleRiskAnswer(opt.value)}>
-                  <Text style={[styles.optionText, { color: colors.textPrimary }]}>{opt.label}</Text>
+          <ScrollView style={{ maxHeight: '90%' }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}>
+            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+              <View style={styles.modalHandle} />
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                  {showRiskResult ? 'Your Risk Profile' : 'Risk Assessment'}
+                </Text>
+                <TouchableOpacity data-testid="risk-modal-close" onPress={closeRiskModal}>
+                  <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
                 </TouchableOpacity>
-              ))}
+              </View>
+
+              {showRiskResult ? (
+                /* ── RESULTS SCREEN ── */
+                <View>
+                  <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                    <View style={[styles.riskResultIcon, {
+                      backgroundColor: riskProfile === 'Conservative' ? 'rgba(59,130,246,0.15)' : riskProfile === 'Moderate' ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)',
+                    }]}>
+                      <MaterialCommunityIcons
+                        name={riskProfile === 'Conservative' ? 'shield-check' : riskProfile === 'Moderate' ? 'scale-balance' : 'rocket-launch'}
+                        size={36}
+                        color={riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby}
+                      />
+                    </View>
+                    <Text data-testid="risk-result-profile" style={[styles.riskResultTitle, { color: colors.textPrimary }]}>{riskProfile}</Text>
+                    <Text data-testid="risk-result-score" style={[styles.riskResultScore, { color: colors.textSecondary }]}>Score: {riskScore.toFixed(1)} / 5.0</Text>
+                    <Text style={[styles.riskResultDesc, { color: colors.textSecondary }]}>
+                      {riskProfile === 'Conservative' ? 'You prefer capital preservation with steady, predictable returns. Debt-heavy portfolios with FDs, PPF, and bonds suit you best.'
+                        : riskProfile === 'Moderate' ? 'You seek balanced growth while managing risk. A mix of equity, debt, and gold works well for your profile.'
+                        : 'You are comfortable with high volatility for potentially higher returns. Equity-heavy portfolios with growth stocks and small-caps align with your appetite.'}
+                    </Text>
+                  </View>
+
+                  {/* Category breakdown */}
+                  <View style={styles.breakdownSection}>
+                    {Object.entries(riskBreakdown).map(([cat, val]) => {
+                      const labels: Record<string, string> = {
+                        horizon: 'Time Horizon', loss_tolerance: 'Loss Tolerance', experience: 'Experience',
+                        income_stability: 'Income Stability', emergency_fund: 'Emergency Fund',
+                        return_expectation: 'Return Expectation', concentration: 'Equity Comfort',
+                        behavior: 'Behavioral Discipline', goal_priority: 'Goal Priority', age_capacity: 'Age Capacity',
+                      };
+                      const pct = (val / 5) * 100;
+                      const barColor = val <= 2 ? Accent.sapphire : val <= 3.5 ? Accent.amber : Accent.ruby;
+                      return (
+                        <View key={cat} style={styles.breakdownRow}>
+                          <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>{labels[cat] || cat}</Text>
+                          <View style={[styles.breakdownBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                            <View style={[styles.breakdownBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
+                          </View>
+                          <Text style={[styles.breakdownVal, { color: colors.textPrimary }]}>{val.toFixed(1)}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+
+                  <TouchableOpacity data-testid="risk-done-btn" style={styles.saveBtn} onPress={closeRiskModal}>
+                    <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
+                      <Text style={styles.saveBtnText}>Done</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                /* ── QUESTIONS SCREEN ── */
+                <View>
+                  <View style={styles.riskProgressHeader}>
+                    <Text style={[styles.riskProgressText, { color: colors.textSecondary }]}>{riskStep + 1} of {RISK_QUESTIONS.length}</Text>
+                    <View style={[styles.riskProgressBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                      <View style={[styles.riskProgressBarFill, { width: `${((riskStep + 1) / RISK_QUESTIONS.length) * 100}%` }]} />
+                    </View>
+                  </View>
+                  <Text style={[styles.riskCategoryLabel, { color: '#F97316' }]}>
+                    {({ horizon: 'Investment Horizon', loss_tolerance: 'Risk Tolerance', experience: 'Experience', income_stability: 'Financial Stability', emergency_fund: 'Safety Net', return_expectation: 'Expectations', concentration: 'Portfolio Comfort', behavior: 'Behavioral Finance', goal_priority: 'Goal Alignment', age_capacity: 'Demographics' } as Record<string, string>)[RISK_QUESTIONS[riskStep].category] || ''}
+                  </Text>
+                  <Text style={[styles.questionText, { color: colors.textPrimary }]}>{RISK_QUESTIONS[riskStep].question}</Text>
+                  <View style={styles.optionsContainer}>
+                    {RISK_QUESTIONS[riskStep].options.map((opt, i) => (
+                      <TouchableOpacity key={i} data-testid={`risk-option-${i}`} style={[styles.optionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}
+                        onPress={() => handleRiskAnswer(opt.value)}>
+                        <Text style={[styles.optionText, { color: colors.textPrimary }]}>{opt.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
