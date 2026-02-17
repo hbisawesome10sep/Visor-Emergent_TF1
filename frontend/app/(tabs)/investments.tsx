@@ -1624,27 +1624,10 @@ export default function InvestmentsScreen() {
               </TouchableOpacity>
             </View>
             <Text style={[styles.casDesc, { color: colors.textSecondary }]}>
-              Upload your NSDL/CDSL Consolidated Account Statement (CAS) PDF to auto-import your holdings.
+              Upload your NSDL/CDSL Consolidated Account Statement (CAS) PDF. Existing CAS holdings will be automatically replaced.
             </Text>
             <TextInput data-testid="cas-password-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
               value={casPassword} onChangeText={setCasPassword} placeholder="PDF Password (if any)" placeholderTextColor={colors.textSecondary} secureTextEntry />
-            
-            {/* Replace toggle */}
-            <TouchableOpacity 
-              data-testid="cas-replace-toggle"
-              style={[styles.replaceToggle, { borderColor: colors.border, backgroundColor: colors.background }]}
-              onPress={() => setReplaceOnUpload(!replaceOnUpload)}
-            >
-              <View style={[styles.toggleCheckbox, { 
-                backgroundColor: replaceOnUpload ? Accent.amber : 'transparent',
-                borderColor: replaceOnUpload ? Accent.amber : colors.border,
-              }]}>
-                {replaceOnUpload && <MaterialCommunityIcons name="check" size={14} color="#fff" />}
-              </View>
-              <Text style={[styles.replaceToggleText, { color: colors.textPrimary }]}>
-                Replace existing holdings (recommended)
-              </Text>
-            </TouchableOpacity>
             
             <TouchableOpacity data-testid="cas-upload-btn" style={styles.saveBtn} onPress={handleCasUpload} disabled={saving}>
               <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
