@@ -121,6 +121,7 @@ class GoalResponse(BaseModel):
 
 class AIMessageCreate(BaseModel):
     message: str
+    screen_context: Optional[str] = None
 
 class ChatMessage(BaseModel):
     id: str
