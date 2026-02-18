@@ -324,8 +324,8 @@ export default function InsightsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   
-  // Calculate header height dynamically
-  const HEADER_HEIGHT = 60 + insets.top;
+  // Calculate header height dynamically (includes date range pills)
+  const HEADER_HEIGHT = 100 + insets.top;
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
