@@ -2412,8 +2412,11 @@ from concurrent.futures import ThreadPoolExecutor
 
 REFRESH_TIMES_IST = ["09:25", "11:30", "12:30", "15:15"]
 TROY_OZ_TO_GRAMS = 31.1035
-GOLD_DOMESTIC_PREMIUM = 1.082
-SILVER_DOMESTIC_PREMIUM = 1.209
+# Domestic premiums calibrated against actual Indian market prices (goodreturns.in)
+# Includes import duty (6%), Agri cess (2.5%), GST (3%), logistics
+# Recalibrate quarterly or when import duty structure changes
+GOLD_DOMESTIC_PREMIUM = 1.071   # COMEX GC=F futures → Indian 24K domestic
+SILVER_DOMESTIC_PREMIUM = 1.154  # COMEX SI=F futures → Indian 999 domestic
 
 _yf_executor = ThreadPoolExecutor(max_workers=2)
 
