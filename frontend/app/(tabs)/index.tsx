@@ -97,7 +97,6 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState<FrequencyOption>('Month');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [saving, setSaving] = useState(false);
   
   // Calculate header height dynamically based on safe area
   const HEADER_HEIGHT = 70 + insets.top;
