@@ -1828,7 +1828,9 @@ const styles = StyleSheet.create({
   strategyLegendText: { fontSize: 12 },
 
   // ── Tax ──
-  taxFyLabel: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any, marginBottom: 12, marginTop: -10 },
+  taxPlanningHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, marginTop: 28 },
+  addDeductionBtn: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  taxFyLabel: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any, marginBottom: 12, marginTop: 0 },
   taxSavedBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, marginBottom: 14 },
   taxSavedText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
   taxIconWrap: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
