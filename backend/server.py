@@ -1793,8 +1793,13 @@ async def get_loans(user=Depends(get_current_user)):
     """Get all loans with calculated outstanding amounts"""
     loans = await db.loans.find({"user_id": user["id"]}, {"_id": 0}).to_list(100)
     result = []
+    dek = user.get("encryption_key", "")
     
     for loan in loans:
+        # Decrypt sensitive fields
+        if dek:
+            decrypt_sensitive_fields(loan, dek, LOAN_SENSITIVE_FIELDS)
+        
         emi = loan.get("emi_amount") or calculate_emi(loan["principal_amount"], loan["interest_rate"], loan["tenure_months"])
         schedule = generate_emi_schedule(
             loan["principal_amount"],
@@ -1827,8 +1832,13 @@ async def create_loan(loan: LoanCreate, user=Depends(get_current_user)):
     """Create a new loan"""
     loan_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
+    dek = user.get("encryption_key", "")
     
     emi = loan.emi_amount or calculate_emi(loan.principal_amount, loan.interest_rate, loan.tenure_months)
+    
+    # Encrypt sensitive fields before storing
+    account_number_raw = loan.account_number
+    account_number_enc = encrypt_field(account_number_raw, dek) if dek and account_number_raw else account_number_raw
     
     loan_doc = {
         "id": loan_id,
@@ -1841,13 +1851,13 @@ async def create_loan(loan: LoanCreate, user=Depends(get_current_user)):
         "start_date": loan.start_date,
         "emi_amount": emi,
         "lender": loan.lender,
-        "account_number": loan.account_number,
+        "account_number": account_number_enc,
         "notes": loan.notes,
         "created_at": now,
     }
     await db.loans.insert_one(loan_doc)
     
-    # Return without _id
+    # Return plaintext to the caller
     return {
         "id": loan_id,
         "user_id": user["id"],
@@ -1859,7 +1869,7 @@ async def create_loan(loan: LoanCreate, user=Depends(get_current_user)):
         "start_date": loan.start_date,
         "emi_amount": emi,
         "lender": loan.lender,
-        "account_number": loan.account_number,
+        "account_number": account_number_raw,
         "notes": loan.notes,
         "created_at": now,
         "outstanding_principal": loan.principal_amount,
