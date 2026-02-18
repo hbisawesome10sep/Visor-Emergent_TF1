@@ -2515,7 +2515,30 @@ async def seed_market_data():
 
 @api_router.get("/market-data")
 async def get_market_data():
+    """Return market data, refreshing from yfinance if stale (>2 min)."""
     data = await db.market_data.find({}, {"_id": 0}).to_list(10)
+
+    # Check if data is stale
+    is_stale = True
+    if data:
+        last_updated = data[0].get("last_updated", "")
+        if last_updated:
+            try:
+                from dateutil.parser import parse as parse_date
+                updated_dt = parse_date(last_updated)
+                if updated_dt.tzinfo is None:
+                    updated_dt = updated_dt.replace(tzinfo=timezone.utc)
+                age_seconds = (datetime.now(timezone.utc) - updated_dt).total_seconds()
+                is_stale = age_seconds > 120  # 2 minutes
+            except Exception:
+                pass
+
+    if is_stale:
+        logger.info("Market data stale, fetching live prices...")
+        fresh = await refresh_all_market_data()
+        if fresh:
+            data = await db.market_data.find({}, {"_id": 0}).to_list(10)
+
     return data
 
 @api_router.post("/market-data/refresh")
