@@ -15,7 +15,7 @@ import { Accent } from '../../src/utils/theme';
 import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
 import PieChart from '../../src/components/PieChart';
-import RNSlider from '@react-native-community/slider';
+import { WhatIfSimulator } from '../../src/components/WhatIfSimulator';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
