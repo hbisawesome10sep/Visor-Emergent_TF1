@@ -166,8 +166,11 @@ export default function DashboardScreen() {
           break;
       }
       
-      const startStr = startDate.toISOString().split('T')[0];
-      const endStr = endDate.toISOString().split('T')[0];
+      // Safely format dates - fallback to current month if invalid
+      const safeStart = isNaN(startDate.getTime()) ? new Date(now.getFullYear(), now.getMonth(), 1) : startDate;
+      const safeEnd = isNaN(endDate.getTime()) ? now : endDate;
+      const startStr = safeStart.toISOString().split('T')[0];
+      const endStr = safeEnd.toISOString().split('T')[0];
       
       console.log(`[Dashboard] Fetching stats: ${selectedFrequency} | ${startStr} → ${endStr}`);
       
@@ -181,8 +184,8 @@ export default function DashboardScreen() {
       if (s?.user_created_at) {
         setUserCreatedAt(s.user_created_at);
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      console.warn('[Dashboard] Fetch error:', e?.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
