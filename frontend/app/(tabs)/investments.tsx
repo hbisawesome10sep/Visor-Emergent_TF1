@@ -142,8 +142,6 @@ export default function InvestmentsScreen() {
   const [taxData, setTaxData] = useState<any>(null);
   const [capitalGainsData, setCapitalGainsData] = useState<any>(null);
   const [rebalanceData, setRebalanceData] = useState<any>(null);
-  const [showSimulator, setShowSimulator] = useState(false);
-  const [simAlloc, setSimAlloc] = useState({ Equity: 40, Debt: 30, Gold: 15, Alt: 15 });
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
   const [showSipModal, setShowSipModal] = useState(false);
   const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
