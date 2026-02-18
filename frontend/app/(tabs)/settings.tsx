@@ -309,6 +309,144 @@ export default function SettingsScreen() {
     </View>
   );
 
+  // ═══ SOURCES TAB (Gmail & SMS) ═══
+  const handleGmailConnect = async () => {
+    try {
+      const result = await apiRequest('/api/gmail/connect');
+      if (result.auth_url) {
+        if (Platform.OS === 'web') {
+          window.open(result.auth_url, '_self');
+        } else {
+          Linking.openURL(result.auth_url);
+        }
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to connect Gmail');
+    }
+  };
+
+  const handleGmailSync = async () => {
+    setGmailSyncing(true);
+    setGmailSyncResult(null);
+    try {
+      const result = await apiRequest('/api/gmail/sync', { method: 'POST' });
+      setGmailSyncResult(`Found ${result.new_transactions} new transactions from ${result.emails_scanned} emails`);
+      setGmailLastSync(new Date().toISOString());
+    } catch (e: any) {
+      setGmailSyncResult('Sync failed: ' + (e.message || 'Unknown error'));
+    } finally {
+      setGmailSyncing(false);
+    }
+  };
+
+  const handleGmailDisconnect = async () => {
+    Alert.alert('Disconnect Gmail', 'This will remove your Gmail connection. Previously imported transactions will remain.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Disconnect',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await apiRequest('/api/gmail/disconnect', { method: 'DELETE' });
+            setGmailConnected(false);
+            setGmailLastSync(null);
+          } catch {}
+        },
+      },
+    ]);
+  };
+
+  const SourcesTab = () => (
+    <View style={{ gap: 16 }}>
+      {/* Gmail Section */}
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(234, 67, 53, 0.15)' : 'rgba(234, 67, 53, 0.1)' }]}>
+            <MaterialCommunityIcons name="gmail" size={22} color="#EA4335" />
+          </View>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Gmail Email Parsing</Text>
+        </View>
+
+        <Text style={[styles.sourceDesc, { color: colors.textSecondary }]}>
+          Connect your Gmail to automatically detect and import bank transaction alerts from HDFC, ICICI, SBI, Axis, Kotak and more.
+        </Text>
+
+        {gmailConnected ? (
+          <>
+            <View style={[styles.connectedBanner, { backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.06)' }]}>
+              <MaterialCommunityIcons name="check-circle" size={20} color={Accent.emerald} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.connectedTitle, { color: colors.textPrimary }]}>Gmail Connected</Text>
+                {gmailLastSync && (
+                  <Text style={[styles.connectedSubtext, { color: colors.textSecondary }]}>
+                    Last sync: {new Date(gmailLastSync).toLocaleDateString()}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.syncBtn, { borderColor: Accent.emerald }]}
+              onPress={handleGmailSync}
+              disabled={gmailSyncing}
+              data-testid="gmail-sync-btn"
+            >
+              <MaterialCommunityIcons name={gmailSyncing ? 'loading' : 'sync'} size={18} color={Accent.emerald} />
+              <Text style={[styles.syncBtnText, { color: Accent.emerald }]}>
+                {gmailSyncing ? 'Syncing...' : 'Sync Now'}
+              </Text>
+            </TouchableOpacity>
+
+            {gmailSyncResult && (
+              <Text style={[styles.syncResult, { color: colors.textSecondary }]}>{gmailSyncResult}</Text>
+            )}
+
+            <TouchableOpacity style={styles.disconnectBtn} onPress={handleGmailDisconnect} data-testid="gmail-disconnect-btn">
+              <Text style={styles.disconnectText}>Disconnect Gmail</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity style={styles.connectGmailBtn} onPress={handleGmailConnect} data-testid="gmail-connect-btn">
+            <LinearGradient colors={['#EA4335', '#D93025']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.connectGmailGradient}>
+              <MaterialCommunityIcons name="gmail" size={20} color="#fff" />
+              <Text style={styles.connectGmailText}>Connect Gmail</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        <View style={[styles.banksList, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+          <Text style={[styles.banksTitle, { color: colors.textSecondary }]}>Supported Banks</Text>
+          <Text style={[styles.bankNames, { color: colors.textPrimary }]}>
+            HDFC  ·  ICICI  ·  SBI  ·  Axis  ·  Kotak  ·  Yes Bank  ·  PNB  ·  BOB  ·  IndusInd
+          </Text>
+        </View>
+      </View>
+
+      {/* SMS Section (Android only info) */}
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)' }]}>
+            <MaterialCommunityIcons name="message-text" size={22} color="#8B5CF6" />
+          </View>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>SMS Transaction Parsing</Text>
+        </View>
+
+        <Text style={[styles.sourceDesc, { color: colors.textSecondary }]}>
+          Automatically reads bank SMS on your Android device to detect transactions. Supports all major Indian banks.
+        </Text>
+
+        <View style={[styles.smsPlatformNote, { backgroundColor: isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.06)' }]}>
+          <MaterialCommunityIcons name="android" size={18} color="#3DDC84" />
+          <Text style={[styles.smsPlatformText, { color: colors.textSecondary }]}>
+            {Platform.OS === 'android'
+              ? 'Available on this device. Grant SMS permission to enable.'
+              : 'Available on Android devices only. iOS restricts SMS access.'}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
   // ═══ NOTIFICATIONS TAB ═══
   const NotificationsTab = () => (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
