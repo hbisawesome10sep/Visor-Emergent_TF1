@@ -236,7 +236,12 @@ export function SecuritySetupScreen() {
 export default SecuritySetupScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+    position: 'absolute' as any,
+    top: 0, left: 0, right: 0, bottom: 0,
+    zIndex: 99998,
+  },
   introContent: {
     flex: 1,
     alignItems: 'center',
