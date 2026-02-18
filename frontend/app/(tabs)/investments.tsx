@@ -116,6 +116,7 @@ type RecurringData = {
 export default function InvestmentsScreen() {
   const { token } = useAuth();
   const { colors, isDark } = useTheme();
+  const { setCurrentScreen } = useScreenContext();
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 70 + insets.top;
 
@@ -149,8 +150,15 @@ export default function InvestmentsScreen() {
   const [showSipModal, setShowSipModal] = useState(false);
   const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
   const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
+  const [showTaxDeductionsModal, setShowTaxDeductionsModal] = useState(false);
+  const [userDeductions, setUserDeductions] = useState<string[]>([]);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Set screen context for AI awareness
+  useEffect(() => {
+    setCurrentScreen('investments');
+  }, [setCurrentScreen]);
 
   const fetchData = useCallback(async () => {
     if (!token) return;
