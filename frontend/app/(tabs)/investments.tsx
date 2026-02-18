@@ -11,11 +11,14 @@ import Svg, { Circle, G } from 'react-native-svg';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
+import { useScreenContext } from '../../src/context/ScreenContext';
 import { Accent } from '../../src/utils/theme';
 import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
 import PieChart from '../../src/components/PieChart';
 import { WhatIfSimulator } from '../../src/components/WhatIfSimulator';
+import TaxDeductionsModal from '../../src/components/TaxDeductionsModal';
+import { TaxDeduction } from '../../src/data/taxDeductions';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
