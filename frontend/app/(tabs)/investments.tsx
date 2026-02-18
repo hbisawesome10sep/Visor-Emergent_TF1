@@ -1710,6 +1710,19 @@ export default function InvestmentsScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Tax Deductions Browser Modal */}
+      <TaxDeductionsModal
+        visible={showTaxDeductionsModal}
+        onClose={() => setShowTaxDeductionsModal(false)}
+        onAddDeduction={(deduction: TaxDeduction) => {
+          setUserDeductions(prev => [...prev, deduction.id]);
+          // In a future enhancement, this would also save to the backend
+        }}
+        colors={colors}
+        isDark={isDark}
+        userDeductions={userDeductions}
+      />
     </View>
   );
 }
