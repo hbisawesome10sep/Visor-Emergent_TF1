@@ -4077,6 +4077,323 @@ async def export_report(
         raise HTTPException(status_code=400, detail="Invalid format. Use 'excel' or 'pdf'")
 
 # ══════════════════════════════════════
+#  GMAIL INTEGRATION - Email Transaction Parsing
+# ══════════════════════════════════════
+
+import warnings
+from google_auth_oauthlib.flow import Flow
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request as GoogleRequest
+from googleapiclient.discovery import build
+import base64
+from bank_parser import parse_transaction_text
+
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+GMAIL_REDIRECT_URI = os.environ.get("GMAIL_REDIRECT_URI", "")
+GMAIL_SCOPES = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+]
+
+# Auto-detect redirect URI from frontend URL
+if not GMAIL_REDIRECT_URI:
+    _fe_url = os.environ.get("FRONTEND_URL", "https://trend-flip.preview.emergentagent.com")
+    GMAIL_REDIRECT_URI = f"{_fe_url}/api/gmail/callback"
+
+def _gmail_client_config():
+    return {
+        "web": {
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+        }
+    }
+
+@api_router.get("/gmail/connect")
+async def gmail_connect(user=Depends(get_current_user)):
+    """Initiate Gmail OAuth flow."""
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="Gmail OAuth not configured")
+
+    flow = Flow.from_client_config(_gmail_client_config(), scopes=GMAIL_SCOPES, redirect_uri=GMAIL_REDIRECT_URI)
+    url, state = flow.authorization_url(access_type="offline", prompt="consent")
+
+    # Store state → user mapping
+    await db.gmail_oauth_states.insert_one({
+        "state": state,
+        "user_id": user["id"],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    return {"auth_url": url}
+
+@api_router.get("/gmail/callback")
+async def gmail_callback(code: str = None, state: str = None, error: str = None):
+    """Handle Gmail OAuth callback."""
+    if error:
+        return RedirectResponse(url="/?gmail_error=" + error)
+
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing code or state")
+
+    # Verify state
+    state_doc = await db.gmail_oauth_states.find_one({"state": state}, {"_id": 0})
+    if not state_doc:
+        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+
+    user_id = state_doc["user_id"]
+    await db.gmail_oauth_states.delete_one({"state": state})
+
+    flow = Flow.from_client_config(_gmail_client_config(), scopes=GMAIL_SCOPES, redirect_uri=GMAIL_REDIRECT_URI)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        flow.fetch_token(code=code)
+
+    creds = flow.credentials
+
+    # Store tokens
+    token_doc = {
+        "user_id": user_id,
+        "access_token": creds.token,
+        "refresh_token": creds.refresh_token,
+        "token_uri": creds.token_uri,
+        "client_id": creds.client_id,
+        "client_secret": creds.client_secret,
+        "expires_at": creds.expiry.isoformat() if creds.expiry else None,
+        "connected_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    await db.gmail_tokens.update_one(
+        {"user_id": user_id}, {"$set": token_doc}, upsert=True
+    )
+
+    # Redirect back to app settings
+    return RedirectResponse(url="/?gmail_connected=true")
+
+@api_router.get("/gmail/status")
+async def gmail_status(user=Depends(get_current_user)):
+    """Check if Gmail is connected for the current user."""
+    token = await db.gmail_tokens.find_one({"user_id": user["id"]}, {"_id": 0, "access_token": 0, "refresh_token": 0, "client_secret": 0})
+    if not token:
+        return {"connected": False}
+
+    last_sync = await db.gmail_sync_log.find_one(
+        {"user_id": user["id"]}, {"_id": 0}, sort=[("synced_at", -1)]
+    )
+
+    return {
+        "connected": True,
+        "connected_at": token.get("connected_at"),
+        "last_sync": last_sync.get("synced_at") if last_sync else None,
+        "total_parsed": last_sync.get("total_parsed", 0) if last_sync else 0,
+    }
+
+async def _get_gmail_creds(user_id: str) -> Credentials:
+    """Get valid Gmail credentials, refreshing if needed."""
+    token = await db.gmail_tokens.find_one({"user_id": user_id}, {"_id": 0})
+    if not token:
+        raise HTTPException(status_code=400, detail="Gmail not connected")
+
+    creds = Credentials(
+        token=token["access_token"],
+        refresh_token=token.get("refresh_token"),
+        token_uri=token["token_uri"],
+        client_id=token["client_id"],
+        client_secret=token["client_secret"],
+    )
+
+    # Refresh if expired
+    if token.get("expires_at"):
+        from dateutil.parser import parse as parse_date
+        expires = parse_date(token["expires_at"])
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) >= expires:
+            creds.refresh(GoogleRequest())
+            await db.gmail_tokens.update_one(
+                {"user_id": user_id},
+                {"$set": {"access_token": creds.token, "expires_at": creds.expiry.isoformat() if creds.expiry else None}},
+            )
+
+    return creds
+
+@api_router.post("/gmail/sync")
+async def gmail_sync(user=Depends(get_current_user)):
+    """Fetch and parse bank transaction emails from Gmail."""
+    creds = await _get_gmail_creds(user["id"])
+    service = build("gmail", "v1", credentials=creds)
+
+    # Search for bank transaction emails
+    bank_queries = [
+        "from:(alerts@hdfcbank.net OR alert@icicibank.com OR sbi OR axisbank OR kotak) subject:(transaction OR debit OR credit OR spent)",
+        "subject:(bank transaction alert) newer_than:30d",
+        "(debit OR credit) (INR OR Rs) newer_than:30d",
+    ]
+
+    parsed_transactions = []
+    seen_msg_ids = set()
+
+    # Check existing synced message IDs to avoid duplicates
+    existing = await db.gmail_synced_msgs.find(
+        {"user_id": user["id"]}, {"msg_id": 1, "_id": 0}
+    ).to_list(10000)
+    seen_msg_ids = {d["msg_id"] for d in existing}
+
+    for query in bank_queries:
+        try:
+            result = service.users().messages().list(
+                userId="me", q=query, maxResults=50
+            ).execute()
+            messages = result.get("messages", [])
+
+            for msg_meta in messages:
+                msg_id = msg_meta["id"]
+                if msg_id in seen_msg_ids:
+                    continue
+                seen_msg_ids.add(msg_id)
+
+                try:
+                    msg = service.users().messages().get(
+                        userId="me", id=msg_id, format="full"
+                    ).execute()
+
+                    # Extract email body
+                    body_text = _extract_email_body(msg)
+                    sender = _get_header(msg, "From")
+
+                    if body_text:
+                        txn = parse_transaction_text(body_text, sender)
+                        if txn:
+                            txn["gmail_msg_id"] = msg_id
+                            txn["email_subject"] = _get_header(msg, "Subject")
+                            parsed_transactions.append(txn)
+
+                except Exception as e:
+                    logger.warning(f"Failed to parse email {msg_id}: {e}")
+                    continue
+
+        except Exception as e:
+            logger.warning(f"Gmail search failed for query: {e}")
+            continue
+
+    # Save parsed transactions
+    new_count = 0
+    for txn in parsed_transactions:
+        txn_id = str(uuid.uuid4())
+        txn_doc = {
+            "id": txn_id,
+            "user_id": user["id"],
+            "type": txn["type"],
+            "amount": txn["amount"],
+            "category": txn["category"],
+            "description": txn["description"],
+            "date": txn["date"],
+            "is_recurring": False,
+            "source": "gmail",
+            "bank": txn.get("bank", ""),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.transactions.insert_one(txn_doc)
+        await db.gmail_synced_msgs.insert_one({
+            "user_id": user["id"],
+            "msg_id": txn["gmail_msg_id"],
+            "txn_id": txn_id,
+            "synced_at": datetime.now(timezone.utc).isoformat(),
+        })
+        new_count += 1
+
+    # Log sync
+    await db.gmail_sync_log.insert_one({
+        "user_id": user["id"],
+        "synced_at": datetime.now(timezone.utc).isoformat(),
+        "emails_scanned": len(seen_msg_ids),
+        "total_parsed": new_count,
+    })
+
+    return {
+        "success": True,
+        "new_transactions": new_count,
+        "emails_scanned": len(seen_msg_ids),
+    }
+
+@api_router.delete("/gmail/disconnect")
+async def gmail_disconnect(user=Depends(get_current_user)):
+    """Remove Gmail connection."""
+    await db.gmail_tokens.delete_many({"user_id": user["id"]})
+    await db.gmail_oauth_states.delete_many({"user_id": user["id"]})
+    return {"success": True}
+
+def _extract_email_body(msg: dict) -> str:
+    """Extract plain text body from Gmail message."""
+    payload = msg.get("payload", {})
+
+    # Direct body
+    if payload.get("body", {}).get("data"):
+        return base64.urlsafe_b64decode(payload["body"]["data"]).decode("utf-8", errors="ignore")
+
+    # Multipart
+    parts = payload.get("parts", [])
+    for part in parts:
+        if part.get("mimeType") == "text/plain" and part.get("body", {}).get("data"):
+            return base64.urlsafe_b64decode(part["body"]["data"]).decode("utf-8", errors="ignore")
+
+    # Fallback: HTML
+    for part in parts:
+        if part.get("mimeType") == "text/html" and part.get("body", {}).get("data"):
+            html = base64.urlsafe_b64decode(part["body"]["data"]).decode("utf-8", errors="ignore")
+            import re as _re
+            return _re.sub(r"<[^>]+>", " ", html)
+
+    return msg.get("snippet", "")
+
+def _get_header(msg: dict, name: str) -> str:
+    """Get email header value."""
+    headers = msg.get("payload", {}).get("headers", [])
+    for h in headers:
+        if h["name"].lower() == name.lower():
+            return h["value"]
+    return ""
+
+
+# ══════════════════════════════════════
+#  SMS PARSING (Android Only)
+# ══════════════════════════════════════
+
+@api_router.post("/sms/parse")
+async def parse_sms_batch(messages: list[dict], user=Depends(get_current_user)):
+    """Parse a batch of SMS messages sent from Android client."""
+    parsed = []
+    for sms in messages:
+        body = sms.get("body", "")
+        sender = sms.get("sender", "")
+        txn = parse_transaction_text(body, sender)
+        if txn:
+            txn_id = str(uuid.uuid4())
+            txn_doc = {
+                "id": txn_id,
+                "user_id": user["id"],
+                "type": txn["type"],
+                "amount": txn["amount"],
+                "category": txn["category"],
+                "description": txn["description"],
+                "date": txn["date"],
+                "is_recurring": False,
+                "source": "sms",
+                "bank": txn.get("bank", ""),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.transactions.insert_one(txn_doc)
+            parsed.append({"id": txn_id, "description": txn["description"], "amount": txn["amount"], "type": txn["type"]})
+
+    return {"success": True, "parsed_count": len(parsed), "transactions": parsed}
+
+
+# ══════════════════════════════════════
 #  APP SETUP
 # ══════════════════════════════════════
 
