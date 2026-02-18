@@ -1,0 +1,112 @@
+{
+  "summary": "Iteration 18 - Tax Calculator and Tax-Related APIs Testing. Backend: 22/22 tests passed (100%). All tax endpoints working correctly including /api/tax-calculator (Old/New Regime), /api/tax-summary, /api/capital-gains, and CRUD for /api/user-tax-deductions.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "note": "Frontend testing skipped - React Native (Expo) app cannot be tested via browser. Per instructions, backend-only testing performed."
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tax_calculator_apis.py",
+    "/app/test_reports/pytest/pytest_tax_calculator.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_tax_calculator_apis.py"
+  ],
+  "success_rate": {
+    "backend": "100% (22/22 tests passed)",
+    "frontend": "N/A - React Native app (skipped per instructions)"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "seed_data_creation": "None - used existing demo data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All tax-related APIs tested and working. Tax Calculator returns correct data for both Old and New Regime (Budget 2025). Demo user has salary income ~₹220,000, total gross ~₹307,000, STCG ~₹25,000 from stock sale, and ₹100,000 in 80C deductions.",
+  "features_tested": {
+    "tax_calculator_api": {
+      "status": "WORKING",
+      "details": [
+        "GET /api/tax-calculator?fy=2025-26 returns complete tax calculation",
+        "FY 2024-25 and FY 2023-24 also work correctly",
+        "Default FY (no param) returns 2025-26",
+        "Old Regime: Standard deduction ₹50,000, Chapter VI-A deductions included",
+        "New Regime: Standard deduction ₹75,000 (Budget 2025), limited NPS deduction",
+        "Tax slabs breakdown included for both regimes",
+        "4% cess calculated correctly",
+        "Rebate u/s 87A: Old ≤₹5L (₹12,500) | New ≤₹12L (₹60,000)",
+        "Capital gains tax added to total tax in both regimes",
+        "Comparison shows better_regime (old/new/equal) with savings amount"
+      ]
+    },
+    "tax_summary_api": {
+      "status": "WORKING",
+      "details": [
+        "GET /api/tax-summary returns sections (80C, 80D, etc.)",
+        "Each section shows limit, used, remaining, percentage",
+        "80C limit correctly set to ₹1,50,000",
+        "Tax saved estimates for 20% and 30% slabs"
+      ]
+    },
+    "capital_gains_api": {
+      "status": "WORKING",
+      "details": [
+        "GET /api/capital-gains returns gains list with details",
+        "Summary includes total STCG, LTCG, exemptions, tax estimates",
+        "LTCG exemption correctly set to ₹1,25,000",
+        "STCG on equity: 20%, LTCG on equity: 12.5%",
+        "Demo user has ₹25,000 STCG from Reliance stock sale"
+      ]
+    },
+    "user_tax_deductions_crud": {
+      "status": "WORKING",
+      "details": [
+        "GET /api/user-tax-deductions returns user's deductions",
+        "POST /api/user-tax-deductions creates new deduction",
+        "PUT /api/user-tax-deductions/{id} updates invested_amount",
+        "DELETE /api/user-tax-deductions/{id} removes deduction",
+        "404 returned for non-existent IDs (update/delete)",
+        "400 returned for duplicate deduction_id"
+      ]
+    }
+  },
+  "api_test_results": {
+    "auth_login": "PASS - Demo credentials work",
+    "tax_calculator_2025_26": "PASS - Returns complete tax calculation with Old/New regime",
+    "tax_calculator_2024_25": "PASS - Returns correct FY/AY",
+    "tax_calculator_2023_24": "PASS - Returns correct FY/AY",
+    "tax_calculator_default": "PASS - Defaults to 2025-26",
+    "tax_calculator_slabs_old": "PASS - 0%, 5%, 20%, 30% slabs",
+    "tax_calculator_slabs_new": "PASS - 0%, 5%, 10%, 15%, 20%, 25%, 30% slabs (Budget 2025)",
+    "tax_calculator_cess": "PASS - 4% cess correctly calculated",
+    "tax_summary": "PASS - Returns sections with limits and usage",
+    "tax_summary_80c": "PASS - 80C limit = ₹150,000",
+    "capital_gains": "PASS - Returns gains with STCG/LTCG breakdown",
+    "user_tax_deductions_get": "PASS - Returns user's deductions list",
+    "user_tax_deductions_post": "PASS - Creates new deduction",
+    "user_tax_deductions_put": "PASS - Updates invested_amount",
+    "user_tax_deductions_delete": "PASS - Removes deduction",
+    "user_tax_deductions_404": "PASS - 404 for non-existent IDs",
+    "user_tax_deductions_duplicate": "PASS - 400 for duplicates"
+  },
+  "demo_user_financial_data": {
+    "salary_income": 220000,
+    "other_income": 87000,
+    "gross_total": 307000,
+    "stcg": 25000,
+    "ltcg": 0,
+    "80c_deductions": 110000,
+    "tax_old_regime": 5000,
+    "tax_new_regime": 5000,
+    "better_regime": "equal"
+  },
+  "mocked_apis": "None - all APIs are real implementations"
+}
