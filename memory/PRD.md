@@ -34,36 +34,47 @@ Comprehensive personal finance management application for the Indian market with
 - [x] Dashboard with frequency filters (Q/M/Y/Custom)
 - [x] Transaction CRUD with categories
 - [x] Investment tracking (Goals, Holdings, CAS upload)
-- [x] AI Advisor chat
+- [x] AI Advisor chat with contextual awareness
 - [x] Live market data with GoldAPI.io (Gold/Silver) + yfinance
 - [x] Books & Reports (P&L, Balance Sheet, Ledger)
 - [x] Loan tracking with EMI schedules
 - [x] Tax summary and capital gains
 
-### Bug Fixes (Feb 18, 2026)
-- [x] P0: Gold/Silver price accuracy - Added `import requests` for GoldAPI.io
-- [x] Dashboard FAB: Replaced old quick-add modal with navigation to Transactions tab
-- [x] Custom date range: Added safe date handling and improved error handling
-- [x] iOS date picker bug fixed (previous session)
-
-### New Features (Feb 18, 2026)
-- [x] **Tax Planning Enhancement**: Added comprehensive Tax Deductions Browser modal
-  - '+' icon on Tax Planning section header opens the browser
-  - Shows all Chapter VI-A deductions (80C, 80D, 80CCD, 80E, 80G, HRA, etc.)
-  - Each deduction has: Section code, one-liner, full description, eligibility, example, documents
-  - 'i' icon opens detailed sub-modal with full explanation
-  - Users can add deductions to their Tax Planning
+### New Features (Feb 18, 2026) - THIS SESSION
+- [x] **Tax Deductions Browser Modal**: Comprehensive modal with all Chapter VI-A deductions
+  - 25+ deductions (80C, 80D, 80CCD, 80E, 80G, HRA, Section 24b, etc.)
+  - Category filters (Popular, Investments, Insurance, Savings, Housing, Medical, Donations)
+  - Search functionality
+  - Detail modal with one-liner, full description, eligibility, example, documents
   - Created: `/app/frontend/src/data/taxDeductions.ts`, `/app/frontend/src/components/TaxDeductionsModal.tsx`
 
+- [x] **User Tax Deductions Backend API**:
+  - `GET /api/user-tax-deductions` - Get user's selected deductions
+  - `POST /api/user-tax-deductions` - Add new deduction to planning
+  - `PUT /api/user-tax-deductions/{id}` - Update invested amount
+  - `DELETE /api/user-tax-deductions/{id}` - Remove deduction
+
+- [x] **Tax Planning Section Enhancement**:
+  - '+' icon on Tax Planning header opens deductions browser
+  - "Your Selected Deductions" section shows user-added deductions
+  - Edit (pencil) and Delete (trash) buttons for each deduction
+  - Progress bar showing invested vs limit
+  - Edit modal to update invested amount
+  - "Auto-detected from Transactions" section for backend-calculated 80C/80D
+
 - [x] **AI Contextual Awareness (Visor)**:
-  - Added ScreenContext provider to track current screen
-  - AI now receives screen context with every chat message
-  - Visor can provide contextual responses based on which screen user is viewing
-  - Updated: `ScreenContext.tsx`, `AIAdvisorChat.tsx`, backend `/api/ai/chat`
+  - ScreenContext provider to track current screen
+  - AI receives screen context with every chat message
+  - Contextual responses based on user's current view
+  - Files: `ScreenContext.tsx`, `AIAdvisorChat.tsx`, backend `/api/ai/chat`
+
+- [x] **Category Filter Pills Fix**:
+  - Fixed styling for horizontal pill buttons in TaxDeductionsModal
+  - Proper padding, height, and margins for consistent appearance
 
 ## Pending Tasks (Priority Order)
-### P1 - User Requested
-- [ ] Custom Date Range fix verification (user reported not working properly)
+### P1
+- [ ] Custom Date Range verification (user to test on device)
 
 ### P2
 - [ ] Trend Analysis card flip animation (react-native-reanimated)
@@ -71,12 +82,11 @@ Comprehensive personal finance management application for the Indian market with
 ### In Progress
 - [ ] Complete Data Source Integration (Gmail/SMS → save transactions to DB)
 - [ ] Extend encryption to all financial endpoints
-- [ ] Refactor investments.tsx into smaller components
-- [ ] Split server.py into route modules (backend/routes/)
 
 ### Backlog
+- [ ] Refactor investments.tsx into smaller components
+- [ ] Split server.py into route modules (backend/routes/)
 - [ ] Backend migration to Node.js
-- [ ] Persist user's added tax deductions to database
 
 ## Key API Endpoints
 - `GET /api/market-data` - Live market data (GoldAPI.io + yfinance)
@@ -85,8 +95,20 @@ Comprehensive personal finance management application for the Indian market with
 - `GET/POST /api/loans` - Loan CRUD with account_number encryption
 - `POST /api/gmail/sync` - Gmail email parsing
 - `POST /api/sms/parse` - SMS parsing
+- `GET/POST/PUT/DELETE /api/user-tax-deductions` - User tax deduction management
 
 ## Credentials
 - Demo User: rajesh@visor.demo / Demo@123
 - Demo User 2: priya@visor.demo / Demo@456
 - API keys in backend/.env (GOLDAPI_KEY, Google OAuth, EMERGENT_LLM_KEY)
+
+## Files Modified This Session
+- `/app/frontend/src/data/taxDeductions.ts` - NEW: Comprehensive tax deductions data
+- `/app/frontend/src/components/TaxDeductionsModal.tsx` - NEW: Tax deductions browser modal
+- `/app/frontend/src/context/ScreenContext.tsx` - NEW: Screen tracking for AI awareness
+- `/app/frontend/app/(tabs)/investments.tsx` - MODIFIED: Tax Planning section with user deductions
+- `/app/frontend/app/(tabs)/index.tsx` - MODIFIED: Added ScreenContext
+- `/app/frontend/app/(tabs)/transactions.tsx` - MODIFIED: Added ScreenContext
+- `/app/frontend/app/_layout.tsx` - MODIFIED: Added ScreenProvider
+- `/app/frontend/src/components/AIAdvisorChat.tsx` - MODIFIED: Send screen context
+- `/app/backend/server.py` - MODIFIED: User tax deductions API endpoints
