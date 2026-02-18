@@ -333,7 +333,6 @@ export default function InsightsScreen() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showScoreBack, setShowScoreBack] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState<'Quarter' | 'Month' | 'Year' | 'Custom'>('Month');
 
   const getDateRange = useCallback((freq: string) => {
