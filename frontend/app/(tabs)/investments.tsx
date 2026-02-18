@@ -152,6 +152,10 @@ export default function InvestmentsScreen() {
   const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
   const [showTaxDeductionsModal, setShowTaxDeductionsModal] = useState(false);
   const [userDeductions, setUserDeductions] = useState<string[]>([]);
+  const [userTaxDeductions, setUserTaxDeductions] = useState<any[]>([]);
+  const [editingDeduction, setEditingDeduction] = useState<any | null>(null);
+  const [showEditDeductionModal, setShowEditDeductionModal] = useState(false);
+  const [deductionAmount, setDeductionAmount] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -163,7 +167,7 @@ export default function InvestmentsScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, taxSummary, rebalancing, recurringTxns, capGains] = await Promise.all([
+      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, taxSummary, rebalancing, recurringTxns, capGains, userTaxDeductionsData] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
         apiRequest('/market-data', {}),
@@ -174,6 +178,7 @@ export default function InvestmentsScreen() {
         apiRequest('/portfolio-rebalancing', { token }),
         apiRequest('/recurring', { token }),
         apiRequest('/capital-gains', { token }),
+        apiRequest('/user-tax-deductions', { token }),
       ]);
       setStats(statsData);
       setGoals(goalsData);
@@ -184,6 +189,11 @@ export default function InvestmentsScreen() {
       setRebalanceData(rebalancing);
       setRecurringData(recurringTxns);
       setCapitalGainsData(capGains);
+      // Set user tax deductions
+      if (userTaxDeductionsData?.deductions) {
+        setUserTaxDeductions(userTaxDeductionsData.deductions);
+        setUserDeductions(userTaxDeductionsData.deductions.map((d: any) => d.deduction_id));
+      }
       if (savedRisk && savedRisk.profile) {
         setRiskProfile(savedRisk.profile);
         setRiskScore(savedRisk.score || 0);
