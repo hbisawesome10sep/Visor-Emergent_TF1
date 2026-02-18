@@ -925,6 +925,25 @@ const styles = StyleSheet.create({
   encryptionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   encryptionText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '500' as any },
 
+  // Sources Tab
+  sourceDesc: { fontSize: 13, fontFamily: 'DM Sans', lineHeight: 20, marginBottom: 16 },
+  connectedBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, marginBottom: 12 },
+  connectedTitle: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  connectedSubtext: { fontSize: 12, fontFamily: 'DM Sans', marginTop: 2 },
+  syncBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, marginBottom: 8 },
+  syncBtnText: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  syncResult: { fontSize: 12, fontFamily: 'DM Sans', textAlign: 'center', marginBottom: 8 },
+  disconnectBtn: { alignItems: 'center', paddingVertical: 10 },
+  disconnectText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any, color: '#EF4444' },
+  connectGmailBtn: { borderRadius: 999, overflow: 'hidden', marginBottom: 16 },
+  connectGmailGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, height: 50, borderRadius: 999 },
+  connectGmailText: { color: '#fff', fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  banksList: { borderRadius: 14, padding: 14, marginTop: 4 },
+  banksTitle: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '700' as any, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
+  bankNames: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '500' as any, lineHeight: 20 },
+  smsPlatformNote: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14 },
+  smsPlatformText: { fontSize: 13, fontFamily: 'DM Sans', flex: 1, lineHeight: 20 },
+
   // Toggle Row
   toggleRow: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 10, gap: 12 },
   toggleIconWrap: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
