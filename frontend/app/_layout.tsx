@@ -22,6 +22,10 @@ function SecurityLayer({ children }: { children: React.ReactNode }) {
   const { token } = useAuth();
   const { isLocked, isSecuritySetupDone, isPinSetup } = useSecurity();
 
+  if (typeof window !== 'undefined') {
+    console.log('[SecurityLayer]', JSON.stringify({ hasToken: !!token, isSecuritySetupDone, isLocked, isPinSetup }));
+  }
+
   return (
     <>
       {children}
