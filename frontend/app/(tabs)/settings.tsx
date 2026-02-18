@@ -199,44 +199,91 @@ export default function SettingsScreen() {
         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Security & Privacy</Text>
       </View>
 
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Authentication Methods</Text>
+      {/* Security Status Banner */}
+      <View style={[styles.securityBanner, {
+        backgroundColor: isPinSetup
+          ? (isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.06)')
+          : (isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.06)'),
+      }]}>
+        <MaterialCommunityIcons
+          name={isPinSetup ? 'shield-check' : 'shield-alert'}
+          size={20}
+          color={isPinSetup ? Accent.emerald : '#F59E0B'}
+        />
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.securityBannerTitle, { color: colors.textPrimary }]}>
+            {isPinSetup ? 'Security Active' : 'Security Not Configured'}
+          </Text>
+          <Text style={[styles.securityBannerDesc, { color: colors.textSecondary }]}>
+            {isPinSetup
+              ? `PIN enabled${isBiometricEnabled ? ' + Biometric' : ''} | Auto-lock: 5 min`
+              : 'Set up PIN to protect your financial data'}
+          </Text>
+        </View>
+      </View>
 
-      <SettingToggleRow
-        icon="fingerprint"
-        iconColor={Accent.sapphire}
-        title="Biometric Authentication"
-        description="Use fingerprint or face ID"
-        value={settings.biometric}
-        onToggle={() => toggleSetting('biometric')}
-        colors={colors}
-        isDark={isDark}
-      />
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Authentication</Text>
 
       <SettingToggleRow
         icon="lock"
         iconColor={Accent.emerald}
-        title="Two-Factor Authentication"
-        description="Extra security for your account"
-        value={settings.twoFactor}
-        onToggle={() => toggleSetting('twoFactor')}
+        title="App PIN Lock"
+        description={isPinSetup ? 'PIN is set — app locks after 5 min' : 'Not configured'}
+        value={isPinSetup}
+        onToggle={() => {
+          if (isPinSetup) {
+            Alert.alert('Reset PIN', 'This will disable PIN lock. You can set it up again from Settings.', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Reset', style: 'destructive', onPress: () => resetSecurity() },
+            ]);
+          }
+        }}
         colors={colors}
         isDark={isDark}
       />
+
+      {isBiometricAvailable && (
+        <SettingToggleRow
+          icon="fingerprint"
+          iconColor={Accent.sapphire}
+          title="Biometric Authentication"
+          description="Use fingerprint or Face ID to unlock"
+          value={isBiometricEnabled}
+          onToggle={() => toggleBiometric(!isBiometricEnabled)}
+          colors={colors}
+          isDark={isDark}
+        />
+      )}
+
+      {isPinSetup && (
+        <TouchableOpacity
+          style={[styles.lockNowBtn, { borderColor: Accent.emerald }]}
+          onPress={() => lock()}
+          data-testid="lock-now-btn"
+        >
+          <MaterialCommunityIcons name="lock" size={18} color={Accent.emerald} />
+          <Text style={[styles.lockNowText, { color: Accent.emerald }]}>Lock App Now</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Data Collection</Text>
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Data Encryption</Text>
 
-      <SettingToggleRow
-        icon="message-text"
-        iconColor="#8B5CF6"
-        title="SMS Transaction Parsing"
-        description="Automatically detect bank transactions from SMS"
-        value={settings.smsParsing}
-        onToggle={() => toggleSetting('smsParsing')}
-        colors={colors}
-        isDark={isDark}
-      />
+      <View style={[styles.encryptionInfo, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]}>
+        <View style={styles.encryptionRow}>
+          <MaterialCommunityIcons name="database-lock" size={18} color={Accent.emerald} />
+          <Text style={[styles.encryptionText, { color: colors.textPrimary }]}>AES-256 field-level encryption</Text>
+        </View>
+        <View style={styles.encryptionRow}>
+          <MaterialCommunityIcons name="key-variant" size={18} color={Accent.emerald} />
+          <Text style={[styles.encryptionText, { color: colors.textPrimary }]}>Per-user encryption keys</Text>
+        </View>
+        <View style={styles.encryptionRow}>
+          <MaterialCommunityIcons name="shield-lock" size={18} color={Accent.emerald} />
+          <Text style={[styles.encryptionText, { color: colors.textPrimary }]}>PAN & Aadhaar encrypted at rest</Text>
+        </View>
+      </View>
     </View>
   );
 
