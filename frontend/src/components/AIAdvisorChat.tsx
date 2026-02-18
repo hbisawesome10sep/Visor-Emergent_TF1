@@ -100,10 +100,16 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
 
     try {
+      // Get current screen context for AI awareness
+      const screenContext = getScreenContext();
+      
       const response = await apiRequest('/ai/chat', {
         method: 'POST',
         token,
-        body: { message: text.trim() },
+        body: { 
+          message: text.trim(),
+          screen_context: screenContext,
+        },
       });
 
       const assistantMessage: Message = {
