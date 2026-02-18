@@ -327,23 +327,34 @@ export default function InsightsScreen() {
   // Calculate header height dynamically
   const HEADER_HEIGHT = 60 + insets.top;
 
-  const [stats, setStats] = useState<DashboardStats | null>({
-    total_income: 150000,
-    total_expenses: 95000,
-    total_investments: 25000,
-    savings_rate: 36.7,
-    category_breakdown: {
-      'Housing': 25000,
-      'Food': 15000,
-      'Transport': 10000,
-      'Utilities': 5000,
-      'Shopping': 12000,
-      'Entertainment': 8000,
-    },
-  });
-  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showScoreBack, setShowScoreBack] = useState(false);
+  const [selectedFrequency, setSelectedFrequency] = useState<'Quarter' | 'Month' | 'Year' | 'Custom'>('Month');
+
+  const getDateRange = useCallback((freq: string) => {
+    const now = new Date();
+    let start: Date;
+    switch (freq) {
+      case 'Quarter':
+        start = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        break;
+      case 'Year':
+        start = new Date(now.getFullYear(), 0, 1);
+        break;
+      case 'Custom':
+        start = new Date(2020, 0, 1);
+        break;
+      default: // Month
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+    }
+    return {
+      start: start.toISOString().split('T')[0],
+      end: now.toISOString().split('T')[0],
+    };
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!token) {
@@ -356,12 +367,11 @@ export default function InsightsScreen() {
       return;
     }
     try {
-      // Use current month date range to stay consistent with Dashboard default
-      const now = new Date();
-      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startStr = startDate.toISOString().split('T')[0];
-      const endStr = now.toISOString().split('T')[0];
-      const data = await apiRequest(`/dashboard/stats?start_date=${startStr}&end_date=${endStr}`, { token });
+      const { start, end } = getDateRange(selectedFrequency);
+      const url = selectedFrequency === 'Custom'
+        ? '/dashboard/stats'
+        : `/dashboard/stats?start_date=${start}&end_date=${end}`;
+      const data = await apiRequest(url, { token });
       setStats(data);
     } catch (e) {
       console.error(e);
@@ -373,7 +383,7 @@ export default function InsightsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token]);
+  }, [token, selectedFrequency, getDateRange]);
 
   useEffect(() => {
     if (!authLoading) {
