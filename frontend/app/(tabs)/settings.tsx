@@ -44,6 +44,23 @@ export default function SettingsScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  // Gmail state
+  const [gmailConnected, setGmailConnected] = useState(false);
+  const [gmailLastSync, setGmailLastSync] = useState<string | null>(null);
+  const [gmailSyncing, setGmailSyncing] = useState(false);
+  const [gmailSyncResult, setGmailSyncResult] = useState<string | null>(null);
+
+  // Load Gmail status on mount
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const status = await apiRequest('/api/gmail/status');
+        setGmailConnected(status.connected);
+        setGmailLastSync(status.last_sync);
+      } catch {}
+    })();
+  }, []);
+
   // Settings state
   const [settings, setSettings] = useState({
     biometric: true,
