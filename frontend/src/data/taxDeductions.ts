@@ -373,7 +373,7 @@ export const TAX_DEDUCTIONS: TaxDeduction[] = [
     example: 'Donate ₹50,000 to a registered NGO. Get ₹25,000 deduction (50%), saving ₹7,800 in 30% bracket.',
     eligibility: 'Donations to 80G registered organizations.',
     documents: ['Donation receipt', '80G registration details of organization'],
-    icon: 'gift-heart',
+    icon: 'gift-outline',
     category: 'donations',
     popular: false,
   },
