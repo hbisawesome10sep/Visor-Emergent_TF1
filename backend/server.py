@@ -2412,17 +2412,71 @@ from concurrent.futures import ThreadPoolExecutor
 
 REFRESH_TIMES_IST = ["09:25", "11:30", "12:30", "15:15"]
 TROY_OZ_TO_GRAMS = 31.1035
-# Domestic premiums calibrated against actual Indian market prices (goodreturns.in)
-# Includes import duty (6%), Agri cess (2.5%), GST (3%), logistics
-# Recalibrate quarterly or when import duty structure changes
-GOLD_DOMESTIC_PREMIUM = 1.071   # COMEX GC=F futures → Indian 24K domestic
-SILVER_DOMESTIC_PREMIUM = 1.154  # COMEX SI=F futures → Indian 999 domestic
+# Domestic premium: international spot → Indian retail (import duty 6% + GST 3% + margin)
+GOLD_DOMESTIC_PREMIUM = 1.075
+SILVER_DOMESTIC_PREMIUM = 1.155
+GOLDAPI_KEY = os.environ.get("GOLDAPI_KEY", "")
 
 _yf_executor = ThreadPoolExecutor(max_workers=2)
 
+
+def _fetch_goldapi_prices() -> dict:
+    """Fetch gold & silver spot prices in INR from GoldAPI.io (most accurate)."""
+    result = {}
+    if not GOLDAPI_KEY:
+        return result
+    headers = {"x-access-token": GOLDAPI_KEY, "Content-Type": "application/json"}
+
+    try:
+        r = requests.get("https://www.goldapi.io/api/XAU/INR", headers=headers, timeout=10)
+        if r.status_code == 200:
+            d = r.json()
+            gram_24k = d.get("price_gram_24k", 0)
+            prev_gram = d.get("prev_close_price", 0) / TROY_OZ_TO_GRAMS if d.get("prev_close_price") else 0
+            if gram_24k > 0:
+                price_10g = round(gram_24k * 10 * GOLD_DOMESTIC_PREMIUM, 0)
+                prev_10g = round(prev_gram * 10 * GOLD_DOMESTIC_PREMIUM, 0) if prev_gram > 0 else price_10g
+                change = round(price_10g - prev_10g, 0)
+                change_pct = round(change / prev_10g * 100, 2) if prev_10g > 0 else 0
+                result["gold"] = {
+                    "price": price_10g, "change": change, "change_percent": change_pct,
+                    "prev_close": prev_10g, "source": "goldapi.io"
+                }
+                logger.info(f"GoldAPI: Gold 10g = ₹{price_10g:,.0f}")
+    except Exception as e:
+        logger.warning(f"GoldAPI gold fetch failed: {e}")
+
+    try:
+        r = requests.get("https://www.goldapi.io/api/XAG/INR", headers=headers, timeout=10)
+        if r.status_code == 200:
+            d = r.json()
+            price_oz = d.get("price", 0)
+            prev_oz = d.get("prev_close_price", 0)
+            if price_oz > 0:
+                price_per_gram = price_oz / TROY_OZ_TO_GRAMS
+                price_kg = round(price_per_gram * 1000 * SILVER_DOMESTIC_PREMIUM, 0)
+                prev_per_gram = prev_oz / TROY_OZ_TO_GRAMS if prev_oz > 0 else 0
+                prev_kg = round(prev_per_gram * 1000 * SILVER_DOMESTIC_PREMIUM, 0) if prev_per_gram > 0 else price_kg
+                change = round(price_kg - prev_kg, 0)
+                change_pct = round(change / prev_kg * 100, 2) if prev_kg > 0 else 0
+                result["silver"] = {
+                    "price": price_kg, "change": change, "change_percent": change_pct,
+                    "prev_close": prev_kg, "source": "goldapi.io"
+                }
+                logger.info(f"GoldAPI: Silver 1Kg = ₹{price_kg:,.0f}")
+    except Exception as e:
+        logger.warning(f"GoldAPI silver fetch failed: {e}")
+
+    return result
+
+
 def _fetch_yfinance_data() -> list:
-    """Synchronous yfinance fetch — runs in thread executor."""
+    """Synchronous yfinance fetch — runs in thread executor. Uses GoldAPI for gold/silver when available."""
     results = []
+
+    # Try GoldAPI first for more accurate gold/silver prices
+    goldapi_data = _fetch_goldapi_prices()
+
     try:
         tickers = yf.Tickers("^NSEI ^BSESN ^NSEBANK GC=F SI=F INR=X")
         usd_inr = 87.0
@@ -2442,6 +2496,21 @@ def _fetch_yfinance_data() -> list:
 
         for cfg in configs:
             try:
+                # Use GoldAPI data for gold/silver if available
+                if cfg["type"] == "gold" and "gold" in goldapi_data:
+                    gd = goldapi_data["gold"]
+                    results.append({"key": cfg["key"], "name": cfg["name"], "price": gd["price"],
+                                    "change": gd["change"], "change_percent": gd["change_percent"],
+                                    "prev_close": gd["prev_close"]})
+                    continue
+                if cfg["type"] == "silver" and "silver" in goldapi_data:
+                    sd = goldapi_data["silver"]
+                    results.append({"key": cfg["key"], "name": cfg["name"], "price": sd["price"],
+                                    "change": sd["change"], "change_percent": sd["change_percent"],
+                                    "prev_close": sd["prev_close"]})
+                    continue
+
+                # Fallback to yfinance for gold/silver or always for indices
                 t = tickers.tickers[cfg["yf"]]
                 info = t.fast_info
                 last = float(info.last_price) if info.last_price else 0
