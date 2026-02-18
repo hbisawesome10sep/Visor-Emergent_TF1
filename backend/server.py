@@ -809,75 +809,154 @@ async def ai_chat(msg: AIMessageCreate, user=Depends(get_current_user)):
         "created_at": now,
     })
     
-    # Build financial context
+    # ── Gather ALL user data for full context ──
     txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(500)
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(50)
     risk_doc = await db.risk_profiles.find_one({"user_id": user_id}, {"_id": 0})
-    
-    # Fetch holdings data (from eCAS uploads and manual entries)
     holdings = await db.holdings.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    sips = await db.recurring_transactions.find({"user_id": user_id}, {"_id": 0}).to_list(50)
+    budgets = await db.budgets.find({"user_id": user_id}, {"_id": 0}).to_list(50)
+    loans = await db.loans.find({"user_id": user_id}, {"_id": 0}).to_list(20)
     
     total_income = sum(t["amount"] for t in txns if t["type"] == "income")
     total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
     total_investments_txn = sum(t["amount"] for t in txns if t["type"] == "investment")
     
-    # Calculate holdings portfolio value
+    # ── Holdings / Portfolio ──
     total_holdings_invested = sum(h.get("invested_value", 0) or (h.get("buy_price", 0) * h.get("quantity", 0)) for h in holdings)
     total_holdings_current = sum(h.get("current_value", 0) or (h.get("buy_price", 0) * h.get("quantity", 0)) for h in holdings)
     holdings_gain_loss = total_holdings_current - total_holdings_invested
     holdings_gain_pct = (holdings_gain_loss / total_holdings_invested * 100) if total_holdings_invested > 0 else 0
     
-    # Build holdings summary for AI
     holdings_summary = []
-    for h in holdings[:10]:  # Top 10 holdings
+    for h in holdings[:15]:
         name = h.get("name", "Unknown")
         qty = h.get("quantity", 0)
         invested = h.get("invested_value", 0) or (h.get("buy_price", 0) * qty)
         current = h.get("current_value", 0) or invested
         gain = current - invested
         gain_pct = (gain / invested * 100) if invested > 0 else 0
-        holdings_summary.append(f"{name}: ₹{invested:,.0f} → ₹{current:,.0f} ({gain_pct:+.1f}%)")
+        holdings_summary.append(f"{name}: Qty={qty}, Invested=₹{invested:,.0f}, Current=₹{current:,.0f} ({gain_pct:+.1f}%)")
     
+    # ── Expense Category Breakdown ──
     category_breakdown = {}
     for t in txns:
         if t["type"] == "expense":
             cat = t["category"]
             category_breakdown[cat] = category_breakdown.get(cat, 0) + t["amount"]
     
-    goal_summary = [f"{g['title']}: ₹{g['current_amount']:,.0f}/₹{g['target_amount']:,.0f}" for g in goals]
+    # ── Monthly Trends (last 6 months) ──
+    monthly_trends = {}
+    for t in txns:
+        dt_str = t.get("date", "")
+        if dt_str:
+            month_key = dt_str[:7]
+            if month_key not in monthly_trends:
+                monthly_trends[month_key] = {"income": 0, "expenses": 0, "investments": 0}
+            if t["type"] == "income":
+                monthly_trends[month_key]["income"] += t["amount"]
+            elif t["type"] == "expense":
+                monthly_trends[month_key]["expenses"] += t["amount"]
+            elif t["type"] == "investment":
+                monthly_trends[month_key]["investments"] += t["amount"]
+    monthly_trend_str = "\n".join(f"  {m}: Income=₹{d['income']:,.0f}, Expenses=₹{d['expenses']:,.0f}, Invest=₹{d['investments']:,.0f}" for m, d in sorted(monthly_trends.items())[-6:])
     
+    # ── Goals ──
+    goal_summary = []
+    for g in goals:
+        pct = (g['current_amount'] / g['target_amount'] * 100) if g['target_amount'] > 0 else 0
+        goal_summary.append(f"{g['title']}: ₹{g['current_amount']:,.0f}/₹{g['target_amount']:,.0f} ({pct:.0f}%) - Deadline: {g.get('deadline', 'N/A')}")
+    
+    # ── SIPs ──
+    sip_summary = []
+    for s in sips:
+        sip_summary.append(f"{s.get('description', 'SIP')}: ₹{s.get('amount', 0):,.0f}/{s.get('frequency', 'monthly')} in {s.get('category', 'N/A')}")
+    
+    # ── Budgets ──
+    budget_summary = []
+    for b in budgets:
+        spent = b.get("spent", 0)
+        limit_amt = b.get("limit", 0) or b.get("amount", 0)
+        usage_pct = (spent / limit_amt * 100) if limit_amt > 0 else 0
+        budget_summary.append(f"{b.get('category', 'N/A')}: ₹{spent:,.0f}/₹{limit_amt:,.0f} ({usage_pct:.0f}% used)")
+    
+    # ── Loans ──
+    loan_summary = []
+    for l in loans:
+        loan_summary.append(f"{l.get('name', 'Loan')}: ₹{l.get('principal', 0):,.0f} @ {l.get('interest_rate', 0)}% for {l.get('tenure_years', 0)}yrs, EMI=₹{l.get('emi', 0):,.0f}")
+    
+    # ── Health Score ──
+    hs_income = total_income or 1
+    hs_savings_rate = max(0, (hs_income - total_expenses) / hs_income * 100)
+    hs_investment_rate = (total_investments_txn / hs_income * 100)
+    hs_overall = min(100, hs_savings_rate * 0.35 + min(hs_investment_rate, 30) * 0.25 + max(0, 100 - (total_expenses / hs_income * 100)) * 0.25 + min((len(goals) > 0) * 50 + sum(1 for g in goals if g['current_amount'] >= g['target_amount'] * 0.5) * 25, 100) * 0.15)
+    
+    # ── Buy/Sell investment transactions ──
+    buy_sells = [t for t in txns if t.get("buy_sell")]
+    buy_sell_summary = []
+    for t in buy_sells[:10]:
+        buy_sell_summary.append(f"{t.get('buy_sell','').upper()} {t.get('description','')}: {t.get('units',0)} units @ ₹{t.get('price_per_unit',0):,.0f} = ₹{t['amount']:,.0f} on {t.get('date','')}")
+    
+    # ── Capital Gains ──
+    cap_gains_context = ""
+    sell_txns_for_cg = [t for t in txns if t.get("buy_sell") == "sell"]
+    if sell_txns_for_cg:
+        total_cg = 0
+        for st in sell_txns_for_cg:
+            desc = st.get("description", "")
+            buy_match = next((b for b in txns if b.get("buy_sell") == "buy" and b.get("description", "").lower() == desc.lower()), None)
+            if buy_match:
+                cost = buy_match.get("amount", 0)
+                gain = st["amount"] - cost
+                total_cg += gain
+        cap_gains_context = f"\n- Estimated Capital Gains from Sell Transactions: ₹{total_cg:,.0f}"
+
     risk_context = ""
     if risk_doc:
-        risk_context = f"""
-- Risk Profile: {risk_doc.get('profile', 'Not assessed')} (Score: {risk_doc.get('score', 0):.1f}/5)
-- Risk Breakdown: {', '.join(f"{k}: {v:.1f}" for k, v in risk_doc.get('breakdown', {}).items())}"""
+        risk_context = f"\n- Risk Profile: {risk_doc.get('profile', 'Not assessed')} (Score: {risk_doc.get('score', 0):.1f}/5)"
 
-    # Build portfolio context
-    portfolio_context = ""
-    if holdings:
-        portfolio_context = f"""
+    context = f"""User Financial Profile (COMPLETE APP DATA):
 
-INVESTMENT PORTFOLIO (from eCAS/Holdings):
-- Total Invested: ₹{total_holdings_invested:,.2f}
-- Current Value: ₹{total_holdings_current:,.2f}
-- Total Gain/Loss: ₹{holdings_gain_loss:,.2f} ({holdings_gain_pct:+.1f}%)
-- Number of Holdings: {len(holdings)}
-- Holdings Details:
-  {chr(10).join('  • ' + h for h in holdings_summary) if holdings_summary else '  None'}"""
-
-    context = f"""User Financial Profile:
-INCOME & EXPENSES (from Transactions):
+INCOME & EXPENSES:
 - Total Income: ₹{total_income:,.2f}
 - Total Expenses: ₹{total_expenses:,.2f}
 - Investment Transactions: ₹{total_investments_txn:,.2f}
 - Net Balance: ₹{total_income - total_expenses - total_investments_txn:,.2f}
 - Savings Rate: {((total_income - total_expenses) / max(total_income, 1) * 100):.1f}%
-- Top Expense Categories: {', '.join(f'{k}: ₹{v:,.0f}' for k, v in sorted(category_breakdown.items(), key=lambda x: -x[1])[:5])}{portfolio_context}
+- Top Expense Categories: {', '.join(f'{k}: ₹{v:,.0f}' for k, v in sorted(category_breakdown.items(), key=lambda x: -x[1])[:5])}
 
-GOALS: {', '.join(goal_summary) if goal_summary else 'None set'}{risk_context}
+MONTHLY TRENDS (Last 6 Months):
+{monthly_trend_str if monthly_trend_str else '  No monthly data available'}
+
+FINANCIAL HEALTH SCORE: {hs_overall:.1f}/100{risk_context}
+
+INVESTMENT PORTFOLIO ({len(holdings)} holdings):
+- Total Invested: ₹{total_holdings_invested:,.2f}
+- Current Value: ₹{total_holdings_current:,.2f}
+- Total Gain/Loss: ₹{holdings_gain_loss:,.2f} ({holdings_gain_pct:+.1f}%)
+- Holdings:
+  {chr(10).join('  ' + h for h in holdings_summary) if holdings_summary else '  None'}
+
+BUY/SELL TRANSACTIONS:
+  {chr(10).join('  ' + b for b in buy_sell_summary) if buy_sell_summary else '  None'}{cap_gains_context}
+
+SIPS & RECURRING INVESTMENTS ({len(sips)}):
+  {chr(10).join('  ' + s for s in sip_summary) if sip_summary else '  None'}
+
+FINANCIAL GOALS ({len(goals)}):
+  {chr(10).join('  ' + g for g in goal_summary) if goal_summary else '  None set'}
+
+BUDGETS:
+  {chr(10).join('  ' + b for b in budget_summary) if budget_summary else '  No budgets set'}
+
+LOANS/EMIs:
+  {chr(10).join('  ' + l for l in loan_summary) if loan_summary else '  No loans'}
+
+RECENT TRANSACTIONS (Last 10):
+  {chr(10).join('  ' + f"{t['date']} | {t['type'].upper()} | {t['category']} | ₹{t['amount']:,.0f} | {t.get('description','')}" for t in sorted(txns, key=lambda x: x.get('date',''), reverse=True)[:10]) if txns else '  None'}
 """
     
-    system_msg = """You are Visor AI, an expert Indian personal finance advisor. You provide advice in the context of Indian financial markets, tax laws (Income Tax Act, GST), investment instruments (PPF, NPS, ELSS, FD, SIP, Mutual Funds, Stocks), and banking.
+    system_msg = """You are Visor AI, an expert Indian personal finance advisor with FULL access to the user's financial data in this app. You can see their transactions, investments, holdings, goals, budgets, loans, SIPs, health score, and portfolio.
 
 Key guidelines:
 - Always use ₹ (Indian Rupee) for currency
@@ -886,7 +965,10 @@ Key guidelines:
 - Consider Indian inflation rates (~5-6%) in calculations
 - Be concise, actionable, and encouraging
 - Format numbers in Indian system (lakhs, crores)
-- Keep responses under 200 words unless detailed analysis is needed"""
+- When the user asks about ANY aspect of their finances, reference their ACTUAL data from the context above
+- Provide personalized advice based on their real financial situation
+- Keep responses under 200 words unless detailed analysis is needed
+- If the user asks about something not in their data, let them know and suggest they add it"""
     
     try:
         chat = LlmChat(
