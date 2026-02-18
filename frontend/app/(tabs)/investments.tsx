@@ -1241,6 +1241,93 @@ export default function InvestmentsScreen() {
           </View>
         )}
 
+        {/* User-Added Tax Deductions */}
+        {userTaxDeductions.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <Text style={[styles.taxSubsectionTitle, { color: colors.textSecondary, marginBottom: 10 }]}>
+              Your Selected Deductions
+            </Text>
+            {userTaxDeductions.map((deduction: any) => {
+              const pct = deduction.limit && deduction.limit > 0 
+                ? Math.min((deduction.invested_amount / deduction.limit) * 100, 100) 
+                : 0;
+              const isFull = deduction.limit > 0 && deduction.invested_amount >= deduction.limit;
+              const barColor = isFull ? Accent.emerald : '#F97316';
+              const remaining = deduction.limit ? Math.max(deduction.limit - deduction.invested_amount, 0) : null;
+              
+              return (
+                <View 
+                  key={deduction.id} 
+                  data-testid={`user-deduction-${deduction.deduction_id}`}
+                  style={[styles.glassCard, {
+                    backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                    marginBottom: 10,
+                  }]}
+                >
+                  <View style={styles.taxHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                      <View style={[styles.taxIconWrap, { backgroundColor: isFull ? 'rgba(16,185,129,0.12)' : 'rgba(249,115,22,0.12)' }]}>
+                        <MaterialCommunityIcons name="file-document-check" size={18} color={isFull ? Accent.emerald : '#F97316'} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>{deduction.section}</Text>
+                        <Text style={[styles.taxUsed, { color: colors.textSecondary }]} numberOfLines={1}>
+                          {deduction.name}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TouchableOpacity
+                        data-testid={`edit-deduction-${deduction.id}`}
+                        style={[styles.deductionActionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+                        onPress={() => handleEditDeduction(deduction)}
+                      >
+                        <MaterialCommunityIcons name="pencil" size={16} color={colors.textSecondary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        data-testid={`delete-deduction-${deduction.id}`}
+                        style={[styles.deductionActionBtn, { backgroundColor: 'rgba(239,68,68,0.1)' }]}
+                        onPress={() => handleDeleteDeduction(deduction)}
+                      >
+                        <MaterialCommunityIcons name="trash-can-outline" size={16} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  
+                  {/* Amount and Progress */}
+                  <View style={styles.deductionAmountRow}>
+                    <Text style={[styles.deductionAmountLabel, { color: colors.textSecondary }]}>Invested:</Text>
+                    <Text style={[styles.deductionAmountValue, { color: colors.textPrimary }]}>
+                      {formatINR(deduction.invested_amount || 0)}
+                      {deduction.limit ? ` / ${formatINRShort(deduction.limit)}` : ''}
+                    </Text>
+                  </View>
+                  
+                  {deduction.limit > 0 && (
+                    <>
+                      <View style={[styles.taxBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                        <View style={[styles.taxBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
+                      </View>
+                      {remaining !== null && remaining > 0 && (
+                        <Text style={[styles.taxRemaining, { color: colors.textSecondary }]}>
+                          {formatINRShort(remaining)} remaining for max benefit
+                        </Text>
+                      )}
+                    </>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* System Tax Sections (from backend transactions) */}
+        {taxSections.length > 0 && (
+          <Text style={[styles.taxSubsectionTitle, { color: colors.textSecondary, marginBottom: 10, marginTop: userTaxDeductions.length > 0 ? 8 : 0 }]}>
+            Auto-detected from Transactions
+          </Text>
+        )}
         {taxSections.map((sec: any) => {
           const pct = sec.limit > 0 ? Math.min((sec.used / sec.limit) * 100, 100) : 0;
           const isFull = sec.limit > 0 && sec.used >= sec.limit;
