@@ -12,6 +12,10 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { apiRequest } from '../../src/utils/api';
 import { formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
+import { HealthScoreCard } from '../../src/components/HealthScoreCard';
+import { SpendingBreakdownCard } from '../../src/components/SpendingBreakdownCard';
+import { CompareCard } from '../../src/components/CompareCard';
+import { AIRecommendations } from '../../src/components/AIRecommendations';
 import { Accent } from '../../src/utils/theme';
 import AIAdvisorChat from '../../src/components/AIAdvisorChat';
 
