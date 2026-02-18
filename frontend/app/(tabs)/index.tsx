@@ -85,6 +85,7 @@ function getScoreColor(score: number): string {
 export default function DashboardScreen() {
   const { user, token } = useAuth();
   const { colors, isDark, setThemeMode } = useTheme();
+  const { setCurrentScreen } = useScreenContext();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -93,6 +94,11 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState<FrequencyOption>('Month');
+
+  // Set screen context for AI awareness
+  useEffect(() => {
+    setCurrentScreen('dashboard');
+  }, [setCurrentScreen]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   
   // Calculate header height dynamically based on safe area
