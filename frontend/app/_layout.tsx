@@ -18,16 +18,34 @@ import { SecuritySetupScreen } from '../src/components/SecuritySetupScreen';
 
 SplashScreen.preventAutoHideAsync();
 
+function SecurityLayer({ children }: { children: React.ReactNode }) {
+  const { token } = useAuth();
+  const { isLocked, isSecuritySetupDone, isPinSetup } = useSecurity();
+
+  // Not logged in — no security needed
+  if (!token) return <>{children}</>;
+
+  // First time after login — show setup if not done
+  if (!isSecuritySetupDone) return <SecuritySetupScreen />;
+
+  // App is locked (inactivity timeout) — show lock screen
+  if (isLocked && isPinSetup) return <LockScreen />;
+
+  return <>{children}</>;
+}
+
 function InnerLayout() {
   const { isDark, colors } = useTheme();
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      <SecurityLayer>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </SecurityLayer>
     </>
   );
 }
