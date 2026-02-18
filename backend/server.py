@@ -2407,6 +2407,7 @@ async def get_balance_sheet(
 # ══════════════════════════════════════
 
 import asyncio
+import requests
 import yfinance as yf
 from concurrent.futures import ThreadPoolExecutor
 
