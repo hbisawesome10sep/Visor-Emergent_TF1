@@ -584,6 +584,80 @@ export default function InvestmentsScreen() {
     return formatted;
   };
 
+  // ── Tax Deduction Handlers ──
+  const handleAddUserDeduction = async (deduction: TaxDeduction) => {
+    if (!token) return;
+    try {
+      const result = await apiRequest('/user-tax-deductions', {
+        method: 'POST',
+        token,
+        body: {
+          deduction_id: deduction.id,
+          section: deduction.section,
+          name: deduction.name,
+          limit: deduction.limit,
+          invested_amount: 0,
+        },
+      });
+      setUserTaxDeductions(prev => [...prev, result]);
+      setUserDeductions(prev => [...prev, deduction.id]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add deduction');
+    }
+  };
+
+  const handleEditDeduction = (deduction: any) => {
+    setEditingDeduction(deduction);
+    setDeductionAmount(deduction.invested_amount?.toString() || '0');
+    setShowEditDeductionModal(true);
+  };
+
+  const handleSaveDeductionAmount = async () => {
+    if (!token || !editingDeduction) return;
+    try {
+      const amount = parseFloat(deductionAmount) || 0;
+      await apiRequest(`/user-tax-deductions/${editingDeduction.id}`, {
+        method: 'PUT',
+        token,
+        body: { invested_amount: amount },
+      });
+      setUserTaxDeductions(prev =>
+        prev.map(d => d.id === editingDeduction.id ? { ...d, invested_amount: amount } : d)
+      );
+      setShowEditDeductionModal(false);
+      setEditingDeduction(null);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to update amount');
+    }
+  };
+
+  const handleDeleteDeduction = (deduction: any) => {
+    Alert.alert(
+      'Remove Deduction',
+      `Are you sure you want to remove "${deduction.name}" from your tax planning?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            if (!token) return;
+            try {
+              await apiRequest(`/user-tax-deductions/${deduction.id}`, {
+                method: 'DELETE',
+                token,
+              });
+              setUserTaxDeductions(prev => prev.filter(d => d.id !== deduction.id));
+              setUserDeductions(prev => prev.filter(id => id !== deduction.deduction_id));
+            } catch (e: any) {
+              Alert.alert('Error', e.message || 'Failed to remove deduction');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
