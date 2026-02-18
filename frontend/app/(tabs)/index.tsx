@@ -98,7 +98,6 @@ export default function DashboardScreen() {
   const [selectedFrequency, setSelectedFrequency] = useState<FrequencyOption>('Month');
   const [showTxnModal, setShowTxnModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [txnForm, setTxnForm] = useState({ type: 'expense', amount: '', category: '', description: '', date: '' });
   const [saving, setSaving] = useState(false);
   
   // Calculate header height dynamically based on safe area
