@@ -86,6 +86,7 @@ function groupByDate(txns: Transaction[]): Array<{ label: string; date: string; 
 export default function TransactionsScreen() {
   const { token } = useAuth();
   const { colors, isDark } = useTheme();
+  const { setCurrentScreen } = useScreenContext();
   const router = useRouter();
   const params = useLocalSearchParams<{ type?: string; action?: string }>();
   const insets = useSafeAreaInsets();
@@ -98,6 +99,11 @@ export default function TransactionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
+
+  // Set screen context for AI awareness
+  useEffect(() => {
+    setCurrentScreen('transactions');
+  }, [setCurrentScreen]);
 
   // Filters
   const [activeType, setActiveType] = useState<string>(params.type || 'all');
