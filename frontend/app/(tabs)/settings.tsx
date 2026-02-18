@@ -127,6 +127,8 @@ export default function SettingsScreen() {
         return <AccountTab />;
       case 'security':
         return <SecurityTab />;
+      case 'sources':
+        return <SourcesTab />;
       case 'notifications':
         return <NotificationsTab />;
       case 'financial':
