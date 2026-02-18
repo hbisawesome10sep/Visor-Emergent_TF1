@@ -11,6 +11,11 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
+from encryption import generate_user_dek, encrypt_field, decrypt_field, encrypt_sensitive_fields, decrypt_sensitive_fields
+
+# Sensitive fields that need encryption
+USER_SENSITIVE_FIELDS = ["pan", "aadhaar"]
+LOAN_SENSITIVE_FIELDS = ["account_number"]
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
