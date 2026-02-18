@@ -786,15 +786,15 @@ export default function TransactionsScreen() {
                   </Text>
                 </TouchableOpacity>
 
-                {/* Android: native modal date picker */}
-                {showDatePicker && Platform.OS === 'android' && (
+                {/* Android & Web: native date picker */}
+                {showDatePicker && Platform.OS !== 'ios' && (
                   <DateTimePicker
                     value={form.date ? new Date(form.date + 'T00:00:00') : new Date()}
                     mode="date"
                     display="default"
                     onChange={(event, selectedDate) => {
                       setShowDatePicker(false);
-                      if (event.type === 'set' && selectedDate) {
+                      if (selectedDate) {
                         setForm(p => ({ ...p, date: selectedDate.toISOString().split('T')[0] }));
                       }
                     }}
