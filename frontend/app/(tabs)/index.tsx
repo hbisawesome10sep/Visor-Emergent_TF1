@@ -32,10 +32,6 @@ import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const EXPENSE_CATS = ['Rent', 'Groceries', 'Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Health', 'EMI', 'Other'];
-const INCOME_CATS = ['Salary', 'Freelance', 'Bonus', 'Interest', 'Dividend', 'Other'];
-const INVEST_CATS = ['SIP', 'PPF', 'Stocks', 'Mutual Funds', 'FD', 'Gold', 'NPS', 'Other'];
-
 type FrequencyOption = 'Quarter' | 'Month' | 'Year' | 'Custom';
 
 type DashboardStats = {
