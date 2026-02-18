@@ -67,12 +67,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="tax"
+        options={{
+          title: 'Tax',
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="calculator-variant-outline" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="cog-outline" size={24} color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>

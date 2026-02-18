@@ -370,18 +370,19 @@ export default function DashboardScreen() {
               ))}
             </View>
 
-            {/* Theme Toggle */}
+            {/* Settings */}
             <TouchableOpacity
+              data-testid="settings-btn"
               style={[
                 styles.themeBtn,
                 { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' },
               ]}
-              onPress={toggleTheme}
+              onPress={() => router.push('/(tabs)/settings')}
             >
               <MaterialCommunityIcons
-                name={isDark ? 'weather-sunny' : 'weather-night'}
+                name="cog-outline"
                 size={18}
-                color={isDark ? '#FBBF24' : Accent.amethyst}
+                color={isDark ? '#9CA3AF' : '#6B7280'}
               />
             </TouchableOpacity>
           </View>
