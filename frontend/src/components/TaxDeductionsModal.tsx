@@ -157,6 +157,7 @@ export default function TaxDeductionsModal({
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
+            style={styles.categoryScrollWrapper}
             contentContainerStyle={styles.categoryScroll}
           >
             {CATEGORIES.map(cat => (
