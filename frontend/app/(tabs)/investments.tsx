@@ -1133,8 +1133,20 @@ export default function InvestmentsScreen() {
         {/* ═══════════════════════════════════════════════════════════
              SECTION 5.9: TAX PLANNING
            ═══════════════════════════════════════════════════════════ */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Tax Planning</Text>
-        <Text data-testid="tax-fy-label" style={[styles.taxFyLabel, { color: colors.textSecondary }]}>FY {taxData?.fy || '2025-26'}</Text>
+        <View style={styles.taxPlanningHeader}>
+          <View>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Tax Planning</Text>
+            <Text data-testid="tax-fy-label" style={[styles.taxFyLabel, { color: colors.textSecondary, marginTop: 2 }]}>FY {taxData?.fy || '2025-26'}</Text>
+          </View>
+          <TouchableOpacity
+            data-testid="add-deduction-btn"
+            style={[styles.addDeductionBtn, { backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.1)' }]}
+            onPress={() => setShowTaxDeductionsModal(true)}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="plus" size={20} color="#F97316" />
+          </TouchableOpacity>
+        </View>
 
         {taxData?.tax_saved_30_slab > 0 && (
           <View data-testid="tax-saved-badge" style={[styles.taxSavedBadge, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
