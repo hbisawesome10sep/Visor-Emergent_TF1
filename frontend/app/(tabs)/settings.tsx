@@ -751,6 +751,20 @@ const styles = StyleSheet.create({
   // Separator
   separator: { height: 1, marginVertical: 16 },
 
+  // Security Banner
+  securityBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, marginBottom: 16 },
+  securityBannerTitle: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  securityBannerDesc: { fontSize: 12, fontFamily: 'DM Sans', marginTop: 2 },
+
+  // Lock Now Button
+  lockNowBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, marginTop: 4, marginBottom: 4 },
+  lockNowText: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
+
+  // Encryption Info
+  encryptionInfo: { borderRadius: 14, padding: 14, gap: 10 },
+  encryptionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  encryptionText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '500' as any },
+
   // Toggle Row
   toggleRow: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 10, gap: 12 },
   toggleIconWrap: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
