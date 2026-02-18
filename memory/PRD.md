@@ -62,6 +62,9 @@ Comprehensive personal finance management application for the Indian market with
   - Updated: `ScreenContext.tsx`, `AIAdvisorChat.tsx`, backend `/api/ai/chat`
 
 ## Pending Tasks (Priority Order)
+### P1 - User Requested
+- [ ] Custom Date Range fix verification (user reported not working properly)
+
 ### P2
 - [ ] Trend Analysis card flip animation (react-native-reanimated)
 
@@ -72,8 +75,8 @@ Comprehensive personal finance management application for the Indian market with
 - [ ] Split server.py into route modules (backend/routes/)
 
 ### Backlog
-- [ ] Advanced AI Contextual Awareness
 - [ ] Backend migration to Node.js
+- [ ] Persist user's added tax deductions to database
 
 ## Key API Endpoints
 - `GET /api/market-data` - Live market data (GoldAPI.io + yfinance)
