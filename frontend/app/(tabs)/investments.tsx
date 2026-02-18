@@ -1882,14 +1882,58 @@ export default function InvestmentsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Edit Tax Deduction Amount Modal */}
+      <Modal visible={showEditDeductionModal} animationType="slide" transparent onRequestClose={() => setShowEditDeductionModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.editDeductionModalContent, { backgroundColor: colors.surface }]}>
+            <View style={styles.modalHandle} />
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              Update Investment Amount
+            </Text>
+            {editingDeduction && (
+              <>
+                <View style={[styles.editDeductionInfo, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+                  <Text style={[styles.editDeductionSection, { color: '#F97316' }]}>{editingDeduction.section}</Text>
+                  <Text style={[styles.editDeductionName, { color: colors.textPrimary }]}>{editingDeduction.name}</Text>
+                  {editingDeduction.limit && (
+                    <Text style={[styles.editDeductionLimit, { color: colors.textSecondary }]}>
+                      Maximum Limit: {formatINR(editingDeduction.limit)}
+                    </Text>
+                  )}
+                </View>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Amount Invested (₹)</Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', color: colors.textPrimary }]}
+                  value={deductionAmount}
+                  onChangeText={setDeductionAmount}
+                  placeholder="Enter amount..."
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="numeric"
+                />
+                <View style={styles.editDeductionActions}>
+                  <TouchableOpacity
+                    style={[styles.cancelBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+                    onPress={() => setShowEditDeductionModal(false)}
+                  >
+                    <Text style={[styles.cancelBtnText, { color: colors.textPrimary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.saveDeductionBtn} onPress={handleSaveDeductionAmount}>
+                    <LinearGradient colors={['#F97316', '#EA580C']} style={styles.saveDeductionGradient}>
+                      <Text style={styles.saveDeductionText}>Save Amount</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       {/* Tax Deductions Browser Modal */}
       <TaxDeductionsModal
         visible={showTaxDeductionsModal}
         onClose={() => setShowTaxDeductionsModal(false)}
-        onAddDeduction={(deduction: TaxDeduction) => {
-          setUserDeductions(prev => [...prev, deduction.id]);
-          // In a future enhancement, this would also save to the backend
-        }}
+        onAddDeduction={handleAddUserDeduction}
         colors={colors}
         isDark={isDark}
         userDeductions={userDeductions}
