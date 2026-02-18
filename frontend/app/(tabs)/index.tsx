@@ -314,7 +314,7 @@ export default function DashboardScreen() {
       icon: 'flag-variant',
       label: 'Add Goal',
       color: colors.investment,
-      onPress: () => setShowGoalModal(true),
+      onPress: () => router.push('/(tabs)/investments'),
     },
     {
       icon: 'book-open-page-variant',
