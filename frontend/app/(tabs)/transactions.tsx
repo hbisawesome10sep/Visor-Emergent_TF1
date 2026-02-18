@@ -115,6 +115,7 @@ export default function TransactionsScreen() {
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
 
   // Convert the date TextInput to type="date" on web for calendar picker
   useEffect(() => {
