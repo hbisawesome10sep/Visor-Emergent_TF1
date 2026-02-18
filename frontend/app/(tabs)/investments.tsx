@@ -141,7 +141,6 @@ export default function InvestmentsScreen() {
   const [showCasModal, setShowCasModal] = useState(false);
   const [holdingForm, setHoldingForm] = useState({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
   const [casPassword, setCasPassword] = useState('');
-  const [taxData, setTaxData] = useState<any>(null);
   const [rebalanceData, setRebalanceData] = useState<any>(null);
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
   const [showSipModal, setShowSipModal] = useState(false);
