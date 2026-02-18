@@ -222,29 +222,6 @@ export default function DashboardScreen() {
     setShowDatePicker(false);
   };
 
-  const handleAddTxn = async () => {
-    if (!txnForm.amount || !txnForm.category || !txnForm.description) {
-      Alert.alert('Error', 'Please fill all fields');
-      return;
-    }
-    setSaving(true);
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      await apiRequest('/transactions', {
-        method: 'POST',
-        token,
-        body: { ...txnForm, amount: parseFloat(txnForm.amount), date: txnForm.date || today },
-      });
-      setShowTxnModal(false);
-      setTxnForm({ type: 'expense', amount: '', category: '', description: '', date: '' });
-      fetchData();
-    } catch (e: any) {
-      Alert.alert('Error', e.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const toggleTheme = () => {
     setThemeMode(isDark ? 'light' : 'dark');
   };
