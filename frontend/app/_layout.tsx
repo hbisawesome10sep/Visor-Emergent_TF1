@@ -10,8 +10,11 @@ import {
   DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider } from '../src/context/AuthContext';
+import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
+import { SecurityProvider, useSecurity } from '../src/context/SecurityContext';
+import { LockScreen } from '../src/components/LockScreen';
+import { SecuritySetupScreen } from '../src/components/SecuritySetupScreen';
 
 SplashScreen.preventAutoHideAsync();
 
