@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional
-import uuid
+from uuid import uuid4
 from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
