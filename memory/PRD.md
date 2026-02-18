@@ -1,44 +1,74 @@
-# Visor - AI-Powered Finance Manager PRD
+# Visor Finance - Personal Finance Management App
 
-## Product Overview
-Full-stack personal finance manager for Indian users. React Native (Expo) frontend + FastAPI backend + MongoDB.
+## Problem Statement
+Comprehensive personal finance management application for the Indian market with live market data, transaction tracking, investment monitoring, AI advisor, and security features.
 
-## What's Implemented
-- **Authentication**: JWT-based login/register
-- **Dashboard**: Overview cards, expense breakdown pie chart, Financial Health Score, date range selector (Q/M/Y/C), SVG line chart trend analysis (flippable), recent transactions, financial goals
-- **Transactions**: CRUD, buy/sell toggle for investments, units/price_per_unit, date picker
-- **Investments**: Holdings display, eCAS upload/parsing, clear holdings, tax planning, capital gains (STCG/LTCG), financial goals, SIPs, What-If Simulator (extracted component)
-- **Insights**: Date range selector (Q/M/Y/All), health score (synced with Dashboard), savings rate, EMI ratio, investment rate, spending breakdown, compare card, AI recommendations
-- **AI Bot (Visor)**: Full context awareness - reads all user data (transactions, holdings, goals, budgets, loans, SIPs, capital gains, monthly trends, health score, portfolio)
-- **Settings**: Theme toggle, profile management
+## Tech Stack
+- **Frontend**: React Native (Expo) with TypeScript
+- **Backend**: FastAPI (Python)
+- **Database**: MongoDB
+- **AI**: OpenAI GPT-4 via emergentintegrations
 
-## Component Architecture (Refactored)
-```
-/app/frontend/src/components/
-  HealthScoreCard.tsx      - Flippable health score with breakdown
-  SpendingBreakdownCard.tsx - Category-based spending bars
-  CompareCard.tsx           - vs Indian national averages
-  AIRecommendations.tsx     - Personalized AI tips
-  WhatIfSimulator.tsx       - Allocation scenario simulator
-  AIAdvisorChat.tsx         - AI chat component
-  PieChart.tsx              - SVG pie chart
-  TrendChart.tsx            - Chart helper
-```
+## Core Requirements
+- Live Market Data (Nifty, Sensex, Gold, Silver) with GoldAPI.io
+- Multi-factor authentication (PIN/Biometric)
+- AES-256 field-level encryption for sensitive data
+- Automated transaction import (Gmail/SMS parsing)
+- Interactive Dashboard with trend analysis
+- Investment tracking (Stocks, MFs, Goals)
 
-## Key Files
-- `/app/backend/server.py` - All API routes
-- `/app/frontend/app/(tabs)/index.tsx` - Dashboard (1825 lines)
-- `/app/frontend/app/(tabs)/transactions.tsx` - Transactions
-- `/app/frontend/app/(tabs)/investments.tsx` - Investments (1948 lines)
-- `/app/frontend/app/(tabs)/insights.tsx` - Insights (1034 lines)
+## What's Been Implemented
+### Phase 1 - Security (Partial)
+- [x] PIN/Biometric app lock (SecurityContext, LockScreen, SecuritySetupScreen)
+- [x] AES-256 encryption for PAN, Aadhaar (user PII)
+- [x] AES-256 encryption for loan account_number
+- [x] Demo user migration with encryption keys
+- [ ] Extend encryption to transaction descriptions, holdings
 
-## Remaining Tasks
-### P1
-- Further refactoring of index.tsx (extract overview cards, chart section)
-- Unused styles cleanup in investments.tsx and insights.tsx
+### Phase 3/4 - Data Sources (Partial)
+- [x] Gmail OAuth flow and email parsing endpoint
+- [x] SMS parsing endpoint
+- [ ] Verify parsed transactions save to DB correctly
 
+### Core Features
+- [x] Dashboard with frequency filters (Q/M/Y/Custom)
+- [x] Transaction CRUD with categories
+- [x] Investment tracking (Goals, Holdings, CAS upload)
+- [x] AI Advisor chat
+- [x] Live market data with GoldAPI.io (Gold/Silver) + yfinance
+- [x] Books & Reports (P&L, Balance Sheet, Ledger)
+- [x] Loan tracking with EMI schedules
+- [x] Tax summary and capital gains
+
+### Bug Fixes (Feb 18, 2026)
+- [x] P0: Gold/Silver price accuracy - Added `import requests` for GoldAPI.io
+- [x] Dashboard FAB: Replaced old quick-add modal with navigation to Transactions tab
+- [x] Custom date range: Added safe date handling and improved error handling
+- [x] iOS date picker bug fixed (previous session)
+
+## Pending Tasks (Priority Order)
 ### P2
-- AI Contextual Screen Awareness (pass current screen view to AI)
-- Backend stack migration (Python/FastAPI to Node.js)
-- Enhanced micro-animations
-- Push notifications for budget alerts
+- [ ] Trend Analysis card flip animation (react-native-reanimated)
+
+### In Progress
+- [ ] Complete Data Source Integration (Gmail/SMS → save transactions to DB)
+- [ ] Extend encryption to all financial endpoints
+- [ ] Refactor investments.tsx into smaller components
+- [ ] Split server.py into route modules (backend/routes/)
+
+### Backlog
+- [ ] Advanced AI Contextual Awareness
+- [ ] Backend migration to Node.js
+
+## Key API Endpoints
+- `GET /api/market-data` - Live market data (GoldAPI.io + yfinance)
+- `GET /api/dashboard/stats` - Dashboard statistics with date filtering
+- `POST /api/auth/login` - Auth with encryption key handling
+- `GET/POST /api/loans` - Loan CRUD with account_number encryption
+- `POST /api/gmail/sync` - Gmail email parsing
+- `POST /api/sms/parse` - SMS parsing
+
+## Credentials
+- Demo User: rajesh@visor.demo / Demo@123
+- Demo User 2: priya@visor.demo / Demo@456
+- API keys in backend/.env (GOLDAPI_KEY, Google OAuth, EMERGENT_LLM_KEY)
