@@ -9,6 +9,7 @@ export type ScreenName =
   | 'dashboard'
   | 'transactions'
   | 'investments'
+  | 'tax'
   | 'settings'
   | 'books'
   | 'advisor'
@@ -65,10 +66,19 @@ The user may want to discuss specific transactions, categorization, or spending 
 - Asset allocation pie chart
 - Risk profile and recommended strategy
 - SIPs and recurring investments
-- Tax planning section (80C, 80D deductions)
-- Capital gains tax estimates
 - Financial goals
-The user may want investment advice, tax planning help, or portfolio rebalancing suggestions.`,
+The user may want investment advice or portfolio rebalancing suggestions.`,
+
+      tax: `User is on the TAX screen viewing:
+- Tax Planning section with Chapter VI-A deductions (80C, 80D, etc.)
+- User's selected deductions with progress tracking
+- Auto-detected deductions from transactions
+- Capital Gains/Loss summary (STCG and LTCG)
+- Income Tax Calculator with Old vs New Regime comparison
+- Slab-wise tax breakdown
+- Total tax liability and effective tax rate
+- Financial Year / Assessment Year selector
+This is the comprehensive tax hub. The user wants tax planning help, regime comparison advice, deduction recommendations, or understanding of their tax liability. Provide advice like an experienced Chartered Accountant.`,
 
       settings: `User is on the SETTINGS screen viewing:
 - Profile information
