@@ -86,7 +86,7 @@ export default function TransactionsScreen() {
   const { token } = useAuth();
   const { colors, isDark } = useTheme();
   const router = useRouter();
-  const params = useLocalSearchParams<{ type?: string }>();
+  const params = useLocalSearchParams<{ type?: string; action?: string }>();
   const insets = useSafeAreaInsets();
   
   // Calculate header height dynamically
