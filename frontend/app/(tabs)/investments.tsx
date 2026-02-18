@@ -142,18 +142,11 @@ export default function InvestmentsScreen() {
   const [holdingForm, setHoldingForm] = useState({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
   const [casPassword, setCasPassword] = useState('');
   const [taxData, setTaxData] = useState<any>(null);
-  const [capitalGainsData, setCapitalGainsData] = useState<any>(null);
   const [rebalanceData, setRebalanceData] = useState<any>(null);
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
   const [showSipModal, setShowSipModal] = useState(false);
   const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
   const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
-  const [showTaxDeductionsModal, setShowTaxDeductionsModal] = useState(false);
-  const [userDeductions, setUserDeductions] = useState<string[]>([]);
-  const [userTaxDeductions, setUserTaxDeductions] = useState<any[]>([]);
-  const [editingDeduction, setEditingDeduction] = useState<any | null>(null);
-  const [showEditDeductionModal, setShowEditDeductionModal] = useState(false);
-  const [deductionAmount, setDeductionAmount] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
