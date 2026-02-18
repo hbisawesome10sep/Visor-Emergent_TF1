@@ -1,78 +1,50 @@
 # Visor - AI-Powered Finance Manager PRD
 
 ## Product Overview
-Visor is a personal finance management app built with React Native/Expo (frontend) and FastAPI/MongoDB (backend) for Indian users.
+Full-stack personal finance manager for Indian users. React Native (Expo) frontend + FastAPI backend + MongoDB.
+
+## Core Requirements
+- Dashboard with date-range-filtered stats, expense breakdown, trend analysis
+- Transaction management with buy/sell investment support, capital gains
+- AI-powered financial advisor (Visor AI) with full app data context
+- Investment portfolio management with eCAS upload
+- Financial goals tracking
+- Insights with date range filtering
+
+## What's Implemented
+- **Authentication**: JWT-based login/register
+- **Dashboard**: Overview cards, expense breakdown pie chart, Financial Health Score, date range selector (Q/M/Y/C), SVG line chart trend analysis (flippable), recent transactions, financial goals
+- **Transactions**: CRUD, buy/sell toggle for investments, units/price_per_unit, date picker
+- **Investments**: Holdings display, eCAS upload/parsing, clear holdings, tax planning, capital gains (STCG/LTCG), financial goals, SIPs
+- **Insights**: Date range selector (Q/M/Y/All), health score, savings rate, EMI ratio, investment rate, spending breakdown, AI recommendations
+- **AI Bot (Visor)**: Full context awareness - reads all user data (transactions, holdings, goals, budgets, loans, SIPs, capital gains, monthly trends, health score, portfolio)
+- **Settings**: Theme toggle, profile management
 
 ## Architecture
-- **Frontend**: Expo, React Native, TypeScript, expo-router, DM Sans font
-- **Backend**: Python, FastAPI, MongoDB
-- **AI**: OpenAI GPT-5.2 via Emergent Integrations (with risk profile context)
-- **Market Data**: Yahoo Finance (yfinance) — LIVE Indian market data
+- Frontend: React Native Expo (web + mobile), TypeScript
+- Backend: FastAPI (Python), MongoDB
+- AI: OpenAI GPT-5.2 via emergentintegrations
+- Charts: react-native-svg (SVG Polyline/Line/Circle)
+- Market Data: yfinance
+- PDF: pdfplumber, pikepdf
 
-## Invest Screen Layout (v8 — Feb 17, 2026)
-1. **Indian Markets** — Live Nifty 50, SENSEX, Nifty Bank, Gold, Silver
-2. **Portfolio Overview** — Invested vs Current Value, category breakdown (includes holdings)
-3. **My Holdings** — Manual add + CAS PDF upload, live prices
-4. **Asset Allocation** — Donut pie chart
-5. **Risk Profile & Strategy** — 12-question behavioral finance assessment, score breakdown bars
-6. **Tax Planning** — Multi-section (80C, 80D, 80CCD1B, 80E, 80TTA), auto-mapped, progress bars, tax saved estimates
-7. **Rebalancing Actions** — Actual vs target allocation bars, specific reduce/increase suggestions
-8. **What-If Simulator** — Interactive sliders (Equity/Debt/Gold/Alt), projected returns, volatility, Sharpe ratio, 5y/10y portfolio projections
-9. **Financial Goals** — CRUD with progress tracking
+## Date Range Filtering
+Both Dashboard and Insights support Q/M/Y/C (Custom=All) date filtering. The same API endpoint (`/api/dashboard/stats`) is used with date params.
 
-## Key API Endpoints
-- `GET /api/market-data` — Live Indian market data
-- `GET /api/portfolio-overview` — Invested vs current value (includes holdings)
-- `GET/POST /api/holdings` — Holdings CRUD
-- `GET /api/holdings/live` — Holdings with live prices
-- `POST /api/holdings/upload-cas` — CAS PDF upload
-- `GET/POST /api/risk-profile` — Risk profile CRUD
-- `GET /api/tax-summary` — Tax deductions by section
-- `GET /api/portfolio-rebalancing` — Actual vs target allocation with actions
-- `POST /api/ai/chat` — AI advisor (includes risk profile in context)
+## Key Files
+- `/app/backend/server.py` - All API routes
+- `/app/frontend/app/(tabs)/index.tsx` - Dashboard
+- `/app/frontend/app/(tabs)/transactions.tsx` - Transactions
+- `/app/frontend/app/(tabs)/investments.tsx` - Investments
+- `/app/frontend/app/(tabs)/insights.tsx` - Insights
 
-## DB Schema
-- **holdings**: `{ _id, user_id, name, ticker, isin, category, quantity, buy_price, buy_date, source, created_at }`
-- **risk_profiles**: `{ _id, user_id, answers[], score, profile, breakdown{}, created_at }`
-- **transactions**: `{ _id, user_id, amount, type, category, date, description }`
-- **market_data**: `{ key, name, price, change, change_percent, prev_close, last_updated }`
-
-## Test Credentials
-- rajesh@visor.demo / Demo@123
-
-## Completed
-- ✅ Phase 1: Live Indian Markets (yfinance)
-- ✅ Phase 2: Portfolio Overview (invested vs current)
-- ✅ Phase 2.5: Holdings Management (manual + CAS upload)
-- ✅ Holdings integrated into Portfolio Overview
-- ✅ Phase 3: Risk Appetite Questionnaire (12 questions, backend persistence, AI integration)
-- ✅ Phase 4: Tax Planning (80C/80D/80CCD1B/80E/80TTA, auto-mapping, tax saved estimates)
-- ✅ Phase 4.5: Portfolio Rebalancing (actual vs target allocation, actionable suggestions)
-- ✅ Phase 4.6: What-If Simulator (interactive sliders, projected returns/volatility/Sharpe, 5y/10y projections)
-- ✅ Recurring Transactions (SIPs) - Full CRUD, pause/resume, manual execution (Feb 17, 2026)
-- ✅ Bug Fix: AI Chat endpoint alignment (Feb 17, 2026)
-- ✅ Bug Fix: Investment transactions display without negative sign (Feb 17, 2026)
-- ✅ eCAS PDF Parser overhaul - Now correctly extracts invested amount, current value, units, NAV for CDSL eCAS format (Feb 17, 2026)
-- ✅ Bug Fix: Holdings now show different invested vs current values (Feb 17, 2026)
-- ✅ Bug Fix: AI Bot now reads eCAS holdings data (portfolio value, individual funds, gains) (Feb 17, 2026)
-- ✅ Bug Fix: Greeting changed from "Good Night" to "Good Evening" (Feb 17, 2026)
-- ✅ Dashboard: Changed "Savings Rate" card to "Investments" card with navigation to Invest screen (Feb 17, 2026)
-- ✅ Insights: Enhanced card backs to show actual calculations with rupee amounts (Feb 17, 2026)
-- ✅ Invest: Tax Planning section moved to bottom (above Financial Goals) (Feb 17, 2026)
-- ✅ Transaction Buy/Sell toggle for investments with units and price_per_unit (Feb 17, 2026)
-- ✅ Capital Gains Tax API with STCG/LTCG calculation (Feb 17, 2026)
-- ✅ Dashboard Trend Analysis: Flippable card with real-time insights based on transactions (Feb 17, 2026)
-- ✅ Dashboard Trend Analysis: Now respects date range filter (Feb 17, 2026)
-
-## Prioritized Backlog
-
-### P0 (Next)
-- Display Capital Gains in Tax Planning section
-
+## Remaining Tasks
 ### P1
-- Component Refactoring: Break down investments.tsx (~2000 lines) into smaller components
+- Refactor `investments.tsx` into smaller components
+- Refactor `insights.tsx` into smaller components
 
 ### P2
-- Backend migration: Python/FastAPI → Node.js/Express/PostgreSQL
+- AI Contextual Screen Awareness (pass current screen view to AI)
+- Backend stack migration (Python/FastAPI to Node.js)
 - Enhanced micro-animations
 - Push notifications for budget alerts
