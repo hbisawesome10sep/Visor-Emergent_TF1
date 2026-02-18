@@ -1885,6 +1885,11 @@ async def get_loan_detail(loan_id: str, user=Depends(get_current_user)):
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
     
+    # Decrypt sensitive fields
+    dek = user.get("encryption_key", "")
+    if dek:
+        decrypt_sensitive_fields(loan, dek, LOAN_SENSITIVE_FIELDS)
+    
     emi = loan.get("emi_amount") or calculate_emi(loan["principal_amount"], loan["interest_rate"], loan["tenure_months"])
     schedule = generate_emi_schedule(
         loan["principal_amount"],
@@ -1917,10 +1922,18 @@ async def update_loan(loan_id: str, loan_update: LoanUpdate, user=Depends(get_cu
         raise HTTPException(status_code=404, detail="Loan not found")
     
     update_data = {k: v for k, v in loan_update.dict().items() if v is not None}
+    
+    # Encrypt account_number if being updated
+    dek = user.get("encryption_key", "")
+    if dek and "account_number" in update_data and update_data["account_number"]:
+        update_data["account_number"] = encrypt_field(update_data["account_number"], dek)
+    
     if update_data:
         await db.loans.update_one({"id": loan_id}, {"$set": update_data})
     
     updated = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    if dek:
+        decrypt_sensitive_fields(updated, dek, LOAN_SENSITIVE_FIELDS)
     return updated
 
 @api_router.delete("/loans/{loan_id}")
