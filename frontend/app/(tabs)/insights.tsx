@@ -560,6 +560,29 @@ export default function InsightsScreen() {
             <MaterialCommunityIcons name="refresh" size={20} color={Accent.emerald} />
           </TouchableOpacity>
         </View>
+        {/* Date Range Selector */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, paddingBottom: 10, paddingHorizontal: 16 }}>
+          {(['Quarter', 'Month', 'Year', 'Custom'] as const).map((freq) => (
+            <TouchableOpacity
+              key={freq}
+              data-testid={`insights-freq-${freq.toLowerCase()}`}
+              onPress={() => setSelectedFrequency(freq)}
+              style={{
+                paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16,
+                backgroundColor: selectedFrequency === freq
+                  ? isDark ? Accent.emerald : '#008F7A'
+                  : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+              }}
+            >
+              <Text style={{
+                fontSize: 12, fontWeight: selectedFrequency === freq ? '700' as any : '500' as any,
+                color: selectedFrequency === freq ? '#fff' : colors.textSecondary,
+              }}>
+                {freq === 'Quarter' ? 'Q' : freq === 'Month' ? 'M' : freq === 'Year' ? 'Y' : 'All'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <ScrollView
