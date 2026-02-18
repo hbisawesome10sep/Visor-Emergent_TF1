@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator,
-  TouchableOpacity, Dimensions, Modal, TextInput, Alert,
-  KeyboardAvoidingView, Platform, StatusBar,
+  TouchableOpacity, Dimensions, Modal, Alert,
+  Platform, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
