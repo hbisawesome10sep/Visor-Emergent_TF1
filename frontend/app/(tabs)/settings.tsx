@@ -11,13 +11,16 @@ import Slider from '@react-native-community/slider';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useSecurity } from '../../src/context/SecurityContext';
+import { apiRequest } from '../../src/utils/api';
 import { Accent } from '../../src/utils/theme';
+import { Linking } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const TABS = [
   { key: 'account', label: 'Account', icon: 'account' },
   { key: 'security', label: 'Security', icon: 'shield-check' },
+  { key: 'sources', label: 'Sources', icon: 'link-variant' },
   { key: 'notifications', label: 'Alerts', icon: 'bell' },
   { key: 'financial', label: 'Financial', icon: 'target' },
   { key: 'appearance', label: 'Theme', icon: 'palette' },
