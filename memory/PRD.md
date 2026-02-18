@@ -46,6 +46,21 @@ Comprehensive personal finance management application for the Indian market with
 - [x] Custom date range: Added safe date handling and improved error handling
 - [x] iOS date picker bug fixed (previous session)
 
+### New Features (Feb 18, 2026)
+- [x] **Tax Planning Enhancement**: Added comprehensive Tax Deductions Browser modal
+  - '+' icon on Tax Planning section header opens the browser
+  - Shows all Chapter VI-A deductions (80C, 80D, 80CCD, 80E, 80G, HRA, etc.)
+  - Each deduction has: Section code, one-liner, full description, eligibility, example, documents
+  - 'i' icon opens detailed sub-modal with full explanation
+  - Users can add deductions to their Tax Planning
+  - Created: `/app/frontend/src/data/taxDeductions.ts`, `/app/frontend/src/components/TaxDeductionsModal.tsx`
+
+- [x] **AI Contextual Awareness (Visor)**:
+  - Added ScreenContext provider to track current screen
+  - AI now receives screen context with every chat message
+  - Visor can provide contextual responses based on which screen user is viewing
+  - Updated: `ScreenContext.tsx`, `AIAdvisorChat.tsx`, backend `/api/ai/chat`
+
 ## Pending Tasks (Priority Order)
 ### P2
 - [ ] Trend Analysis card flip animation (react-native-reanimated)
