@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
+import { useSecurity } from '../../src/context/SecurityContext';
 import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
