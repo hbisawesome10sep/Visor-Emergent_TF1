@@ -352,15 +352,22 @@ async def login(credentials: UserLogin):
 
 @api_router.get("/auth/profile")
 async def get_profile(user=Depends(get_current_user)):
+    dek = user.get("encryption_key", "")
+    pan = user.get("pan", "")
     aadhaar = user.get("aadhaar", "")
+    if dek and pan.startswith("ENC:"):
+        pan = decrypt_field(pan, dek)
+    if dek and aadhaar.startswith("ENC:"):
+        aadhaar = decrypt_field(aadhaar, dek)
     return {
         "id": user["id"],
         "email": user["email"],
         "full_name": user["full_name"],
         "dob": user.get("dob", ""),
-        "pan": user.get("pan", ""),
+        "pan": pan,
         "aadhaar_last4": aadhaar[-4:] if len(aadhaar) >= 4 else "",
         "created_at": user.get("created_at", ""),
+        "is_encrypted": bool(dek),
     }
 
 # ══════════════════════════════════════
