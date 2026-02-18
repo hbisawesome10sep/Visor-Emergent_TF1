@@ -1416,6 +1416,273 @@ async def delete_user_tax_deduction(deduction_id: str, user=Depends(get_current_
 
 
 # ══════════════════════════════════════
+#  INCOME TAX CALCULATOR
+# ══════════════════════════════════════
+
+def calculate_old_regime_tax(taxable_income: float) -> dict:
+    """Calculate tax under Old Regime (FY 2025-26 / AY 2026-27)."""
+    slabs = [
+        (250000, 0),
+        (500000, 0.05),
+        (1000000, 0.20),
+        (float('inf'), 0.30),
+    ]
+    tax = 0
+    prev = 0
+    breakdown = []
+    for limit, rate in slabs:
+        if taxable_income <= prev:
+            break
+        slab_income = min(taxable_income, limit) - prev
+        slab_tax = slab_income * rate
+        tax += slab_tax
+        if slab_income > 0:
+            breakdown.append({
+                "range": f"₹{prev:,.0f} - ₹{limit:,.0f}" if limit != float('inf') else f"Above ₹{prev:,.0f}",
+                "rate": f"{int(rate*100)}%",
+                "income": round(slab_income, 2),
+                "tax": round(slab_tax, 2),
+            })
+        prev = limit
+
+    # Rebate u/s 87A: If total income ≤ ₹5,00,000
+    rebate = min(tax, 12500) if taxable_income <= 500000 else 0
+    tax_after_rebate = max(tax - rebate, 0)
+
+    return {"tax": round(tax, 2), "rebate": round(rebate, 2), "tax_after_rebate": round(tax_after_rebate, 2), "breakdown": breakdown}
+
+
+def calculate_new_regime_tax(taxable_income: float) -> dict:
+    """Calculate tax under New Regime (FY 2025-26 / AY 2026-27) - Budget 2025."""
+    slabs = [
+        (400000, 0),
+        (800000, 0.05),
+        (1200000, 0.10),
+        (1600000, 0.15),
+        (2000000, 0.20),
+        (2400000, 0.25),
+        (float('inf'), 0.30),
+    ]
+    tax = 0
+    prev = 0
+    breakdown = []
+    for limit, rate in slabs:
+        if taxable_income <= prev:
+            break
+        slab_income = min(taxable_income, limit) - prev
+        slab_tax = slab_income * rate
+        tax += slab_tax
+        if slab_income > 0:
+            breakdown.append({
+                "range": f"₹{prev:,.0f} - ₹{limit:,.0f}" if limit != float('inf') else f"Above ₹{prev:,.0f}",
+                "rate": f"{int(rate*100)}%",
+                "income": round(slab_income, 2),
+                "tax": round(slab_tax, 2),
+            })
+        prev = limit
+
+    # Rebate u/s 87A: If taxable income ≤ ₹12,00,000, rebate up to ₹60,000
+    rebate = min(tax, 60000) if taxable_income <= 1200000 else 0
+    tax_after_rebate = max(tax - rebate, 0)
+
+    return {"tax": round(tax, 2), "rebate": round(rebate, 2), "tax_after_rebate": round(tax_after_rebate, 2), "breakdown": breakdown}
+
+
+def calculate_surcharge(income: float, tax: float, regime: str) -> float:
+    """Calculate surcharge based on total income."""
+    if income <= 5000000:
+        return 0
+    elif income <= 10000000:
+        return tax * 0.10
+    elif income <= 20000000:
+        return tax * 0.15
+    elif income <= 50000000:
+        return tax * 0.25
+    else:
+        rate = 0.25 if regime == "new" else 0.37
+        return tax * rate
+
+
+@api_router.get("/tax-calculator")
+async def income_tax_calculator(user=Depends(get_current_user), fy: str = "2025-26"):
+    """Comprehensive Income Tax Calculator for Old and New Regime."""
+    # Determine FY date range
+    fy_parts = fy.split("-")
+    fy_start_year = int(fy_parts[0])
+    fy_start = f"{fy_start_year}-04-01"
+    fy_end = f"{fy_start_year + 1}-03-31"
+    ay = f"{fy_start_year + 1}-{int(fy_parts[1]) + 1:02d}"
+
+    # 1. Fetch income transactions for the FY
+    all_txns = await db.transactions.find(
+        {"user_id": user["id"]}, {"_id": 0}
+    ).to_list(5000)
+
+    # Filter by FY date range
+    fy_txns = []
+    for t in all_txns:
+        d = t.get("date", "")
+        if d and fy_start <= d <= fy_end:
+            fy_txns.append(t)
+
+    # Calculate income breakdown
+    salary_income = sum(t.get("amount", 0) for t in fy_txns if t.get("type") == "income" and t.get("category", "").lower() in ("salary", "wages", "bonus", "income"))
+    other_income = sum(t.get("amount", 0) for t in fy_txns if t.get("type") == "income" and t.get("category", "").lower() not in ("salary", "wages", "bonus", "income"))
+    # If no salary category, treat all income as salary
+    if salary_income == 0:
+        salary_income = sum(t.get("amount", 0) for t in fy_txns if t.get("type") == "income")
+        other_income = 0
+
+    gross_income = salary_income + other_income
+
+    # 2. Get capital gains
+    cap_gains = await get_capital_gains(user)
+    total_stcg = cap_gains["summary"]["total_stcg"]
+    total_ltcg = cap_gains["summary"]["total_ltcg"]
+    ltcg_exemption = cap_gains["summary"]["ltcg_exemption"]
+    ltcg_taxable = cap_gains["summary"]["ltcg_taxable"]
+    stcg_tax = cap_gains["summary"]["estimated_stcg_tax"]
+    ltcg_tax = cap_gains["summary"]["estimated_ltcg_tax"]
+    total_cg_tax = stcg_tax + ltcg_tax
+
+    # 3. Get deductions
+    tax_summary = await get_tax_summary(user)
+    system_deductions = tax_summary["total_deductions"]
+
+    user_deductions_data = await db.user_tax_deductions.find(
+        {"user_id": user["id"]}, {"_id": 0}
+    ).to_list(100)
+    user_deductions_total = sum(d.get("invested_amount", 0) for d in user_deductions_data)
+
+    # Group deductions by section for display
+    deductions_by_section = {}
+    for sec in tax_summary.get("sections", []):
+        if sec["used"] > 0:
+            sid = sec["section"]
+            if sid not in deductions_by_section:
+                deductions_by_section[sid] = {"section": sid, "label": sec["label"], "limit": sec["limit"], "amount": 0, "source": "transactions"}
+            deductions_by_section[sid]["amount"] += sec["used"]
+
+    for d in user_deductions_data:
+        sid = d.get("section", "")
+        if sid not in deductions_by_section:
+            deductions_by_section[sid] = {"section": sid, "label": f"Section {sid}", "limit": d.get("limit", 0), "amount": 0, "source": "user_added"}
+        deductions_by_section[sid]["amount"] += d.get("invested_amount", 0)
+
+    # Cap deductions at their limits
+    total_old_deductions = 0
+    deductions_list = []
+    for sid, info in deductions_by_section.items():
+        capped = min(info["amount"], info["limit"]) if info["limit"] and info["limit"] > 0 else info["amount"]
+        total_old_deductions += capped
+        deductions_list.append({
+            "section": sid,
+            "label": info["label"],
+            "amount": round(info["amount"], 2),
+            "limit": info["limit"],
+            "capped_amount": round(capped, 2),
+        })
+
+    # OLD REGIME standard deduction: ₹50,000 (for salaried)
+    old_std_deduction = 50000 if salary_income > 0 else 0
+    # NEW REGIME standard deduction: ₹75,000 (Budget 2025)
+    new_std_deduction = 75000 if salary_income > 0 else 0
+
+    # ═══ OLD REGIME CALCULATION ═══
+    old_gross_total = gross_income + other_income
+    old_total_deductions = old_std_deduction + total_old_deductions
+    old_taxable_income = max(old_gross_total - old_total_deductions, 0)
+    old_tax_calc = calculate_old_regime_tax(old_taxable_income)
+    old_surcharge = calculate_surcharge(old_taxable_income, old_tax_calc["tax_after_rebate"], "old")
+    old_cess = (old_tax_calc["tax_after_rebate"] + old_surcharge) * 0.04
+    old_total_tax_on_income = old_tax_calc["tax_after_rebate"] + old_surcharge + old_cess
+    old_total_tax = old_total_tax_on_income + total_cg_tax
+
+    # ═══ NEW REGIME CALCULATION ═══
+    # New regime: Very limited deductions (only standard deduction + NPS 80CCD(2))
+    new_nps_deduction = 0
+    for d in user_deductions_data:
+        if d.get("section", "") in ("80CCD1B", "80CCD(1B)"):
+            new_nps_deduction += d.get("invested_amount", 0)
+    new_total_deductions = new_std_deduction + new_nps_deduction
+    new_gross_total = gross_income + other_income
+    new_taxable_income = max(new_gross_total - new_total_deductions, 0)
+    new_tax_calc = calculate_new_regime_tax(new_taxable_income)
+    new_surcharge = calculate_surcharge(new_taxable_income, new_tax_calc["tax_after_rebate"], "new")
+    new_cess = (new_tax_calc["tax_after_rebate"] + new_surcharge) * 0.04
+    new_total_tax_on_income = new_tax_calc["tax_after_rebate"] + new_surcharge + new_cess
+    new_total_tax = new_total_tax_on_income + total_cg_tax
+
+    # Which regime is better?
+    savings = abs(old_total_tax - new_total_tax)
+    better_regime = "old" if old_total_tax < new_total_tax else "new" if new_total_tax < old_total_tax else "equal"
+
+    return {
+        "fy": fy,
+        "ay": ay,
+        "income": {
+            "salary": round(salary_income, 2),
+            "other": round(other_income, 2),
+            "gross_total": round(gross_income, 2),
+        },
+        "capital_gains": {
+            "stcg": round(total_stcg, 2),
+            "ltcg": round(total_ltcg, 2),
+            "ltcg_exemption": ltcg_exemption,
+            "ltcg_taxable": round(ltcg_taxable, 2),
+            "stcg_tax": round(stcg_tax, 2),
+            "ltcg_tax": round(ltcg_tax, 2),
+            "total_cg_tax": round(total_cg_tax, 2),
+        },
+        "deductions": deductions_list,
+        "old_regime": {
+            "standard_deduction": old_std_deduction,
+            "chapter_via_deductions": round(total_old_deductions, 2),
+            "total_deductions": round(old_total_deductions, 2),
+            "taxable_income": round(old_taxable_income, 2),
+            "tax_on_income": round(old_tax_calc["tax"], 2),
+            "rebate_87a": round(old_tax_calc["rebate"], 2),
+            "tax_after_rebate": round(old_tax_calc["tax_after_rebate"], 2),
+            "surcharge": round(old_surcharge, 2),
+            "cess": round(old_cess, 2),
+            "total_tax_on_income": round(old_total_tax_on_income, 2),
+            "capital_gains_tax": round(total_cg_tax, 2),
+            "total_tax": round(old_total_tax, 2),
+            "slab_breakdown": old_tax_calc["breakdown"],
+        },
+        "new_regime": {
+            "standard_deduction": new_std_deduction,
+            "nps_deduction": round(new_nps_deduction, 2),
+            "total_deductions": round(new_total_deductions, 2),
+            "taxable_income": round(new_taxable_income, 2),
+            "tax_on_income": round(new_tax_calc["tax"], 2),
+            "rebate_87a": round(new_tax_calc["rebate"], 2),
+            "tax_after_rebate": round(new_tax_calc["tax_after_rebate"], 2),
+            "surcharge": round(new_surcharge, 2),
+            "cess": round(new_cess, 2),
+            "total_tax_on_income": round(new_total_tax_on_income, 2),
+            "capital_gains_tax": round(total_cg_tax, 2),
+            "total_tax": round(new_total_tax, 2),
+            "slab_breakdown": new_tax_calc["breakdown"],
+        },
+        "comparison": {
+            "better_regime": better_regime,
+            "savings": round(savings, 2),
+            "old_effective_rate": round((old_total_tax / gross_income * 100), 2) if gross_income > 0 else 0,
+            "new_effective_rate": round((new_total_tax / gross_income * 100), 2) if gross_income > 0 else 0,
+        },
+        "notes": [
+            "Capital Gains Tax is the same under both regimes",
+            "STCG on equity: 20% | LTCG on equity: 12.5% (above ₹1.25L)",
+            "Old Regime allows Chapter VI-A deductions (80C, 80D, etc.)",
+            "New Regime: Standard deduction ₹75,000 + limited NPS deduction",
+            "4% Health & Education Cess on all tax + surcharge",
+            "Rebate u/s 87A: Old ≤₹5L (₹12,500) | New ≤₹12L (₹60,000)",
+        ],
+    }
+
+
+# ══════════════════════════════════════
 #  PORTFOLIO REBALANCING
 # ══════════════════════════════════════
 
