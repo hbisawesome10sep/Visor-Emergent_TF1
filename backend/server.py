@@ -1336,6 +1336,86 @@ async def get_capital_gains(user=Depends(get_current_user)):
 
 
 # ══════════════════════════════════════
+#  USER TAX DEDUCTIONS
+# ══════════════════════════════════════
+
+class UserTaxDeductionCreate(BaseModel):
+    deduction_id: str  # ID from the frontend tax deductions data
+    section: str
+    name: str
+    limit: Optional[int] = None
+    invested_amount: float = 0
+
+
+class UserTaxDeductionUpdate(BaseModel):
+    invested_amount: Optional[float] = None
+
+
+@api_router.get("/user-tax-deductions")
+async def get_user_tax_deductions(user=Depends(get_current_user)):
+    """Get all tax deductions added by the user."""
+    deductions = await db.user_tax_deductions.find(
+        {"user_id": user["id"]}, {"_id": 0}
+    ).to_list(100)
+    return {"deductions": deductions}
+
+
+@api_router.post("/user-tax-deductions")
+async def add_user_tax_deduction(data: UserTaxDeductionCreate, user=Depends(get_current_user)):
+    """Add a new tax deduction to user's planning."""
+    # Check if already exists
+    existing = await db.user_tax_deductions.find_one({
+        "user_id": user["id"],
+        "deduction_id": data.deduction_id
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Deduction already added")
+    
+    deduction = {
+        "id": str(uuid4()),
+        "user_id": user["id"],
+        "deduction_id": data.deduction_id,
+        "section": data.section,
+        "name": data.name,
+        "limit": data.limit,
+        "invested_amount": data.invested_amount,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.user_tax_deductions.insert_one(deduction)
+    del deduction["_id"]
+    return deduction
+
+
+@api_router.put("/user-tax-deductions/{deduction_id}")
+async def update_user_tax_deduction(deduction_id: str, data: UserTaxDeductionUpdate, user=Depends(get_current_user)):
+    """Update invested amount for a tax deduction."""
+    result = await db.user_tax_deductions.update_one(
+        {"user_id": user["id"], "id": deduction_id},
+        {"$set": {"invested_amount": data.invested_amount}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Deduction not found")
+    
+    updated = await db.user_tax_deductions.find_one(
+        {"user_id": user["id"], "id": deduction_id},
+        {"_id": 0}
+    )
+    return updated
+
+
+@api_router.delete("/user-tax-deductions/{deduction_id}")
+async def delete_user_tax_deduction(deduction_id: str, user=Depends(get_current_user)):
+    """Remove a tax deduction from user's planning."""
+    result = await db.user_tax_deductions.delete_one({
+        "user_id": user["id"],
+        "id": deduction_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Deduction not found")
+    return {"status": "deleted"}
+
+
+# ══════════════════════════════════════
 #  PORTFOLIO REBALANCING
 # ══════════════════════════════════════
 
