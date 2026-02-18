@@ -9,7 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import Svg, { Circle, G } from 'react-native-svg';
+import Svg, { Circle, G, Polyline, Line, Text as SvgText, Rect } from 'react-native-svg';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useAuth } from '../../src/context/AuthContext';
