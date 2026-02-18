@@ -297,8 +297,7 @@ export default function DashboardScreen() {
       label: 'Add Expense',
       color: colors.expense,
       onPress: () => {
-        setTxnForm((p) => ({ ...p, type: 'expense' }));
-        setShowTxnModal(true);
+        router.push({ pathname: '/(tabs)/transactions', params: { type: 'expense', action: 'add' } });
       },
     },
     {
@@ -306,8 +305,7 @@ export default function DashboardScreen() {
       label: 'Add Income',
       color: colors.income,
       onPress: () => {
-        setTxnForm((p) => ({ ...p, type: 'income' }));
-        setShowTxnModal(true);
+        router.push({ pathname: '/(tabs)/transactions', params: { type: 'income', action: 'add' } });
       },
     },
     {
