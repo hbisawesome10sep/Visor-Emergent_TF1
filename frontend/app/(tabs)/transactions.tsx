@@ -773,26 +773,71 @@ export default function TransactionsScreen() {
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Date</Text>
                 <TouchableOpacity
                   style={[styles.datePickerBtn, { borderColor: colors.border, backgroundColor: colors.background }]}
-                  onPress={() => setShowDatePicker(true)}
+                  onPress={() => {
+                    const current = form.date ? new Date(form.date + 'T00:00:00') : new Date();
+                    setTempDate(current);
+                    setShowDatePicker(true);
+                  }}
+                  data-testid="date-picker-btn"
                 >
                   <MaterialCommunityIcons name="calendar" size={20} color={colors.textSecondary} />
                   <Text style={[styles.datePickerText, { color: form.date ? colors.textPrimary : colors.textSecondary }]}>
                     {form.date || new Date().toISOString().split('T')[0] + ' (today)'}
                   </Text>
                 </TouchableOpacity>
-                
-                {showDatePicker && (
+
+                {/* Android: native modal date picker */}
+                {showDatePicker && Platform.OS === 'android' && (
                   <DateTimePicker
-                    value={form.date ? new Date(form.date) : new Date()}
+                    value={form.date ? new Date(form.date + 'T00:00:00') : new Date()}
                     mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    display="default"
                     onChange={(event, selectedDate) => {
-                      setShowDatePicker(Platform.OS === 'ios');
-                      if (selectedDate) {
+                      setShowDatePicker(false);
+                      if (event.type === 'set' && selectedDate) {
                         setForm(p => ({ ...p, date: selectedDate.toISOString().split('T')[0] }));
                       }
                     }}
                   />
+                )}
+
+                {/* iOS: Modal with spinner picker + Done/Cancel */}
+                {Platform.OS === 'ios' && (
+                  <Modal visible={showDatePicker} transparent animationType="slide">
+                    <TouchableOpacity
+                      style={styles.dateModalOverlay}
+                      activeOpacity={1}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <View style={[styles.dateModalContent, { backgroundColor: colors.surface }]}>
+                        <View style={styles.dateModalHeader}>
+                          <TouchableOpacity onPress={() => setShowDatePicker(false)} data-testid="date-picker-cancel">
+                            <Text style={[styles.dateModalActionText, { color: colors.textSecondary }]}>Cancel</Text>
+                          </TouchableOpacity>
+                          <Text style={[styles.dateModalTitle, { color: colors.textPrimary }]}>Select Date</Text>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setForm(p => ({ ...p, date: tempDate.toISOString().split('T')[0] }));
+                              setShowDatePicker(false);
+                            }}
+                            data-testid="date-picker-done"
+                          >
+                            <Text style={[styles.dateModalActionText, { color: Accent.amethyst, fontWeight: '700' as any }]}>Done</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <DateTimePicker
+                          value={tempDate}
+                          mode="date"
+                          display="spinner"
+                          onChange={(_, selectedDate) => {
+                            if (selectedDate) setTempDate(selectedDate);
+                          }}
+                          themeVariant={isDark ? 'dark' : 'light'}
+                          style={{ height: 200 }}
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  </Modal>
                 )}
 
                 {/* Notes Input */}
