@@ -546,8 +546,7 @@ export default function InvestmentsScreen() {
     return ist.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
   })() : '';
 
-  // Tax saving — now from backend
-  const taxSections = taxData?.sections || [];
+  // Goals summary
   const totalGoalTarget = goals.reduce((s, g) => s + g.target_amount, 0);
   const totalGoalCurrent = goals.reduce((s, g) => s + g.current_amount, 0);
   const overallGoalProgress = totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
