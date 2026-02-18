@@ -427,10 +427,14 @@ export default function InsightsScreen() {
 
   // Calculate all financial metrics
   const emiEstimate = expenses * 0.35;
+  const emiRatio = income > 0 ? (emiEstimate / income) * 100 : 0;
   const investmentRate = income > 0 ? (investments / income) * 100 : 0;
   const spendingRate = income > 0 ? (expenses / income) * 100 : 0;
   const monthlySavings = income - expenses;
   const runwayMonths = expenses > 0 ? Math.max(0, (monthlySavings * 6) / expenses) : 0;
+  const foirRatio = income > 0 ? ((emiEstimate + (expenses * 0.15)) / income) * 100 : 0;
+  const currentWealth = investments * 12;
+  const projectedWealth5Years = currentWealth * Math.pow(1.12, 5);
 
   // Spending breakdown
   const spendingData = Object.entries(stats?.category_breakdown || {})
