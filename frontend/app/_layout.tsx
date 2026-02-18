@@ -90,7 +90,9 @@ export default function RootLayout() {
     <ThemeProvider>
       <AuthProvider>
         <SecurityProvider>
-          <InnerLayout />
+          <ScreenProvider>
+            <InnerLayout />
+          </ScreenProvider>
         </SecurityProvider>
       </AuthProvider>
     </ThemeProvider>
