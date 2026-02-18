@@ -697,9 +697,6 @@ export default function DashboardScreen() {
               })()}
             </>
           ) : (
-              </View>
-            </>
-          ) : (
             <>
               {/* Back: Smart Insights */}
               <View style={styles.trendHeader}>
