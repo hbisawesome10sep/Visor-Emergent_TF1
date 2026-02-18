@@ -1589,7 +1589,7 @@ async def income_tax_calculator(user=Depends(get_current_user), fy: str = "2025-
     new_std_deduction = 75000 if salary_income > 0 else 0
 
     # ═══ OLD REGIME CALCULATION ═══
-    old_gross_total = gross_income + other_income
+    old_gross_total = gross_income
     old_total_deductions = old_std_deduction + total_old_deductions
     old_taxable_income = max(old_gross_total - old_total_deductions, 0)
     old_tax_calc = calculate_old_regime_tax(old_taxable_income)
@@ -1605,7 +1605,7 @@ async def income_tax_calculator(user=Depends(get_current_user), fy: str = "2025-
         if d.get("section", "") in ("80CCD1B", "80CCD(1B)"):
             new_nps_deduction += d.get("invested_amount", 0)
     new_total_deductions = new_std_deduction + new_nps_deduction
-    new_gross_total = gross_income + other_income
+    new_gross_total = gross_income
     new_taxable_income = max(new_gross_total - new_total_deductions, 0)
     new_tax_calc = calculate_new_regime_tax(new_taxable_income)
     new_surcharge = calculate_surcharge(new_taxable_income, new_tax_calc["tax_after_rebate"], "new")
