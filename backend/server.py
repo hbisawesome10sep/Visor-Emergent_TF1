@@ -983,7 +983,19 @@ RECENT TRANSACTIONS (Last 10):
   {chr(10).join('  ' + f"{t['date']} | {t['type'].upper()} | {t['category']} | ₹{t['amount']:,.0f} | {t.get('description','')}" for t in sorted(txns, key=lambda x: x.get('date',''), reverse=True)[:10]) if txns else '  None'}
 """
     
-    system_msg = """You are Visor AI, an expert Indian personal finance advisor with FULL access to the user's financial data in this app. You can see their transactions, investments, holdings, goals, budgets, loans, SIPs, health score, and portfolio.
+    # Add screen context for AI awareness
+    screen_context_info = ""
+    if msg.screen_context:
+        screen_context_info = f"""
+
+CURRENT SCREEN CONTEXT:
+The user is currently viewing a specific screen in the app. Here's what they're looking at:
+{msg.screen_context}
+
+Use this context to provide more relevant and contextual responses. If the user asks a general question, 
+you can proactively provide insights related to what they're viewing."""
+
+    system_msg = f"""You are Visor AI, an expert Indian personal finance advisor with FULL access to the user's financial data in this app. You can see their transactions, investments, holdings, goals, budgets, loans, SIPs, health score, and portfolio.
 
 Key guidelines:
 - Always use ₹ (Indian Rupee) for currency
@@ -995,7 +1007,8 @@ Key guidelines:
 - When the user asks about ANY aspect of their finances, reference their ACTUAL data from the context above
 - Provide personalized advice based on their real financial situation
 - Keep responses under 200 words unless detailed analysis is needed
-- If the user asks about something not in their data, let them know and suggest they add it"""
+- If the user asks about something not in their data, let them know and suggest they add it
+- PAY ATTENTION to which screen the user is currently viewing and provide contextual insights when relevant{screen_context_info}"""
     
     try:
         chat = LlmChat(
