@@ -609,7 +609,7 @@ export default function DashboardScreen() {
         >
           {!showTrendBack ? (
             <>
-              {/* Front: Spending Trends & Key Metrics */}
+              {/* Front: Line Chart */}
               <View style={styles.trendHeader}>
                 <View>
                   <Text style={[styles.trendTitle, { color: colors.textPrimary }]}>Trend Analysis</Text>
@@ -626,58 +626,77 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Key Ratios */}
-              <View style={{ gap: 10 }}>
-                {/* Savings Rate */}
-                <View style={[styles.trendMetricRow, { backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)' }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                    <MaterialCommunityIcons name="piggy-bank" size={18} color={Accent.emerald} />
-                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>Savings Rate</Text>
+              {/* SVG Line Chart */}
+              {(() => {
+                const chartW = SCREEN_WIDTH - 72;
+                const chartH = 160;
+                const padL = 45, padR = 10, padT = 10, padB = 28;
+                const drawW = chartW - padL - padR;
+                const drawH = chartH - padT - padB;
+
+                const points = trendData.length > 0 ? trendData : [{ label: '-', income: 0, expenses: 0, investments: 0 }];
+                const allVals = points.flatMap((p: any) => [p.income, p.expenses, p.investments]);
+                const maxVal = Math.max(...allVals, 1);
+
+                const toX = (i: number) => padL + (points.length > 1 ? (i / (points.length - 1)) * drawW : drawW / 2);
+                const toY = (v: number) => padT + drawH - (v / maxVal) * drawH;
+
+                const makeLine = (key: string) => points.map((p: any, i: number) => `${toX(i)},${toY(p[key])}`).join(' ');
+                const gridLines = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(maxVal * f));
+
+                return (
+                  <View style={{ marginTop: 4, marginBottom: 4 }}>
+                    <Svg width={chartW} height={chartH}>
+                      {/* Grid lines */}
+                      {gridLines.map((val, i) => (
+                        <G key={i}>
+                          <Line x1={padL} y1={toY(val)} x2={chartW - padR} y2={toY(val)} stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} strokeWidth={1} />
+                          <SvgText x={padL - 4} y={toY(val) + 3} fill={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'} fontSize={9} textAnchor="end">
+                            {val >= 1000 ? `${(val/1000).toFixed(0)}K` : `${val}`}
+                          </SvgText>
+                        </G>
+                      ))}
+                      {/* Income line */}
+                      <Polyline points={makeLine('income')} fill="none" stroke={Accent.emerald} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+                      {/* Expenses line */}
+                      <Polyline points={makeLine('expenses')} fill="none" stroke={Accent.ruby} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+                      {/* Investments line */}
+                      <Polyline points={makeLine('investments')} fill="none" stroke={Accent.sapphire} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" strokeDasharray="4,3" />
+                      {/* X-axis labels */}
+                      {points.map((p: any, i: number) => (
+                        <SvgText key={i} x={toX(i)} y={chartH - 4} fill={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)'} fontSize={9} textAnchor="middle">
+                          {p.label}
+                        </SvgText>
+                      ))}
+                      {/* Data dots */}
+                      {points.map((p: any, i: number) => (
+                        <G key={`dots-${i}`}>
+                          <Circle cx={toX(i)} cy={toY(p.income)} r={3} fill={Accent.emerald} />
+                          <Circle cx={toX(i)} cy={toY(p.expenses)} r={3} fill={Accent.ruby} />
+                          <Circle cx={toX(i)} cy={toY(p.investments)} r={2.5} fill={Accent.sapphire} />
+                        </G>
+                      ))}
+                    </Svg>
+                    {/* Legend */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 6 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: Accent.emerald }} />
+                        <Text style={{ fontSize: 10, color: colors.textSecondary }}>Income</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: Accent.ruby }} />
+                        <Text style={{ fontSize: 10, color: colors.textSecondary }}>Expenses</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: Accent.sapphire, opacity: 0.7 }} />
+                        <Text style={{ fontSize: 10, color: colors.textSecondary }}>Investments</Text>
+                      </View>
+                    </View>
                   </View>
-                  <Text style={[styles.trendMetricValue, { color: (stats?.savings_rate || 0) >= 0 ? Accent.emerald : Accent.ruby }]}>
-                    {stats?.savings_rate?.toFixed(1) || 0}%
-                  </Text>
-                </View>
-                {/* Expense to Income */}
-                <View style={[styles.trendMetricRow, { backgroundColor: isDark ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.05)' }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                    <MaterialCommunityIcons name="cash-minus" size={18} color={Accent.ruby} />
-                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>Spend / Income</Text>
-                  </View>
-                  <Text style={[styles.trendMetricValue, { color: (stats?.total_income || 1) > 0 && ((stats?.total_expenses || 0) / (stats?.total_income || 1)) > 0.7 ? Accent.ruby : Accent.emerald }]}>
-                    {stats?.total_income ? ((stats.total_expenses / stats.total_income) * 100).toFixed(0) : 0}%
-                  </Text>
-                </View>
-                {/* Investment Rate */}
-                <View style={[styles.trendMetricRow, { backgroundColor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)' }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                    <MaterialCommunityIcons name="chart-line" size={18} color={Accent.sapphire} />
-                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>Investment Rate</Text>
-                  </View>
-                  <Text style={[styles.trendMetricValue, { color: investmentRate >= 15 ? Accent.emerald : investmentRate >= 5 ? Accent.amber : Accent.ruby }]}>
-                    {investmentRate.toFixed(1)}%
-                  </Text>
-                </View>
-                {/* Net Position */}
-                <View style={[styles.trendMetricRow, { 
-                  backgroundColor: (stats?.savings || 0) >= 0 
-                    ? isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)'
-                    : isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.08)',
-                }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                    <MaterialCommunityIcons 
-                      name={(stats?.savings || 0) >= 0 ? "trending-up" : "trending-down"} 
-                      size={18} 
-                      color={(stats?.savings || 0) >= 0 ? Accent.emerald : Accent.ruby} 
-                    />
-                    <Text style={[styles.trendMetricLabel, { color: colors.textPrimary }]}>
-                      {(stats?.savings || 0) >= 0 ? 'Net Savings' : 'Over Budget'}
-                    </Text>
-                  </View>
-                  <Text style={[styles.trendMetricValue, { color: (stats?.savings || 0) >= 0 ? Accent.emerald : Accent.ruby }]}>
-                    {formatINRShort(Math.abs(stats?.savings || 0))}
-                  </Text>
-                </View>
+                );
+              })()}
+            </>
+          ) : (
               </View>
             </>
           ) : (
