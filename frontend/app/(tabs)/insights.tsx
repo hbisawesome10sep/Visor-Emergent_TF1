@@ -550,7 +550,7 @@ export default function InsightsScreen() {
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: isDark ? Accent.teal : '#008F7A' }]}>Financial Insights</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-              Real-time analysis based on Indian standards
+              {selectedFrequency === 'Month' ? 'This Month' : selectedFrequency === 'Quarter' ? 'This Quarter' : selectedFrequency === 'Year' ? 'This Year' : 'All Time'}
             </Text>
           </View>
           <TouchableOpacity
