@@ -1639,4 +1639,35 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'DM Sans',
   },
+
+  // iOS Date Modal
+  dateModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  dateModalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 30,
+  },
+  dateModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.08)',
+  },
+  dateModalTitle: {
+    fontSize: 16,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
+  dateModalActionText: {
+    fontSize: 16,
+    fontFamily: 'DM Sans',
+    fontWeight: '500' as any,
+  },
 });
