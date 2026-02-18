@@ -298,7 +298,6 @@ export default function DashboardScreen() {
     },
   ];
 
-  const cats = txnForm.type === 'income' ? INCOME_CATS : txnForm.type === 'investment' ? INVEST_CATS : EXPENSE_CATS;
   const frequencies: FrequencyOption[] = ['Quarter', 'Month', 'Year', 'Custom'];
 
   // Format current date range display
