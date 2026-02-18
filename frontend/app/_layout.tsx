@@ -91,7 +91,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <InnerLayout />
+        <SecurityProvider>
+          <InnerLayout />
+        </SecurityProvider>
       </AuthProvider>
     </ThemeProvider>
   );
