@@ -22,16 +22,14 @@ function SecurityLayer({ children }: { children: React.ReactNode }) {
   const { token } = useAuth();
   const { isLocked, isSecuritySetupDone, isPinSetup } = useSecurity();
 
-  // Not logged in — no security needed
-  if (!token) return <>{children}</>;
-
-  // First time after login — show setup if not done
-  if (!isSecuritySetupDone) return <SecuritySetupScreen />;
-
-  // App is locked (inactivity timeout) — show lock screen
-  if (isLocked && isPinSetup) return <LockScreen />;
-
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {/* Overlay security screens on top of the app */}
+      {token && !isSecuritySetupDone && <SecuritySetupScreen />}
+      {token && isSecuritySetupDone && isLocked && isPinSetup && <LockScreen />}
+    </>
+  );
 }
 
 function InnerLayout() {
