@@ -13,6 +13,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 import { SecurityProvider, useSecurity } from '../src/context/SecurityContext';
+import { ScreenProvider } from '../src/context/ScreenContext';
 import { LockScreen } from '../src/components/LockScreen';
 import { SecuritySetupScreen } from '../src/components/SecuritySetupScreen';
 
