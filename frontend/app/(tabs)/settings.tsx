@@ -54,7 +54,7 @@ export default function SettingsScreen() {
   React.useEffect(() => {
     (async () => {
       try {
-        const status = await apiRequest('/api/gmail/status');
+        const status = await apiRequest('/gmail/status');
         setGmailConnected(status.connected);
         setGmailLastSync(status.last_sync);
       } catch {}
@@ -312,7 +312,7 @@ export default function SettingsScreen() {
   // ═══ SOURCES TAB (Gmail & SMS) ═══
   const handleGmailConnect = async () => {
     try {
-      const result = await apiRequest('/api/gmail/connect');
+      const result = await apiRequest('/gmail/connect');
       if (result.auth_url) {
         if (Platform.OS === 'web') {
           window.open(result.auth_url, '_self');
@@ -329,7 +329,7 @@ export default function SettingsScreen() {
     setGmailSyncing(true);
     setGmailSyncResult(null);
     try {
-      const result = await apiRequest('/api/gmail/sync', { method: 'POST' });
+      const result = await apiRequest('/gmail/sync', { method: 'POST' });
       setGmailSyncResult(`Found ${result.new_transactions} new transactions from ${result.emails_scanned} emails`);
       setGmailLastSync(new Date().toISOString());
     } catch (e: any) {
@@ -347,7 +347,7 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await apiRequest('/api/gmail/disconnect', { method: 'DELETE' });
+            await apiRequest('/gmail/disconnect', { method: 'DELETE' });
             setGmailConnected(false);
             setGmailLastSync(null);
           } catch {}
