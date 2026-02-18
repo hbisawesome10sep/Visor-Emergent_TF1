@@ -158,7 +158,7 @@ export default function InvestmentsScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, taxSummary, rebalancing, recurringTxns, capGains, userTaxDeductionsData] = await Promise.all([
+      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, taxSummary, rebalancing, recurringTxns] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
         apiRequest('/market-data', {}),
@@ -168,8 +168,6 @@ export default function InvestmentsScreen() {
         apiRequest('/tax-summary', { token }),
         apiRequest('/portfolio-rebalancing', { token }),
         apiRequest('/recurring', { token }),
-        apiRequest('/capital-gains', { token }),
-        apiRequest('/user-tax-deductions', { token }),
       ]);
       setStats(statsData);
       setGoals(goalsData);
@@ -179,15 +177,6 @@ export default function InvestmentsScreen() {
       setTaxData(taxSummary);
       setRebalanceData(rebalancing);
       setRecurringData(recurringTxns);
-      setCapitalGainsData(capGains);
-      // Set user tax deductions
-      if (userTaxDeductionsData?.deductions) {
-        console.log('[Investments] User tax deductions loaded:', userTaxDeductionsData.deductions.length);
-        setUserTaxDeductions(userTaxDeductionsData.deductions);
-        setUserDeductions(userTaxDeductionsData.deductions.map((d: any) => d.deduction_id));
-      } else {
-        console.log('[Investments] No user tax deductions found');
-      }
       if (savedRisk && savedRisk.profile) {
         setRiskProfile(savedRisk.profile);
         setRiskScore(savedRisk.score || 0);
