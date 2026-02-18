@@ -776,120 +776,20 @@ export default function InsightsScreen() {
         </View>
 
         {/* ═══ HOW YOU COMPARE ═══ */}
-        <View style={[styles.compareCard, {
-          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-        }]}>
-          <View style={styles.compareHeader}>
-            <View style={[styles.compareIcon, { backgroundColor: isBetterThanAverage ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)' }]}>
-              <MaterialCommunityIcons name={isBetterThanAverage ? "trophy" : "trending-up"} size={24} color={isBetterThanAverage ? Accent.emerald : Accent.amber} />
-            </View>
-            <View style={styles.compareTitleBox}>
-              <Text style={[styles.compareTitle, { color: colors.textPrimary }]}>
-                {isBetterThanAverage ? "You're Doing Better!" : "Room for Growth"}
-              </Text>
-              <Text style={[styles.compareSubtitle, { color: colors.textSecondary }]}>vs. Indian National Averages</Text>
-            </View>
-          </View>
-
-          <View style={styles.compareGrid}>
-            <View style={styles.compareItem}>
-              <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Your Savings</Text>
-              <Text style={[styles.compareValue, { color: savingsRate > indianAvgSavingsRate ? Accent.emerald : Accent.ruby }]}>{savingsRate.toFixed(1)}%</Text>
-              <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgSavingsRate}%</Text>
-            </View>
-            <View style={styles.compareItem}>
-              <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Investment Rate</Text>
-              <Text style={[styles.compareValue, { color: investmentRate > indianAvgInvestmentRate ? Accent.emerald : Accent.amber }]}>{investmentRate.toFixed(1)}%</Text>
-              <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgInvestmentRate}%</Text>
-            </View>
-            <View style={styles.compareItem}>
-              <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Expense Ratio</Text>
-              <Text style={[styles.compareValue, { color: spendingRate < indianAvgExpenseRatio ? Accent.emerald : Accent.ruby }]}>{spendingRate.toFixed(1)}%</Text>
-              <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: {indianAvgExpenseRatio}%</Text>
-            </View>
-            <View style={styles.compareItem}>
-              <Text style={[styles.compareLabel, { color: colors.textSecondary }]}>Emergency Fund</Text>
-              <Text style={[styles.compareValue, { color: runwayMonths > 2.5 ? Accent.emerald : Accent.amber }]}>{runwayMonths.toFixed(1)} mo</Text>
-              <Text style={[styles.compareAvg, { color: colors.textSecondary }]}>Avg: 2.5 mo</Text>
-            </View>
-          </View>
-
-          <Text style={[styles.compareSource, { color: colors.textSecondary }]}>Sources: RBI, NSO, SEBI Household Surveys 2024</Text>
-        </View>
+        <CompareCard
+          savingsRate={savingsRate}
+          investmentRate={investmentRate}
+          spendingRate={spendingRate}
+          runwayMonths={runwayMonths}
+          isDark={isDark}
+          colors={colors}
+        />
 
         {/* ═══ SPENDING BREAKDOWN ═══ */}
-        {spendingData.length > 0 && (
-          <View style={[styles.spendingCard, {
-            backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-          }]}>
-            <Text style={[styles.cardSectionTitle, { color: colors.textPrimary }]}>Spending Breakdown</Text>
-            <Text style={[styles.cardSectionSubtitle, { color: colors.textSecondary }]}>Where your money goes this month</Text>
-            
-            {spendingData.map((item, index) => {
-              const percent = (item.amount / totalSpending) * 100;
-              const barColor = getCategoryColor(item.category, isDark);
-              return (
-                <View key={item.category} style={styles.spendingRow}>
-                  <View style={styles.spendingLeft}>
-                    <View style={[styles.spendingIcon, { backgroundColor: `${barColor}15` }]}>
-                      <MaterialCommunityIcons name={getCategoryIcon(item.category) as any} size={16} color={barColor} />
-                    </View>
-                    <Text style={[styles.spendingCategory, { color: colors.textPrimary }]}>{item.category}</Text>
-                  </View>
-                  <View style={styles.spendingRight}>
-                    <Text style={[styles.spendingAmount, { color: colors.textPrimary }]}>{formatINRShort(item.amount)}</Text>
-                    <Text style={[styles.spendingPercent, { color: colors.textSecondary }]}>{percent.toFixed(0)}%</Text>
-                  </View>
-                  <View style={[styles.spendingBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
-                    <View style={[styles.spendingBarFill, { width: `${percent}%`, backgroundColor: barColor }]} />
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
+        <SpendingBreakdownCard data={spendingData} isDark={isDark} colors={colors} />
 
         {/* ═══ AI RECOMMENDATIONS ═══ */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>AI Insights & Recommendations</Text>
-        <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>Personalized tips based on your financial data</Text>
-        
-        {aiRecommendations.map((rec, index) => (
-          <View
-            key={index}
-            style={[styles.recommendationCard, {
-              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-              borderLeftColor: rec.priority === 'high' ? Accent.ruby : rec.priority === 'medium' ? Accent.amber : Accent.emerald,
-            }]}
-          >
-            <View style={styles.recHeader}>
-              <View style={[styles.recIcon, {
-                backgroundColor: rec.priority === 'high' ? 'rgba(239, 68, 68, 0.12)' : rec.priority === 'medium' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
-              }]}>
-                <MaterialCommunityIcons
-                  name={rec.icon as any}
-                  size={20}
-                  color={rec.priority === 'high' ? Accent.ruby : rec.priority === 'medium' ? Accent.amber : Accent.emerald}
-                />
-              </View>
-              <View style={styles.recInfo}>
-                <Text style={[styles.recTitle, { color: colors.textPrimary }]}>{rec.title}</Text>
-                <Text style={[styles.recDesc, { color: colors.textSecondary }]}>{rec.description}</Text>
-              </View>
-            </View>
-            <View style={styles.recFooter}>
-              <View style={[styles.impactBadge, {
-                backgroundColor: rec.priority === 'low' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-              }]}>
-                <MaterialCommunityIcons name="lightning-bolt" size={12} color={rec.priority === 'low' ? Accent.emerald : Accent.amber} />
-                <Text style={[styles.impactText, { color: rec.priority === 'low' ? Accent.emerald : Accent.amber }]}>{rec.impact}</Text>
-              </View>
-              <Text style={[styles.sourceText, { color: colors.textSecondary }]}>{rec.source}</Text>
-            </View>
-          </View>
-        ))}
+        <AIRecommendations recommendations={aiRecommendations} isDark={isDark} colors={colors} />
 
         <View style={{ height: 100 }} />
       </ScrollView>
