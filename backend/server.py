@@ -290,14 +290,18 @@ async def register(user_data: UserCreate):
     now = datetime.now(timezone.utc).isoformat()
     aadhaar_clean = user_data.aadhaar.replace(" ", "").replace("-", "")
     
+    # Generate user-specific encryption key
+    user_dek = generate_user_dek()
+    
     user_doc = {
         "id": user_id,
         "email": user_data.email.lower(),
         "password": hash_password(user_data.password),
         "full_name": user_data.full_name,
         "dob": user_data.dob,
-        "pan": user_data.pan.upper(),
-        "aadhaar": aadhaar_clean,
+        "pan": encrypt_field(user_data.pan.upper(), user_dek),
+        "aadhaar": encrypt_field(aadhaar_clean, user_dek),
+        "encryption_key": user_dek,
         "created_at": now,
     }
     await db.users.insert_one(user_doc)
