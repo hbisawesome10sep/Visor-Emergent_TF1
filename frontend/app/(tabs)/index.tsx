@@ -96,7 +96,6 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState<FrequencyOption>('Month');
-  const [showTxnModal, setShowTxnModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   
