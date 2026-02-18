@@ -164,6 +164,13 @@ export default function TransactionsScreen() {
   useEffect(() => { fetchTxns(); }, [fetchTxns]);
   const onRefresh = () => { setRefreshing(true); fetchTxns(); };
 
+  // Auto-open add modal when navigated with action=add
+  useEffect(() => {
+    if (params.action === 'add' && params.type) {
+      openAdd(params.type);
+    }
+  }, [params.action, params.type]);
+
   // ── Modal handlers ──
   const openAdd = (type?: string) => {
     setEditingTxn(null);
