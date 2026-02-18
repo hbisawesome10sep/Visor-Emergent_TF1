@@ -27,6 +27,10 @@ const TABS = [
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
+  const {
+    isPinSetup, isBiometricEnabled, isBiometricAvailable,
+    isSecuritySetupDone, toggleBiometric, resetSecurity, lock,
+  } = useSecurity();
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 70 + insets.top;
   const router = useRouter();
