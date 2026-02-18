@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
+import { useScreenContext } from '../../src/context/ScreenContext';
 import { apiRequest } from '../../src/utils/api';
 import {
   formatINR,
