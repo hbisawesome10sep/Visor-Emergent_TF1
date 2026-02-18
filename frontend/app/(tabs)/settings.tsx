@@ -28,7 +28,7 @@ const TABS = [
 ];
 
 export default function SettingsScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
   const {
     isPinSetup, isBiometricEnabled, isBiometricAvailable,
