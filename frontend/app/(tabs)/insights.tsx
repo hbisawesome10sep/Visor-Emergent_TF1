@@ -423,33 +423,20 @@ export default function InsightsScreen() {
 
   // Use backend-provided health score (consistent with Dashboard)
   const healthScore = stats?.health_score?.overall ?? 0;
-  const scoreInfo = getScoreLabel(healthScore);
-  const scoreColor = getScoreColor(healthScore);
   const breakdown = stats?.health_score?.breakdown ?? { savings: 0, investments: 0, spending: 0, goals: 0 };
 
   // Calculate all financial metrics
   const emiEstimate = expenses * 0.35;
-  const emiRatio = income > 0 ? (emiEstimate / income) * 100 : 0;
   const investmentRate = income > 0 ? (investments / income) * 100 : 0;
   const spendingRate = income > 0 ? (expenses / income) * 100 : 0;
   const monthlySavings = income - expenses;
   const runwayMonths = expenses > 0 ? Math.max(0, (monthlySavings * 6) / expenses) : 0;
-  const foirRatio = income > 0 ? ((emiEstimate + (expenses * 0.15)) / income) * 100 : 0;
-  const currentWealth = investments * 12;
-  const projectedWealth5Years = currentWealth * Math.pow(1.12, 5);
-
-  // Indian benchmarks
-  const indianAvgSavingsRate = 5.1;
-  const indianAvgInvestmentRate = 11.4;
-  const indianAvgExpenseRatio = 75;
-  const isBetterThanAverage = savingsRate > indianAvgSavingsRate;
 
   // Spending breakdown
   const spendingData = Object.entries(stats?.category_breakdown || {})
     .map(([category, amount]) => ({ category, amount: amount as number }))
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 6);
-  const totalSpending = spendingData.reduce((s, d) => s + d.amount, 0) || 1;
 
   // AI Recommendations based on real data
   const aiRecommendations = [
