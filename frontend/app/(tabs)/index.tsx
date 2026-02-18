@@ -84,7 +84,7 @@ function getScoreColor(score: number): string {
 
 export default function DashboardScreen() {
   const { user, token } = useAuth();
-  const { colors, isDark, setThemeMode } = useTheme();
+  const { colors, isDark } = useTheme();
   const { setCurrentScreen } = useScreenContext();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -224,10 +224,6 @@ export default function DashboardScreen() {
     setDateRange({ start: customStartDate, end: customEndDate });
     setSelectedFrequency('Custom');
     setShowDatePicker(false);
-  };
-
-  const toggleTheme = () => {
-    setThemeMode(isDark ? 'light' : 'dark');
   };
 
   if (loading) {
