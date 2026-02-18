@@ -36,6 +36,7 @@ const QUICK_PROMPTS = [
 ];
 
 export default function AIAdvisorChat({ token, colors, isDark }: Props) {
+  const { getScreenContext, setCurrentScreen } = useScreenContext();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
