@@ -191,8 +191,11 @@ export default function InvestmentsScreen() {
       setCapitalGainsData(capGains);
       // Set user tax deductions
       if (userTaxDeductionsData?.deductions) {
+        console.log('[Investments] User tax deductions loaded:', userTaxDeductionsData.deductions.length);
         setUserTaxDeductions(userTaxDeductionsData.deductions);
         setUserDeductions(userTaxDeductionsData.deductions.map((d: any) => d.deduction_id));
+      } else {
+        console.log('[Investments] No user tax deductions found');
       }
       if (savedRisk && savedRisk.profile) {
         setRiskProfile(savedRisk.profile);
