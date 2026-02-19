@@ -212,6 +212,7 @@ export default function InvestmentsScreen() {
       if (!isNaN(d.getTime())) current = d;
     }
     setDatePickerValue(current);
+    setIosPickerDate(current);
     setDatePickerTarget(target);
     setShowDatePicker(true);
   };
