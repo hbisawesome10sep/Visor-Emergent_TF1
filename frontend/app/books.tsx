@@ -254,7 +254,9 @@ export default function BooksScreen() {
   const [datePreset, setDatePreset] = useState<string>('year');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showBooksNativePicker, setShowBooksNativePicker] = useState(false);
+  const [booksPickerTarget, setBooksPickerTarget] = useState<'custom_from' | 'custom_to' | 'asset_date' | 'loan_date'>('custom_from');
+  const [booksPickerValue, setBooksPickerValue] = useState(new Date());
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
