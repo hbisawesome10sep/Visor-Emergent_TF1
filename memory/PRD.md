@@ -83,8 +83,11 @@ Build a comprehensive personal finance management application for Indian users w
 - `GET /api/portfolio-overview` - Portfolio summary
 - `GET /api/tax-summary` - Tax deduction summary
 - `GET /api/capital-gains` - Capital gains breakdown
-- `GET /api/tax-calculator?fy=2025-26` - **NEW** Income tax calculator
+- `GET /api/tax-calculator?fy=2025-26` - Income tax calculator
 - `GET/POST/PUT/DELETE /api/user-tax-deductions` - User tax deductions CRUD
+- `GET /api/auto-tax-deductions?fy=2025-26` - **NEW** Auto-detected deductions from transactions
+- `DELETE /api/auto-tax-deductions/{id}` - **NEW** Dismiss auto-detected deduction
+- `PUT /api/auto-tax-deductions/{id}` - **NEW** Edit auto-detected deduction amount
 - `POST /api/ai/chat` - AI advisor with screen context
 - `GET /api/goals` - Financial goals
 - `GET /api/risk-profile` - Risk assessment
