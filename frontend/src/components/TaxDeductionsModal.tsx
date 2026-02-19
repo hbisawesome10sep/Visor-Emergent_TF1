@@ -104,212 +104,46 @@ export default function TaxDeductionsModal({
 
   return (
     <>
-      {/* Main Browser Modal */}
+      {/* Main Browser Modal - with inline detail view (avoids iOS nested modal issue) */}
       <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-          {/* Header */}
-          <View style={[styles.header, {
-            backgroundColor: isDark ? '#000' : '#fff',
-            borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-          }]}>
-            <View style={styles.headerLeft}>
-              <LinearGradient
-                colors={['#F97316', '#EA580C']}
-                style={styles.headerIcon}
-              >
-                <MaterialCommunityIcons name="file-document-multiple" size={22} color="#fff" />
-              </LinearGradient>
-              <View>
-                <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Tax Deductions</Text>
-                <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                  Chapter VI-A • FY 2025-26
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-              onPress={onClose}
-            >
-              <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Search Bar */}
-          <View style={[styles.searchContainer, {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-          }]}>
-            <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.textPrimary }]}
-              placeholder="Search deductions..."
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <MaterialCommunityIcons name="close-circle" size={18} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Category Pills */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryScrollWrapper}
-            contentContainerStyle={styles.categoryScroll}
-          >
-            {CATEGORIES.map(cat => (
-              <TouchableOpacity
-                key={cat.key}
-                style={[
-                  styles.categoryPill,
-                  {
-                    backgroundColor: selectedCategory === cat.key
-                      ? '#F97316'
-                      : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                  },
-                ]}
-                onPress={() => setSelectedCategory(cat.key)}
-              >
-                <MaterialCommunityIcons
-                  name={cat.icon as any}
-                  size={14}
-                  color={selectedCategory === cat.key ? '#fff' : colors.textSecondary}
-                />
-                <Text style={[
-                  styles.categoryText,
-                  { color: selectedCategory === cat.key ? '#fff' : colors.textPrimary },
-                ]}>
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* Deductions List */}
-          <ScrollView
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-              {filteredDeductions.length} deductions found
-            </Text>
-
-            {filteredDeductions.map(deduction => {
-              const isAdded = userDeductions.includes(deduction.id);
-              return (
+          {/* ═══ DETAIL VIEW (shown inline when a deduction is selected) ═══ */}
+          {showDetailModal && selectedDeduction ? (
+            <View style={[styles.container, { backgroundColor: colors.background }]}>
+              {/* Detail Header */}
+              <View style={[styles.header, {
+                backgroundColor: isDark ? '#000' : '#fff',
+                borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+              }]}>
                 <TouchableOpacity
-                  key={deduction.id}
-                  style={[styles.deductionCard, {
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                  }]}
-                  onPress={() => handleSelectDeduction(deduction)}
-                  activeOpacity={0.7}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                  onPress={() => setShowDetailModal(false)}
                 >
-                  <View style={styles.deductionHeader}>
-                    <View style={[styles.deductionIcon, {
-                      backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.1)',
-                    }]}>
-                      <MaterialCommunityIcons
-                        name={deduction.icon as any}
-                        size={20}
-                        color="#F97316"
-                      />
-                    </View>
-                    <View style={styles.deductionInfo}>
-                      <View style={styles.deductionTitleRow}>
-                        <Text style={[styles.deductionSection, { color: '#F97316' }]}>
-                          {deduction.section}
-                        </Text>
-                        {isAdded && (
-                          <View style={styles.addedBadge}>
-                            <MaterialCommunityIcons name="check" size={10} color="#fff" />
-                            <Text style={styles.addedText}>Added</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={[styles.deductionName, { color: colors.textPrimary }]} numberOfLines={1}>
-                        {deduction.name}
-                      </Text>
-                      <Text style={[styles.deductionDesc, { color: colors.textSecondary }]} numberOfLines={2}>
-                        {deduction.shortDescription}
-                      </Text>
-                    </View>
-                    <View style={styles.deductionActions}>
-                      <View style={[styles.limitBadge, {
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                      }]}>
-                        <Text style={[styles.limitText, { color: colors.textPrimary }]}>
-                          {deduction.limit ? `₹${(deduction.limit / 100000).toFixed(1)}L` : 'No Limit'}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        style={[styles.infoBtn, {
-                          backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                        }]}
-                        onPress={() => handleSelectDeduction(deduction)}
-                      >
-                        <MaterialCommunityIcons name="information" size={18} color={colors.textSecondary} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                  <MaterialCommunityIcons name="arrow-left" size={22} color={colors.textPrimary} />
+                  <Text style={[styles.headerTitle, { color: colors.textPrimary, fontSize: 16 }]}>Back to Deductions</Text>
                 </TouchableOpacity>
-              );
-            })}
-
-            {filteredDeductions.length === 0 && (
-              <View style={styles.emptyState}>
-                <MaterialCommunityIcons name="file-search" size={48} color={colors.textSecondary} />
-                <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-                  No deductions found
-                </Text>
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  Try a different search term or category
-                </Text>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+                  onPress={() => { setShowDetailModal(false); onClose(); }}
+                >
+                  <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
+                </TouchableOpacity>
               </View>
-            )}
 
-            <View style={{ height: 100 }} />
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Detail Modal */}
-      <Modal
-        visible={showDetailModal && selectedDeduction !== null}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowDetailModal(false)}
-      >
-        <View style={styles.detailOverlay}>
-          <View style={[styles.detailContent, { backgroundColor: colors.surface }]}>
-            <View style={styles.detailHandle} />
-
-            {selectedDeduction && (
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Header */}
-                <View style={styles.detailHeader}>
-                  <View style={[styles.detailIconLarge, {
-                    backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.1)',
-                  }]}>
-                    <MaterialCommunityIcons
-                      name={selectedDeduction.icon as any}
-                      size={32}
-                      color="#F97316"
-                    />
-                  </View>
-                  <TouchableOpacity
-                    style={[styles.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-                    onPress={() => setShowDetailModal(false)}
-                  >
-                    <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
-                  </TouchableOpacity>
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Icon */}
+                <View style={[styles.detailIconLarge, {
+                  backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.1)',
+                  marginBottom: 16,
+                }]}>
+                  <MaterialCommunityIcons name={selectedDeduction.icon as any} size={32} color="#F97316" />
                 </View>
 
+                {/* Badges */}
                 <View style={styles.detailBadgeRow}>
                   <View style={[styles.sectionBadge, { backgroundColor: '#F9731620' }]}>
                     <Text style={styles.sectionBadgeText}>{selectedDeduction.section}</Text>
@@ -413,11 +247,181 @@ export default function TaxDeductionsModal({
                     }
                   </Text>
                 </TouchableOpacity>
-
-                <View style={{ height: 40 }} />
               </ScrollView>
-            )}
-          </View>
+            </View>
+          ) : (
+            /* ═══ BROWSER LIST VIEW ═══ */
+            <>
+              {/* Header */}
+              <View style={[styles.header, {
+                backgroundColor: isDark ? '#000' : '#fff',
+                borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+              }]}>
+                <View style={styles.headerLeft}>
+                  <LinearGradient
+                    colors={['#F97316', '#EA580C']}
+                    style={styles.headerIcon}
+                  >
+                    <MaterialCommunityIcons name="file-document-multiple" size={22} color="#fff" />
+                  </LinearGradient>
+                  <View>
+                    <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Tax Deductions</Text>
+                    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                      Chapter VI-A • FY 2025-26
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
+                  onPress={onClose}
+                >
+                  <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Search Bar */}
+              <View style={[styles.searchContainer, {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+              }]}>
+                <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
+                <TextInput
+                  style={[styles.searchInput, { color: colors.textPrimary }]}
+                  placeholder="Search deductions..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <MaterialCommunityIcons name="close-circle" size={18} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Category Pills */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.categoryScrollWrapper}
+                contentContainerStyle={styles.categoryScroll}
+              >
+                {CATEGORIES.map(cat => (
+                  <TouchableOpacity
+                    key={cat.key}
+                    style={[
+                      styles.categoryPill,
+                      {
+                        backgroundColor: selectedCategory === cat.key
+                          ? '#F97316'
+                          : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                      },
+                    ]}
+                    onPress={() => setSelectedCategory(cat.key)}
+                  >
+                    <MaterialCommunityIcons
+                      name={cat.icon as any}
+                      size={14}
+                      color={selectedCategory === cat.key ? '#fff' : colors.textSecondary}
+                    />
+                    <Text style={[
+                      styles.categoryText,
+                      { color: selectedCategory === cat.key ? '#fff' : colors.textPrimary },
+                    ]}>
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Deductions List */}
+              <ScrollView
+                style={styles.list}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+                  {filteredDeductions.length} deductions found
+                </Text>
+
+                {filteredDeductions.map(deduction => {
+                  const isAdded = userDeductions.includes(deduction.id);
+                  return (
+                    <TouchableOpacity
+                      key={deduction.id}
+                      style={[styles.deductionCard, {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                      }]}
+                      onPress={() => handleSelectDeduction(deduction)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.deductionHeader}>
+                        <View style={[styles.deductionIcon, {
+                          backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.1)',
+                        }]}>
+                          <MaterialCommunityIcons
+                            name={deduction.icon as any}
+                            size={20}
+                            color="#F97316"
+                          />
+                        </View>
+                        <View style={styles.deductionInfo}>
+                          <View style={styles.deductionTitleRow}>
+                            <Text style={[styles.deductionSection, { color: '#F97316' }]}>
+                              {deduction.section}
+                            </Text>
+                            {isAdded && (
+                              <View style={styles.addedBadge}>
+                                <MaterialCommunityIcons name="check" size={10} color="#fff" />
+                                <Text style={styles.addedText}>Added</Text>
+                              </View>
+                            )}
+                          </View>
+                          <Text style={[styles.deductionName, { color: colors.textPrimary }]} numberOfLines={1}>
+                            {deduction.name}
+                          </Text>
+                          <Text style={[styles.deductionDesc, { color: colors.textSecondary }]} numberOfLines={2}>
+                            {deduction.shortDescription}
+                          </Text>
+                        </View>
+                        <View style={styles.deductionActions}>
+                          <View style={[styles.limitBadge, {
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                          }]}>
+                            <Text style={[styles.limitText, { color: colors.textPrimary }]}>
+                              {deduction.limit ? `₹${(deduction.limit / 100000).toFixed(1)}L` : 'No Limit'}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            style={[styles.infoBtn, {
+                              backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                            }]}
+                            onPress={() => handleSelectDeduction(deduction)}
+                          >
+                            <MaterialCommunityIcons name="information" size={18} color={colors.textSecondary} />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+
+                {filteredDeductions.length === 0 && (
+                  <View style={styles.emptyState}>
+                    <MaterialCommunityIcons name="file-search" size={48} color={colors.textSecondary} />
+                    <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                      No deductions found
+                    </Text>
+                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                      Try a different search term or category
+                    </Text>
+                  </View>
+                )}
+
+                <View style={{ height: 100 }} />
+              </ScrollView>
+            </>
+          )}
         </View>
       </Modal>
     </>
