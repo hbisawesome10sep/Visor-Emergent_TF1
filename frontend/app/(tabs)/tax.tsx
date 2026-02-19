@@ -857,6 +857,15 @@ const styles = StyleSheet.create({
   deductionAmountLabel: { fontSize: 12, fontFamily: 'DM Sans' },
   deductionAmountValue: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700' },
 
+  // Auto-Detected Deductions
+  autoDetectedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  autoCountBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, minWidth: 22, alignItems: 'center' },
+  autoTxnRow: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 10 },
+  autoTxnName: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' },
+  autoTxnMeta: { fontSize: 10, fontFamily: 'DM Sans' },
+  autoTxnBadge: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
+  autoTxnAmount: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' },
+
   // Regime Toggle
   regimeToggle: { flexDirection: 'row', borderRadius: 12, padding: 4, marginBottom: 14 },
   regimeBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
