@@ -57,7 +57,11 @@ Build a comprehensive personal finance management application for Indian users w
   - Savings recommendation
 - **AI Contextual Awareness** updated for Tax screen
 
-### Tax Rules Implemented (FY 2025-26 / AY 2026-27)
+### Calendar Picker Integration (Feb 2026) (Complete)
+- **Dashboard**: Custom date range picker redesigned — native calendar dialog opens correctly on Android
+- **Investments Screen**: Goal deadline, holding buy date, and SIP start date now use native calendar pickers instead of manual YYYY-MM-DD text input
+- **Books & Reports**: Custom date range From/To, asset purchase date, and loan start date all use native calendar pickers
+- **Root cause fix**: DateTimePicker rendered OUTSIDE modals (correct Android pattern: `display="default"` for calendar dialog, conditionally rendered, dismissed after selection)
 - **Old Regime**: ₹0-2.5L@0%, 2.5-5L@5%, 5-10L@20%, 10L+@30%
   - Standard Deduction: ₹50,000
   - Rebate u/s 87A: ≤₹5L → ₹12,500
@@ -100,7 +104,6 @@ Build a comprehensive personal finance management application for Indian users w
 ## Prioritized Backlog
 
 ### P0 (High Priority)
-- Custom Date Range bug on Dashboard (recurring issue)
 - Data Source Integration (Phase 3/4) - Gmail/SMS auto-import
 - Complete Data Encryption for all PII
 
