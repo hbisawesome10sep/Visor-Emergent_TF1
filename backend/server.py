@@ -1662,8 +1662,72 @@ async def delete_user_tax_deduction(deduction_id: str, user=Depends(get_current_
 
 
 # ══════════════════════════════════════
-#  INCOME TAX CALCULATOR
+#  AUTO-DETECTED TAX DEDUCTIONS
 # ══════════════════════════════════════
+
+@api_router.get("/auto-tax-deductions")
+async def get_auto_tax_deductions(user=Depends(get_current_user), fy: str = "2025-26"):
+    """Get all auto-detected tax deductions for a financial year, grouped by section."""
+    deductions = await db.auto_tax_deductions.find(
+        {"user_id": user["id"], "fy": fy}, {"_id": 0}
+    ).to_list(500)
+
+    # Group by section and compute totals
+    sections = {}
+    for d in deductions:
+        sid = d["section"]
+        if sid not in sections:
+            sections[sid] = {
+                "section": sid,
+                "section_label": d.get("section_label", TAX_SECTION_NAMES.get(sid, sid)),
+                "limit": d.get("limit", TAX_SECTION_LIMITS.get(sid, 0)),
+                "total_amount": 0,
+                "transactions": [],
+            }
+        sections[sid]["total_amount"] = round(sections[sid]["total_amount"] + d["amount"], 2)
+        sections[sid]["transactions"].append({
+            "id": d["id"],
+            "transaction_id": d["transaction_id"],
+            "name": d["name"],
+            "amount": d["amount"],
+            "detected_from": d.get("detected_from", ""),
+            "source_category": d.get("source_category", ""),
+            "source_description": d.get("source_description", ""),
+            "source_date": d.get("source_date", ""),
+        })
+
+    return {
+        "fy": fy,
+        "sections": list(sections.values()),
+        "total_detected": round(sum(s["total_amount"] for s in sections.values()), 2),
+        "count": len(deductions),
+    }
+
+
+@api_router.delete("/auto-tax-deductions/{deduction_id}")
+async def dismiss_auto_tax_deduction(deduction_id: str, user=Depends(get_current_user)):
+    """Dismiss/remove a specific auto-detected deduction (user override)."""
+    result = await db.auto_tax_deductions.delete_one({
+        "user_id": user["id"], "id": deduction_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Auto deduction not found")
+    return {"status": "dismissed"}
+
+
+@api_router.put("/auto-tax-deductions/{deduction_id}")
+async def update_auto_tax_deduction_amount(deduction_id: str, data: UserTaxDeductionUpdate, user=Depends(get_current_user)):
+    """Allow user to override the auto-detected deduction amount."""
+    result = await db.auto_tax_deductions.update_one(
+        {"user_id": user["id"], "id": deduction_id},
+        {"$set": {"amount": data.invested_amount}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Auto deduction not found")
+    updated = await db.auto_tax_deductions.find_one(
+        {"user_id": user["id"], "id": deduction_id}, {"_id": 0}
+    )
+    return updated
 
 def calculate_old_regime_tax(taxable_income: float) -> dict:
     """Calculate tax under Old Regime (FY 2025-26 / AY 2026-27)."""
