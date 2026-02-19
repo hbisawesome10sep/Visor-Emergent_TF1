@@ -1248,8 +1248,19 @@ export default function InvestmentsScreen() {
                 <TextInput data-testid="goal-current-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
                   value={goalForm.current_amount} onChangeText={v => setGoalForm(p => ({ ...p, current_amount: v }))} placeholder="Saved" placeholderTextColor={colors.textSecondary} keyboardType="decimal-pad" />
               </View>
-              <TextInput data-testid="goal-deadline-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
+              <TextInput data-testid="goal-deadline-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary, display: 'none' }]}
                 value={goalForm.deadline} onChangeText={v => setGoalForm(p => ({ ...p, deadline: v }))} placeholder="Deadline (YYYY-MM-DD)" placeholderTextColor={colors.textSecondary} />
+              <TouchableOpacity
+                data-testid="goal-deadline-picker"
+                style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                onPress={() => openInvestDatePicker('goal_deadline')}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: goalForm.deadline ? colors.textPrimary : colors.textSecondary, fontSize: 15, fontFamily: 'DM Sans' }}>
+                  {goalForm.deadline ? new Date(goalForm.deadline).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Deadline'}
+                </Text>
+                <MaterialCommunityIcons name="calendar" size={20} color={colors.primary} />
+              </TouchableOpacity>
               <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
                 {GOAL_CATS.map(c => (
