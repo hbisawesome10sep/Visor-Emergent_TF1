@@ -1982,26 +1982,34 @@ export default function BooksScreen() {
       {/* Custom Date Input (when custom is selected) */}
       {datePreset === 'custom' && (
         <View style={{ flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12, gap: 8 }}>
-          <View style={{ flex: 1 }}>
+          <TouchableOpacity
+            data-testid="books-custom-from-btn"
+            style={{ flex: 1 }}
+            onPress={() => openBooksDatePicker('custom_from')}
+            activeOpacity={0.7}
+          >
             <Text style={{ fontSize: 11, color: isDark ? '#94A3B8' : '#64748B', marginBottom: 4 }}>From</Text>
-            <TextInput
-              style={[styles.input, { paddingVertical: 10, fontSize: 13 }]}
-              value={customStartDate}
-              onChangeText={setCustomStartDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
+            <View style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }]}>
+              <Text style={{ fontSize: 13, color: customStartDate ? (isDark ? '#F8FAFC' : '#0A0A0B') : (isDark ? '#64748B' : '#94A3B8'), fontFamily: 'DM Sans' }}>
+                {customStartDate ? new Date(customStartDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Date'}
+              </Text>
+              <MaterialCommunityIcons name="calendar" size={18} color={isDark ? '#6366F1' : '#4F46E5'} />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            data-testid="books-custom-to-btn"
+            style={{ flex: 1 }}
+            onPress={() => openBooksDatePicker('custom_to')}
+            activeOpacity={0.7}
+          >
             <Text style={{ fontSize: 11, color: isDark ? '#94A3B8' : '#64748B', marginBottom: 4 }}>To</Text>
-            <TextInput
-              style={[styles.input, { paddingVertical: 10, fontSize: 13 }]}
-              value={customEndDate}
-              onChangeText={setCustomEndDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-            />
-          </View>
+            <View style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }]}>
+              <Text style={{ fontSize: 13, color: customEndDate ? (isDark ? '#F8FAFC' : '#0A0A0B') : (isDark ? '#64748B' : '#94A3B8'), fontFamily: 'DM Sans' }}>
+                {customEndDate ? new Date(customEndDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Date'}
+              </Text>
+              <MaterialCommunityIcons name="calendar" size={18} color={isDark ? '#6366F1' : '#4F46E5'} />
+            </View>
+          </TouchableOpacity>
         </View>
       )}
 
