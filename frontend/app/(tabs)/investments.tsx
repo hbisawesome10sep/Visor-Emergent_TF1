@@ -165,7 +165,7 @@ export default function InvestmentsScreen() {
       const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, rebalancing, recurringTxns] = await Promise.all([
         apiRequest('/dashboard/stats', { token }),
         apiRequest('/goals', { token }),
-        apiRequest('/market-data', {}),
+        apiRequest('/market-data?force=true', {}),
         apiRequest('/portfolio-overview', { token }),
         apiRequest('/holdings/live', { token }),
         apiRequest('/risk-profile', { token }),
