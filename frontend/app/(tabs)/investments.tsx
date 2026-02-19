@@ -1442,6 +1442,31 @@ export default function InvestmentsScreen() {
                 </Text>
                 <MaterialCommunityIcons name="calendar" size={20} color={colors.primary} />
               </TouchableOpacity>
+              {/* Inline iOS date picker for holding buy date */}
+              {showDatePicker && datePickerTarget === 'holding_buy_date' && Platform.OS === 'ios' && (
+                <View style={{ borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: 12, overflow: 'hidden', marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
+                    <Text style={{ fontSize: 13, color: colors.primary, fontFamily: 'DM Sans', fontWeight: '700' }}>Select Buy Date</Text>
+                    <TouchableOpacity onPress={() => {
+                      const formatted = iosPickerDate.toISOString().split('T')[0];
+                      setHoldingForm(f => ({ ...f, buy_date: formatted }));
+                      setShowDatePicker(false);
+                    }} style={{ paddingHorizontal: 12, paddingVertical: 5, backgroundColor: colors.primary, borderRadius: 8 }}>
+                      <Text style={{ fontSize: 13, color: '#fff', fontFamily: 'DM Sans', fontWeight: '700' }}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={iosPickerDate}
+                    mode="date"
+                    display="spinner"
+                    themeVariant={isDark ? 'dark' : 'light'}
+                    maximumDate={new Date()}
+                    minimumDate={new Date(2015, 0, 1)}
+                    onChange={(event: any, date?: Date) => { if (date) setIosPickerDate(date); }}
+                    style={{ height: 150 }}
+                  />
+                </View>
+              )}
               <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
                 {HOLDING_CATS.map(c => (
