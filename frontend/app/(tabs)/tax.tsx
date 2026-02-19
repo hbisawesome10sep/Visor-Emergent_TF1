@@ -139,6 +139,39 @@ export default function TaxScreen() {
     ]);
   };
 
+  // Auto-detected deduction handlers
+  const handleEditAutoDeduction = (txn: any) => {
+    setEditingAutoDeduction(txn);
+    setAutoDeductionAmount(txn.amount?.toString() || '0');
+    setShowEditAutoModal(true);
+  };
+
+  const handleSaveAutoDeductionAmount = async () => {
+    if (!token || !editingAutoDeduction) return;
+    try {
+      const amount = parseFloat(autoDeductionAmount) || 0;
+      await apiRequest(`/auto-tax-deductions/${editingAutoDeduction.id}`, {
+        method: 'PUT', token, body: { invested_amount: amount },
+      });
+      setShowEditAutoModal(false);
+      setEditingAutoDeduction(null);
+      fetchData();
+    } catch (e: any) { Alert.alert('Error', e.message || 'Failed to update amount'); }
+  };
+
+  const handleDismissAutoDeduction = (txn: any) => {
+    Alert.alert('Dismiss Deduction', `Remove this auto-detected deduction for "${txn.name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Dismiss', style: 'destructive', onPress: async () => {
+        if (!token) return;
+        try {
+          await apiRequest(`/auto-tax-deductions/${txn.id}`, { method: 'DELETE', token });
+          fetchData();
+        } catch (e: any) { Alert.alert('Error', e.message || 'Failed to dismiss'); }
+      }},
+    ]);
+  };
+
   const taxSections = taxData?.sections || [];
   const regimeData = taxCalcData ? (activeRegime === 'old' ? taxCalcData.old_regime : taxCalcData.new_regime) : null;
 
