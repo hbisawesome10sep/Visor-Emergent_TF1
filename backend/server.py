@@ -437,6 +437,8 @@ async def delete_transaction(txn_id: str, user=Depends(get_current_user)):
     result = await db.transactions.delete_one({"id": txn_id, "user_id": user["id"]})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Transaction not found")
+    # Remove any auto-detected tax deduction linked to this transaction
+    await remove_auto_tax_deduction(user["id"], txn_id)
     return {"message": "Transaction deleted"}
 
 @api_router.put("/transactions/{txn_id}", response_model=TransactionResponse)
@@ -460,6 +462,13 @@ async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(g
         "price_per_unit": txn.price_per_unit,
     }
     await db.transactions.update_one({"id": txn_id, "user_id": user["id"]}, {"$set": update_data})
+    # Re-evaluate auto-detected tax deduction
+    await update_auto_tax_deduction(
+        user_id=user["id"], txn_id=txn_id,
+        category=txn.category, description=txn.description,
+        notes=txn.notes or "", txn_type=txn.type,
+        amount=txn.amount, date_str=txn.date,
+    )
     updated = await db.transactions.find_one({"id": txn_id}, {"_id": 0})
     return TransactionResponse(**updated)
 
