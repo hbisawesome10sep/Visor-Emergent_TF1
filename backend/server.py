@@ -400,7 +400,7 @@ async def get_transactions(
 
 @api_router.post("/transactions", response_model=TransactionResponse)
 async def create_transaction(txn: TransactionCreate, user=Depends(get_current_user)):
-    txn_id = str(uuid.uuid4())
+    txn_id = str(uuid4())
     now = datetime.now(timezone.utc).isoformat()
     txn_doc = {
         "id": txn_id,
@@ -421,6 +421,15 @@ async def create_transaction(txn: TransactionCreate, user=Depends(get_current_us
         "created_at": now,
     }
     await db.transactions.insert_one(txn_doc)
+
+    # Auto-detect tax deduction
+    await process_auto_tax_deduction(
+        user_id=user["id"], txn_id=txn_id,
+        category=txn.category, description=txn.description,
+        notes=txn.notes or "", txn_type=txn.type,
+        amount=txn.amount, date_str=txn.date,
+    )
+
     return TransactionResponse(**txn_doc)
 
 @api_router.delete("/transactions/{txn_id}")
