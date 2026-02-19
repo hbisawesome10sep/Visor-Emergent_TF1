@@ -1547,14 +1547,17 @@ export default function InvestmentsScreen() {
               <View style={styles.inputRow}>
                 <View style={styles.halfInput}>
                   <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Start Date</Text>
-                  <TextInput
-                    data-testid="sip-start-input"
-                    style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                    value={sipForm.start_date}
-                    onChangeText={(v) => setSipForm({ ...sipForm, start_date: v })}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor={colors.textSecondary}
-                  />
+                  <TouchableOpacity
+                    data-testid="sip-start-picker"
+                    style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                    onPress={() => openInvestDatePicker('sip_start_date')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={{ color: sipForm.start_date ? colors.textPrimary : colors.textSecondary, fontSize: 13, fontFamily: 'DM Sans' }}>
+                      {sipForm.start_date ? new Date(sipForm.start_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Date'}
+                    </Text>
+                    <MaterialCommunityIcons name="calendar" size={18} color={colors.primary} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.halfInput}>
                   <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Day of Month</Text>
