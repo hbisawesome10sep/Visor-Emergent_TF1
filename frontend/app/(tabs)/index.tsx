@@ -227,6 +227,22 @@ export default function DashboardScreen() {
     setShowDatePicker(false);
   };
 
+  const openDatePicker = (field: 'start' | 'end') => {
+    setActivePickerField(field);
+    setShowNativePicker(true);
+  };
+
+  const handleNativeDateChange = (event: any, selectedDate?: Date) => {
+    // On Android, always dismiss first
+    setShowNativePicker(false);
+    if (event.type === 'dismissed' || !selectedDate) return;
+    if (activePickerField === 'start') {
+      setCustomStartDate(selectedDate);
+    } else {
+      setCustomEndDate(selectedDate);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
