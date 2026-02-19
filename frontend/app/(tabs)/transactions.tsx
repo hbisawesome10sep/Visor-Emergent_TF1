@@ -124,6 +124,40 @@ export default function TransactionsScreen() {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
 
+  // Tax eligibility hint (lightweight frontend detection)
+  const taxHint = useMemo(() => {
+    const cat = form.category;
+    const desc = (form.description + ' ' + (form.notes || '')).toLowerCase();
+    // Category-based
+    const catMap: Record<string, { section: string; label: string }> = {
+      'PPF': { section: '80C', label: 'PPF - Section 80C' },
+      'EPF': { section: '80C', label: 'EPF - Section 80C' },
+      'NPS': { section: '80C', label: 'NPS - Section 80C' },
+      'ELSS': { section: '80C', label: 'ELSS - Section 80C' },
+      'Fixed Deposit': { section: '80C', label: 'Tax Saver FD - Section 80C' },
+      'ULIP': { section: '80C', label: 'ULIP - Section 80C' },
+      'Insurance': { section: '80D', label: 'Health Insurance - Section 80D' },
+      'Donations': { section: '80G', label: 'Donations - Section 80G' },
+      'Education': { section: '80C', label: 'Tuition Fees - Section 80C' },
+    };
+    if (cat && catMap[cat]) return catMap[cat];
+    // Keyword-based
+    const kwMap: Array<{ keywords: string[]; section: string; label: string }> = [
+      { keywords: ['ppf', 'provident fund', 'pf contribution'], section: '80C', label: 'PF - Section 80C' },
+      { keywords: ['health insurance', 'mediclaim', 'medical insurance'], section: '80D', label: 'Health Insurance - Section 80D' },
+      { keywords: ['elss', 'tax saver', 'tax saving'], section: '80C', label: 'Tax Saver - Section 80C' },
+      { keywords: ['nps', 'pension'], section: '80C', label: 'NPS - Section 80C' },
+      { keywords: ['lic', 'life insurance', 'term insurance'], section: '80C', label: 'Life Insurance - Section 80C' },
+      { keywords: ['education loan', 'student loan'], section: '80E', label: 'Education Loan - Section 80E' },
+      { keywords: ['donation', 'charity', 'pm cares', 'ngo'], section: '80G', label: 'Donation - Section 80G' },
+      { keywords: ['home loan interest', 'housing loan interest'], section: '24b', label: 'Home Loan Interest - Section 24(b)' },
+    ];
+    for (const entry of kwMap) {
+      if (entry.keywords.some(kw => desc.includes(kw))) return { section: entry.section, label: entry.label };
+    }
+    return null;
+  }, [form.category, form.description, form.notes]);
+
   // Convert the date TextInput to type="date" on web for calendar picker
   useEffect(() => {
     if (Platform.OS !== 'web' || !showModal) return;
