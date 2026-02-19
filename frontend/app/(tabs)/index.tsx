@@ -115,6 +115,7 @@ export default function DashboardScreen() {
   // Custom date range input state - Date objects for calendar picker
   const [customStartDate, setCustomStartDate] = useState(new Date(new Date().getFullYear(), 0, 1));
   const [customEndDate, setCustomEndDate] = useState(new Date());
+  const [showNativePicker, setShowNativePicker] = useState(false);
   const [activePickerField, setActivePickerField] = useState<'start' | 'end'>('start');
 
   // Get date range based on frequency - no userCreatedAt constraint for Q/M/Y
