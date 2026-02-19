@@ -2412,30 +2412,31 @@ export default function BooksScreen() {
           onChange={handleBooksDateChange}
         />
       )}
-      {showBooksNativePicker && Platform.OS === 'ios' && (
+      {showBooksNativePicker && Platform.OS === 'ios' && (booksPickerTarget === 'custom_from' || booksPickerTarget === 'custom_to') && (
         <Modal visible transparent animationType="fade">
           <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-            <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 30 }}>
+            <View style={{ backgroundColor: isDark ? '#1F2937' : '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 30 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}>
                 <TouchableOpacity onPress={() => setShowBooksNativePicker(false)}>
                   <Text style={{ fontSize: 16, color: '#EF4444', fontFamily: 'DM Sans', fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
-                <Text style={{ fontSize: 15, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '700' }}>Select Date</Text>
+                <Text style={{ fontSize: 15, color: isDark ? '#F8FAFC' : '#0A0A0B', fontFamily: 'DM Sans', fontWeight: '700' }}>
+                  {booksPickerTarget === 'custom_from' ? 'From Date' : 'To Date'}
+                </Text>
                 <TouchableOpacity onPress={() => {
                   const formatted = booksIosPickerDate.toISOString().split('T')[0];
                   if (booksPickerTarget === 'custom_from') setCustomStartDate(formatted);
                   else if (booksPickerTarget === 'custom_to') setCustomEndDate(formatted);
-                  else if (booksPickerTarget === 'asset_date') setAssetForm(f => ({ ...f, purchase_date: formatted }));
-                  else if (booksPickerTarget === 'loan_date') setLoanForm(f => ({ ...f, start_date: formatted }));
                   setShowBooksNativePicker(false);
                 }}>
-                  <Text style={{ fontSize: 16, color: colors.primary, fontFamily: 'DM Sans', fontWeight: '700' }}>Done</Text>
+                  <Text style={{ fontSize: 16, color: '#4F46E5', fontFamily: 'DM Sans', fontWeight: '700' }}>Done</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker
                 value={booksIosPickerDate}
                 mode="date"
                 display="spinner"
+                themeVariant={isDark ? 'dark' : 'light'}
                 maximumDate={new Date(2040, 11, 31)}
                 minimumDate={new Date(2015, 0, 1)}
                 onChange={(event: any, date?: Date) => { if (date) setBooksIosPickerDate(date); }}
