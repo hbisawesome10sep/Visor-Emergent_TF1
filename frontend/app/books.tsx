@@ -2063,13 +2063,17 @@ export default function BooksScreen() {
                 </View>
                 
                 <Text style={styles.inputLabel}>Purchase Date</Text>
-                <TextInput
-                  style={styles.input}
-                  value={assetForm.purchase_date}
-                  onChangeText={(t) => setAssetForm(f => ({ ...f, purchase_date: t }))}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                />
+                <TouchableOpacity
+                  data-testid="asset-date-picker"
+                  style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                  onPress={() => openBooksDatePicker('asset_date')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 15, color: assetForm.purchase_date ? (isDark ? '#F8FAFC' : '#0A0A0B') : (isDark ? '#64748B' : '#94A3B8'), fontFamily: 'DM Sans' }}>
+                    {assetForm.purchase_date ? new Date(assetForm.purchase_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Date'}
+                  </Text>
+                  <MaterialCommunityIcons name="calendar" size={20} color={isDark ? '#6366F1' : '#4F46E5'} />
+                </TouchableOpacity>
                 
                 <Text style={styles.inputLabel}>Purchase Value (₹) *</Text>
                 <TextInput
@@ -2271,13 +2275,17 @@ export default function BooksScreen() {
                 />
                 
                 <Text style={styles.inputLabel}>Start Date</Text>
-                <TextInput
-                  style={styles.input}
-                  value={loanForm.start_date}
-                  onChangeText={(t) => setLoanForm(f => ({ ...f, start_date: t }))}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                />
+                <TouchableOpacity
+                  data-testid="loan-date-picker"
+                  style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                  onPress={() => openBooksDatePicker('loan_date')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 15, color: loanForm.start_date ? (isDark ? '#F8FAFC' : '#0A0A0B') : (isDark ? '#64748B' : '#94A3B8'), fontFamily: 'DM Sans' }}>
+                    {loanForm.start_date ? new Date(loanForm.start_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Date'}
+                  </Text>
+                  <MaterialCommunityIcons name="calendar" size={20} color={isDark ? '#6366F1' : '#4F46E5'} />
+                </TouchableOpacity>
                 
                 <Text style={styles.inputLabel}>EMI Amount (₹) - Auto-calculated if empty</Text>
                 <TextInput
