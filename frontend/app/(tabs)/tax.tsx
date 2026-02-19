@@ -744,6 +744,43 @@ export default function TaxScreen() {
         isDark={isDark}
         userDeductions={userDeductions}
       />
+
+      {/* Edit Auto-Detected Deduction Modal */}
+      <Modal visible={showEditAutoModal} transparent animationType="slide">
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={[styles.editModal, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <MaterialCommunityIcons name="lightning-bolt" size={16} color="#8B5CF6" />
+              <Text style={[styles.editModalTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Edit Auto-Detected Amount</Text>
+            </View>
+            {editingAutoDeduction && (
+              <>
+                <Text style={[styles.editModalSub, { color: colors.textSecondary }]}>{editingAutoDeduction.name}</Text>
+                <Text style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 12, fontFamily: 'DM Sans' }}>
+                  Source: {editingAutoDeduction.source_description || editingAutoDeduction.source_category} ({editingAutoDeduction.source_date})
+                </Text>
+              </>
+            )}
+            <TextInput
+              data-testid="auto-deduction-amount-input"
+              style={[styles.editModalInput, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', color: colors.textPrimary, borderColor: isDark ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.15)' }]}
+              placeholder="Enter amount"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="numeric"
+              value={autoDeductionAmount}
+              onChangeText={setAutoDeductionAmount}
+            />
+            <View style={styles.editModalBtns}>
+              <TouchableOpacity style={[styles.editModalCancelBtn, { borderColor: colors.border }]} onPress={() => setShowEditAutoModal(false)}>
+                <Text style={[styles.editModalCancelText, { color: colors.textSecondary }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity data-testid="save-auto-deduction-btn" style={[styles.editModalSaveBtn, { backgroundColor: '#8B5CF6' }]} onPress={handleSaveAutoDeductionAmount}>
+                <Text style={styles.editModalSaveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
