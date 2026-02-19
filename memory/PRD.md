@@ -62,6 +62,21 @@ Build a comprehensive personal finance management application for Indian users w
 - **Investments Screen**: Goal deadline, holding buy date, and SIP start date now use native calendar pickers instead of manual YYYY-MM-DD text input
 - **Books & Reports**: Custom date range From/To, asset purchase date, and loan start date all use native calendar pickers
 - **Root cause fix**: DateTimePicker rendered OUTSIDE modals (correct Android pattern: `display="default"` for calendar dialog, conditionally rendered, dismissed after selection)
+- **iOS fix (Feb 19)**: iOS DateTimePicker now wrapped in its own Modal overlay with Cancel/Done buttons (iOS renders spinner inline, not as dialog). Applied to Dashboard, Investments, and Books screens.
+
+### Auto Tax Deduction Detection (Feb 19, 2026) (Complete)
+- **Smart Detection Engine**: Analyzes transaction category + description + notes to auto-detect Income Tax deductions
+- **Supported Sections**: 80C (PPF, EPF, ELSS, NPS, LIC, FD, etc.), 80D (Health Insurance), 80CCD(1B) (NPS Additional), 80E (Education Loan), 80G (Donations), 80GG (Rent), 80TTA (Savings Interest), 24(b) (Home Loan Interest)
+- **FY-Aware**: Only transactions within the relevant Financial Year are considered for deductions
+- **Cascade CRUD**: Create transaction → auto-create deduction; Delete transaction → auto-remove deduction; Update transaction → re-evaluate deduction
+- **User Control**: Users can edit auto-detected deduction amounts or dismiss them entirely
+- **Frontend**: Auto-detected deductions shown on Tax screen with purple accent, source transaction info, edit/dismiss buttons
+- **Transaction Form**: Tax eligibility hint banner appears when entering a tax-deductible transaction
+- **Detection Priority**: Description keywords take priority over generic category mapping for accurate detection
+
+### iOS Bug Fixes (Feb 19, 2026) (Complete)
+- **DateTimePicker on iOS**: Fixed by wrapping in a dedicated Modal overlay with Cancel/Done buttons (iOS renders DateTimePicker inline, not as dialog like Android)
+- **TaxDeductionsModal nested modal**: Fixed by converting the detail view from a separate Modal into an inline conditional view within the same Modal (iOS doesn't support nested Modals properly)
 - **Old Regime**: ₹0-2.5L@0%, 2.5-5L@5%, 5-10L@20%, 10L+@30%
   - Standard Deduction: ₹50,000
   - Rebate u/s 87A: ≤₹5L → ₹12,500
