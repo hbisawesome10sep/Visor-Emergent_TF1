@@ -1595,6 +1595,18 @@ export default function InvestmentsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* ═══ NATIVE DATE PICKER (rendered outside modals for Android compatibility) ═══ */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={datePickerValue}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          maximumDate={datePickerTarget === 'goal_deadline' ? new Date(2040, 11, 31) : new Date()}
+          minimumDate={new Date(2015, 0, 1)}
+          onChange={handleInvestDateChange}
+        />
+      )}
+
     </View>
   );
 }
