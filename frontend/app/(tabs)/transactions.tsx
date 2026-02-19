@@ -899,6 +899,17 @@ export default function TransactionsScreen() {
                   multiline
                 />
 
+                {/* Tax Eligibility Hint */}
+                {taxHint && (
+                  <View data-testid="tax-eligibility-hint" style={[styles.taxHintBanner, { backgroundColor: isDark ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.08)', borderColor: isDark ? 'rgba(139,92,246,0.25)' : 'rgba(139,92,246,0.15)' }]}>
+                    <MaterialCommunityIcons name="lightning-bolt" size={16} color="#8B5CF6" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#8B5CF6', fontFamily: 'DM Sans' }}>Tax Deductible</Text>
+                      <Text style={{ fontSize: 11, color: isDark ? 'rgba(139,92,246,0.8)' : 'rgba(139,92,246,0.9)', fontFamily: 'DM Sans', marginTop: 1 }}>{taxHint.label} - auto-added to Tax Planning</Text>
+                    </View>
+                  </View>
+                )}
+
                 {/* Recurring Toggle */}
                 <View style={[styles.toggleCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
                   <View style={styles.toggleRow}>
