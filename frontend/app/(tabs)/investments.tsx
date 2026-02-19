@@ -1402,8 +1402,17 @@ export default function InvestmentsScreen() {
                 <TextInput data-testid="holding-price-input" style={[styles.input, styles.halfInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
                   value={holdingForm.buy_price} onChangeText={v => setHoldingForm(p => ({ ...p, buy_price: v }))} placeholder="Buy Price" placeholderTextColor={colors.textSecondary} keyboardType="decimal-pad" />
               </View>
-              <TextInput data-testid="holding-date-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-                value={holdingForm.buy_date} onChangeText={v => setHoldingForm(p => ({ ...p, buy_date: v }))} placeholder="Buy Date (YYYY-MM-DD)" placeholderTextColor={colors.textSecondary} />
+              <TouchableOpacity
+                data-testid="holding-date-picker"
+                style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                onPress={() => openInvestDatePicker('holding_buy_date')}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: holdingForm.buy_date ? colors.textPrimary : colors.textSecondary, fontSize: 15, fontFamily: 'DM Sans' }}>
+                  {holdingForm.buy_date ? new Date(holdingForm.buy_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select Buy Date'}
+                </Text>
+                <MaterialCommunityIcons name="calendar" size={20} color={colors.primary} />
+              </TouchableOpacity>
               <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Category</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
                 {HOLDING_CATS.map(c => (
