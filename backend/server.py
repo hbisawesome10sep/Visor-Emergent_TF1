@@ -3296,13 +3296,13 @@ async def seed_market_data():
     logger.info("Market data seeded successfully")
 
 @api_router.get("/market-data")
-async def get_market_data():
-    """Return market data, refreshing from yfinance if stale (>2 min)."""
+async def get_market_data(force: bool = False):
+    """Return market data, refreshing from yfinance if stale (>2 min) or forced."""
     data = await db.market_data.find({}, {"_id": 0}).to_list(10)
 
     # Check if data is stale
     is_stale = True
-    if data:
+    if data and not force:
         last_updated = data[0].get("last_updated", "")
         if last_updated:
             try:
@@ -3315,8 +3315,8 @@ async def get_market_data():
             except Exception:
                 pass
 
-    if is_stale:
-        logger.info("Market data stale, fetching live prices...")
+    if is_stale or force:
+        logger.info("Market data stale or force refresh, fetching live prices...")
         fresh = await refresh_all_market_data()
         if fresh:
             data = await db.market_data.find({}, {"_id": 0}).to_list(10)
