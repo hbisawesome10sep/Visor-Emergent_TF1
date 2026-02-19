@@ -45,6 +45,12 @@ export default function TaxScreen() {
   const [showEditDeductionModal, setShowEditDeductionModal] = useState(false);
   const [deductionAmount, setDeductionAmount] = useState('');
 
+  // Auto-detected deductions state
+  const [autoDeductions, setAutoDeductions] = useState<any>(null);
+  const [editingAutoDeduction, setEditingAutoDeduction] = useState<any | null>(null);
+  const [showEditAutoModal, setShowEditAutoModal] = useState(false);
+  const [autoDeductionAmount, setAutoDeductionAmount] = useState('');
+
   // Capital Gains state
   const [capitalGainsData, setCapitalGainsData] = useState<any>(null);
 
@@ -60,15 +66,17 @@ export default function TaxScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [taxSummary, userTaxDeductionsData, capGains, taxCalc] = await Promise.all([
+      const [taxSummary, userTaxDeductionsData, capGains, taxCalc, autoDeductionsData] = await Promise.all([
         apiRequest('/tax-summary', { token }),
         apiRequest('/user-tax-deductions', { token }),
         apiRequest('/capital-gains', { token }),
         apiRequest(`/tax-calculator?fy=${selectedFY.fy}`, { token }),
+        apiRequest(`/auto-tax-deductions?fy=${selectedFY.fy}`, { token }),
       ]);
       setTaxData(taxSummary);
       setCapitalGainsData(capGains);
       setTaxCalcData(taxCalc);
+      setAutoDeductions(autoDeductionsData);
       if (userTaxDeductionsData?.deductions) {
         setUserTaxDeductions(userTaxDeductionsData.deductions);
         setUserDeductions(userTaxDeductionsData.deductions.map((d: any) => d.deduction_id));
