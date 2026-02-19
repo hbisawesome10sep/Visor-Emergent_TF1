@@ -141,6 +141,10 @@ export default function InvestmentsScreen() {
   const [showHoldingModal, setShowHoldingModal] = useState(false);
   const [showCasModal, setShowCasModal] = useState(false);
   const [holdingForm, setHoldingForm] = useState({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
+  // Native date picker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerTarget, setDatePickerTarget] = useState<'goal_deadline' | 'holding_buy_date' | 'sip_start_date'>('goal_deadline');
+  const [datePickerValue, setDatePickerValue] = useState(new Date());
   const [casPassword, setCasPassword] = useState('');
   const [rebalanceData, setRebalanceData] = useState<any>(null);
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
