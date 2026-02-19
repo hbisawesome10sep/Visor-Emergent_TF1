@@ -1055,16 +1055,51 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      {/* ═══ NATIVE DATE PICKER (rendered outside modal for Android compatibility) ═══ */}
-      {showNativePicker && (
+      {/* ═══ NATIVE DATE PICKER (iOS: shown in overlay modal; Android: native dialog) ═══ */}
+      {showNativePicker && Platform.OS === 'android' && (
         <DateTimePicker
           value={activePickerField === 'start' ? customStartDate : customEndDate}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display="default"
           minimumDate={userCreatedAt ? new Date(userCreatedAt) : new Date(2020, 0, 1)}
           maximumDate={new Date()}
           onChange={handleNativeDateChange}
         />
+      )}
+      {showNativePicker && Platform.OS === 'ios' && (
+        <Modal visible transparent animationType="fade">
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+            <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 30 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}>
+                <TouchableOpacity onPress={() => setShowNativePicker(false)}>
+                  <Text style={{ fontSize: 16, color: '#EF4444', fontFamily: 'DM Sans', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={{ fontSize: 15, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '700' }}>
+                  {activePickerField === 'start' ? 'From Date' : 'To Date'}
+                </Text>
+                <TouchableOpacity onPress={() => {
+                  setShowNativePicker(false);
+                }}>
+                  <Text style={{ fontSize: 16, color: colors.primary, fontFamily: 'DM Sans', fontWeight: '700' }}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={activePickerField === 'start' ? customStartDate : customEndDate}
+                mode="date"
+                display="spinner"
+                minimumDate={userCreatedAt ? new Date(userCreatedAt) : new Date(2020, 0, 1)}
+                maximumDate={new Date()}
+                onChange={(event: any, date?: Date) => {
+                  if (date) {
+                    if (activePickerField === 'start') setCustomStartDate(date);
+                    else setCustomEndDate(date);
+                  }
+                }}
+                style={{ height: 200 }}
+              />
+            </View>
+          </View>
+        </Modal>
       )}
     </View>
   );
