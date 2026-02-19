@@ -1864,6 +1864,11 @@ async def income_tax_calculator(user=Depends(get_current_user), fy: str = "2025-
     ).to_list(100)
     user_deductions_total = sum(d.get("invested_amount", 0) for d in user_deductions_data)
 
+    # 3b. Get auto-detected tax deductions for this FY
+    auto_deductions_data = await db.auto_tax_deductions.find(
+        {"user_id": user["id"], "fy": fy}, {"_id": 0}
+    ).to_list(500)
+
     # Group deductions by section for display
     deductions_by_section = {}
     for sec in tax_summary.get("sections", []):
@@ -1878,6 +1883,19 @@ async def income_tax_calculator(user=Depends(get_current_user), fy: str = "2025-
         if sid not in deductions_by_section:
             deductions_by_section[sid] = {"section": sid, "label": f"Section {sid}", "limit": d.get("limit", 0), "amount": 0, "source": "user_added"}
         deductions_by_section[sid]["amount"] += d.get("invested_amount", 0)
+
+    # Include auto-detected deductions
+    for d in auto_deductions_data:
+        sid = d.get("section", "")
+        if sid not in deductions_by_section:
+            deductions_by_section[sid] = {
+                "section": sid,
+                "label": d.get("section_label", TAX_SECTION_NAMES.get(sid, f"Section {sid}")),
+                "limit": d.get("limit", TAX_SECTION_LIMITS.get(sid, 0)),
+                "amount": 0,
+                "source": "auto_detected",
+            }
+        deductions_by_section[sid]["amount"] += d.get("amount", 0)
 
     # Cap deductions at their limits
     total_old_deductions = 0
