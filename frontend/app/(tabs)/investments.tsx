@@ -229,6 +229,9 @@ export default function InvestmentsScreen() {
     }
   };
 
+  // iOS date picker: updates state live (no dismiss event)
+  const [iosPickerDate, setIosPickerDate] = useState(new Date());
+
   // ── Goal handlers ──
   const openAddGoal = () => {
     setEditGoal(null);
