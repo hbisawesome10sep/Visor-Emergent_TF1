@@ -297,6 +297,41 @@ export default function BooksScreen() {
     }
   }, [datePreset, customStartDate, customEndDate]);
 
+  const openBooksDatePicker = (target: 'custom_from' | 'custom_to' | 'asset_date' | 'loan_date') => {
+    let current = new Date();
+    if (target === 'custom_from' && customStartDate) {
+      const d = new Date(customStartDate);
+      if (!isNaN(d.getTime())) current = d;
+    } else if (target === 'custom_to' && customEndDate) {
+      const d = new Date(customEndDate);
+      if (!isNaN(d.getTime())) current = d;
+    } else if (target === 'asset_date' && assetForm.purchase_date) {
+      const d = new Date(assetForm.purchase_date);
+      if (!isNaN(d.getTime())) current = d;
+    } else if (target === 'loan_date' && loanForm.start_date) {
+      const d = new Date(loanForm.start_date);
+      if (!isNaN(d.getTime())) current = d;
+    }
+    setBooksPickerValue(current);
+    setBooksPickerTarget(target);
+    setShowBooksNativePicker(true);
+  };
+
+  const handleBooksDateChange = (event: any, selectedDate?: Date) => {
+    setShowBooksNativePicker(false);
+    if (event.type === 'dismissed' || !selectedDate) return;
+    const formatted = selectedDate.toISOString().split('T')[0];
+    if (booksPickerTarget === 'custom_from') {
+      setCustomStartDate(formatted);
+    } else if (booksPickerTarget === 'custom_to') {
+      setCustomEndDate(formatted);
+    } else if (booksPickerTarget === 'asset_date') {
+      setAssetForm(f => ({ ...f, purchase_date: formatted }));
+    } else if (booksPickerTarget === 'loan_date') {
+      setLoanForm(f => ({ ...f, start_date: formatted }));
+    }
+  };
+
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
