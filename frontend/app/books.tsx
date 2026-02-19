@@ -2078,6 +2078,31 @@ export default function BooksScreen() {
                   </Text>
                   <MaterialCommunityIcons name="calendar" size={20} color={isDark ? '#6366F1' : '#4F46E5'} />
                 </TouchableOpacity>
+                {/* Inline iOS date picker for asset purchase date */}
+                {showBooksNativePicker && booksPickerTarget === 'asset_date' && Platform.OS === 'ios' && (
+                  <View style={{ borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: 12, overflow: 'hidden', marginBottom: 8 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
+                      <Text style={{ fontSize: 13, color: '#4F46E5', fontFamily: 'DM Sans', fontWeight: '700' }}>Purchase Date</Text>
+                      <TouchableOpacity onPress={() => {
+                        const formatted = booksIosPickerDate.toISOString().split('T')[0];
+                        setAssetForm(f => ({ ...f, purchase_date: formatted }));
+                        setShowBooksNativePicker(false);
+                      }} style={{ paddingHorizontal: 12, paddingVertical: 5, backgroundColor: '#4F46E5', borderRadius: 8 }}>
+                        <Text style={{ fontSize: 13, color: '#fff', fontFamily: 'DM Sans', fontWeight: '700' }}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={booksIosPickerDate}
+                      mode="date"
+                      display="spinner"
+                      themeVariant={isDark ? 'dark' : 'light'}
+                      maximumDate={new Date()}
+                      minimumDate={new Date(2000, 0, 1)}
+                      onChange={(event: any, date?: Date) => { if (date) setBooksIosPickerDate(date); }}
+                      style={{ height: 150 }}
+                    />
+                  </View>
+                )}
                 
                 <Text style={styles.inputLabel}>Purchase Value (₹) *</Text>
                 <TextInput
