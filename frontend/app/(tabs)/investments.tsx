@@ -198,6 +198,37 @@ export default function InvestmentsScreen() {
 
   const onRefresh = () => { setRefreshing(true); fetchData(); };
 
+  // ── Date picker helpers ──
+  const openInvestDatePicker = (target: 'goal_deadline' | 'holding_buy_date' | 'sip_start_date') => {
+    let current = new Date();
+    if (target === 'goal_deadline' && goalForm.deadline) {
+      const d = new Date(goalForm.deadline);
+      if (!isNaN(d.getTime())) current = d;
+    } else if (target === 'holding_buy_date' && holdingForm.buy_date) {
+      const d = new Date(holdingForm.buy_date);
+      if (!isNaN(d.getTime())) current = d;
+    } else if (target === 'sip_start_date' && sipForm.start_date) {
+      const d = new Date(sipForm.start_date);
+      if (!isNaN(d.getTime())) current = d;
+    }
+    setDatePickerValue(current);
+    setDatePickerTarget(target);
+    setShowDatePicker(true);
+  };
+
+  const handleInvestDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (event.type === 'dismissed' || !selectedDate) return;
+    const formatted = selectedDate.toISOString().split('T')[0];
+    if (datePickerTarget === 'goal_deadline') {
+      setGoalForm(f => ({ ...f, deadline: formatted }));
+    } else if (datePickerTarget === 'holding_buy_date') {
+      setHoldingForm(f => ({ ...f, buy_date: formatted }));
+    } else if (datePickerTarget === 'sip_start_date') {
+      setSipForm(f => ({ ...f, start_date: formatted }));
+    }
+  };
+
   // ── Goal handlers ──
   const openAddGoal = () => {
     setEditGoal(null);
