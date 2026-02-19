@@ -1253,26 +1253,23 @@ def detect_tax_deduction(category: str, description: str, notes: str, txn_type: 
     """
     Analyze transaction fields to detect if eligible for income tax deduction.
     Returns {section, name, detected_from} or None.
+    Description/notes keywords take priority over category since they are more specific.
     """
-    # 1. Category-based detection (highest confidence)
+    # 1. Description + Notes keyword detection FIRST (highest specificity)
+    search_text = f"{description} {notes or ''}".lower().strip()
+    if search_text:
+        for section, keywords in TAX_KEYWORD_MAP.items():
+            for kw in keywords:
+                if kw in search_text:
+                    name = _get_deduction_name(section, kw, description)
+                    return {"section": section, "name": name, "detected_from": "description"}
+
+    # 2. Category-based detection (fallback)
     if category in TAX_CATEGORY_DETECT:
         match = TAX_CATEGORY_DETECT[category]
-        # Refine: Insurance category in expenses → 80D, in investments → 80C (Life Insurance)
         if category == "Insurance" and txn_type == "investment":
             return {"section": "80C", "name": "Life Insurance Premium", "detected_from": "category"}
         return {**match, "detected_from": "category"}
-
-    # 2. Description + Notes keyword detection
-    search_text = f"{description} {notes or ''}".lower().strip()
-    if not search_text:
-        return None
-
-    for section, keywords in TAX_KEYWORD_MAP.items():
-        for kw in keywords:
-            if kw in search_text:
-                # Determine a readable name from the keyword
-                name = _get_deduction_name(section, kw, description)
-                return {"section": section, "name": name, "detected_from": "description"}
 
     return None
 
