@@ -2396,6 +2396,19 @@ export default function BooksScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ═══ NATIVE DATE PICKER (rendered outside modals for Android compatibility) ═══ */}
+      {showBooksNativePicker && (
+        <DateTimePicker
+          value={booksPickerValue}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          maximumDate={new Date(2040, 11, 31)}
+          minimumDate={new Date(2015, 0, 1)}
+          onChange={handleBooksDateChange}
+        />
+      )}
+
     </SafeAreaView>
   );
 }
