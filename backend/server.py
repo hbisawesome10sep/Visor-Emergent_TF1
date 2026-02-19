@@ -1122,6 +1122,234 @@ TAX_SECTION_ICONS = {
     "80TTA": "bank-outline",
 }
 
+# ══════════════════════════════════════
+#  AUTO TAX DEDUCTION DETECTION ENGINE
+# ══════════════════════════════════════
+
+# Keyword patterns for detecting tax-eligible transactions from description/notes
+TAX_KEYWORD_MAP = {
+    "80C": [
+        "ppf", "public provident fund", "provident fund", "pf contribution", "pf deposit",
+        "epf", "employee provident fund", "vpf", "voluntary provident fund",
+        "elss", "tax saver", "tax saving mutual fund", "tax saving fund",
+        "nps tier 1", "national pension", "pension contribution",
+        "lic", "life insurance", "term insurance", "term plan", "endowment",
+        "ulip", "unit linked",
+        "nsc", "national savings certificate",
+        "sukanya samriddhi", "ssy",
+        "tax saver fd", "tax saving fd", "5 year fd", "5-year fd", "five year fd",
+        "tuition fee", "tuition fees", "school fee", "school fees", "college fee", "college fees",
+        "home loan principal", "housing loan principal", "home loan emi principal",
+        "stamp duty", "registration charge", "property registration",
+    ],
+    "80D": [
+        "health insurance", "medical insurance", "mediclaim", "health policy",
+        "medical premium", "health premium", "health check", "health checkup",
+        "preventive health", "star health", "max bupa", "hdfc ergo health",
+        "care health", "niva bupa", "arogya sanjeevani",
+    ],
+    "80CCD1B": [
+        "nps additional", "nps extra", "nps 80ccd", "nps tier i additional",
+        "additional nps", "nps over 80c",
+    ],
+    "80E": [
+        "education loan", "student loan", "education loan interest",
+        "study loan", "edu loan",
+    ],
+    "80G": [
+        "donation", "charity", "charitable", "pm cares", "pm relief fund",
+        "ngo", "temple donation", "religious donation", "national defence fund",
+        "children fund", "red cross",
+    ],
+    "80GG": [
+        "rent paid", "house rent", "rental payment",
+    ],
+    "80TTA": [
+        "savings interest", "savings account interest", "sb interest",
+        "interest on savings",
+    ],
+    "24b": [
+        "home loan interest", "housing loan interest", "home loan emi interest",
+        "mortgage interest",
+    ],
+}
+
+# Category-based detection (higher confidence than keywords)
+TAX_CATEGORY_DETECT = {
+    # Investment categories → 80C
+    "PPF": {"section": "80C", "name": "Public Provident Fund (PPF)"},
+    "EPF": {"section": "80C", "name": "Employee Provident Fund (EPF)"},
+    "NPS": {"section": "80C", "name": "National Pension System (NPS)"},
+    "ELSS": {"section": "80C", "name": "ELSS Mutual Funds"},
+    "Fixed Deposit": {"section": "80C", "name": "Tax Saver Fixed Deposit"},
+    "ULIP": {"section": "80C", "name": "ULIP"},
+    "Sovereign Gold Bond": {"section": "80C", "name": "Sovereign Gold Bond"},
+    # Expense categories
+    "Insurance": {"section": "80D", "name": "Health Insurance Premium"},
+    "Education": {"section": "80C", "name": "Children's Tuition Fees"},
+    "Donations": {"section": "80G", "name": "Charitable Donations"},
+    "EMI": {"section": "80C", "name": "Home Loan Principal"},
+    "Loan Repayment": {"section": "80C", "name": "Loan Repayment"},
+}
+
+# Section limits for auto-detected deductions
+TAX_SECTION_LIMITS = {
+    "80C": 150000,
+    "80D": 25000,
+    "80CCD1B": 50000,
+    "80E": 0,  # No limit
+    "80G": 0,  # No limit
+    "80GG": 60000,
+    "80TTA": 10000,
+    "24b": 200000,
+}
+
+TAX_SECTION_NAMES = {
+    "80C": "Section 80C",
+    "80D": "Section 80D",
+    "80CCD1B": "Section 80CCD(1B)",
+    "80E": "Section 80E",
+    "80G": "Section 80G",
+    "80GG": "Section 80GG",
+    "80TTA": "Section 80TTA",
+    "24b": "Section 24(b)",
+}
+
+
+def get_fy_for_date(date_str: str) -> str:
+    """Given a date string YYYY-MM-DD, return the FY string like '2025-26'."""
+    if not date_str or len(date_str) < 10:
+        return ""
+    try:
+        year = int(date_str[:4])
+        month = int(date_str[5:7])
+        if month >= 4:  # April onwards = current year's FY
+            return f"{year}-{(year + 1) % 100:02d}"
+        else:  # Jan-Mar = previous year's FY
+            return f"{year - 1}-{year % 100:02d}"
+    except (ValueError, IndexError):
+        return ""
+
+
+def detect_tax_deduction(category: str, description: str, notes: str, txn_type: str) -> dict | None:
+    """
+    Analyze transaction fields to detect if eligible for income tax deduction.
+    Returns {section, name, detected_from} or None.
+    """
+    # 1. Category-based detection (highest confidence)
+    if category in TAX_CATEGORY_DETECT:
+        match = TAX_CATEGORY_DETECT[category]
+        # Refine: Insurance category in expenses → 80D, in investments → 80C (Life Insurance)
+        if category == "Insurance" and txn_type == "investment":
+            return {"section": "80C", "name": "Life Insurance Premium", "detected_from": "category"}
+        return {**match, "detected_from": "category"}
+
+    # 2. Description + Notes keyword detection
+    search_text = f"{description} {notes or ''}".lower().strip()
+    if not search_text:
+        return None
+
+    for section, keywords in TAX_KEYWORD_MAP.items():
+        for kw in keywords:
+            if kw in search_text:
+                # Determine a readable name from the keyword
+                name = _get_deduction_name(section, kw, description)
+                return {"section": section, "name": name, "detected_from": "description"}
+
+    return None
+
+
+def _get_deduction_name(section: str, matched_keyword: str, description: str) -> str:
+    """Generate a readable deduction name based on matched keyword."""
+    name_map = {
+        "80C": {
+            "ppf": "Public Provident Fund (PPF)", "public provident fund": "Public Provident Fund (PPF)",
+            "provident fund": "Provident Fund", "pf contribution": "PF Contribution", "pf deposit": "PF Deposit",
+            "epf": "Employee Provident Fund (EPF)", "employee provident fund": "Employee Provident Fund (EPF)",
+            "vpf": "Voluntary Provident Fund (VPF)", "voluntary provident fund": "Voluntary Provident Fund (VPF)",
+            "elss": "ELSS Mutual Funds", "tax saver": "Tax Saver Investment", "tax saving": "Tax Saving Investment",
+            "nps": "National Pension System", "national pension": "National Pension System",
+            "lic": "Life Insurance (LIC)", "life insurance": "Life Insurance Premium",
+            "term insurance": "Term Insurance Premium", "term plan": "Term Insurance Premium",
+            "ulip": "ULIP", "unit linked": "ULIP",
+            "nsc": "National Savings Certificate", "national savings certificate": "National Savings Certificate",
+            "sukanya samriddhi": "Sukanya Samriddhi Yojana", "ssy": "Sukanya Samriddhi Yojana",
+            "tax saver fd": "Tax Saver FD", "tax saving fd": "Tax Saver FD",
+            "tuition fee": "Tuition Fees", "school fee": "School Fees", "college fee": "College Fees",
+            "home loan principal": "Home Loan Principal", "housing loan principal": "Home Loan Principal",
+            "stamp duty": "Stamp Duty & Registration",
+        },
+        "80D": {
+            "health insurance": "Health Insurance Premium", "medical insurance": "Medical Insurance Premium",
+            "mediclaim": "Mediclaim Premium", "health check": "Preventive Health Check-up",
+            "health checkup": "Preventive Health Check-up", "preventive health": "Preventive Health Check-up",
+        },
+        "80CCD1B": {"nps additional": "NPS Additional Contribution", "additional nps": "NPS Additional Contribution"},
+        "80E": {"education loan": "Education Loan Interest", "student loan": "Education Loan Interest", "study loan": "Education Loan Interest"},
+        "80G": {"donation": "Charitable Donation", "charity": "Charitable Donation", "pm cares": "PM CARES Fund", "ngo": "NGO Donation"},
+        "80GG": {"rent paid": "Rent (No HRA)", "house rent": "House Rent (No HRA)"},
+        "80TTA": {"savings interest": "Savings Account Interest", "sb interest": "Savings Account Interest"},
+        "24b": {"home loan interest": "Home Loan Interest", "housing loan interest": "Home Loan Interest", "mortgage interest": "Home Loan Interest"},
+    }
+    section_names = name_map.get(section, {})
+    for kw, name in section_names.items():
+        if kw in matched_keyword:
+            return name
+    # Fallback: use description or generic name
+    return description[:50] if description else TAX_SECTION_NAMES.get(section, section)
+
+
+async def process_auto_tax_deduction(user_id: str, txn_id: str, category: str, description: str,
+                                      notes: str, txn_type: str, amount: float, date_str: str):
+    """
+    Process a transaction for auto tax deduction detection.
+    Creates/updates an auto_tax_deductions entry if eligible.
+    """
+    detection = detect_tax_deduction(category, description, notes, txn_type)
+    if not detection:
+        return None
+
+    fy = get_fy_for_date(date_str)
+    if not fy:
+        return None
+
+    section = detection["section"]
+    limit = TAX_SECTION_LIMITS.get(section, 0)
+
+    doc = {
+        "id": str(uuid4()),
+        "user_id": user_id,
+        "transaction_id": txn_id,
+        "section": section,
+        "section_label": TAX_SECTION_NAMES.get(section, section),
+        "name": detection["name"],
+        "amount": round(amount, 2),
+        "limit": limit,
+        "fy": fy,
+        "detected_from": detection["detected_from"],
+        "source_category": category,
+        "source_description": description,
+        "source_date": date_str,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.auto_tax_deductions.insert_one(doc)
+    del doc["_id"]
+    return doc
+
+
+async def remove_auto_tax_deduction(user_id: str, txn_id: str):
+    """Remove auto-detected deduction linked to a transaction."""
+    await db.auto_tax_deductions.delete_many({"user_id": user_id, "transaction_id": txn_id})
+
+
+async def update_auto_tax_deduction(user_id: str, txn_id: str, category: str, description: str,
+                                     notes: str, txn_type: str, amount: float, date_str: str):
+    """Re-evaluate and update auto-detected deduction for an updated transaction."""
+    # Remove old detection
+    await remove_auto_tax_deduction(user_id, txn_id)
+    # Re-detect with new data
+    return await process_auto_tax_deduction(user_id, txn_id, category, description, notes, txn_type, amount, date_str)
+
 @api_router.get("/tax-summary")
 async def get_tax_summary(user=Depends(get_current_user)):
     # Fetch investments
