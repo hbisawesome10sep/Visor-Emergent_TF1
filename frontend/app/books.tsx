@@ -313,6 +313,7 @@ export default function BooksScreen() {
       if (!isNaN(d.getTime())) current = d;
     }
     setBooksPickerValue(current);
+    setBooksIosPickerDate(current);
     setBooksPickerTarget(target);
     setShowBooksNativePicker(true);
   };
@@ -331,6 +332,9 @@ export default function BooksScreen() {
       setLoanForm(f => ({ ...f, start_date: formatted }));
     }
   };
+
+  // iOS date picker state
+  const [booksIosPickerDate, setBooksIosPickerDate] = useState(new Date());
 
   const fetchData = useCallback(async () => {
     if (!token) return;
