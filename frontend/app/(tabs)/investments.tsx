@@ -1598,16 +1598,52 @@ export default function InvestmentsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ═══ NATIVE DATE PICKER (rendered outside modals for Android compatibility) ═══ */}
-      {showDatePicker && (
+      {/* ═══ NATIVE DATE PICKER (iOS: shown in overlay modal; Android: native dialog) ═══ */}
+      {showDatePicker && Platform.OS === 'android' && (
         <DateTimePicker
           value={datePickerValue}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display="default"
           maximumDate={datePickerTarget === 'goal_deadline' ? new Date(2040, 11, 31) : new Date()}
           minimumDate={new Date(2015, 0, 1)}
           onChange={handleInvestDateChange}
         />
+      )}
+      {showDatePicker && Platform.OS === 'ios' && (
+        <Modal visible transparent animationType="fade">
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+            <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 30 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={{ fontSize: 16, color: '#EF4444', fontFamily: 'DM Sans', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={{ fontSize: 15, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '700' }}>Select Date</Text>
+                <TouchableOpacity onPress={() => {
+                  const formatted = iosPickerDate.toISOString().split('T')[0];
+                  if (datePickerTarget === 'goal_deadline') {
+                    setGoalForm(f => ({ ...f, deadline: formatted }));
+                  } else if (datePickerTarget === 'holding_buy_date') {
+                    setHoldingForm(f => ({ ...f, buy_date: formatted }));
+                  } else if (datePickerTarget === 'sip_start_date') {
+                    setSipForm(f => ({ ...f, start_date: formatted }));
+                  }
+                  setShowDatePicker(false);
+                }}>
+                  <Text style={{ fontSize: 16, color: colors.primary, fontFamily: 'DM Sans', fontWeight: '700' }}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={iosPickerDate}
+                mode="date"
+                display="spinner"
+                maximumDate={datePickerTarget === 'goal_deadline' ? new Date(2040, 11, 31) : new Date()}
+                minimumDate={new Date(2015, 0, 1)}
+                onChange={(event: any, date?: Date) => { if (date) setIosPickerDate(date); }}
+                style={{ height: 200 }}
+              />
+            </View>
+          </View>
+        </Modal>
       )}
 
     </View>
