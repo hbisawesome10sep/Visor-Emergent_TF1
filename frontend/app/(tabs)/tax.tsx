@@ -297,6 +297,89 @@ export default function TaxScreen() {
           </View>
         )}
 
+        {/* ═══ AUTO-DETECTED DEDUCTIONS FROM TRANSACTIONS ═══ */}
+        {autoDeductions && autoDeductions.sections?.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <View style={[styles.autoDetectedHeader, { marginBottom: 10, marginTop: userTaxDeductions.length > 0 ? 4 : 0 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <MaterialCommunityIcons name="lightning-bolt" size={14} color="#8B5CF6" />
+                <Text style={[styles.taxSubsectionTitle, { color: '#8B5CF6', marginBottom: 0 }]}>Auto-Detected from Transactions</Text>
+              </View>
+              <View style={[styles.autoCountBadge, { backgroundColor: 'rgba(139,92,246,0.12)' }]}>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: '#8B5CF6', fontFamily: 'DM Sans' }}>{autoDeductions.count}</Text>
+              </View>
+            </View>
+
+            {autoDeductions.sections.map((section: any) => {
+              const pct = section.limit > 0 ? Math.min((section.total_amount / section.limit) * 100, 100) : 0;
+              const isFull = section.limit > 0 && section.total_amount >= section.limit;
+              const barColor = isFull ? Accent.emerald : '#8B5CF6';
+              return (
+                <View key={section.section} data-testid={`auto-deduction-section-${section.section}`} style={[styles.glassCard, {
+                  backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.85)',
+                  borderColor: isDark ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)',
+                  borderLeftWidth: 3, borderLeftColor: '#8B5CF6', marginBottom: 10,
+                }]}>
+                  <View style={styles.taxHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                      <View style={[styles.taxIconWrap, { backgroundColor: 'rgba(139,92,246,0.12)' }]}>
+                        <MaterialCommunityIcons name="auto-fix" size={18} color="#8B5CF6" />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>{section.section_label}</Text>
+                        <Text style={[styles.taxUsed, { color: colors.textSecondary }]}>
+                          {formatINRShort(section.total_amount)}{section.limit > 0 ? ` / ${formatINRShort(section.limit)}` : ''}
+                        </Text>
+                      </View>
+                    </View>
+                    {section.limit > 0 && (
+                      <View style={[styles.taxPercentBadge, { backgroundColor: isFull ? 'rgba(16,185,129,0.1)' : 'rgba(139,92,246,0.1)' }]}>
+                        <Text style={[styles.taxPercentText, { color: isFull ? Accent.emerald : '#8B5CF6' }]}>{pct.toFixed(0)}%</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {section.limit > 0 && (
+                    <View style={[styles.taxBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                      <View style={[styles.taxBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
+                    </View>
+                  )}
+
+                  {/* Individual transactions */}
+                  <View style={{ marginTop: 6, gap: 6 }}>
+                    {section.transactions.map((txn: any) => (
+                      <View key={txn.id} data-testid={`auto-deduction-txn-${txn.id}`} style={[styles.autoTxnRow, {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+                      }]}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.autoTxnName, { color: colors.textPrimary }]} numberOfLines={1}>{txn.name}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                            <Text style={[styles.autoTxnMeta, { color: colors.textSecondary }]}>{txn.source_date}</Text>
+                            <View style={[styles.autoTxnBadge, { backgroundColor: txn.detected_from === 'category' ? 'rgba(59,130,246,0.1)' : 'rgba(245,158,11,0.1)' }]}>
+                              <Text style={{ fontSize: 9, fontWeight: '600', color: txn.detected_from === 'category' ? '#3B82F6' : '#F59E0B', fontFamily: 'DM Sans' }}>
+                                {txn.detected_from === 'category' ? 'Category' : 'Keywords'}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        <Text style={[styles.autoTxnAmount, { color: colors.textPrimary }]}>{formatINR(txn.amount)}</Text>
+                        <View style={{ flexDirection: 'row', gap: 6, marginLeft: 8 }}>
+                          <TouchableOpacity data-testid={`edit-auto-${txn.id}`} style={[styles.deductionActionBtn, { width: 26, height: 26, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={() => handleEditAutoDeduction(txn)}>
+                            <MaterialCommunityIcons name="pencil" size={13} color={colors.textSecondary} />
+                          </TouchableOpacity>
+                          <TouchableOpacity data-testid={`dismiss-auto-${txn.id}`} style={[styles.deductionActionBtn, { width: 26, height: 26, backgroundColor: 'rgba(239,68,68,0.1)' }]} onPress={() => handleDismissAutoDeduction(txn)}>
+                            <MaterialCommunityIcons name="close" size={13} color="#EF4444" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {/* System Tax Sections (auto-detected) */}
         {(() => {
           const activeTaxSections = taxSections.filter((sec: any) => sec.used > 0);
