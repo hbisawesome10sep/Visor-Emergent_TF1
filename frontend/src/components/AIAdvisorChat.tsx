@@ -146,6 +146,28 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
     }
   };
 
+  const deleteMessage = async (messageId: string) => {
+    Alert.alert(
+      'Delete Message',
+      'Are you sure you want to delete this message?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiRequest(`/ai/message/${messageId}`, { method: 'DELETE', token });
+              setMessages(prev => prev.filter(m => m.id !== messageId));
+            } catch (e) {
+              console.error('Failed to delete message:', e);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const formatMessage = (content: string) => {
     // Simple markdown-like formatting
     return content
