@@ -1274,6 +1274,7 @@ KEY GUIDELINES:
     
     return {
         "id": ai_msg_id,
+        "user_msg_id": user_msg_id,
         "role": "assistant",
         "content": response_text,
         "created_at": ai_now,
