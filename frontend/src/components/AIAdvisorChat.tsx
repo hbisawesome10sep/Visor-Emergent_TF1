@@ -112,6 +112,13 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
         },
       });
 
+      // Update user message ID with server-assigned UUID (for delete to work)
+      if (response.user_msg_id) {
+        setMessages(prev => prev.map(m => 
+          m.id === userMessage.id ? { ...m, id: response.user_msg_id } : m
+        ));
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
