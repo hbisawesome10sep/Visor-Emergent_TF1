@@ -356,6 +356,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                       </View>
                     )}
                   </View>
+                  </TouchableOpacity>
                 ))
               )}
 
