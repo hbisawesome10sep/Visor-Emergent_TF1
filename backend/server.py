@@ -1138,8 +1138,10 @@ KEY GUIDELINES:
     try:
         tickers = _detect_tickers(msg.message)
         if tickers:
-            import asyncio
-            live_prices_context = await asyncio.get_event_loop().run_in_executor(None, _fetch_live_prices, tickers)
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                loop = asyncio.get_running_loop()
+                live_prices_context = await loop.run_in_executor(pool, _fetch_live_prices, tickers)
             if live_prices_context:
                 logger.info(f"Live prices fetched for: {[n for _, n in tickers]}")
     except Exception as e:
