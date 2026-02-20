@@ -5284,8 +5284,35 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     await seed_demo_data()
+    await migrate_all_users_encryption()
     await seed_market_data()
     asyncio.create_task(market_data_scheduler())
+
+
+async def migrate_all_users_encryption():
+    """Ensure ALL users have encryption keys and all PII fields encrypted."""
+    cursor = db.users.find({}, {"_id": 0})
+    migrated = 0
+    async for user in cursor:
+        updates = {}
+        dek = user.get("encryption_key", "")
+        if not dek:
+            dek = generate_user_dek()
+            updates["encryption_key"] = dek
+            for field in USER_SENSITIVE_FIELDS:
+                val = user.get(field, "")
+                if val and not val.startswith("ENC:"):
+                    updates[field] = encrypt_field(val, dek)
+        else:
+            for field in USER_SENSITIVE_FIELDS:
+                val = user.get(field, "")
+                if val and isinstance(val, str) and not val.startswith("ENC:"):
+                    updates[field] = encrypt_field(val, dek)
+        if updates:
+            await db.users.update_one({"id": user["id"]}, {"$set": updates})
+            migrated += 1
+    if migrated:
+        logger.info(f"Encryption migration: {migrated} users updated")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
