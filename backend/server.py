@@ -919,7 +919,8 @@ def _detect_tickers(query: str) -> list:
         "share", "shares", "should", "could", "would", "which", "where", "there",
         "their", "these", "those", "being", "doing", "having", "current", "please",
         "check", "buy", "sell", "hold", "fund", "funds", "invest", "money", "bank",
-        "rate", "value", "market", "trade", "power", "energy", "pharma",
+        "rate", "value", "market", "trade", "power", "energy", "pharma", "what",
+        "return", "returns", "risk", "profit", "loss", "gains", "gain",
     }
 
     # Check for direct NSE ticker patterns like "INFY", "TATAMOTORS" (only for words not already matched)
