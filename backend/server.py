@@ -3870,20 +3870,45 @@ async def seed_demo_data():
     # Check if demo users already exist
     demo1 = await db.users.find_one({"email": "rajesh@visor.demo"}, {"_id": 0})
     if demo1:
-        # Ensure existing demo users have encryption keys
+        # Ensure existing demo users have encryption keys and all PII fields encrypted
         if not demo1.get("encryption_key"):
             dek = generate_user_dek()
             pan_enc = encrypt_field(demo1.get("pan", ""), dek) if demo1.get("pan") and not demo1.get("pan", "").startswith("ENC:") else demo1.get("pan", "")
             aadhaar_enc = encrypt_field(demo1.get("aadhaar", ""), dek) if demo1.get("aadhaar") and not demo1.get("aadhaar", "").startswith("ENC:") else demo1.get("aadhaar", "")
-            await db.users.update_one({"email": "rajesh@visor.demo"}, {"$set": {"encryption_key": dek, "pan": pan_enc, "aadhaar": aadhaar_enc}})
+            fn_enc = encrypt_field(demo1.get("full_name", ""), dek) if demo1.get("full_name") and not demo1.get("full_name", "").startswith("ENC:") else demo1.get("full_name", "")
+            dob_enc = encrypt_field(demo1.get("dob", ""), dek) if demo1.get("dob") and not demo1.get("dob", "").startswith("ENC:") else demo1.get("dob", "")
+            await db.users.update_one({"email": "rajesh@visor.demo"}, {"$set": {"encryption_key": dek, "pan": pan_enc, "aadhaar": aadhaar_enc, "full_name": fn_enc, "dob": dob_enc}})
             logger.info("Migrated demo user rajesh with encryption key")
+        else:
+            # Migrate full_name and dob if not yet encrypted
+            dek = demo1["encryption_key"]
+            updates = {}
+            if demo1.get("full_name") and not demo1["full_name"].startswith("ENC:"):
+                updates["full_name"] = encrypt_field(demo1["full_name"], dek)
+            if demo1.get("dob") and not demo1["dob"].startswith("ENC:"):
+                updates["dob"] = encrypt_field(demo1["dob"], dek)
+            if updates:
+                await db.users.update_one({"email": "rajesh@visor.demo"}, {"$set": updates})
+                logger.info("Migrated demo user rajesh full_name/dob encryption")
         demo2 = await db.users.find_one({"email": "priya@visor.demo"}, {"_id": 0})
         if demo2 and not demo2.get("encryption_key"):
             dek2 = generate_user_dek()
             pan_enc2 = encrypt_field(demo2.get("pan", ""), dek2) if demo2.get("pan") and not demo2.get("pan", "").startswith("ENC:") else demo2.get("pan", "")
             aadhaar_enc2 = encrypt_field(demo2.get("aadhaar", ""), dek2) if demo2.get("aadhaar") and not demo2.get("aadhaar", "").startswith("ENC:") else demo2.get("aadhaar", "")
-            await db.users.update_one({"email": "priya@visor.demo"}, {"$set": {"encryption_key": dek2, "pan": pan_enc2, "aadhaar": aadhaar_enc2}})
+            fn_enc2 = encrypt_field(demo2.get("full_name", ""), dek2) if demo2.get("full_name") and not demo2.get("full_name", "").startswith("ENC:") else demo2.get("full_name", "")
+            dob_enc2 = encrypt_field(demo2.get("dob", ""), dek2) if demo2.get("dob") and not demo2.get("dob", "").startswith("ENC:") else demo2.get("dob", "")
+            await db.users.update_one({"email": "priya@visor.demo"}, {"$set": {"encryption_key": dek2, "pan": pan_enc2, "aadhaar": aadhaar_enc2, "full_name": fn_enc2, "dob": dob_enc2}})
             logger.info("Migrated demo user priya with encryption key")
+        elif demo2 and demo2.get("encryption_key"):
+            dek2 = demo2["encryption_key"]
+            updates2 = {}
+            if demo2.get("full_name") and not demo2["full_name"].startswith("ENC:"):
+                updates2["full_name"] = encrypt_field(demo2["full_name"], dek2)
+            if demo2.get("dob") and not demo2["dob"].startswith("ENC:"):
+                updates2["dob"] = encrypt_field(demo2["dob"], dek2)
+            if updates2:
+                await db.users.update_one({"email": "priya@visor.demo"}, {"$set": updates2})
+                logger.info("Migrated demo user priya full_name/dob encryption")
         logger.info("Demo data already exists, skipping seed")
         return
 
@@ -3897,8 +3922,8 @@ async def seed_demo_data():
         "id": user1_id,
         "email": "rajesh@visor.demo",
         "password": hash_password("Demo@123"),
-        "full_name": "Rajesh Kumar",
-        "dob": "1995-05-15",
+        "full_name": encrypt_field("Rajesh Kumar", user1_dek),
+        "dob": encrypt_field("1995-05-15", user1_dek),
         "pan": encrypt_field("ABCDE1234F", user1_dek),
         "aadhaar": encrypt_field("123456789012", user1_dek),
         "encryption_key": user1_dek,
@@ -3912,8 +3937,8 @@ async def seed_demo_data():
         "id": user2_id,
         "email": "priya@visor.demo",
         "password": hash_password("Demo@456"),
-        "full_name": "Priya Sharma",
-        "dob": "1990-08-22",
+        "full_name": encrypt_field("Priya Sharma", user2_dek),
+        "dob": encrypt_field("1990-08-22", user2_dek),
         "pan": encrypt_field("FGHIJ5678K", user2_dek),
         "aadhaar": encrypt_field("987654321098", user2_dek),
         "encryption_key": user2_dek,
