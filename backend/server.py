@@ -871,8 +871,9 @@ TICKER_MAP = {
     "zomato": "ZOMATO.NS", "paytm": "PAYTM.NS",
     "nifty": "^NSEI", "nifty 50": "^NSEI", "sensex": "^BSESN", "nifty bank": "^NSEBANK",
     "bank nifty": "^NSEBANK", "nifty it": "^CNXIT", "nifty pharma": "^CNXPHARMA",
-    # Commodities
-    "gold": "GC=F", "silver": "SI=F", "copper": "HG=F",
+    # Commodities - use INDIAN_MARKET flag to fetch from app's market_data instead of yfinance
+    "gold": "INDIAN_MARKET:Gold", "silver": "INDIAN_MARKET:Silver", 
+    "copper": "HG=F",
     "crude oil": "CL=F", "crude": "CL=F", "natural gas": "NG=F",
     # ETFs
     "gold etf": "GOLDBEES.NS", "goldbees": "GOLDBEES.NS",
