@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
+import asyncio
 from encryption import generate_user_dek, encrypt_field, decrypt_field, encrypt_sensitive_fields, decrypt_sensitive_fields
 
 # Sensitive fields that need encryption
