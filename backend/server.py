@@ -903,6 +903,7 @@ def _detect_tickers(query: str) -> list:
 
 def _fetch_live_prices(tickers: list) -> str:
     """Fetch live/recent prices for given tickers using yfinance."""
+    import yfinance as yf
     if not tickers:
         return ""
     results = []
