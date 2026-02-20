@@ -903,11 +903,30 @@ def _detect_tickers(query: str) -> list:
             if ticker not in [t for t, _ in found]:
                 found.append((ticker, name))
             q = q.replace(name, "")
+    # Common English words to exclude from direct ticker matching
+    _STOP_WORDS = {
+        "what", "about", "how", "much", "the", "and", "for", "are", "but",
+        "not", "you", "all", "any", "can", "had", "her", "was", "one", "our",
+        "out", "get", "has", "him", "his", "she", "too", "its", "may", "let",
+        "say", "few", "now", "old", "see", "way", "who", "did", "got", "just",
+        "than", "them", "been", "from", "have", "into", "each", "make", "like",
+        "long", "look", "many", "some", "more", "over", "such", "take", "that",
+        "them", "then", "they", "this", "very", "when", "will", "with", "come",
+        "also", "back", "been", "call", "does", "even", "find", "give", "good",
+        "help", "here", "high", "keep", "know", "last", "live", "made", "most",
+        "must", "name", "need", "next", "only", "show", "tell", "want", "well",
+        "work", "year", "your", "give", "today", "price", "prices", "stock",
+        "share", "shares", "should", "could", "would", "which", "where", "there",
+        "their", "these", "those", "being", "doing", "having", "current", "please",
+        "check", "buy", "sell", "hold", "fund", "funds", "invest", "money", "bank",
+        "rate", "value", "market", "trade", "power", "energy", "pharma",
+    }
+
     # Check for direct NSE ticker patterns like "INFY", "TATAMOTORS" (only for words not already matched)
     direct = re.findall(r'\b([A-Z]{2,15})\b', q.upper())
     for sym in direct:
         ticker = f"{sym}.NS"
-        if ticker not in [t for t, _ in found] and sym.lower() not in TICKER_MAP:
+        if ticker not in [t for t, _ in found] and sym.lower() not in TICKER_MAP and sym.lower() not in _STOP_WORDS:
             found.append((ticker, sym))
     return found[:5]  # Max 5 lookups
 
