@@ -902,6 +902,29 @@ def _detect_tickers(query: str) -> list:
     return found[:5]  # Max 5 lookups
 
 
+async def _fetch_indian_commodity_prices(commodities: list) -> str:
+    """Fetch Indian gold/silver prices from the app's own market_data collection."""
+    results = []
+    for name in commodities:
+        try:
+            md = await db.market_data.find_one({"key": {"$regex": name, "$options": "i"}}, {"_id": 0})
+            if md and md.get("price"):
+                price = md["price"]
+                change = md.get("change", 0)
+                change_pct = md.get("change_pct", 0)
+                unit = "per 10g" if "gold" in name.lower() else "per 1Kg"
+                chg_str = f" | Change: {'+'if change>=0 else ''}{change:.0f} ({'+'if change_pct>=0 else ''}{change_pct:.2f}%)" if change else ""
+                results.append(f"  {name.upper()} (Indian Price): ₹{price:,.0f} {unit}{chg_str}")
+                # Add per-gram prices for easier calculation
+                if "gold" in name.lower():
+                    results.append(f"    → Per gram: ₹{price/10:,.0f} | Per 100g: ₹{price*10:,.0f}")
+                elif "silver" in name.lower():
+                    results.append(f"    → Per gram: ₹{price/1000:,.2f} | Per 100g: ₹{price/10:,.0f} | Per 500g: ₹{price/2:,.0f}")
+        except Exception:
+            continue
+    return "\n".join(results) if results else ""
+
+
 def _fetch_ai_live_prices(tickers: list) -> str:
     """Fetch live/recent prices for given tickers using yfinance."""
     import yfinance as yf
