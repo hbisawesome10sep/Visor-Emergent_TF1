@@ -206,6 +206,21 @@ The Tax screen is the centrepiece intelligence layer of Visor. It operates on an
 
 ---
 
+### 9. Data Security & Encryption
+
+| Feature | Status |
+|---------|--------|
+| AES-256-GCM field-level encryption for all PII | Done |
+| Per-user Data Encryption Keys (DEK) | Done |
+| Encrypted fields: `full_name`, `dob`, `pan`, `aadhaar` | Done |
+| Encrypted fields: loan `account_number` | Done |
+| Gmail OAuth tokens encrypted at rest (`access_token`, `refresh_token`, `client_secret`) | Done |
+| Universal migration — encrypts ALL existing users on startup | Done |
+| Auto-decrypt in `get_current_user` middleware for seamless downstream use | Done |
+| `is_encrypted` flag in profile response | Done |
+
+---
+
 ### 9. Cross-Platform Polish
 
 | Item | Status |
