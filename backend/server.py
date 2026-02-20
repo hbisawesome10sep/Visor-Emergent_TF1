@@ -339,23 +339,25 @@ async def login(credentials: UserLogin):
     
     token = create_token(user["id"], user["email"])
     
-    # Decrypt sensitive fields if encrypted
+    # Decrypt all PII fields
     dek = user.get("encryption_key", "")
-    pan = user.get("pan", "")
-    aadhaar = user.get("aadhaar", "")
-    if dek and pan.startswith("ENC:"):
-        pan = decrypt_field(pan, dek)
-    if dek and aadhaar.startswith("ENC:"):
-        aadhaar = decrypt_field(aadhaar, dek)
+    decrypted = {}
+    for field in USER_SENSITIVE_FIELDS:
+        val = user.get(field, "")
+        if dek and val and isinstance(val, str) and val.startswith("ENC:"):
+            decrypted[field] = decrypt_field(val, dek)
+        else:
+            decrypted[field] = val
     
+    aadhaar = decrypted.get("aadhaar", "")
     return {
         "token": token,
         "user": {
             "id": user["id"],
             "email": user["email"],
-            "full_name": user["full_name"],
-            "dob": user.get("dob", ""),
-            "pan": pan,
+            "full_name": decrypted.get("full_name", ""),
+            "dob": decrypted.get("dob", ""),
+            "pan": decrypted.get("pan", ""),
             "aadhaar_last4": aadhaar[-4:] if len(aadhaar) >= 4 else "",
             "created_at": user.get("created_at", ""),
         }
@@ -363,22 +365,17 @@ async def login(credentials: UserLogin):
 
 @api_router.get("/auth/profile")
 async def get_profile(user=Depends(get_current_user)):
-    dek = user.get("encryption_key", "")
-    pan = user.get("pan", "")
+    # PII fields already decrypted by get_current_user
     aadhaar = user.get("aadhaar", "")
-    if dek and pan.startswith("ENC:"):
-        pan = decrypt_field(pan, dek)
-    if dek and aadhaar.startswith("ENC:"):
-        aadhaar = decrypt_field(aadhaar, dek)
     return {
         "id": user["id"],
         "email": user["email"],
-        "full_name": user["full_name"],
+        "full_name": user.get("full_name", ""),
         "dob": user.get("dob", ""),
-        "pan": pan,
+        "pan": user.get("pan", ""),
         "aadhaar_last4": aadhaar[-4:] if len(aadhaar) >= 4 else "",
         "created_at": user.get("created_at", ""),
-        "is_encrypted": bool(dek),
+        "is_encrypted": bool(user.get("encryption_key", "")),
     }
 
 # ══════════════════════════════════════
