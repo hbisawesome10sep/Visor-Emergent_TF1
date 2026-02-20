@@ -1134,6 +1134,13 @@ KEY GUIDELINES:
 - PAY ATTENTION to which screen the user is viewing{screen_context_info}"""
     
     try:
+        # Fetch live prices if user asks about specific stocks/commodities
+        live_prices_context = ""
+        tickers = _detect_tickers(msg.message)
+        if tickers:
+            import asyncio
+            live_prices_context = await asyncio.get_event_loop().run_in_executor(None, _fetch_live_prices, tickers)
+
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"visor-{user_id}-{datetime.now(timezone.utc).strftime('%Y%m%d')}",
@@ -1141,7 +1148,7 @@ KEY GUIDELINES:
         )
         chat.with_model("openai", "gpt-5.2")
         
-        user_message = UserMessage(text=f"{context}\n\nUser Question: {msg.message}")
+        user_message = UserMessage(text=f"{context}{live_prices_context}\n\nUser Question: {msg.message}")
         response_text = await chat.send_message(user_message)
         
     except Exception as e:
