@@ -16,8 +16,9 @@ import jwt
 from encryption import generate_user_dek, encrypt_field, decrypt_field, encrypt_sensitive_fields, decrypt_sensitive_fields
 
 # Sensitive fields that need encryption
-USER_SENSITIVE_FIELDS = ["pan", "aadhaar"]
+USER_SENSITIVE_FIELDS = ["pan", "aadhaar", "dob", "full_name"]
 LOAN_SENSITIVE_FIELDS = ["account_number"]
+GMAIL_TOKEN_SENSITIVE_FIELDS = ["access_token", "refresh_token", "client_secret"]
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -268,6 +269,13 @@ async def get_current_user(authorization: str = Header(None)):
         user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
+        # Auto-decrypt PII fields so all downstream endpoints get plaintext
+        dek = user.get("encryption_key", "")
+        if dek:
+            for field in USER_SENSITIVE_FIELDS:
+                val = user.get(field, "")
+                if val and isinstance(val, str) and val.startswith("ENC:"):
+                    user[field] = decrypt_field(val, dek)
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
@@ -300,8 +308,8 @@ async def register(user_data: UserCreate):
         "id": user_id,
         "email": user_data.email.lower(),
         "password": hash_password(user_data.password),
-        "full_name": user_data.full_name,
-        "dob": user_data.dob,
+        "full_name": encrypt_field(user_data.full_name, user_dek),
+        "dob": encrypt_field(user_data.dob, user_dek),
         "pan": encrypt_field(user_data.pan.upper(), user_dek),
         "aadhaar": encrypt_field(aadhaar_clean, user_dek),
         "encryption_key": user_dek,
