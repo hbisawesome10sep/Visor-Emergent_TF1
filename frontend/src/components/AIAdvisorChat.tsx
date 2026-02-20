@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal, TextInput,
   ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator,
-  Dimensions, Animated, Alert,
+  Dimensions, Animated, Alert, Pressable,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
