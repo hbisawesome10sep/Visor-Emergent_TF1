@@ -901,7 +901,7 @@ def _detect_tickers(query: str) -> list:
     return found[:5]  # Max 5 lookups
 
 
-def _fetch_live_prices(tickers: list) -> str:
+def _fetch_ai_live_prices(tickers: list) -> str:
     """Fetch live/recent prices for given tickers using yfinance."""
     import yfinance as yf
     if not tickers:
@@ -1143,7 +1143,7 @@ KEY GUIDELINES:
             from concurrent.futures import ThreadPoolExecutor
             with ThreadPoolExecutor(max_workers=1) as pool:
                 loop = asyncio.get_running_loop()
-                live_prices_context = await loop.run_in_executor(pool, _fetch_live_prices, tickers)
+                live_prices_context = await loop.run_in_executor(pool, _fetch_ai_live_prices, tickers)
             if live_prices_context:
                 logger.info(f"Live prices fetched for: {[n for _, n in tickers]}")
     except Exception as e:
