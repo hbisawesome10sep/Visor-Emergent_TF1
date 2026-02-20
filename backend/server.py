@@ -4986,14 +4986,18 @@ async def gmail_callback(code: str = None, state: str = None, error: str = None)
 
     creds = flow.credentials
 
-    # Store tokens
+    # Get user's encryption key for token encryption
+    user_doc = await db.users.find_one({"id": user_id}, {"_id": 0, "encryption_key": 1})
+    user_dek = user_doc.get("encryption_key", "") if user_doc else ""
+
+    # Store tokens — encrypt sensitive fields at rest
     token_doc = {
         "user_id": user_id,
-        "access_token": creds.token,
-        "refresh_token": creds.refresh_token,
+        "access_token": encrypt_field(creds.token, user_dek) if user_dek else creds.token,
+        "refresh_token": encrypt_field(creds.refresh_token, user_dek) if user_dek and creds.refresh_token else creds.refresh_token,
         "token_uri": creds.token_uri,
         "client_id": creds.client_id,
-        "client_secret": creds.client_secret,
+        "client_secret": encrypt_field(creds.client_secret, user_dek) if user_dek else creds.client_secret,
         "expires_at": creds.expiry.isoformat() if creds.expiry else None,
         "connected_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -5029,12 +5033,25 @@ async def _get_gmail_creds(user_id: str) -> Credentials:
     if not token:
         raise HTTPException(status_code=400, detail="Gmail not connected")
 
+    # Get user DEK for decrypting tokens
+    user_doc = await db.users.find_one({"id": user_id}, {"_id": 0, "encryption_key": 1})
+    user_dek = user_doc.get("encryption_key", "") if user_doc else ""
+
+    # Decrypt token fields
+    access_token = token["access_token"]
+    refresh_token = token.get("refresh_token")
+    client_secret = token["client_secret"]
+    if user_dek:
+        access_token = decrypt_field(access_token, user_dek) if isinstance(access_token, str) and access_token.startswith("ENC:") else access_token
+        refresh_token = decrypt_field(refresh_token, user_dek) if refresh_token and isinstance(refresh_token, str) and refresh_token.startswith("ENC:") else refresh_token
+        client_secret = decrypt_field(client_secret, user_dek) if isinstance(client_secret, str) and client_secret.startswith("ENC:") else client_secret
+
     creds = Credentials(
-        token=token["access_token"],
-        refresh_token=token.get("refresh_token"),
+        token=access_token,
+        refresh_token=refresh_token,
         token_uri=token["token_uri"],
         client_id=token["client_id"],
-        client_secret=token["client_secret"],
+        client_secret=client_secret,
     )
 
     # Refresh if expired
@@ -5045,9 +5062,11 @@ async def _get_gmail_creds(user_id: str) -> Credentials:
             expires = expires.replace(tzinfo=timezone.utc)
         if datetime.now(timezone.utc) >= expires:
             creds.refresh(GoogleRequest())
+            # Re-encrypt refreshed token
+            new_access = encrypt_field(creds.token, user_dek) if user_dek else creds.token
             await db.gmail_tokens.update_one(
                 {"user_id": user_id},
-                {"$set": {"access_token": creds.token, "expires_at": creds.expiry.isoformat() if creds.expiry else None}},
+                {"$set": {"access_token": new_access, "expires_at": creds.expiry.isoformat() if creds.expiry else None}},
             )
 
     return creds
