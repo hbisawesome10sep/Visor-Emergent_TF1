@@ -309,12 +309,12 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 </View>
               ) : (
                 messages.map((msg) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={msg.id}
-                    activeOpacity={0.8}
                     onLongPress={() => deleteMessage(msg.id)}
                     delayLongPress={500}
-                    data-testid={`chat-message-${msg.id}`}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                    testID={`chat-message-${msg.id}`}
                   >
                     <View
                       style={[
@@ -363,7 +363,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                       </View>
                     )}
                   </View>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))
               )}
 
