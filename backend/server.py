@@ -1254,6 +1254,13 @@ async def clear_chat_history(user=Depends(get_current_user)):
     await db.chat_history.delete_many({"user_id": user["id"]})
     return {"message": "Chat history cleared"}
 
+@api_router.delete("/ai/message/{message_id}")
+async def delete_single_message(message_id: str, user=Depends(get_current_user)):
+    result = await db.chat_history.delete_one({"id": message_id, "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return {"message": "Message deleted"}
+
 # ══════════════════════════════════════
 #  RISK PROFILE
 # ══════════════════════════════════════
