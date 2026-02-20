@@ -302,18 +302,24 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 </View>
               ) : (
                 messages.map((msg) => (
-                  <View
+                  <TouchableOpacity
                     key={msg.id}
-                    style={[
-                      styles.messageBubble,
-                      msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
-                      {
-                        backgroundColor: msg.role === 'user'
-                          ? '#8B5CF6'
-                          : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                      },
-                    ]}
+                    activeOpacity={0.8}
+                    onLongPress={() => deleteMessage(msg.id)}
+                    delayLongPress={500}
+                    data-testid={`chat-message-${msg.id}`}
                   >
+                    <View
+                      style={[
+                        styles.messageBubble,
+                        msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
+                        {
+                          backgroundColor: msg.role === 'user'
+                            ? '#8B5CF6'
+                            : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                        },
+                      ]}
+                    >
                     {msg.role === 'assistant' && (
                       <View style={styles.assistantHeader}>
                         <MaterialCommunityIcons name="robot" size={16} color="#8B5CF6" />
