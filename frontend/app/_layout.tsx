@@ -21,7 +21,19 @@ SplashScreen.preventAutoHideAsync();
 
 function SecurityLayer({ children }: { children: React.ReactNode }) {
   const { token } = useAuth();
-  const { isLocked, isSecuritySetupDone, isPinSetup } = useSecurity();
+  const { isLocked, isSecuritySetupDone, isPinSetup, securityLoading } = useSecurity();
+
+  // Wait for security state to load from AsyncStorage before deciding what to show
+  if (token && securityLoading) {
+    return (
+      <>
+        {children}
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center', zIndex: 99999 }}>
+          <ActivityIndicator size="large" color="#10B981" />
+        </View>
+      </>
+    );
+  }
 
   return (
     <>
