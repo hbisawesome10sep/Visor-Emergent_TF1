@@ -1164,11 +1164,29 @@ KEY GUIDELINES:
     try:
         tickers = _detect_tickers(msg.message)
         if tickers:
-            from concurrent.futures import ThreadPoolExecutor
-            with ThreadPoolExecutor(max_workers=1) as pool:
-                loop = asyncio.get_running_loop()
-                live_prices_context = await loop.run_in_executor(pool, _fetch_ai_live_prices, tickers)
-            if live_prices_context:
+            # Separate Indian market commodities from yfinance tickers
+            indian_commodities = [(t, n) for t, n in tickers if t.startswith("INDIAN_MARKET:")]
+            yf_tickers = [(t, n) for t, n in tickers if not t.startswith("INDIAN_MARKET:")]
+            
+            parts = []
+            # Fetch Indian commodity prices from our own DB
+            if indian_commodities:
+                commodity_names = [t.split(":")[1] for t, _ in indian_commodities]
+                indian_prices = await _fetch_indian_commodity_prices(commodity_names)
+                if indian_prices:
+                    parts.append(indian_prices)
+            
+            # Fetch stock/index prices from yfinance
+            if yf_tickers:
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    loop = asyncio.get_running_loop()
+                    yf_prices = await loop.run_in_executor(pool, _fetch_ai_live_prices, yf_tickers)
+                if yf_prices:
+                    parts.append(yf_prices.replace("\nLIVE MARKET PRICES (fetched just now):\n", ""))
+            
+            if parts:
+                live_prices_context = "\nLIVE MARKET PRICES (fetched just now, all in ₹ INR):\n" + "\n".join(parts)
                 logger.info(f"Live prices fetched for: {[n for _, n in tickers]}")
     except Exception as e:
         logger.warning(f"Live price fetch failed: {e}")
