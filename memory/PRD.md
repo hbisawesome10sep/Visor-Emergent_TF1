@@ -173,7 +173,9 @@ The Tax screen is the centrepiece intelligence layer of Visor. It operates on an
 | **Live price lookup** — real-time stock, MF, ETF, index, and commodity prices via yfinance | Done |
 | **Indian commodity prices** — Gold (per 10g) and Silver (per Kg) from app's GoldAPI data, not COMEX USD | Done |
 | **Conversational memory** — last 10 messages included as context for follow-up questions | Done |
-| **Individual message deletion** — long-press on any message to delete it | Done |
+| **Individual message deletion** — long-press (Pressable) on any message to delete it, server-synced IDs | Done |
+| **Professional AI identity** — never reveals internal systems, feeds, APIs, or ticker symbols | Done |
+| **Stop-words filter** — prevents common English words from being treated as stock tickers | Done |
 | Coverage: 70+ Indian stocks, Nifty/SENSEX/Bank Nifty indices, Gold, Silver, Copper, Crude, ETFs | Done |
 | Powered by OpenAI GPT-5.2 | Done |
 
