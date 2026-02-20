@@ -5,12 +5,16 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useAuth } from './AuthContext';
 
 const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-const STORAGE_KEYS = {
-  PIN_HASH: 'visor_pin_hash',
-  BIOMETRIC_ENABLED: 'visor_biometric_enabled',
-  SECURITY_SETUP_DONE: 'visor_security_setup',
-  LOCK_ENABLED: 'visor_lock_enabled',
-};
+
+// User-specific storage keys
+function getStorageKeys(userId: string) {
+  return {
+    PIN_HASH: `visor_pin_hash_${userId}`,
+    BIOMETRIC_ENABLED: `visor_biometric_enabled_${userId}`,
+    SECURITY_SETUP_DONE: `visor_security_setup_${userId}`,
+    LOCK_ENABLED: `visor_lock_enabled_${userId}`,
+  };
+}
 
 type SecurityContextType = {
   isLocked: boolean;
@@ -18,6 +22,7 @@ type SecurityContextType = {
   isBiometricEnabled: boolean;
   isBiometricAvailable: boolean;
   isSecuritySetupDone: boolean;
+  securityLoading: boolean;
   unlock: () => void;
   lock: () => void;
   setupPin: (pin: string) => Promise<boolean>;
@@ -35,6 +40,7 @@ const SecurityContext = createContext<SecurityContextType>({
   isBiometricEnabled: false,
   isBiometricAvailable: false,
   isSecuritySetupDone: false,
+  securityLoading: true,
   unlock: () => {},
   lock: () => {},
   setupPin: async () => false,
@@ -59,7 +65,10 @@ function simpleHash(pin: string): string {
 }
 
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const userId = user?.id || '';
+
+  const [securityLoading, setSecurityLoading] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   const [isPinSetup, setIsPinSetup] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
@@ -81,19 +90,36 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  // Load stored security settings
+  // Load stored security settings for THIS user
   useEffect(() => {
     (async () => {
+      if (!userId) {
+        // No user logged in — reset state
+        setIsPinSetup(false);
+        setIsBiometricEnabled(false);
+        setIsSecuritySetupDone(false);
+        setIsLocked(false);
+        setSecurityLoading(false);
+        return;
+      }
+      const keys = getStorageKeys(userId);
       const [pinHash, bioEnabled, setupDone] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.PIN_HASH),
-        AsyncStorage.getItem(STORAGE_KEYS.BIOMETRIC_ENABLED),
-        AsyncStorage.getItem(STORAGE_KEYS.SECURITY_SETUP_DONE),
+        AsyncStorage.getItem(keys.PIN_HASH),
+        AsyncStorage.getItem(keys.BIOMETRIC_ENABLED),
+        AsyncStorage.getItem(keys.SECURITY_SETUP_DONE),
       ]);
-      setIsPinSetup(!!pinHash);
+      const pinExists = !!pinHash;
+      const setupComplete = setupDone === 'true';
+      setIsPinSetup(pinExists);
       setIsBiometricEnabled(bioEnabled === 'true');
-      setIsSecuritySetupDone(setupDone === 'true');
+      setIsSecuritySetupDone(setupComplete);
+      // If user already set up security, lock the app on login
+      if (setupComplete && pinExists) {
+        setIsLocked(true);
+      }
+      setSecurityLoading(false);
     })();
-  }, []);
+  }, [userId]);
 
   // Inactivity timeout — track app state changes
   useEffect(() => {
@@ -120,18 +146,19 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   const lock = useCallback(() => setIsLocked(true), []);
 
   const setupPin = useCallback(async (pin: string): Promise<boolean> => {
-    if (pin.length < 4 || pin.length > 6) return false;
+    if (pin.length < 4 || pin.length > 6 || !userId) return false;
     const hash = simpleHash(pin);
-    await AsyncStorage.setItem(STORAGE_KEYS.PIN_HASH, hash);
+    await AsyncStorage.setItem(getStorageKeys(userId).PIN_HASH, hash);
     setIsPinSetup(true);
     return true;
-  }, []);
+  }, [userId]);
 
   const verifyPin = useCallback(async (pin: string): Promise<boolean> => {
-    const storedHash = await AsyncStorage.getItem(STORAGE_KEYS.PIN_HASH);
+    if (!userId) return false;
+    const storedHash = await AsyncStorage.getItem(getStorageKeys(userId).PIN_HASH);
     if (!storedHash) return false;
     return simpleHash(pin) === storedHash;
-  }, []);
+  }, [userId]);
 
   const changePin = useCallback(async (oldPin: string, newPin: string): Promise<boolean> => {
     const valid = await verifyPin(oldPin);
@@ -140,14 +167,16 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   }, [verifyPin, setupPin]);
 
   const toggleBiometric = useCallback(async (enabled: boolean) => {
-    await AsyncStorage.setItem(STORAGE_KEYS.BIOMETRIC_ENABLED, String(enabled));
+    if (!userId) return;
+    await AsyncStorage.setItem(getStorageKeys(userId).BIOMETRIC_ENABLED, String(enabled));
     setIsBiometricEnabled(enabled);
-  }, []);
+  }, [userId]);
 
   const completeSecuritySetup = useCallback(async () => {
-    await AsyncStorage.setItem(STORAGE_KEYS.SECURITY_SETUP_DONE, 'true');
+    if (!userId) return;
+    await AsyncStorage.setItem(getStorageKeys(userId).SECURITY_SETUP_DONE, 'true');
     setIsSecuritySetupDone(true);
-  }, []);
+  }, [userId]);
 
   const authenticateWithBiometric = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'web') return false;
@@ -160,17 +189,19 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const resetSecurity = useCallback(async () => {
+    if (!userId) return;
+    const keys = getStorageKeys(userId);
     await Promise.all([
-      AsyncStorage.removeItem(STORAGE_KEYS.PIN_HASH),
-      AsyncStorage.removeItem(STORAGE_KEYS.BIOMETRIC_ENABLED),
-      AsyncStorage.removeItem(STORAGE_KEYS.SECURITY_SETUP_DONE),
-      AsyncStorage.removeItem(STORAGE_KEYS.LOCK_ENABLED),
+      AsyncStorage.removeItem(keys.PIN_HASH),
+      AsyncStorage.removeItem(keys.BIOMETRIC_ENABLED),
+      AsyncStorage.removeItem(keys.SECURITY_SETUP_DONE),
+      AsyncStorage.removeItem(keys.LOCK_ENABLED),
     ]);
     setIsPinSetup(false);
     setIsBiometricEnabled(false);
     setIsSecuritySetupDone(false);
     setIsLocked(false);
-  }, []);
+  }, [userId]);
 
   return (
     <SecurityContext.Provider
@@ -180,6 +211,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         isBiometricEnabled,
         isBiometricAvailable,
         isSecuritySetupDone,
+        securityLoading,
         unlock,
         lock,
         setupPin,
