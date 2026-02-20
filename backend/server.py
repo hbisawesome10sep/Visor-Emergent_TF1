@@ -1191,6 +1191,24 @@ KEY GUIDELINES:
     except Exception as e:
         logger.warning(f"Live price fetch failed: {e}")
 
+    # Fetch recent chat history for conversational context
+    chat_history_context = ""
+    try:
+        recent_msgs = await db.chat_history.find(
+            {"user_id": user_id}, {"_id": 0, "role": 1, "content": 1}
+        ).sort("created_at", -1).limit(10).to_list(10)
+        if recent_msgs:
+            recent_msgs.reverse()  # Chronological order
+            history_lines = []
+            for m in recent_msgs:
+                role = "User" if m["role"] == "user" else "Visor"
+                # Truncate long messages to save tokens
+                content = m["content"][:300] + "..." if len(m["content"]) > 300 else m["content"]
+                history_lines.append(f"  {role}: {content}")
+            chat_history_context = f"\n\nRECENT CONVERSATION HISTORY (for context continuity):\n" + "\n".join(history_lines)
+    except Exception:
+        pass
+
     try:
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
@@ -1199,7 +1217,7 @@ KEY GUIDELINES:
         )
         chat.with_model("openai", "gpt-5.2")
         
-        user_message = UserMessage(text=f"{context}{live_prices_context}\n\nUser Question: {msg.message}")
+        user_message = UserMessage(text=f"{context}{live_prices_context}{chat_history_context}\n\nUser Question: {msg.message}")
         response_text = await chat.send_message(user_message)
         
     except Exception as e:
