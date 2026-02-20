@@ -1133,14 +1133,19 @@ KEY GUIDELINES:
 - When discussing investments, provide balanced risk-reward perspectives
 - PAY ATTENTION to which screen the user is viewing{screen_context_info}"""
     
+    # Fetch live prices if user asks about specific stocks/commodities
+    live_prices_context = ""
     try:
-        # Fetch live prices if user asks about specific stocks/commodities
-        live_prices_context = ""
         tickers = _detect_tickers(msg.message)
         if tickers:
             import asyncio
             live_prices_context = await asyncio.get_event_loop().run_in_executor(None, _fetch_live_prices, tickers)
+            if live_prices_context:
+                logger.info(f"Live prices fetched for: {[n for _, n in tickers]}")
+    except Exception as e:
+        logger.warning(f"Live price fetch failed: {e}")
 
+    try:
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"visor-{user_id}-{datetime.now(timezone.utc).strftime('%Y%m%d')}",
