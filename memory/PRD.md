@@ -30,7 +30,7 @@ Indian individuals juggle multiple financial instruments — savings accounts, P
 | **Mobile App** | React Native (Expo SDK 54) |
 | **Backend API** | Python FastAPI |
 | **Database** | MongoDB |
-| **AI Engine** | OpenAI GPT-4 (via Emergent Universal Key) |
+| **AI Engine** | OpenAI GPT-5.2 (via Emergent Universal Key) |
 | **Market Data** | yfinance (Equities/Indices), GoldAPI.io (Precious Metals) |
 | **Authentication** | JWT + Biometric (PIN + Fingerprint/Face ID) |
 | **File System** | expo-file-system (Export/Share) |
@@ -169,7 +169,10 @@ The Tax screen is the centrepiece intelligence layer of Visor. It operates on an
 | Screen-context awareness (Dashboard, Transactions, Investments, Tax, etc.) | Done |
 | Personalised advice based on user's actual financial data | Done |
 | Tax planning guidance on the Tax screen | Done |
-| Powered by OpenAI GPT-4 | Done |
+| **STRICT finance-only guardrails** — refuses all non-finance queries (medical, recipes, etc.) | Done |
+| **Live price lookup** — real-time stock, MF, ETF, index, and commodity prices via yfinance | Done |
+| Coverage: 50+ Indian stocks, Nifty/SENSEX/Bank Nifty indices, Gold, Silver, Copper, Crude, ETFs | Done |
+| Powered by OpenAI GPT-5.2 | Done |
 
 ---
 
