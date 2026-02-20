@@ -898,11 +898,11 @@ def _detect_tickers(query: str) -> list:
             if ticker not in [t for t, _ in found]:
                 found.append((ticker, name))
             q = q.replace(name, "")
-    # Check for direct NSE ticker patterns like "INFY", "TATAMOTORS"
-    direct = re.findall(r'\b([A-Z]{2,15})\b', query)
+    # Check for direct NSE ticker patterns like "INFY", "TATAMOTORS" (only for words not already matched)
+    direct = re.findall(r'\b([A-Z]{2,15})\b', q.upper())
     for sym in direct:
         ticker = f"{sym}.NS"
-        if ticker not in [t for t, _ in found]:
+        if ticker not in [t for t, _ in found] and sym.lower() not in TICKER_MAP:
             found.append((ticker, sym))
     return found[:5]  # Max 5 lookups
 
