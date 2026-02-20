@@ -849,7 +849,7 @@ import re
 
 # Common Indian stocks/indices mapping to yfinance tickers
 TICKER_MAP = {
-    "reliance": "RELIANCE.NS", "tcs": "TCS.NS", "infosys": "INFY.NS",
+    "reliance": "RELIANCE.NS", "ril": "RELIANCE.NS", "tcs": "TCS.NS", "infosys": "INFY.NS", "infy": "INFY.NS",
     "hdfc bank": "HDFCBANK.NS", "hdfc": "HDFCBANK.NS", "icici bank": "ICICIBANK.NS",
     "icici": "ICICIBANK.NS", "sbi": "SBIN.NS", "kotak": "KOTAKBANK.NS",
     "axis bank": "AXISBANK.NS", "bajaj finance": "BAJFINANCE.NS",
@@ -868,7 +868,12 @@ TICKER_MAP = {
     "hindustan unilever": "HINDUNILVR.NS", "hul": "HINDUNILVR.NS",
     "nestle": "NESTLEIND.NS", "britannia": "BRITANNIA.NS",
     "divis lab": "DIVISLAB.NS", "dmart": "DMART.NS", "avenue supermarts": "DMART.NS",
-    "zomato": "ZOMATO.NS", "paytm": "PAYTM.NS",
+    "zomato": "ZOMATO.NS", "paytm": "PAYTM.NS", "bhel": "BHEL.NS",
+    "bpcl": "BPCL.NS", "ioc": "IOC.NS", "gail": "GAIL.NS", "sail": "SAIL.NS",
+    "vedanta": "VEDL.NS", "hindalco": "HINDALCO.NS", "jswsteel": "JSWSTEEL.NS",
+    "jsw steel": "JSWSTEEL.NS", "m&m": "M&M.NS", "mahindra": "M&M.NS",
+    "bajaj auto": "BAJAJ-AUTO.NS", "hero": "HEROMOTOCO.NS",
+    "indigo": "INDIGO.NS", "irctc": "IRCTC.NS", "hal": "HAL.NS",
     "nifty": "^NSEI", "nifty 50": "^NSEI", "sensex": "^BSESN", "nifty bank": "^NSEBANK",
     "bank nifty": "^NSEBANK", "nifty it": "^CNXIT", "nifty pharma": "^CNXPHARMA",
     # Commodities - use INDIAN_MARKET flag to fetch from app's market_data instead of yfinance
