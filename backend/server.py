@@ -843,6 +843,99 @@ async def get_health_score(user=Depends(get_current_user)):
 #  AI CHAT ENDPOINTS
 # ══════════════════════════════════════
 
+# ── Live price lookup for AI queries ──
+import re
+
+# Common Indian stocks/indices mapping to yfinance tickers
+TICKER_MAP = {
+    "reliance": "RELIANCE.NS", "tcs": "TCS.NS", "infosys": "INFY.NS",
+    "hdfc bank": "HDFCBANK.NS", "hdfc": "HDFCBANK.NS", "icici bank": "ICICIBANK.NS",
+    "icici": "ICICIBANK.NS", "sbi": "SBIN.NS", "kotak": "KOTAKBANK.NS",
+    "axis bank": "AXISBANK.NS", "bajaj finance": "BAJFINANCE.NS",
+    "wipro": "WIPRO.NS", "hcl tech": "HCLTECH.NS", "hcl": "HCLTECH.NS",
+    "bharti airtel": "BHARTIARTL.NS", "airtel": "BHARTIARTL.NS",
+    "itc": "ITC.NS", "maruti": "MARUTI.NS", "maruti suzuki": "MARUTI.NS",
+    "asian paints": "ASIANPAINT.NS", "larsen": "LT.NS", "l&t": "LT.NS",
+    "titan": "TITAN.NS", "sun pharma": "SUNPHARMA.NS", "bajaj finserv": "BAJAJFINSV.NS",
+    "adani ports": "ADANIPORTS.NS", "adani enterprises": "ADANIENT.NS",
+    "adani green": "ADANIGREEN.NS", "adani power": "ADANIPOWER.NS",
+    "tata motors": "TATAMOTORS.NS", "tata steel": "TATASTEEL.NS",
+    "tata power": "TATAPOWER.NS", "tata consumer": "TATACONSUM.NS",
+    "tech mahindra": "TECHM.NS", "power grid": "POWERGRID.NS",
+    "ntpc": "NTPC.NS", "ongc": "ONGC.NS", "coal india": "COALINDIA.NS",
+    "ultratech": "ULTRACEMCO.NS", "grasim": "GRASIM.NS",
+    "hindustan unilever": "HINDUNILVR.NS", "hul": "HINDUNILVR.NS",
+    "nestle": "NESTLEIND.NS", "britannia": "BRITANNIA.NS",
+    "divis lab": "DIVISLAB.NS", "dmart": "DMART.NS", "avenue supermarts": "DMART.NS",
+    "zomato": "ZOMATO.NS", "paytm": "PAYTM.NS",
+    "nifty": "^NSEI", "nifty 50": "^NSEI", "sensex": "^BSESN", "nifty bank": "^NSEBANK",
+    "bank nifty": "^NSEBANK", "nifty it": "^CNXIT", "nifty pharma": "^CNXPHARMA",
+    # Commodities
+    "gold": "GC=F", "silver": "SI=F", "copper": "HG=F",
+    "crude oil": "CL=F", "crude": "CL=F", "natural gas": "NG=F",
+    # ETFs
+    "gold etf": "GOLDBEES.NS", "goldbees": "GOLDBEES.NS",
+    "nifty bees": "NIFTYBEES.NS", "niftybees": "NIFTYBEES.NS",
+    "bank bees": "BANKBEES.NS", "bankbees": "BANKBEES.NS",
+    "liquidbees": "LIQUIDBEES.NS", "silver etf": "SILVERBEES.NS",
+}
+
+def _detect_tickers(query: str) -> list:
+    """Extract stock/commodity names from user query and map to yfinance tickers."""
+    q = query.lower()
+    found = []
+    # Check mapped names (longest first to avoid partial matches)
+    for name in sorted(TICKER_MAP.keys(), key=len, reverse=True):
+        if name in q:
+            ticker = TICKER_MAP[name]
+            if ticker not in [t for t, _ in found]:
+                found.append((ticker, name))
+            q = q.replace(name, "")
+    # Check for direct NSE ticker patterns like "INFY", "TATAMOTORS"
+    direct = re.findall(r'\b([A-Z]{2,15})\b', query)
+    for sym in direct:
+        ticker = f"{sym}.NS"
+        if ticker not in [t for t, _ in found]:
+            found.append((ticker, sym))
+    return found[:5]  # Max 5 lookups
+
+
+def _fetch_live_prices(tickers: list) -> str:
+    """Fetch live/recent prices for given tickers using yfinance."""
+    if not tickers:
+        return ""
+    results = []
+    for ticker, name in tickers:
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.fast_info
+            price = getattr(info, 'last_price', None)
+            prev_close = getattr(info, 'previous_close', None)
+            if price and price > 0:
+                change = ""
+                if prev_close and prev_close > 0:
+                    chg = price - prev_close
+                    chg_pct = (chg / prev_close) * 100
+                    change = f" | Change: {'+'if chg>=0 else ''}{chg:.2f} ({'+'if chg_pct>=0 else ''}{chg_pct:.2f}%)"
+                day_high = getattr(info, 'day_high', None)
+                day_low = getattr(info, 'day_low', None)
+                vol = getattr(info, 'last_volume', None)
+                cap = getattr(info, 'market_cap', None)
+                extra = ""
+                if day_high and day_low:
+                    extra += f" | Day Range: {day_low:.2f}-{day_high:.2f}"
+                if cap and cap > 0:
+                    if cap >= 1e12:
+                        extra += f" | MCap: ₹{cap/1e12:.2f}T"
+                    elif cap >= 1e9:
+                        extra += f" | MCap: ₹{cap/1e7:.0f}Cr"
+                results.append(f"  {name.upper()} ({ticker}): ₹{price:,.2f}{change}{extra}")
+        except Exception:
+            continue
+    if not results:
+        return ""
+    return "\nLIVE MARKET PRICES (fetched just now):\n" + "\n".join(results)
+
 @api_router.post("/ai/chat")
 async def ai_chat(msg: AIMessageCreate, user=Depends(get_current_user)):
     from emergentintegrations.llm.chat import LlmChat, UserMessage
