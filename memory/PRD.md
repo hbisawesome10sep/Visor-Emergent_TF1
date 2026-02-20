@@ -143,6 +143,16 @@ Build a comprehensive personal finance management application for Indian users w
 - expo-local-authentication (biometric)
 - pdfplumber (PDF parsing)
 
+### Introduction/Landing Page (Feb 20, 2026) (Complete)
+- New scrollable intro page at `app/index.tsx` that shows when no user is logged in
+- Features Login and Sign Up buttons at the top bar, hero section, 8 feature showcase cards
+- Auto-redirects to `/(tabs)` if user is already authenticated
+
+### Security Persistence Fix (Feb 20, 2026) (Complete)
+- Storage keys now user-specific (`visor_pin_hash_{userId}`)
+- Added `securityLoading` state preventing false setup screen flash
+- If user already set up PIN/biometric, app goes to lock screen on login, not setup screen
+
 ## Test Credentials
 - Email: rajesh@visor.demo
 - Password: Demo@123
