@@ -1574,7 +1574,6 @@ def parse_kotak_text_format(pdf, all_text: str) -> list:
             
             # Format 2: Line starts with serial number then DD Mon YYYY
             elif re.match(r'^\d+\s+\d{2}\s+\w{3}\s+\d{4}', line):
-                # Extract: # DD Mon YYYY Description Ref +/-Amount Balance
                 parts = line.split()
                 if len(parts) >= 5:
                     # Date is parts[1:4]
@@ -1582,42 +1581,35 @@ def parse_kotak_text_format(pdf, all_text: str) -> list:
                     date = parse_date(date_str)
                     
                     if date:
-                        # Find amounts (look for +/- numbers at the end)
-                        amount_pattern = re.findall(r'([+-]?[\d,]+\.?\d*)\s*$', line)
-                        if not amount_pattern:
-                            # Try to find amounts anywhere
-                            amount_pattern = re.findall(r'([+-][\d,]+\.?\d{2})', line)
+                        # Find amounts with +/- prefix AND decimal point (to avoid matching ref numbers)
+                        # Pattern: +/-number,number.decimal
+                        amount_matches = re.findall(r'([+-][\d,]+\.\d{2})\b', line)
                         
-                        if amount_pattern:
-                            # Last amount is balance, second-to-last is transaction
-                            amounts = [parse_amount(a.replace('+', '').replace('-', '')) for a in amount_pattern]
-                            
-                            if len(amounts) >= 2:
-                                txn_amount = amounts[-2]
+                        if amount_matches:
+                            # The transaction amount is the one with +/- prefix
+                            for amt_str in amount_matches:
+                                is_credit = amt_str.startswith('+')
+                                amount = parse_amount(amt_str.replace('+', '').replace('-', ''))
                                 
-                                # Check if credit (+) or debit (-)
-                                raw_amounts = re.findall(r'([+-][\d,]+\.?\d{2})', line)
-                                if len(raw_amounts) >= 2:
-                                    is_credit = raw_amounts[-2].startswith('+')
-                                else:
-                                    is_credit = False
-                                
-                                # Get description - everything between date and amounts
-                                desc_start = line.find(parts[3]) + len(parts[3]) + 1
-                                # Find where amounts start
-                                first_amount_match = re.search(r'[+-]?[\d,]+\.\d{2}', line[desc_start:])
-                                if first_amount_match:
-                                    description = line[desc_start:desc_start + first_amount_match.start()].strip()
-                                else:
-                                    description = line[desc_start:].strip()
-                                
-                                if txn_amount > 0:
+                                if amount > 0:
+                                    # Get description - between date and first amount
+                                    desc_start = line.find(parts[3]) + len(parts[3]) + 1
+                                    desc_end = line.find(amt_str)
+                                    if desc_end > desc_start:
+                                        description = line[desc_start:desc_end].strip()
+                                        # Remove reference numbers
+                                        description = re.sub(r'\b[A-Z]{2,}-?\d+\b', '', description).strip()
+                                        description = re.sub(r'\s+', ' ', description)
+                                    else:
+                                        description = line[desc_start:].strip()
+                                    
                                     transactions.append({
                                         'date': date,
                                         'description': clean_kotak_description(description),
-                                        'bank_debit': 0 if is_credit else txn_amount,
-                                        'bank_credit': txn_amount if is_credit else 0,
+                                        'bank_debit': 0 if is_credit else amount,
+                                        'bank_credit': amount if is_credit else 0,
                                     })
+                                    break  # Only take first amount per line
             
             i += 1
     
