@@ -2232,9 +2232,24 @@ export default function BooksScreen() {
 
       {/* Tabs */}
       <View style={styles.tabsContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 0 }}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'journal' && styles.tabActive]}
+          onPress={() => { setActiveTab('journal'); setSelectedLedgerAccount(null); setIndividualLedger(null); }}
+          data-testid="journal-tab-btn"
+        >
+          <MaterialCommunityIcons
+            name="book-edit"
+            size={18}
+            color={activeTab === 'journal' ? colors.primary : colors.textSecondary}
+          />
+          <Text style={[styles.tabText, activeTab === 'journal' && styles.tabTextActive]}>Journal</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.tab, activeTab === 'ledger' && styles.tabActive]}
-          onPress={() => setActiveTab('ledger')}
+          onPress={() => { setActiveTab('ledger'); setSelectedLedgerAccount(null); setIndividualLedger(null); }}
+          data-testid="ledger-tab-btn"
         >
           <MaterialCommunityIcons
             name="book-open-page-variant"
@@ -2247,6 +2262,7 @@ export default function BooksScreen() {
         <TouchableOpacity
           style={[styles.tab, activeTab === 'pnl' && styles.tabActive]}
           onPress={() => setActiveTab('pnl')}
+          data-testid="pnl-tab-btn"
         >
           <MaterialCommunityIcons
             name="chart-bar"
@@ -2259,6 +2275,7 @@ export default function BooksScreen() {
         <TouchableOpacity
           style={[styles.tab, activeTab === 'balance' && styles.tabActive]}
           onPress={() => setActiveTab('balance')}
+          data-testid="balance-tab-btn"
         >
           <MaterialCommunityIcons
             name="scale-balance"
@@ -2267,7 +2284,40 @@ export default function BooksScreen() {
           />
           <Text style={[styles.tabText, activeTab === 'balance' && styles.tabTextActive]}>Balance Sheet</Text>
         </TouchableOpacity>
+        </ScrollView>
       </View>
+
+      {/* Search Bar (Journal & Ledger tabs) */}
+      {(activeTab === 'journal' || activeTab === 'ledger') && (
+        <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+            borderRadius: 10, paddingHorizontal: 12, height: 40, borderWidth: 1, borderColor: booksSearchQuery ? colors.primary : colors.border + '50',
+          }}>
+            <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
+            <TextInput
+              data-testid="books-search-input"
+              style={{ flex: 1, fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', marginLeft: 8, paddingVertical: 0 }}
+              placeholder={activeTab === 'journal' ? 'Search journal entries...' : 'Search accounts (e.g., Electricity, Prakash)...'}
+              placeholderTextColor={colors.textSecondary}
+              value={booksSearchQuery}
+              onChangeText={(text) => {
+                setBooksSearchQuery(text);
+                // Reset individual ledger view on search change
+                setSelectedLedgerAccount(null);
+                setIndividualLedger(null);
+              }}
+              autoCapitalize="none"
+              returnKeyType="search"
+            />
+            {booksSearchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => { setBooksSearchQuery(''); setSelectedLedgerAccount(null); setIndividualLedger(null); }}>
+                <MaterialCommunityIcons name="close-circle" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* Date Range Selector */}
       <View style={styles.dateSelector}>
