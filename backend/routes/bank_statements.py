@@ -350,8 +350,9 @@ def parse_pdf_statement(file_bytes: bytes) -> list:
             if text:
                 all_text += text + "\n"
         
-        # Check if this is an ICICI statement
-        if "icici" in all_text.lower() and "transaction date" in all_text.lower():
+        # Check if this is an ICICI statement (look for ICICI markers and transaction patterns)
+        is_icici = "icici" in all_text.lower() and ("statement of transactions" in all_text.lower() or "transaction remarks" in all_text.lower())
+        if is_icici:
             icici_txns = parse_icici_pdf_text(all_text)
             if icici_txns:
                 logger.info(f"Parsed {len(icici_txns)} transactions using ICICI text parser")
