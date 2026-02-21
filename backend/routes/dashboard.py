@@ -206,6 +206,7 @@ async def get_dashboard_stats(
         "health_score": {
             "overall": round(hs_overall, 1),
             "grade": hs_grade,
+            "has_sufficient_data": has_income_data,
             "breakdown": {
                 "savings": round(hs_savings_score, 1),
                 "investments": round(hs_invest_score, 1),
