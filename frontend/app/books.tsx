@@ -389,7 +389,7 @@ export default function BooksScreen() {
     if (!loading) {
       fetchData();
     }
-  }, [datePreset, customStartDate, customEndDate]);
+  }, [datePreset, customStartDate, customEndDate, booksSearchQuery]);
 
   const onRefresh = () => {
     setRefreshing(true);
