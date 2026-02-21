@@ -36,7 +36,11 @@ async def get_current_user(authorization: str = Header(None)):
             for field in USER_SENSITIVE_FIELDS:
                 val = user.get(field, "")
                 if val and isinstance(val, str) and val.startswith("ENC:"):
-                    user[field] = decrypt_field(val, dek)
+                    try:
+                        user[field] = decrypt_field(val, dek)
+                    except Exception:
+                        # Decryption failed (key mismatch) — keep encrypted value
+                        pass
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
