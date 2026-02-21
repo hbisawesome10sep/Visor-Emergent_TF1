@@ -28,6 +28,8 @@ ACCOUNT_TYPE_MAP = {
     "Capital Gains": ("Nominal", "Income"),
     "Pension": ("Nominal", "Income"),
     "Refund": ("Nominal", "Income"),
+    "Transfer In": ("Nominal", "Income"),
+    "Bank Transfer In": ("Nominal", "Income"),
     # Expense categories → Nominal/Expense
     "Groceries": ("Nominal", "Expense"),
     "Rent": ("Nominal", "Expense"),
