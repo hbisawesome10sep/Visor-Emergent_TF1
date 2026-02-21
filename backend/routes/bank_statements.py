@@ -131,8 +131,10 @@ def categorize_transaction(description: str) -> tuple:
     This function analyzes the transaction description (payee, merchant, narration)
     to determine the appropriate expense/income category for double-entry bookkeeping.
     
-    Note: Payment modes like UPI, NEFT, IMPS are NOT categories - they're just
-    how the payment was made. The actual category is based on who received/sent the money.
+    Important Notes:
+    - Payment modes (UPI, NEFT, IMPS) are NOT categories - they're just how the payment was made
+    - UPI apps (Cred, GPay, Paytm, PhonePe) are INTERMEDIARIES, not categories
+    - We categorize based on the actual MERCHANT/PAYEE, not the payment method
     """
     desc = description.lower()
 
@@ -149,12 +151,12 @@ def categorize_transaction(description: str) -> tuple:
         # === FOOD & DINING ===
         (["swiggy", "zomato", "food", "restaurant", "dining", "cafe", "pizza", 
           "burger", "mcdonald", "kfc", "domino", "starbucks", "chaayos", "haldiram",
-          "barbeque", "biryani", "hotel", "dhaba"], "Food & Dining", "expense"),
+          "barbeque", "biryani", "hotel", "dhaba", "eatery"], "Food & Dining", "expense"),
         
         # === GROCERIES ===
         (["grocery", "groceries", "bigbasket", "blinkit", "zepto", "instamart",
           "dmart", "d-mart", "d mart", "more supermarket", "reliance fresh", "spencer",
-          "nature basket", "jiomart", "kirana", "vegetables", "fruits"], "Groceries", "expense"),
+          "nature basket", "jiomart", "kirana", "vegetables", "fruits", "supermarket"], "Groceries", "expense"),
         
         # === TRANSPORT & TRAVEL ===
         (["uber", "ola", "rapido", "taxi", "cab", "auto", "rickshaw"], "Transport", "expense"),
@@ -174,14 +176,14 @@ def categorize_transaction(description: str) -> tuple:
         
         # === COMMUNICATION ===
         (["internet", "broadband", "wifi", "act fibernet", "hathway", "tikona"], "Internet", "expense"),
-        (["mobile", "recharge", "prepaid", "postpaid", "airtel", "jio", "vodafone", 
-          "vi ", "bsnl"], "Mobile Recharge", "expense"),
+        (["recharge", "prepaid", "postpaid", "airtel", "jio", "vodafone", 
+          "vi ", "bsnl", "mobile recharge"], "Mobile Recharge", "expense"),
         (["dth", "tata sky", "dish tv", "airtel dth", "videocon", "sun direct"], "DTH", "expense"),
         
         # === SUBSCRIPTIONS & ENTERTAINMENT ===
         (["netflix", "hotstar", "prime video", "amazon prime", "spotify", "gaana",
           "youtube premium", "zee5", "sonyliv", "jiocinema", "apple tv", "disney",
-          "subscription", "oneplay"], "Subscriptions", "expense"),
+          "subscription", "oneplay", "apple music", "audible"], "Subscriptions", "expense"),
         (["movie", "cinema", "pvr", "inox", "bookmyshow", "paytm movie"], "Entertainment", "expense"),
         
         # === SHOPPING ===
@@ -194,7 +196,6 @@ def categorize_transaction(description: str) -> tuple:
           "bajaj allianz", "health ins", "term ins", "policy"], "Insurance", "expense"),
         (["emi", "loan", "home loan", "car loan", "personal loan", "education loan",
           "bajaj finance", "hdfc credila", "tata capital"], "EMI", "expense"),
-        (["credit card", "card payment", "cc payment", "cred"], "Credit Card Payment", "expense"),
         
         # === INVESTMENTS ===
         (["sip", "mutual fund", "mf invest", "elss", "groww", "zerodha", "upstox",
@@ -226,18 +227,15 @@ def categorize_transaction(description: str) -> tuple:
         (["donation", "charity", "ngo", "temple", "church", "mosque", "gurudwara"], "Donations", "expense"),
         
         # === GOVERNMENT & TAXES ===
-        (["gst", "tax", "income tax", "tds", "government", "challan", "passport",
+        (["gst", "income tax", "tds", "government", "challan", "passport",
           "stamps", "registration"], "Taxes & Fees", "expense"),
         
         # === BANK CHARGES ===
         (["bank charge", "service charge", "sms charge", "debit card", "atm charge",
-          "annual fee", "maintenance charge", "minimum balance"], "Bank Charges", "expense"),
+          "annual fee", "maintenance charge", "minimum balance", "consolidated charge"], "Bank Charges", "expense"),
         
         # === CASH TRANSACTIONS ===
         (["atm", "cash withdrawal", "cash deposit", "self withdrawal"], "Cash", "expense"),
-        
-        # === TRANSFERS (Person to Person) - These go to "Other" ===
-        # Note: Generic transfers should be "Other" as we don't know the purpose
     ]
 
     # First pass: Check for specific merchant/payee matches
@@ -246,7 +244,8 @@ def categorize_transaction(description: str) -> tuple:
             return category, txn_type
     
     # If no specific category found, return "Other"
-    # This is better than wrongly categorizing as Transport
+    # UPI app names (Cred, GPay, Paytm, PhonePe) are just intermediaries
+    # and should NOT be used for categorization - they go to "Other"
     return "Other", "expense"
 
 
