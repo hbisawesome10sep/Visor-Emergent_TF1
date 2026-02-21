@@ -394,7 +394,8 @@ class TestBankStatementCleanup:
         # Fetch transactions with TEST_ prefix
         response = self.session.get(f"{BASE_URL}/api/transactions", params={"limit": 100})
         if response.status_code == 200:
-            txns = response.json().get("transactions", [])
+            data = response.json()
+            txns = data.get("transactions", []) if isinstance(data, dict) else data
             deleted = 0
             for txn in txns:
                 if txn.get("description", "").startswith("TEST_") or \
