@@ -967,6 +967,111 @@ const styles = StyleSheet.create({
   backStatValue: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '700' as any },
   backSource: { fontSize: 9, textAlign: 'center', opacity: 0.7 },
 
+  // NEW: Redesigned Insight Card Styles
+  insightSubtitleSmall: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  insightBadgeNeutral: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  insightBadgeTextNeutral: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
+  valueExplanationRow: {
+    marginVertical: 12,
+  },
+  insightValueLarge: {
+    fontSize: 28,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+    letterSpacing: -0.5,
+  },
+  explanationText: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 6,
+  },
+  progressContainer: {
+    marginTop: 8,
+  },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  progressLabel: {
+    fontSize: 10,
+  },
+  expandedDetails: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  formulaBox: {
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  formulaLabel: {
+    fontSize: 10,
+    marginBottom: 4,
+  },
+  formulaText: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
+  amountsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 12,
+  },
+  amountItem: {
+    flex: 1,
+    minWidth: 120,
+  },
+  comparisonRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 12,
+  },
+  comparisonItem: {
+    flex: 1,
+  },
+  comparisonLabel: {
+    fontSize: 10,
+    marginBottom: 4,
+  },
+  comparisonValue: {
+    fontSize: 14,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
+  sourceText: {
+    fontSize: 9,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
+  expandIndicator: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
+
   // Compare Card
   compareCard: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 24 },
   compareHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
