@@ -62,9 +62,10 @@
 - **tax.tsx**: Reduced from 878 to 683 lines (~22% reduction)
   - Extracted `CalcRow`, `UserDeductionsSection`, `AutoDeductionsSection`, `CapitalGainsSection`
   - All components in `/app/frontend/src/components/tax/`
-- **investments.tsx**: Component files created but not integrated (to avoid breaking changes)
-  - Created `MarketTickerBar`, `GoalsSection` in `/app/frontend/src/components/investments/`
-  - Ready for future integration
+- **investments.tsx**: Reduced from 1968 to 1916 lines (~3% reduction)
+  - Integrated `GoalsSection` component
+  - Created `MarketTickerBar` (ready for future integration)
+  - All components in `/app/frontend/src/components/investments/`
 
 ### Bug Fixes Applied (Feb 21, 2026)
 - Fixed `GET /api/holdings/live` (405 → 200)
