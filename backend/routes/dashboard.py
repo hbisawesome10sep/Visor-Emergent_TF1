@@ -228,26 +228,39 @@ async def get_health_score(user=Depends(get_current_user)):
     txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(100)
 
-    total_income = sum(t["amount"] for t in txns if t["type"] == "income") or 1
+    total_income = sum(t["amount"] for t in txns if t["type"] == "income")
     total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
     total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+    
+    # Handle zero income gracefully
+    has_income_data = total_income > 0
+    
+    if has_income_data:
+        savings_rate = max(0, min(100, (total_income - total_expenses) / total_income * 100))
+        investment_rate = min(100, total_investments / total_income * 100)
+        expense_ratio = min(200, total_expenses / total_income * 100)
+    else:
+        savings_rate = 0
+        investment_rate = 0
+        expense_ratio = 0 if total_expenses == 0 else 100
 
-    savings_rate = max(0, (total_income - total_expenses) / total_income * 100)
-    investment_rate = (total_investments / total_income * 100)
-    expense_ratio = (total_expenses / total_income * 100)
-
-    total_goal_target = sum(g["target_amount"] for g in goals) if goals else 1
+    total_goal_target = sum(g["target_amount"] for g in goals) if goals else 0
     total_goal_current = sum(g["current_amount"] for g in goals) if goals else 0
-    goal_score = min(100, (total_goal_current / total_goal_target * 100))
+    goal_score = min(100, (total_goal_current / total_goal_target * 100)) if total_goal_target > 0 else 0
 
-    savings_score = min(100, savings_rate * 2.5)
-    invest_score = min(100, investment_rate * 5)
-    expense_score = max(0, 100 - expense_ratio)
+    savings_score = min(100, savings_rate * 2.5) if has_income_data else 0
+    invest_score = min(100, investment_rate * 5) if has_income_data else 0
+    expense_score = max(0, 100 - expense_ratio) if has_income_data else 0
 
-    overall = (savings_score * 0.3 + invest_score * 0.2 + expense_score * 0.3 + goal_score * 0.2)
-    overall = min(100, max(0, overall))
+    if has_income_data or total_goal_target > 0:
+        overall = (savings_score * 0.3 + invest_score * 0.2 + expense_score * 0.3 + goal_score * 0.2)
+        overall = min(100, max(0, overall))
+    else:
+        overall = 0
 
-    if overall >= 80:
+    if not has_income_data and total_expenses == 0 and total_goal_target == 0:
+        grade = "No Data"
+    elif overall >= 80:
         grade = "Excellent"
     elif overall >= 65:
         grade = "Good"
@@ -261,6 +274,7 @@ async def get_health_score(user=Depends(get_current_user)):
     return {
         "overall_score": round(overall, 1),
         "grade": grade,
+        "has_sufficient_data": has_income_data,
         "savings_rate": round(savings_rate, 1),
         "investment_rate": round(investment_rate, 1),
         "expense_ratio": round(expense_ratio, 1),
