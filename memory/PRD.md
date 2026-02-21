@@ -129,13 +129,8 @@ Steps:
 ---
 
 ## Upcoming/Future Tasks
-1. **Google OAuth Fix** — P2 (User needs to update Google Cloud Console redirect URI)
-   - Fix `redirect_uri_mismatch` for Gmail integration
-   - Redirect URI: `https://accounting-suite-16.preview.emergentagent.com/api/gmail/callback`
-
-2. **investments.tsx Component Integration** — P3
-   - Integrate `MarketTickerBar` and `GoalsSection` components
-   - Further extract SIP section and Holdings section
+1. **MarketTickerBar Integration** — P3
+   - Integrate the created `MarketTickerBar` component into investments.tsx
 
 ---
 
