@@ -2515,6 +2515,57 @@ export default function BooksScreen() {
                   placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
                   multiline
                 />
+
+                {/* Payment Mode / Paid From */}
+                <Text style={styles.inputLabel}>Paid From</Text>
+                <TouchableOpacity
+                  data-testid="asset-payment-mode-selector"
+                  style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                  onPress={() => setShowAssetPaymentDropdown(!showAssetPaymentDropdown)}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <MaterialCommunityIcons
+                      name={assetForm.payment_mode === 'cash' ? 'cash' : 'bank'}
+                      size={18}
+                      color={assetForm.payment_mode === 'cash' ? Accent.emerald : '#3B82F6'}
+                    />
+                    <Text style={{ fontSize: 14, color: isDark ? '#F8FAFC' : '#0A0A0B', fontFamily: 'DM Sans' }}>
+                      {assetForm.payment_mode === 'cash' ? 'Cash' : assetForm.payment_account_name}
+                    </Text>
+                  </View>
+                  <MaterialCommunityIcons name={showAssetPaymentDropdown ? 'chevron-up' : 'chevron-down'} size={20} color={isDark ? '#94A3B8' : '#64748B'} />
+                </TouchableOpacity>
+                {showAssetPaymentDropdown && (
+                  <View style={{ borderRadius: 10, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginTop: -4, marginBottom: 8, overflow: 'hidden', backgroundColor: isDark ? '#1E293B' : '#F8FAFC' }}>
+                    <TouchableOpacity
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: assetForm.payment_mode === 'cash' ? (isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.06)') : 'transparent' }}
+                      onPress={() => { setAssetForm(f => ({ ...f, payment_mode: 'cash', payment_account_name: 'Cash' })); setShowAssetPaymentDropdown(false); }}
+                    >
+                      <MaterialCommunityIcons name="cash" size={18} color={Accent.emerald} />
+                      <Text style={{ fontSize: 13, color: isDark ? '#F8FAFC' : '#0A0A0B', fontFamily: 'DM Sans', fontWeight: '600' }}>Cash</Text>
+                      {assetForm.payment_mode === 'cash' && <MaterialCommunityIcons name="check" size={16} color={Accent.emerald} style={{ marginLeft: 'auto' }} />}
+                    </TouchableOpacity>
+                    {bankAccountsForBooks.map(bank => (
+                      <TouchableOpacity
+                        key={bank.id}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, backgroundColor: assetForm.payment_mode === 'bank' && assetForm.payment_account_name === bank.account_name ? (isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.06)') : 'transparent' }}
+                        onPress={() => { setAssetForm(f => ({ ...f, payment_mode: 'bank', payment_account_name: bank.account_name })); setShowAssetPaymentDropdown(false); }}
+                      >
+                        <MaterialCommunityIcons name="bank" size={18} color="#3B82F6" />
+                        <View>
+                          <Text style={{ fontSize: 13, color: isDark ? '#F8FAFC' : '#0A0A0B', fontFamily: 'DM Sans', fontWeight: '600' }}>{bank.account_name}</Text>
+                          <Text style={{ fontSize: 10, color: isDark ? '#64748B' : '#94A3B8', fontFamily: 'DM Sans' }}>{bank.bank_name}</Text>
+                        </View>
+                        {assetForm.payment_mode === 'bank' && assetForm.payment_account_name === bank.account_name && <MaterialCommunityIcons name="check" size={16} color="#3B82F6" style={{ marginLeft: 'auto' }} />}
+                      </TouchableOpacity>
+                    ))}
+                    {bankAccountsForBooks.length === 0 && (
+                      <View style={{ padding: 12, opacity: 0.5 }}>
+                        <Text style={{ fontSize: 11, color: isDark ? '#64748B' : '#94A3B8', fontFamily: 'DM Sans' }}>Add bank accounts in Settings</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
                 
                 <TouchableOpacity
                   style={[styles.saveButton, saving && { opacity: 0.6 }]}
