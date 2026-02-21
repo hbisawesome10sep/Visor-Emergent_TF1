@@ -1411,18 +1411,29 @@ export default function SettingsScreen() {
                       style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
                       value={uploadBankName}
                       onChangeText={setUploadBankName}
-                      placeholder="e.g., HDFC Bank"
+                      placeholder="e.g., ICICI, SBI, HDFC"
                       placeholderTextColor={colors.textSecondary}
                     />
 
                     <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Name (optional)</Text>
                     <TextInput
                       data-testid="upload-account-name-input"
-                      style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 16 }]}
+                      style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
                       value={uploadAccountName}
                       onChangeText={setUploadAccountName}
                       placeholder="e.g., HDFC Savings"
                       placeholderTextColor={colors.textSecondary}
+                    />
+
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>PDF Password (if protected)</Text>
+                    <TextInput
+                      data-testid="upload-password-input"
+                      style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 16 }]}
+                      value={uploadPassword}
+                      onChangeText={setUploadPassword}
+                      placeholder="Leave empty if not protected"
+                      placeholderTextColor={colors.textSecondary}
+                      secureTextEntry={true}
                     />
 
                     <View style={[styles.deleteModalActions, { width: '100%' }]}>
