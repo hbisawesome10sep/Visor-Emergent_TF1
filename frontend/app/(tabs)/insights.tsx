@@ -782,17 +782,17 @@ export default function InsightsScreen() {
               title: 'Fixed Obligations',
               description: 'All fixed EMIs, rent, insurance as % of income.',
               source: 'Banking Standards',
-              yourValue: `${foirRatio.toFixed(1)}%`,
+              yourValue: hasSufficientData ? `${foirRatio.toFixed(1)}%` : 'N/A',
               nationalAverage: '45%',
               recommended: '<50%',
               calculation: `(EMIs + 15% of Expenses) ÷ Income × 100`,
               actualAmounts: {
                 label1: 'Monthly Income',
-                value1: `₹${formatINRShort(income)}`,
-                label2: 'Fixed Obligations Est.',
-                value2: `₹${formatINRShort(emiEstimate + (expenses * 0.15))}`,
+                value1: hasSufficientData ? `₹${formatINRShort(income)}` : 'N/A',
+                label2: 'Fixed Obligations',
+                value2: `₹${formatINRShort(actualEMI + (expenses * 0.15))}`,
                 label3: 'FOIR Ratio',
-                value3: `${foirRatio.toFixed(1)}%`,
+                value3: hasSufficientData ? `${foirRatio.toFixed(1)}%` : 'N/A',
               },
             }}
             isDark={isDark}
