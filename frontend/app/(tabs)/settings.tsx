@@ -307,6 +307,7 @@ export default function SettingsScreen() {
 
     return (
       <View data-testid="banking-tab">
+        {/* Bank Accounts Card */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.cardHeader}>
             <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)' }]}>
@@ -400,6 +401,82 @@ export default function SettingsScreen() {
               <Text style={{ fontSize: 13, color: Accent.ruby, fontFamily: 'DM Sans', fontWeight: '600' }}>Delete All Bank Accounts</Text>
             </TouchableOpacity>
           )}
+        </View>
+
+        {/* Bank Statement Upload Card */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: 14 }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.1)' }]}>
+              <MaterialCommunityIcons name="file-upload" size={22} color={Accent.emerald} />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Import Bank Statement</Text>
+          </View>
+
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 16, lineHeight: 20 }}>
+            Upload your bank statement (PDF, CSV, Excel) to automatically import transactions. 
+            The system will detect and categorize transactions, and create journal entries.
+          </Text>
+
+          {/* Supported Formats */}
+          <View style={[styles.banksList, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', marginBottom: 16 }]}>
+            <Text style={[styles.banksTitle, { color: colors.textSecondary }]}>Supported Formats</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+              <View style={[styles.formatBadge, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)' }]}>
+                <MaterialCommunityIcons name="file-pdf-box" size={18} color="#EF4444" />
+                <Text style={{ fontSize: 12, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }}>PDF</Text>
+              </View>
+              <View style={[styles.formatBadge, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.1)' }]}>
+                <MaterialCommunityIcons name="file-delimited" size={18} color={Accent.emerald} />
+                <Text style={{ fontSize: 12, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }}>CSV</Text>
+              </View>
+              <View style={[styles.formatBadge, { backgroundColor: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)' }]}>
+                <MaterialCommunityIcons name="file-excel" size={18} color={Accent.sapphire} />
+                <Text style={{ fontSize: 12, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }}>Excel</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Upload Button */}
+          <TouchableOpacity
+            data-testid="upload-statement-btn"
+            style={styles.uploadBtn}
+            onPress={handlePickFile}
+          >
+            <LinearGradient 
+              colors={[Accent.emerald, '#059669']} 
+              start={{ x: 0, y: 0 }} 
+              end={{ x: 1, y: 0 }} 
+              style={styles.uploadBtnGradient}
+            >
+              <MaterialCommunityIcons name="file-upload" size={22} color="#fff" />
+              <Text style={styles.uploadBtnText}>Select Bank Statement</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Supported Banks */}
+          <View style={[styles.banksList, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', marginTop: 16 }]}>
+            <Text style={[styles.banksTitle, { color: colors.textSecondary }]}>Supported Banks</Text>
+            <Text style={[styles.bankNames, { color: colors.textPrimary }]}>
+              HDFC  ·  ICICI  ·  SBI  ·  Axis  ·  Kotak  ·  Yes Bank  ·  PNB  ·  BOB  ·  IndusInd  ·  IDFC  ·  Federal
+            </Text>
+          </View>
+
+          {/* How it works */}
+          <View style={{ marginTop: 16 }}>
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginBottom: 10 }]}>How it works</Text>
+            <View style={{ gap: 8 }}>
+              {[
+                { icon: 'numeric-1-circle', text: 'Upload your bank statement file' },
+                { icon: 'numeric-2-circle', text: 'System parses all transactions automatically' },
+                { icon: 'numeric-3-circle', text: 'Transactions & journal entries are created' },
+              ].map((step, i) => (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <MaterialCommunityIcons name={step.icon as any} size={22} color={Accent.emerald} />
+                  <Text style={{ fontSize: 13, color: colors.textPrimary, fontFamily: 'DM Sans', flex: 1 }}>{step.text}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
 
         <View style={[styles.futureFeature, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', marginTop: 8 }]}>
