@@ -1404,37 +1404,34 @@ export default function BooksScreen() {
     setExporting(true);
     try {
       const dateRange = getDateRange();
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/journal/ledger/${encodeURIComponent(accountName)}?start_date=${dateRange.start}&end_date=${dateRange.end}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const data = await response.json();
-      // Build CSV content for sharing (PDF requires server-side generation)
-      let csv = `"Ledger Account: ${accountName}"\n`;
-      csv += `"Type: ${data.account_type} | Group: ${data.account_group}"\n`;
-      csv += `"Period: ${dateRange.start} to ${dateRange.end}"\n\n`;
-      csv += 'Date,Entry#,Narration,Contra Account,Debit,Credit,Balance\n';
-      (data.entries || []).forEach((e: any) => {
-        csv += `${e.date},${e.entry_number},"${e.narration}","${e.contra_account}",${e.debit.toFixed(2)},${e.credit.toFixed(2)},${e.balance.toFixed(2)}\n`;
-      });
-      csv += `\n"Total","","","",${data.total_debit.toFixed(2)},${data.total_credit.toFixed(2)},${data.closing_balance.toFixed(2)}\n`;
-      const filename = `Ledger_${accountName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}`;
+      const pdfUrl = `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/journal/ledger/${encodeURIComponent(accountName)}/pdf?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+
       if (Platform.OS !== 'web') {
-        const fileUri = FileSystem.documentDirectory + filename + '.csv';
-        await FileSystem.writeAsStringAsync(fileUri, csv);
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, { mimeType: 'text/csv', dialogTitle: `Share ${accountName} Ledger` });
+        const filename = `Ledger_${accountName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+        const fileUri = FileSystem.documentDirectory + filename;
+        const download = await FileSystem.downloadAsync(pdfUrl, fileUri, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (download.status === 200 && await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(download.uri, { mimeType: 'application/pdf', dialogTitle: `Share ${accountName} Ledger` });
+        } else {
+          Alert.alert('Error', 'Failed to download PDF');
         }
       } else {
-        const blob = new Blob([csv], { type: 'text/csv' });
+        // Web: open in new tab
+        const response = await fetch(pdfUrl, { headers: { Authorization: `Bearer ${token}` } });
+        const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = filename + '.csv';
-        document.body.appendChild(a); a.click();
-        document.body.removeChild(a); URL.revokeObjectURL(url);
+        a.href = url;
+        a.download = `Ledger_${accountName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
     } catch (e) {
-      Alert.alert('Error', 'Failed to export ledger');
+      Alert.alert('Error', 'Failed to export ledger PDF');
     } finally {
       setExporting(false);
     }
