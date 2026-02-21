@@ -527,6 +527,135 @@ def clean_sbi_description(raw_desc: str) -> str:
     return desc[:50] if len(desc) > 50 else desc
 
 
+def clean_axis_description(raw_desc: str) -> str:
+    """Clean up Axis Bank transaction description."""
+    desc = raw_desc.strip().replace('\n', ' ')
+    
+    # Known merchants
+    known_merchants = {
+        'zepto': 'Zepto',
+        'zomato': 'Zomato',
+        'swiggy': 'Swiggy',
+        'amazon': 'Amazon',
+        'flipkart': 'Flipkart',
+        'paytm': 'Paytm',
+        'phonepe': 'PhonePe',
+        'gpay': 'Google Pay',
+        'netflix': 'Netflix',
+        'spotify': 'Spotify',
+        'uber': 'Uber',
+        'ola': 'Ola',
+        'groww': 'Groww',
+        'cashfree': 'Cashfree',
+        'meesho': 'Meesho',
+    }
+    
+    lower_desc = desc.lower()
+    
+    # Check for known merchants first
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            return f"UPI - {name}"
+    
+    # ATM withdrawal
+    if 'atm-cash' in lower_desc or 'atm cash' in lower_desc:
+        return "ATM Withdrawal"
+    
+    # NEFT transfer
+    if desc.startswith('NEFT'):
+        # Try to extract company/person name
+        parts = desc.split('/')
+        for part in parts:
+            part = part.strip()
+            if part and len(part) > 3 and part.isalpha():
+                return f"NEFT - {part.title()}"
+        if 'salary' in lower_desc:
+            return "NEFT - Salary"
+        return "NEFT Transfer"
+    
+    # IMPS transfer
+    if desc.startswith('IMPS'):
+        parts = desc.split('/')
+        for part in parts:
+            part = part.strip()
+            if part and len(part) > 3 and any(c.isalpha() for c in part) and not part.isdigit():
+                if part not in ('IMPS', 'P2A', 'P2M'):
+                    return f"IMPS - {part.title()}"
+        return "IMPS Transfer"
+    
+    # ACH (Auto-debit)
+    if 'ach-dr' in lower_desc or 'ach dr' in lower_desc:
+        return "ACH - Auto-debit"
+    
+    # UPI format: UPI/P2A/refno/Name/Bank or UPI/P2M/refno/Name/Bank
+    if desc.startswith('UPI/'):
+        parts = desc.split('/')
+        # Find name - usually 4th part (after UPI, P2A/P2M, refno)
+        if len(parts) >= 4:
+            name = parts[3].strip()
+            if name and len(name) > 2 and any(c.isalpha() for c in name):
+                return f"UPI - {name.title()}"
+    
+    # Interest credit
+    if 'int.pd' in lower_desc or 'interest' in lower_desc:
+        return "Interest Credit"
+    
+    # Credit adjustment
+    if 'cradj' in lower_desc:
+        return "UPI Reversal/Refund"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_axis_pdf(pdf, all_text: str) -> list:
+    """
+    Parse Axis Bank PDF statement.
+    Axis format: Tran Date | Chq No | Particulars | Debit | Credit | Balance | Init. Br
+    """
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        for table in tables:
+            for row in table:
+                if not row or len(row) < 6:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).strip().replace('\n', ' ') if cell else "" for cell in row]
+                
+                # Skip header and empty rows
+                if not cleaned[0] or 'tran date' in cleaned[0].lower() or 'opening balance' in ' '.join(cleaned).lower():
+                    continue
+                
+                # Parse date (DD-MM-YYYY format)
+                date = parse_date(cleaned[0])
+                if not date:
+                    continue
+                
+                # Get description (column 2 - Particulars)
+                description = cleaned[2] if len(cleaned) > 2 else ""
+                if not description:
+                    continue
+                
+                # Get debit and credit (columns 3 and 4)
+                bank_debit = parse_amount(cleaned[3]) if len(cleaned) > 3 else 0
+                bank_credit = parse_amount(cleaned[4]) if len(cleaned) > 4 else 0
+                
+                if bank_debit == 0 and bank_credit == 0:
+                    continue
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_axis_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
 def parse_sbi_pdf(pdf, all_text: str) -> list:
     """
     Parse SBI Bank PDF statement.
