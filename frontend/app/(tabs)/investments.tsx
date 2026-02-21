@@ -18,6 +18,7 @@ import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
 import PieChart from '../../src/components/PieChart';
 import { WhatIfSimulator } from '../../src/components/WhatIfSimulator';
+import { MarketTickerBar, GoalsSection } from '../../src/components/investments';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
