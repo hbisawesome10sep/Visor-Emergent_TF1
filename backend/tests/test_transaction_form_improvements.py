@@ -10,7 +10,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://accounting-suite-16.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fintrack-india-14.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "rajesh@visor.demo"

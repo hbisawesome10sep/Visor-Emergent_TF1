@@ -104,7 +104,7 @@
 
 **Redirect URI to add in Google Cloud Console:**
 ```
-https://accounting-suite-16.preview.emergentagent.com/api/gmail/callback
+https://fintrack-india-14.preview.emergentagent.com/api/gmail/callback
 ```
 
 Steps:

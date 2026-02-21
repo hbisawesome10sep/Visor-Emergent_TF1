@@ -21,7 +21,7 @@ import uuid
 from datetime import datetime
 
 # Use the public URL from environment
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://accounting-suite-16.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://fintrack-india-14.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "rajesh@visor.demo"

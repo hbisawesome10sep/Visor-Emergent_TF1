@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://accounting-suite-16.preview.emergentagent.com"
+BACKEND_URL = "https://fintrack-india-14.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials
