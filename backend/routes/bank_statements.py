@@ -2153,6 +2153,12 @@ def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str 
                 logger.info(f"Parsed {len(union_txns)} transactions using Union Bank parser")
                 return union_txns
         
+        elif bank == "kotak":
+            kotak_txns = parse_kotak_pdf(pdf, all_text)
+            if kotak_txns:
+                logger.info(f"Parsed {len(kotak_txns)} transactions using Kotak parser")
+                return kotak_txns
+        
         # Standard table-based parsing for other banks
         all_rows = []
         for page in pdf.pages:
