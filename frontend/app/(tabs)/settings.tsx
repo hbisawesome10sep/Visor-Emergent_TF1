@@ -183,8 +183,21 @@ export default function SettingsScreen() {
     
     setUploadingStatement(true);
     setUploadResult(null);
+    setUploadProgress(0);
+    setUploadPhase('uploading');
     
     try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 40) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 5;
+        });
+      }, 100);
+
       const formData = new FormData();
       formData.append('file', {
         uri: selectedFile.uri,
@@ -195,6 +208,11 @@ export default function SettingsScreen() {
       formData.append('account_name', uploadAccountName || '');
       
       const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+      
+      // Upload phase
+      setUploadProgress(45);
+      setUploadPhase('processing');
+      
       const response = await fetch(`${API_URL}/api/bank-statements/upload`, {
         method: 'POST',
         headers: {
@@ -203,12 +221,21 @@ export default function SettingsScreen() {
         body: formData,
       });
       
+      clearInterval(progressInterval);
+      
+      // Processing phase - simulate progress
+      setUploadProgress(70);
+      
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Upload failed');
       }
       
+      setUploadProgress(90);
       const result = await response.json();
+      
+      setUploadProgress(100);
+      setUploadPhase('complete');
       setUploadResult(result);
       
       // Refresh bank accounts list
@@ -218,6 +245,7 @@ export default function SettingsScreen() {
     } catch (e: any) {
       Alert.alert('Upload Failed', e.message);
       setUploadResult({ error: e.message });
+      setUploadPhase('idle');
     } finally {
       setUploadingStatement(false);
     }
@@ -229,6 +257,8 @@ export default function SettingsScreen() {
     setUploadBankName('');
     setUploadAccountName('');
     setUploadResult(null);
+    setUploadProgress(0);
+    setUploadPhase('idle');
   };
 
   const handleLogout = () => {
