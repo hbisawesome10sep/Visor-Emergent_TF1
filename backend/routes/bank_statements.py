@@ -1310,6 +1310,147 @@ def clean_canara_description(raw_desc: str) -> str:
     return desc[:50] if len(desc) > 50 else desc
 
 
+def clean_union_description(raw_desc: str) -> str:
+    """Clean up Union Bank transaction description."""
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    
+    lower_desc = desc.lower()
+    
+    # UPI Debit: UPIAR/refno/DR/Name/Bank
+    if desc.startswith('UPIAR/'):
+        parts = desc.split('/')
+        for i, part in enumerate(parts):
+            if part == 'DR' and i+1 < len(parts):
+                name = parts[i+1].strip()
+                if name and any(c.isalpha() for c in name):
+                    return f"UPI - {name.title()}"
+        return "UPI Transfer"
+    
+    # UPI Credit: UPIAB/refno/CR/Name/Bank
+    if desc.startswith('UPIAB/'):
+        parts = desc.split('/')
+        for i, part in enumerate(parts):
+            if part == 'CR' and i+1 < len(parts):
+                name = parts[i+1].strip()
+                if name and any(c.isalpha() for c in name):
+                    return f"UPI - {name.title()}"
+        return "UPI Transfer"
+    
+    # NEFT
+    if desc.startswith('NEFT:'):
+        name = desc[5:].strip().split('\n')[0]
+        return f"NEFT - {name.title()}"
+    
+    # Mobile Fund Transfer
+    if desc.startswith('MOBFT to:'):
+        name = desc[9:].strip().split('/')[0]
+        return f"IMPS - {name.title()}"
+    
+    # MAND DR (Mandate Debit / Auto-debit)
+    if 'mand dr' in lower_desc:
+        return "Auto-debit"
+    
+    # General Charges
+    if 'general charges' in lower_desc:
+        return "Service Charges"
+    
+    # Interest credit
+    if 'int.pd' in lower_desc or ':int.' in lower_desc:
+        return "Interest Credit"
+    
+    # SMS Charges
+    if 'sms charges' in lower_desc:
+        return "SMS Charges"
+    
+    # POS (Card purchase)
+    if desc.startswith('POS:'):
+        merchant = desc[4:].split('/')[0].strip()
+        return f"Card - {merchant.title()}"
+    
+    # ATM
+    if 'atm' in lower_desc:
+        return "ATM Withdrawal"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_union_pdf(pdf, all_text: str) -> list:
+    """
+    Parse Union Bank PDF statement.
+    Union Bank format: Tran Id | Tran Date | Remarks | Amount (Rs.) | Balance (Rs.)
+    Amount has (Dr) or (Cr) suffix for debit/credit.
+    """
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        
+        for table in tables:
+            if not table or len(table) < 2:
+                continue
+            
+            # Check if this is a transaction table
+            first_row = [str(c).lower() if c else "" for c in table[0]]
+            is_txn_table = 'tran' in first_row[0] or 'date' in ' '.join(first_row)
+            
+            start_idx = 1 if is_txn_table else 0
+            
+            for row in table[start_idx:]:
+                if not row or len(row) < 4:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
+                
+                # Skip header rows
+                first_col = cleaned[0].lower()
+                if 'tran' in first_col or not cleaned[0]:
+                    continue
+                
+                # Parse date (column 1 - DD/MM/YYYY)
+                date = parse_date(cleaned[1])
+                if not date:
+                    continue
+                
+                # Get description (column 2 - Remarks)
+                description = cleaned[2] if len(cleaned) > 2 else ""
+                if not description:
+                    continue
+                
+                # Get amount with Dr/Cr indicator (column 3)
+                amount_str = cleaned[3] if len(cleaned) > 3 else ""
+                if not amount_str:
+                    continue
+                
+                # Parse amount and determine debit/credit
+                is_credit = '(cr)' in amount_str.lower()
+                is_debit = '(dr)' in amount_str.lower()
+                
+                # Remove the Dr/Cr indicator before parsing
+                amount_clean = amount_str.replace('(Dr)', '').replace('(Cr)', '').replace('(dr)', '').replace('(cr)', '').strip()
+                amount = parse_amount(amount_clean)
+                
+                if amount == 0:
+                    continue
+                
+                if is_credit:
+                    bank_credit = amount
+                    bank_debit = 0
+                else:
+                    bank_debit = amount
+                    bank_credit = 0
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_union_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
 def parse_canara_pdf(pdf, all_text: str) -> list:
     """
     Parse Canara Bank PDF statement.
