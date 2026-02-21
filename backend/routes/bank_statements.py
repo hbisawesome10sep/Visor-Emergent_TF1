@@ -1915,6 +1915,12 @@ def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str 
                 logger.info(f"Parsed {len(canara_txns)} transactions using Canara parser")
                 return canara_txns
         
+        elif bank == "union":
+            union_txns = parse_union_pdf(pdf, all_text)
+            if union_txns:
+                logger.info(f"Parsed {len(union_txns)} transactions using Union Bank parser")
+                return union_txns
+        
         # Standard table-based parsing for other banks
         all_rows = []
         for page in pdf.pages:
