@@ -126,6 +126,7 @@ export default function TransactionsScreen() {
     date: '', notes: '', is_recurring: false, recurring_frequency: 'Monthly',
     is_split: false, split_count: '2',
     buy_sell: 'buy', units: '', price_per_unit: '',
+    payment_mode: 'cash', payment_account_name: 'Cash',
   });
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
