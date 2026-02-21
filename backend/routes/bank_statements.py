@@ -1297,6 +1297,12 @@ def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str 
                 logger.info(f"Parsed {len(yes_txns)} transactions using Yes Bank parser")
                 return yes_txns
         
+        elif bank == "hdfc":
+            hdfc_txns = parse_hdfc_pdf(pdf, all_text)
+            if hdfc_txns:
+                logger.info(f"Parsed {len(hdfc_txns)} transactions using HDFC parser")
+                return hdfc_txns
+        
         # Standard table-based parsing for other banks
         all_rows = []
         for page in pdf.pages:
