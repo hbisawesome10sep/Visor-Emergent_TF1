@@ -120,6 +120,8 @@ class FixedAssetCreate(BaseModel):
     current_value: float
     depreciation_rate: float = 10.0
     notes: Optional[str] = None
+    payment_mode: Optional[str] = "cash"
+    payment_account_name: Optional[str] = "Cash"
 
 class FixedAssetUpdate(BaseModel):
     name: Optional[str] = None
