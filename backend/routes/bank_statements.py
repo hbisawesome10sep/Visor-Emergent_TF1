@@ -1249,6 +1249,127 @@ def clean_idbi_description(raw_desc: str) -> str:
     return desc[:50] if len(desc) > 50 else desc
 
 
+def clean_canara_description(raw_desc: str) -> str:
+    """Clean up Canara Bank transaction description."""
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    
+    lower_desc = desc.lower()
+    
+    # Cash BNA (Cash Deposit via machine)
+    if 'cash-bna' in lower_desc or 'cash bna' in lower_desc:
+        return "Cash Deposit (BNA)"
+    
+    # Cheque Book Issue
+    if 'chq bk issue' in lower_desc:
+        return "Cheque Book Issue Charges"
+    
+    # RTGS Credit
+    if desc.startswith('RTGS Cr'):
+        parts = desc.split('-')
+        for part in parts:
+            if len(part) > 5 and part.isupper() and ' ' in part:
+                return f"RTGS - {part.title()}"
+        return "RTGS Inward"
+    
+    # NEFT Credit
+    if desc.startswith('NEFT Cr'):
+        parts = desc.split('-')
+        for part in parts:
+            if len(part) > 5 and any(c.isalpha() for c in part) and not part.startswith('ICIC') and not part.startswith('HDFC'):
+                clean_part = part.strip()
+                if clean_part and not clean_part.startswith('N0'):
+                    return f"NEFT - {clean_part.title()}"
+        return "NEFT Inward"
+    
+    # Funds Transfer Debit
+    if 'funds transfer debit' in lower_desc:
+        parts = desc.split('-')
+        if len(parts) >= 2:
+            name = parts[-1].strip()
+            return f"Transfer - {name.title()}"
+        return "Funds Transfer"
+    
+    # Self transfer
+    if desc.lower().startswith('self'):
+        parts = desc.split('-')
+        if len(parts) >= 2:
+            name = parts[0].replace('self', '').strip()
+            if name:
+                return f"Self - {name.title()}"
+        return "Self Transfer"
+    
+    # Cheque Return
+    if 'chq return' in lower_desc or 'i/w chq return' in lower_desc:
+        return "Cheque Return"
+    
+    # Cheque Return Charges
+    if 'chq rtn chg' in lower_desc:
+        return "Cheque Return Charges"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_canara_pdf(pdf, all_text: str) -> list:
+    """
+    Parse Canara Bank PDF statement.
+    Canara format: Txn Date | Value Date | Cheque No. | Description | Branch Code | Debit | Credit | Balance
+    """
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        
+        for table in tables:
+            if not table or len(table) < 2:
+                continue
+            
+            # Check if this is a transaction table
+            first_row = [str(c).lower() if c else "" for c in table[0]]
+            is_txn_table = 'txn date' in first_row[0] or 'date' in first_row[0]
+            
+            start_idx = 1 if is_txn_table else 0
+            
+            for row in table[start_idx:]:
+                if not row or len(row) < 7:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
+                
+                # Skip header and page rows
+                first_col = cleaned[0].lower()
+                if 'txn date' in first_col or 'page' in first_col or not cleaned[0]:
+                    continue
+                
+                # Parse date (DD-MM-YYYY HH:MM:SS format)
+                date_str = cleaned[0].split(' ')[0] if ' ' in cleaned[0] else cleaned[0]
+                date = parse_date(date_str)
+                if not date:
+                    continue
+                
+                # Get description (column 3)
+                description = cleaned[3] if len(cleaned) > 3 else ""
+                if not description:
+                    continue
+                
+                # Get debit and credit (columns 5 and 6)
+                bank_debit = parse_amount(cleaned[5]) if len(cleaned) > 5 else 0
+                bank_credit = parse_amount(cleaned[6]) if len(cleaned) > 6 else 0
+                
+                if bank_debit == 0 and bank_credit == 0:
+                    continue
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_canara_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
 def parse_idbi_pdf(pdf, all_text: str) -> list:
     """
     Parse IDBI Bank PDF statement.
