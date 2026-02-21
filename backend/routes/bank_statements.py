@@ -1707,7 +1707,6 @@ def parse_bob_pdf(pdf, all_text: str) -> list:
                 continue
             
             # Find all amounts in the line (pattern: digits with optional commas and decimal)
-            # Amounts in BOB are like: 150.00, 16,239.40
             amount_pattern = r'([\d,]+\.\d{2})'
             amounts = re.findall(amount_pattern, rest)
             
@@ -1721,130 +1720,56 @@ def parse_bob_pdf(pdf, all_text: str) -> list:
             if not description:
                 continue
             
-            # Remove reference numbers from description
-            description = re.sub(r'/\d{12,}/', '/', description)  # Remove long numbers like /318262797206/
+            # The first amount is the transaction amount, last is usually balance
+            transaction_amount = parse_amount(amounts[0])
             
-            # Parse the amounts
-            # Format is usually: description withdrawal deposit balance
-            # Sometimes withdrawal is empty, sometimes deposit is empty
-            
-            # The last amount is usually the balance
-            # Check if we have 2 or 3+ amounts
-            if len(amounts) >= 3:
-                # Has all: withdrawal, deposit, balance (or at least balance)
-                # Need to determine which is withdrawal vs deposit
-                amt1 = parse_amount(amounts[0])
-                amt2 = parse_amount(amounts[1])
-                
-                # Heuristic: check position of amounts in line
-                # BOB format: description | withdrawal | deposit | balance
-                # If withdrawal is present, deposit column might be empty (shown as separate amount)
-                
-                # Find positions of amounts
-                pos1 = rest.find(amounts[0])
-                pos2 = rest.find(amounts[1], pos1 + len(amounts[0]))
-                
-                # Calculate gap between amounts
-                gap = pos2 - pos1 - len(amounts[0]) if pos2 > pos1 else 0
-                
-                # If gap is small, they're adjacent (withdrawal, balance) or (deposit, balance)
-                # If gap is large, there's an empty column between
-                
-                # Check if description mentions credit keywords
-                is_credit = any(kw in description.lower() for kw in ['nrp', 'cr', 'credit', 'neft/', 'imps/', 'deposit'])
-                is_debit = any(kw in description.lower() for kw in ['upi/p2m', 'ach-dr', 'ecs/', 'gst', 'charge', 'withdrawal'])
-                
-                if is_credit and not is_debit:
-                    withdrawal = 0
-                    deposit = amt1
-                elif is_debit or gap < 15:
-                    withdrawal = amt1
-                    deposit = 0
-                else:
-                    # Ambiguous - use first as withdrawal (most common case)
-                    withdrawal = amt1
-                    deposit = 0
-            else:
-                # Only 2 amounts - likely amount and balance
-                amt1 = parse_amount(amounts[0])
-                
-                # Determine direction from description
-                is_credit = any(kw in description.lower() for kw in ['nrp', 'credit', 'neft/', 'imps/', 'deposit', 'int.pd'])
-                
-                if is_credit:
-                    withdrawal = 0
-                    deposit = amt1
-                else:
-                    withdrawal = amt1
-                    deposit = 0
-            
-            if withdrawal > 0 or deposit > 0:
-                transactions.append({
-                    'date': date,
-                    'description': clean_bob_description(description),
-                    'bank_debit': withdrawal,
-                    'bank_credit': deposit,
-                })
-    
-    # If text parsing worked, return those results
-    if transactions:
-        return transactions
-    
-    # Fallback: try table extraction for pages with proper tables
-    for page in pdf.pages:
-        tables = page.extract_tables()
-        
-        for table in tables:
-            if not table or len(table) < 2:
+            if transaction_amount <= 0:
                 continue
             
-            for row in table:
-                if not row or len(row) < 5:
-                    continue
-                
-                cleaned = [str(cell).replace('\n', ' ').strip() if cell else "" for cell in row]
-                
-                # Skip header rows and summary rows
-                first_col = cleaned[0].lower()
-                if 'txn date' in first_col or 'date' in first_col:
-                    continue
-                if 'opening' in first_col or 'closing' in first_col:
-                    continue
-                if 'bank account' in first_col or 'savings' in first_col:
-                    continue
-                if not cleaned[0]:
-                    continue
-                
-                date_match = re.match(r'(\d{2}-\d{2}-\d{4})', cleaned[0])
-                if not date_match:
-                    continue
-                
-                date = parse_date(date_match.group(1))
-                if not date:
-                    continue
-                
-                description = cleaned[1] if len(cleaned) > 1 else ""
-                if not description:
-                    continue
-                
-                withdrawal = parse_amount(cleaned[2]) if len(cleaned) > 2 else 0
-                deposit = parse_amount(cleaned[3]) if len(cleaned) > 3 else 0
-                
-                # Validate amounts are reasonable (not reference numbers)
-                if withdrawal > 1000000000:  # > 100 crore is likely a ref number
-                    withdrawal = 0
-                if deposit > 1000000000:
-                    deposit = 0
-                
-                if withdrawal == 0 and deposit == 0:
-                    continue
-                
-                transactions.append({
-                    'date': date,
-                    'description': clean_bob_description(description),
-                    'bank_debit': withdrawal,
-                    'bank_credit': deposit,
-                })
+            # Determine if this is a credit or debit based on description keywords
+            desc_lower = description.lower()
+            
+            # Credit indicators (money coming IN)
+            is_credit = any([
+                'upi/p2a/' in desc_lower,  # UPI Pay to Account = receiving money
+                'nrp' in desc_lower,       # NRP = incoming transfer
+                'neft/' in desc_lower and 'neft -' not in desc_lower,  # NEFT incoming
+                'imps/' in desc_lower and 'sent' not in desc_lower,    # IMPS incoming
+                'int.pd' in desc_lower,    # Interest paid
+                'deposit' in desc_lower,
+                'credit' in desc_lower,
+                'refund' in desc_lower,
+            ])
+            
+            # Debit indicators (money going OUT)
+            is_debit = any([
+                'upi/p2m/' in desc_lower,  # UPI Pay to Merchant = payment
+                'ach-dr' in desc_lower,    # ACH Debit
+                'ecs/' in desc_lower,      # ECS = Electronic Clearing (EMI/auto-debit)
+                'gst' in desc_lower,       # GST charges
+                'charge' in desc_lower,    # Bank charges
+                'withdrawal' in desc_lower,
+                'transfer' in desc_lower and 'received' not in desc_lower,
+            ])
+            
+            # If both or neither, use balance comparison if available
+            if is_credit and not is_debit:
+                withdrawal = 0
+                deposit = transaction_amount
+            elif is_debit or not is_credit:
+                withdrawal = transaction_amount
+                deposit = 0
+            else:
+                # Default to withdrawal (most common case for expense tracking)
+                withdrawal = transaction_amount
+                deposit = 0
+            
+            transactions.append({
+                'date': date,
+                'description': clean_bob_description(description),
+                'bank_debit': withdrawal,
+                'bank_credit': deposit,
+            })
     
     return transactions
 
