@@ -124,7 +124,7 @@ def parse_amount(amount_str: str) -> float:
         return 0.0
 
 
-def categorize_transaction(description: str) -> tuple:
+def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
     """
     Auto-categorize a transaction based on description keywords.
     
@@ -135,6 +135,7 @@ def categorize_transaction(description: str) -> tuple:
     - Payment modes (UPI, NEFT, IMPS) are NOT categories - they're just how the payment was made
     - UPI apps (Cred, GPay, Paytm, PhonePe) are INTERMEDIARIES, not categories
     - We categorize based on the actual MERCHANT/PAYEE, not the payment method
+    - is_credit: True if this is money coming IN (bank credit), helps classify ambiguous transfers
     """
     desc = description.lower()
 
@@ -143,10 +144,11 @@ def categorize_transaction(description: str) -> tuple:
     category_rules = [
         # === INCOME CATEGORIES ===
         (["salary", "payroll", "wages", "stipend"], "Salary", "income"),
-        (["interest", "int.cr", "int cr", "interest credit", "int.pd", "interest paid"], "Interest", "income"),
+        (["interest", "int.cr", "int cr", "interest credit", "int.pd", "interest paid", "int credit"], "Interest", "income"),
         (["dividend", "div credit"], "Dividends", "income"),
-        (["refund", "reversal", "cashback", "cash back"], "Refund", "income"),
+        (["refund", "reversal", "cashback", "cash back", "refund credit"], "Refund", "income"),
         (["rent received", "rental income"], "Rental Income", "income"),
+        (["neft cr", "neft credit", "imps cr", "imps credit", "rtgs cr"], "Bank Transfer In", "income"),
         
         # === FOOD & DINING ===
         (["swiggy", "zomato", "food", "restaurant", "dining", "cafe", "pizza", 
