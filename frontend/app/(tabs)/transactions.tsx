@@ -214,6 +214,23 @@ export default function TransactionsScreen() {
   useEffect(() => { fetchTxns(); }, [fetchTxns]);
   const onRefresh = () => { setRefreshing(true); fetchTxns(); };
 
+  // Fetch bank accounts for Mode of Payment dropdown
+  const fetchBankAccounts = useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await apiRequest('/bank-accounts', { token });
+      setBankAccounts(data);
+    } catch {}
+  }, [token]);
+  useEffect(() => { fetchBankAccounts(); }, [fetchBankAccounts]);
+
+  // Get default payment mode from bank accounts
+  const getDefaultPaymentMode = useCallback(() => {
+    const defaultBank = bankAccounts.find(b => b.is_default);
+    if (defaultBank) return { payment_mode: 'bank', payment_account_name: defaultBank.account_name };
+    return { payment_mode: 'cash', payment_account_name: 'Cash' };
+  }, [bankAccounts]);
+
   // Auto-open add modal when navigated with action=add
   useEffect(() => {
     if (params.action === 'add' && params.type) {
