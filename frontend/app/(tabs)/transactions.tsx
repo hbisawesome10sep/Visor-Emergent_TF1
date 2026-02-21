@@ -294,6 +294,8 @@ export default function TransactionsScreen() {
         recurring_frequency: form.is_recurring ? form.recurring_frequency : null,
         is_split: form.is_split,
         split_count: form.is_split ? parseInt(form.split_count) || 2 : 1,
+        payment_mode: form.payment_mode || 'cash',
+        payment_account_name: form.payment_account_name || 'Cash',
       };
       
       // Add investment-specific fields
