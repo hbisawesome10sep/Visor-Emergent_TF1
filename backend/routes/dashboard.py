@@ -64,27 +64,43 @@ async def get_dashboard_stats(
 
     user_created_at = user.get("created_at", now.isoformat())
 
-    # Health Score
-    hs_income = sum(t["amount"] for t in txns if t["type"] == "income") or 1
+    # Health Score Calculation
+    # Use ONLY the transactions from the selected period for accurate scores
+    hs_income = sum(t["amount"] for t in txns if t["type"] == "income")
     hs_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
     hs_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+    
+    # Handle zero income gracefully - don't calculate ratios when there's no income data
+    has_income_data = hs_income > 0
+    
+    if has_income_data:
+        hs_savings_rate = max(0, min(100, (hs_income - hs_expenses) / hs_income * 100))
+        hs_investment_rate = min(100, hs_investments / hs_income * 100)
+        hs_expense_ratio = min(200, hs_expenses / hs_income * 100)  # Cap at 200% to avoid huge numbers
+    else:
+        # No income data - can't calculate meaningful ratios
+        hs_savings_rate = 0
+        hs_investment_rate = 0
+        hs_expense_ratio = 0 if hs_expenses == 0 else 100  # If no income but has expenses, 100% expense ratio
 
-    hs_savings_rate = max(0, (hs_income - hs_expenses) / hs_income * 100)
-    hs_investment_rate = (hs_investments / hs_income * 100)
-    hs_expense_ratio = (hs_expenses / hs_income * 100)
-
-    hs_goal_target = sum(g["target_amount"] for g in goals) if goals else 1
+    hs_goal_target = sum(g["target_amount"] for g in goals) if goals else 0
     hs_goal_current = sum(g["current_amount"] for g in goals) if goals else 0
-    hs_goal_score = min(100, (hs_goal_current / hs_goal_target * 100))
+    hs_goal_score = min(100, (hs_goal_current / hs_goal_target * 100)) if hs_goal_target > 0 else 0
 
-    hs_savings_score = min(100, hs_savings_rate * 2.5)
-    hs_invest_score = min(100, hs_investment_rate * 5)
-    hs_expense_score = max(0, 100 - hs_expense_ratio)
+    hs_savings_score = min(100, hs_savings_rate * 2.5) if has_income_data else 0
+    hs_invest_score = min(100, hs_investment_rate * 5) if has_income_data else 0
+    hs_expense_score = max(0, 100 - hs_expense_ratio) if has_income_data else 0
 
-    hs_overall = (hs_savings_score * 0.3 + hs_invest_score * 0.2 + hs_expense_score * 0.3 + hs_goal_score * 0.2)
-    hs_overall = min(100, max(0, hs_overall))
+    # Calculate overall score - but indicate if there's insufficient data
+    if has_income_data or hs_goal_target > 0:
+        hs_overall = (hs_savings_score * 0.3 + hs_invest_score * 0.2 + hs_expense_score * 0.3 + hs_goal_score * 0.2)
+        hs_overall = min(100, max(0, hs_overall))
+    else:
+        hs_overall = 0  # No data to calculate score
 
-    if hs_overall >= 80:
+    if not has_income_data and hs_expenses == 0 and hs_goal_target == 0:
+        hs_grade = "No Data"
+    elif hs_overall >= 80:
         hs_grade = "Excellent"
     elif hs_overall >= 65:
         hs_grade = "Good"
