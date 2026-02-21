@@ -1161,67 +1161,14 @@ export default function InvestmentsScreen() {
         {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
            ═══════════════════════════════════════════════════════════ */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Financial Goals</Text>
-          <TouchableOpacity data-testid="add-goal-btn" style={[styles.addGoalBtn, { backgroundColor: Accent.emerald }]} onPress={openAddGoal}>
-            <MaterialCommunityIcons name="plus" size={16} color="#fff" />
-            <Text style={styles.addGoalText}>Add</Text>
-          </TouchableOpacity>
-        </View>
-
-        {goals.length === 0 ? (
-          <View style={[styles.emptyGoals, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}>
-            <MaterialCommunityIcons name="flag-variant-outline" size={36} color={colors.textSecondary} />
-            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No goals yet</Text>
-            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Set financial goals to track your progress</Text>
-          </View>
-        ) : (
-          <>
-            {goals.length > 0 && (
-              <View style={[styles.goalsOverviewCard, {
-                backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.06)',
-                borderColor: isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)',
-              }]}>
-                <View style={styles.goalsOverviewRow}>
-                  <View>
-                    <Text style={[styles.goalsOverviewLabel, { color: colors.textSecondary }]}>Overall Progress</Text>
-                    <Text style={[styles.goalsOverviewAmount, { color: colors.textPrimary }]}>{formatINRShort(totalGoalCurrent)} / {formatINRShort(totalGoalTarget)}</Text>
-                  </View>
-                  <View style={[styles.goalsPercentBadge, { backgroundColor: overallGoalProgress >= 50 ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)' }]}>
-                    <Text style={[styles.goalsPercentText, { color: overallGoalProgress >= 50 ? Accent.emerald : Accent.amber }]}>{overallGoalProgress.toFixed(0)}%</Text>
-                  </View>
-                </View>
-                <View style={[styles.goalsProgressBar, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-                  <View style={[styles.goalsProgressFill, { width: `${Math.min(overallGoalProgress, 100)}%`, backgroundColor: Accent.emerald }]} />
-                </View>
-              </View>
-            )}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.goalsScroll}>
-              {goals.map(goal => {
-                const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-                const progressColor = progress >= 75 ? Accent.emerald : progress >= 40 ? Accent.amber : Accent.ruby;
-                return (
-                  <TouchableOpacity key={goal.id} data-testid={`goal-card-${goal.id}`} style={[styles.goalCard, {
-                    backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.9)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                  }]} onPress={() => openEditGoal(goal)} onLongPress={() => handleDeleteGoal(goal.id, goal.title)}>
-                    <View style={styles.goalCardHeader}>
-                      <View style={[styles.goalIconWrap, { backgroundColor: `${getCategoryColor(goal.category, isDark)}20` }]}>
-                        <MaterialCommunityIcons name={getCategoryIcon(goal.category) as any} size={16} color={getCategoryColor(goal.category, isDark)} />
-                      </View>
-                      <Text style={[styles.goalPercent, { color: progressColor }]}>{progress.toFixed(0)}%</Text>
-                    </View>
-                    <Text style={[styles.goalTitle, { color: colors.textPrimary }]} numberOfLines={1}>{goal.title}</Text>
-                    <View style={[styles.goalBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
-                      <View style={[styles.goalBarFill, { width: `${Math.min(progress, 100)}%`, backgroundColor: progressColor }]} />
-                    </View>
-                    <Text style={[styles.goalAmounts, { color: colors.textSecondary }]}>{formatINRShort(goal.current_amount)} / {formatINRShort(goal.target_amount)}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </>
-        )}
+        <GoalsSection
+          goals={goals}
+          colors={colors}
+          isDark={isDark}
+          onAddGoal={openAddGoal}
+          onEditGoal={openEditGoal}
+          onDeleteGoal={handleDeleteGoal}
+        />
 
         <View style={{ height: 100 }} />
       </ScrollView>
