@@ -415,24 +415,39 @@ export default function InsightsScreen() {
   };
 
   // Calculate metrics from real data
-  const income = stats?.total_income || 1;
+  const income = stats?.total_income || 0;
   const expenses = stats?.total_expenses || 0;
   const investments = stats?.total_investments || 0;
   const savingsRate = stats?.savings_rate || 0;
   const goalProgress = stats?.goal_progress || 0;
+  
+  // Check if we have sufficient data for meaningful calculations
+  const hasIncomeData = income > 0;
+  const hasSufficientData = stats?.health_score?.has_sufficient_data ?? hasIncomeData;
 
   // Use backend-provided health score (consistent with Dashboard)
   const healthScore = stats?.health_score?.overall ?? 0;
+  const healthGrade = stats?.health_score?.grade ?? 'No Data';
   const breakdown = stats?.health_score?.breakdown ?? { savings: 0, investments: 0, spending: 0, goals: 0 };
 
-  // Calculate all financial metrics
-  const emiEstimate = expenses * 0.35;
-  const emiRatio = income > 0 ? (emiEstimate / income) * 100 : 0;
-  const investmentRate = income > 0 ? (investments / income) * 100 : 0;
-  const spendingRate = income > 0 ? (expenses / income) * 100 : 0;
-  const monthlySavings = income - expenses;
-  const runwayMonths = expenses > 0 ? Math.max(0, (monthlySavings * 6) / expenses) : 0;
-  const foirRatio = income > 0 ? ((emiEstimate + (expenses * 0.15)) / income) * 100 : 0;
+  // Calculate all financial metrics - use backend metrics if available, otherwise calculate
+  // Get actual EMI from category breakdown (EMI is a category)
+  const actualEMI = (stats?.category_breakdown?.['EMI'] as number) || 0;
+  const emiRatio = hasIncomeData ? (actualEMI / income) * 100 : 0;
+  
+  // Use backend metrics for spending/investment rates (they handle edge cases)
+  const investmentRate = stats?.health_score?.metrics?.investment_rate ?? 
+    (hasIncomeData ? (investments / income) * 100 : 0);
+  const spendingRate = stats?.health_score?.metrics?.expense_ratio ?? 
+    (hasIncomeData ? Math.min((expenses / income) * 100, 200) : 0);  // Cap at 200%
+  
+  const monthlySavings = Math.max(0, income - expenses);
+  const runwayMonths = expenses > 0 && monthlySavings > 0 
+    ? Math.max(0, (monthlySavings * 6) / expenses) 
+    : 0;
+  const foirRatio = hasIncomeData 
+    ? Math.min(((actualEMI + (expenses * 0.15)) / income) * 100, 200) // Cap at 200%
+    : 0;
   const currentWealth = investments * 12;
   const projectedWealth5Years = currentWealth * Math.pow(1.12, 5);
 
