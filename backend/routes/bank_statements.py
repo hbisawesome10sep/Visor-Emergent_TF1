@@ -125,44 +125,128 @@ def parse_amount(amount_str: str) -> float:
 
 
 def categorize_transaction(description: str) -> tuple:
-    """Auto-categorize a transaction based on description keywords."""
+    """
+    Auto-categorize a transaction based on description keywords.
+    
+    This function analyzes the transaction description (payee, merchant, narration)
+    to determine the appropriate expense/income category for double-entry bookkeeping.
+    
+    Note: Payment modes like UPI, NEFT, IMPS are NOT categories - they're just
+    how the payment was made. The actual category is based on who received/sent the money.
+    """
     desc = description.lower()
 
+    # Category rules - ordered by specificity (most specific first)
+    # Format: (keywords, category, type)
     category_rules = [
-        (["salary", "payroll", "wages"], "Salary", "income"),
-        (["interest", "int.cr", "int cr", "interest credit"], "Interest", "income"),
-        (["dividend"], "Dividends", "income"),
-        (["refund", "reversal", "cashback"], "Refund", "income"),
-        (["rent", "house rent"], "Rent", "expense"),
-        (["electricity", "power", "bescom", "msedcl"], "Electricity", "expense"),
-        (["water", "bwssb", "water bill"], "Water", "expense"),
-        (["internet", "broadband", "wifi", "airtel", "jio"], "Internet", "expense"),
-        (["mobile", "recharge", "prepaid", "postpaid"], "Mobile Recharge", "expense"),
-        (["insurance", "lic", "icici pru", "hdfc life", "health ins"], "Insurance", "expense"),
-        (["emi", "loan", "home loan", "car loan", "personal loan"], "EMI", "expense"),
-        (["sip", "mutual fund", "mf", "elss"], "SIP", "investment"),
+        # === INCOME CATEGORIES ===
+        (["salary", "payroll", "wages", "stipend"], "Salary", "income"),
+        (["interest", "int.cr", "int cr", "interest credit", "int.pd", "interest paid"], "Interest", "income"),
+        (["dividend", "div credit"], "Dividends", "income"),
+        (["refund", "reversal", "cashback", "cash back"], "Refund", "income"),
+        (["rent received", "rental income"], "Rental Income", "income"),
+        
+        # === FOOD & DINING ===
+        (["swiggy", "zomato", "food", "restaurant", "dining", "cafe", "pizza", 
+          "burger", "mcdonald", "kfc", "domino", "starbucks", "chaayos", "haldiram",
+          "barbeque", "biryani", "hotel", "dhaba"], "Food & Dining", "expense"),
+        
+        # === GROCERIES ===
+        (["grocery", "groceries", "bigbasket", "blinkit", "zepto", "instamart",
+          "dmart", "d-mart", "d mart", "more supermarket", "reliance fresh", "spencer",
+          "nature basket", "jiomart", "kirana", "vegetables", "fruits"], "Groceries", "expense"),
+        
+        # === TRANSPORT & TRAVEL ===
+        (["uber", "ola", "rapido", "taxi", "cab", "auto", "rickshaw"], "Transport", "expense"),
+        (["petrol", "diesel", "fuel", "hp petrol", "iocl", "bpcl", "indian oil",
+          "bharat petroleum", "hindustan petroleum", "shell", "essar"], "Fuel", "expense"),
+        (["irctc", "train", "railway", "railways"], "Travel", "expense"),
+        (["flight", "airline", "indigo", "spicejet", "air india", "vistara", 
+          "goair", "akasa", "makemytrip", "goibibo", "cleartrip", "yatra"], "Travel", "expense"),
+        (["metro", "dmrc", "bmrc", "mmrc", "rapidx"], "Transport", "expense"),
+        (["parking", "fastag", "toll"], "Transport", "expense"),
+        
+        # === UTILITIES ===
+        (["electricity", "power", "bescom", "msedcl", "tata power", "adani electricity",
+          "bses", "cesc", "torrent power"], "Electricity", "expense"),
+        (["water", "bwssb", "water bill", "water supply"], "Water", "expense"),
+        (["gas", "png", "lpg", "indane", "bharat gas", "hp gas", "mahanagar gas"], "Gas", "expense"),
+        
+        # === COMMUNICATION ===
+        (["internet", "broadband", "wifi", "act fibernet", "hathway", "tikona"], "Internet", "expense"),
+        (["mobile", "recharge", "prepaid", "postpaid", "airtel", "jio", "vodafone", 
+          "vi ", "bsnl"], "Mobile Recharge", "expense"),
+        (["dth", "tata sky", "dish tv", "airtel dth", "videocon", "sun direct"], "DTH", "expense"),
+        
+        # === SUBSCRIPTIONS & ENTERTAINMENT ===
+        (["netflix", "hotstar", "prime video", "amazon prime", "spotify", "gaana",
+          "youtube premium", "zee5", "sonyliv", "jiocinema", "apple tv", "disney",
+          "subscription", "oneplay"], "Subscriptions", "expense"),
+        (["movie", "cinema", "pvr", "inox", "bookmyshow", "paytm movie"], "Entertainment", "expense"),
+        
+        # === SHOPPING ===
+        (["amazon", "flipkart", "myntra", "ajio", "meesho", "snapdeal", "tatacliq",
+          "nykaa", "purplle", "mamaearth"], "Shopping", "expense"),
+        (["decathlon", "croma", "reliance digital", "vijay sales"], "Shopping", "expense"),
+        
+        # === FINANCIAL SERVICES ===
+        (["insurance", "lic", "icici pru", "hdfc life", "max life", "sbi life",
+          "bajaj allianz", "health ins", "term ins", "policy"], "Insurance", "expense"),
+        (["emi", "loan", "home loan", "car loan", "personal loan", "education loan",
+          "bajaj finance", "hdfc credila", "tata capital"], "EMI", "expense"),
+        (["credit card", "card payment", "cc payment", "cred"], "Credit Card Payment", "expense"),
+        
+        # === INVESTMENTS ===
+        (["sip", "mutual fund", "mf invest", "elss", "groww", "zerodha", "upstox",
+          "kuvera", "paytm money", "coin by zerodha"], "SIP", "investment"),
         (["ppf", "provident fund"], "PPF", "investment"),
         (["nps", "national pension"], "NPS", "investment"),
         (["fd", "fixed deposit"], "Fixed Deposit", "investment"),
-        (["gold", "sovereign gold", "sgb"], "Gold", "investment"),
-        (["grocery", "groceries", "bigbasket", "blinkit", "zepto"], "Groceries", "expense"),
-        (["swiggy", "zomato", "food", "restaurant", "dining"], "Food & Dining", "expense"),
-        (["uber", "ola", "rapido", "taxi", "cab"], "Transport", "expense"),
-        (["petrol", "diesel", "fuel", "hp", "iocl", "bpcl"], "Fuel", "expense"),
-        (["amazon", "flipkart", "myntra", "shopping"], "Shopping", "expense"),
-        (["netflix", "hotstar", "prime", "spotify", "subscription"], "Subscriptions", "expense"),
-        (["hospital", "medical", "pharmacy", "medicine", "doctor"], "Health", "expense"),
-        (["school", "college", "tuition", "education", "course"], "Education", "expense"),
-        (["irctc", "train", "railway"], "Travel", "expense"),
-        (["flight", "airline", "indigo", "spicejet", "air india"], "Travel", "expense"),
-        (["atm", "cash withdrawal", "self"], "Transport", "expense"),
-        (["upi", "neft", "rtgs", "imps", "transfer"], "Transport", "expense"),
+        (["gold", "sovereign gold", "sgb", "gold bond"], "Gold", "investment"),
+        (["stocks", "shares", "equity", "demat"], "Stocks", "investment"),
+        
+        # === HOUSING ===
+        (["rent", "house rent", "rental", "pg rent", "hostel"], "Rent", "expense"),
+        (["maintenance", "society", "apartment", "flat maintenance"], "Maintenance", "expense"),
+        
+        # === HEALTH ===
+        (["hospital", "medical", "pharmacy", "medicine", "doctor", "clinic",
+          "apollo", "fortis", "max hospital", "medplus", "netmeds", "1mg", 
+          "pharmeasy", "truemeds", "diagnostic", "lab test", "pathology"], "Health", "expense"),
+        
+        # === EDUCATION ===
+        (["school", "college", "tuition", "education", "course", "coaching",
+          "udemy", "coursera", "upgrad", "byjus", "unacademy", "vedantu"], "Education", "expense"),
+        
+        # === PERSONAL CARE ===
+        (["salon", "parlour", "spa", "haircut", "grooming", "urban company",
+          "urbanclap"], "Personal Care", "expense"),
+        
+        # === CHARITY & DONATIONS ===
+        (["donation", "charity", "ngo", "temple", "church", "mosque", "gurudwara"], "Donations", "expense"),
+        
+        # === GOVERNMENT & TAXES ===
+        (["gst", "tax", "income tax", "tds", "government", "challan", "passport",
+          "stamps", "registration"], "Taxes & Fees", "expense"),
+        
+        # === BANK CHARGES ===
+        (["bank charge", "service charge", "sms charge", "debit card", "atm charge",
+          "annual fee", "maintenance charge", "minimum balance"], "Bank Charges", "expense"),
+        
+        # === CASH TRANSACTIONS ===
+        (["atm", "cash withdrawal", "cash deposit", "self withdrawal"], "Cash", "expense"),
+        
+        # === TRANSFERS (Person to Person) - These go to "Other" ===
+        # Note: Generic transfers should be "Other" as we don't know the purpose
     ]
 
+    # First pass: Check for specific merchant/payee matches
     for keywords, category, txn_type in category_rules:
         if any(kw in desc for kw in keywords):
             return category, txn_type
-
+    
+    # If no specific category found, return "Other"
+    # This is better than wrongly categorizing as Transport
     return "Other", "expense"
 
 
