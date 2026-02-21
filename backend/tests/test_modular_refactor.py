@@ -511,8 +511,9 @@ class TestRiskProfileModule:
     def test_save_risk_profile(self, auth_token):
         """Test POST /api/risk-profile"""
         headers = {"Authorization": f"Bearer {auth_token}"}
+        # Note: answers must be a list, not a dict (per RiskProfileCreate model)
         profile_data = {
-            "answers": {"q1": 3, "q2": 4, "q3": 2},
+            "answers": [3, 4, 2, 5, 3],
             "score": 65,
             "profile": "Moderate",
             "breakdown": {"equity": 50, "debt": 30, "gold": 10, "cash": 10}
