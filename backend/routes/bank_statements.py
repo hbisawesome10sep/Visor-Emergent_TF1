@@ -763,13 +763,24 @@ def parse_indusind_pdf(pdf, all_text: str) -> list:
     """
     Parse IndusInd Bank PDF statement.
     IndusInd format: Date | Particulars | Chq./Ref.No. | Withdrawl | Deposit | Balance
+    Note: The actual transaction table is usually the 3rd table in the PDF.
     """
     transactions = []
     
     for page in pdf.pages:
         tables = page.extract_tables()
+        
+        # Find the transaction table (usually table index 2, with header "Date", "Particulars")
         for table in tables:
-            for row in table:
+            if not table or len(table) < 2:
+                continue
+            
+            # Check if this is the transaction table
+            first_row = [str(c).lower() if c else "" for c in table[0]]
+            if 'date' not in first_row[0] and 'particulars' not in ''.join(first_row):
+                continue
+            
+            for row in table[1:]:  # Skip header
                 if not row or len(row) < 5:
                     continue
                 
@@ -778,9 +789,7 @@ def parse_indusind_pdf(pdf, all_text: str) -> list:
                 
                 # Skip header and info rows
                 first_col = cleaned[0].lower()
-                if not cleaned[0] or 'date' in first_col or 'particulars' in first_col:
-                    continue
-                if 'indusind' in first_col or 'rajesh' in first_col or 'account' in first_col:
+                if not cleaned[0] or 'date' in first_col or first_col == 'empty':
                     continue
                 
                 # Parse date (DD-Mon-YYYY format like 02-Oct-2023)
@@ -793,29 +802,9 @@ def parse_indusind_pdf(pdf, all_text: str) -> list:
                 if not description:
                     continue
                 
-                # IndusInd has some weird column layouts
-                # Try to find withdrawal and deposit columns
-                bank_debit = 0
-                bank_credit = 0
-                
-                # Look for amounts in the row (skip ref number column)
-                for i in range(2, len(cleaned)):
-                    amount = parse_amount(cleaned[i])
-                    if amount > 0:
-                        # Check if it's in withdrawal or deposit position
-                        # Generally: col 3 = withdrawal, col 4 = deposit
-                        if i == 3:
-                            bank_debit = amount
-                        elif i == 4:
-                            bank_credit = amount
-                        elif bank_debit == 0 and bank_credit == 0:
-                            # If we haven't assigned yet, try to infer from description
-                            if '/DR/' in description or '/dr/' in description:
-                                bank_debit = amount
-                            elif '/CR/' in description or '/cr/' in description:
-                                bank_credit = amount
-                            else:
-                                bank_debit = amount  # Default to debit
+                # IndusInd structure: col 3 = withdrawal, col 4 = deposit
+                bank_debit = parse_amount(cleaned[3]) if len(cleaned) > 3 else 0
+                bank_credit = parse_amount(cleaned[4]) if len(cleaned) > 4 else 0
                 
                 if bank_debit == 0 and bank_credit == 0:
                     continue
