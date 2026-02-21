@@ -234,8 +234,12 @@ export default function BooksScreen() {
     current_value: '',
     depreciation_rate: '10',
     notes: '',
+    payment_mode: 'cash',
+    payment_account_name: 'Cash',
   });
   const [saving, setSaving] = useState(false);
+  const [bankAccountsForBooks, setBankAccountsForBooks] = useState<any[]>([]);
+  const [showAssetPaymentDropdown, setShowAssetPaymentDropdown] = useState(false);
 
   // Export modal
   const [showExportModal, setShowExportModal] = useState(false);
