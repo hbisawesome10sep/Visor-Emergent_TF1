@@ -550,23 +550,6 @@ export default function TaxScreen() {
   );
 }
 
-// Calculator Row Component
-function CalcRow({ label, value, colors, bold, highlight, sublabel }: {
-  label: string; value: number; colors: any; bold?: boolean; highlight?: string; sublabel?: string;
-}) {
-  return (
-    <View style={styles.calcRow}>
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.calcLabel, { color: bold ? colors.textPrimary : colors.textSecondary, fontWeight: bold ? '700' : '400' }]}>{label}</Text>
-        {sublabel && <Text style={{ fontSize: 10, color: colors.textSecondary, marginTop: 1 }}>{sublabel}</Text>}
-      </View>
-      <Text style={[styles.calcValue, { color: highlight || (bold ? colors.textPrimary : colors.textSecondary), fontWeight: bold ? '700' : '500' }]}>
-        {value < 0 ? `- ${formatINR(Math.abs(value))}` : formatINR(value)}
-      </Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
