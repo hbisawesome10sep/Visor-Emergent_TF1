@@ -1076,11 +1076,10 @@ def parse_hdfc_pdf(pdf, all_text: str) -> list:
     HDFC format: Date | Narration | Chq./Ref.No. | ValueDt | WithdrawalAmt. | DepositAmt. | ClosingBalance
     
     HDFC's PDF table extraction is unreliable (concatenates rows), so we use text parsing.
+    We determine debit/credit by tracking balance changes.
     """
     transactions = []
-    
-    # Date pattern: DD/MM/YY at start of line
-    date_pattern = re.compile(r'^(\d{2}/\d{2}/\d{2})\s+(.+?)(\d{2}/\d{2}/\d{2})\s+([\d,]+\.\d{2})?\s*([\d,]+\.\d{2})?\s*([\d,]+\.\d{2})$')
+    prev_balance = None
     
     for page in pdf.pages:
         text = page.extract_text()
@@ -1088,82 +1087,110 @@ def parse_hdfc_pdf(pdf, all_text: str) -> list:
             continue
         
         lines = text.split('\n')
-        i = 0
-        while i < len(lines):
-            line = lines[i].strip()
+        
+        for line in lines:
+            line = line.strip()
             
-            # Skip header and non-transaction lines
-            if not line or line.startswith('Page') or 'Date' in line and 'Narration' in line:
-                i += 1
+            # Skip non-transaction lines
+            if not line or not re.match(r'^\d{2}/\d{2}/\d{2}', line):
                 continue
             
-            # Check if line starts with a date
-            if re.match(r'^\d{2}/\d{2}/\d{2}', line):
-                # This is a transaction line
-                # Parse: Date Narration... ValueDate Withdrawal Deposit Balance
-                
-                # Extract date
-                date_str = line[:8]
-                date = parse_date(date_str)
-                if not date:
-                    i += 1
-                    continue
-                
-                # Rest of the line contains narration and amounts
-                rest = line[9:].strip()
-                
-                # Description is everything before the ValueDate (another date pattern)
-                value_date_match = re.search(r'(\d{2}/\d{2}/\d{2})\s+([\d,]+\.?\d*)\s*([\d,]+\.?\d*)?\s*([\d,]+\.?\d*)?$', rest)
-                
-                if value_date_match:
-                    description = rest[:value_date_match.start()].strip()
-                    amounts = value_date_match.groups()[1:]  # Skip value date
-                    
-                    # Parse amounts - HDFC: Withdrawal, Deposit, Balance (or just some of these)
-                    bank_debit = 0
-                    bank_credit = 0
-                    
-                    # Clean amounts list
-                    amounts = [a for a in amounts if a]
-                    
-                    if len(amounts) >= 2:
-                        # If we have 2+ amounts, first non-zero before balance is the transaction
-                        amt1 = parse_amount(amounts[0])
-                        if len(amounts) >= 3:
-                            # 3 amounts: withdrawal, deposit, balance
-                            # The transaction is either withdrawal OR deposit (one is empty/0)
-                            amt2 = parse_amount(amounts[1])
-                            if amt1 > 0 and (amt2 == 0 or amt2 > amt1 * 10):
-                                # amt1 is withdrawal (amt2 could be balance)
-                                bank_debit = amt1
-                            elif amt2 > 0:
-                                bank_credit = amt2
-                            else:
-                                bank_debit = amt1
-                        else:
-                            # 2 amounts: transaction and balance
-                            # Need to determine if debit or credit from description
-                            if 'CR' in description.upper() or 'DEP' in description.upper():
-                                bank_credit = amt1
-                            else:
-                                bank_debit = amt1
-                    elif len(amounts) == 1:
-                        # Single amount - check description for credit/debit hint
-                        amt = parse_amount(amounts[0])
-                        if 'CR' in description.upper() or 'DEP' in description.upper() or 'INTEREST' in description.upper():
-                            bank_credit = amt
-                        else:
-                            bank_debit = amt
-                    
-                    if bank_debit > 0 or bank_credit > 0:
-                        transactions.append({
-                            'date': date,
-                            'description': clean_hdfc_description(description),
-                            'bank_debit': bank_debit,
-                            'bank_credit': bank_credit,
-                        })
+            # Extract date (first 8 chars)
+            date_str = line[:8]
+            date = parse_date(date_str)
+            if not date:
+                continue
             
-            i += 1
+            # Find amounts at the end of line
+            # Pattern: ValueDate Amount(s) Balance
+            # Balance is always the last number, transaction amount is before it
+            
+            amount_pattern = re.compile(r'([\d,]+\.\d{2})')
+            amounts = amount_pattern.findall(line)
+            
+            if len(amounts) < 2:
+                continue
+            
+            # Last amount is balance
+            balance = parse_amount(amounts[-1])
+            
+            # Transaction amount is second-to-last (or we may have withdrawal AND deposit)
+            if len(amounts) >= 3:
+                # Could be: withdrawal, deposit, balance OR amount, balance
+                # Check the structure
+                amt1 = parse_amount(amounts[-3]) if len(amounts) >= 3 else 0
+                amt2 = parse_amount(amounts[-2])
+                
+                # If amt1 and amt2 are both meaningful, one is withdrawal and one is deposit
+                # Usually one is 0 or very small
+                if amt1 > 0 and amt2 > 0:
+                    # Both non-zero - likely one is the transaction, one is balance
+                    # Use balance change to determine
+                    if prev_balance is not None:
+                        change = balance - prev_balance
+                        if abs(change) > 0:
+                            amount = abs(change)
+                            if change > 0:
+                                bank_credit = amount
+                                bank_debit = 0
+                            else:
+                                bank_debit = amount
+                                bank_credit = 0
+                        else:
+                            bank_debit = amt2
+                            bank_credit = 0
+                    else:
+                        bank_debit = amt2
+                        bank_credit = 0
+                else:
+                    # One is zero
+                    if amt1 > 0:
+                        bank_debit = amt1
+                        bank_credit = 0
+                    else:
+                        bank_debit = amt2
+                        bank_credit = 0
+            else:
+                # Only 2 amounts: transaction and balance
+                amount = parse_amount(amounts[-2])
+                
+                # Use balance change to determine debit/credit
+                if prev_balance is not None:
+                    change = balance - prev_balance
+                    if change > 0:
+                        bank_credit = amount
+                        bank_debit = 0
+                    else:
+                        bank_debit = amount
+                        bank_credit = 0
+                else:
+                    # No previous balance - use description hints
+                    rest = line[9:].strip()
+                    if any(kw in rest.upper() for kw in ['DEP', 'CREDIT', 'INTEREST', 'CASHDEP']):
+                        bank_credit = amount
+                        bank_debit = 0
+                    else:
+                        bank_debit = amount
+                        bank_credit = 0
+            
+            # Extract description (between date and value date)
+            rest = line[9:].strip()
+            # Find the value date position
+            value_date_match = re.search(r'\d{2}/\d{2}/\d{2}', rest)
+            if value_date_match:
+                description = rest[:value_date_match.start()].strip()
+            else:
+                description = rest[:50]
+            
+            if bank_debit > 0 or bank_credit > 0:
+                transactions.append({
+                    'date': date,
+                    'description': clean_hdfc_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+            
+            prev_balance = balance
     
     return transactions
 
