@@ -1840,4 +1840,24 @@ const styles = StyleSheet.create({
     fontFamily: 'DM Sans',
     fontWeight: '500' as any,
   },
+  // Payment Mode Dropdown
+  paymentDropdown: {
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  paymentOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  paymentOptionText: {
+    fontSize: 14,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
 });
