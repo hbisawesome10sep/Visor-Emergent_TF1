@@ -232,12 +232,132 @@ def parse_excel_statement(file_bytes: bytes) -> list:
     return transactions
 
 
+def parse_icici_pdf_text(all_text: str) -> list:
+    """
+    Parse ICICI Bank PDF statement from raw text.
+    ICICI format: S.No | Date (DD.MM.YYYY) | Amount | Balance on one line,
+    followed by description (UPI/...) on subsequent lines.
+    """
+    transactions = []
+    lines = all_text.split('\n')
+    
+    # Pattern: Line starts with S.No (digits), followed by date DD.MM.YYYY, then amounts
+    # Example: "1 01.01.2026 466.00 97402.59"
+    # Or with deposit: "4 03.01.2026 22500.00 119877.59"
+    txn_line_pattern = re.compile(r'^(\d+)\s+(\d{2}\.\d{2}\.\d{4})\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)$')
+    
+    current_txn = None
+    description_lines = []
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Skip header lines and non-transaction content
+        if any(skip in line.lower() for skip in ['s no', 'transaction date', 'cheque number', 'legends', 'sincerly', 'team icici', 'statement of transactions']):
+            if current_txn and description_lines:
+                current_txn['description'] = ' '.join(description_lines)
+                transactions.append(current_txn)
+                current_txn = None
+                description_lines = []
+            continue
+        
+        match = txn_line_pattern.match(line)
+        if match:
+            # Save previous transaction
+            if current_txn and description_lines:
+                current_txn['description'] = ' '.join(description_lines)
+                transactions.append(current_txn)
+            
+            # Start new transaction
+            s_no, date_str, amount1, amount2 = match.groups()
+            date = parse_date(date_str)
+            if not date:
+                continue
+            
+            amount1_val = parse_amount(amount1)
+            amount2_val = parse_amount(amount2)
+            
+            # amount2 is always the balance. Determine if amount1 is debit or credit
+            # by looking at subsequent lines for UPI patterns
+            current_txn = {
+                'date': date,
+                's_no': int(s_no),
+                'amount1': amount1_val,  # This is the transaction amount
+                'balance': amount2_val,
+                'bank_debit': 0,
+                'bank_credit': 0,
+            }
+            description_lines = []
+        elif current_txn:
+            # This line is part of the description
+            description_lines.append(line)
+    
+    # Save last transaction
+    if current_txn and description_lines:
+        current_txn['description'] = ' '.join(description_lines)
+        transactions.append(current_txn)
+    
+    # Now determine debit/credit based on transaction type in description
+    # ICICI: If balance decreases -> withdrawal (debit), if increases -> deposit (credit)
+    for i, txn in enumerate(transactions):
+        desc = txn.get('description', '').lower()
+        amount = txn['amount1']
+        
+        # Check if it's a credit (deposit) based on keywords
+        is_credit = any(kw in desc for kw in ['salary', 'cashback', 'refund', 'reversal', 'interest credit', 'int.cr'])
+        
+        # Also check by looking at balance changes between transactions
+        if i > 0:
+            prev_balance = transactions[i-1]['balance']
+            curr_balance = txn['balance']
+            balance_change = curr_balance - prev_balance
+            
+            if abs(balance_change - amount) < 1:
+                # Balance increased by this amount -> credit (deposit)
+                is_credit = True
+            elif abs(balance_change + amount) < 1:
+                # Balance decreased by this amount -> debit (withdrawal)
+                is_credit = False
+        
+        if is_credit:
+            txn['bank_credit'] = amount
+            txn['bank_debit'] = 0
+        else:
+            txn['bank_debit'] = amount
+            txn['bank_credit'] = 0
+    
+    # Clean up and return
+    return [{
+        'date': t['date'],
+        'description': t.get('description', 'Bank Transaction'),
+        'bank_debit': t['bank_debit'],
+        'bank_credit': t['bank_credit'],
+    } for t in transactions]
+
+
 def parse_pdf_statement(file_bytes: bytes) -> list:
     """Parse a PDF bank statement using pdfplumber."""
     import pdfplumber
     transactions = []
 
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+        # First, try to extract all text for text-based parsing (for ICICI-style statements)
+        all_text = ""
+        for page in pdf.pages:
+            text = page.extract_text()
+            if text:
+                all_text += text + "\n"
+        
+        # Check if this is an ICICI statement
+        if "icici" in all_text.lower() and "transaction date" in all_text.lower():
+            icici_txns = parse_icici_pdf_text(all_text)
+            if icici_txns:
+                logger.info(f"Parsed {len(icici_txns)} transactions using ICICI text parser")
+                return icici_txns
+        
+        # Standard table-based parsing for other banks
         all_rows = []
         for page in pdf.pages:
             tables = page.extract_tables()
