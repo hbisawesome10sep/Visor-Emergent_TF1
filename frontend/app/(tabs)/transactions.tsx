@@ -923,6 +923,74 @@ export default function TransactionsScreen() {
                 )}
 
                 {/* Notes Input */}
+                <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+                  {form.type === 'income' ? 'Mode of Receipt' : 'Mode of Payment'}
+                </Text>
+                <TouchableOpacity
+                  data-testid="payment-mode-selector"
+                  style={[styles.datePickerBtn, { borderColor: showPaymentDropdown ? colors.primary : colors.border, backgroundColor: colors.background }]}
+                  onPress={() => setShowPaymentDropdown(!showPaymentDropdown)}
+                >
+                  <MaterialCommunityIcons
+                    name={form.payment_mode === 'cash' ? 'cash' : 'bank'}
+                    size={20}
+                    color={form.payment_mode === 'cash' ? Accent.emerald : Accent.sapphire}
+                  />
+                  <Text style={[styles.datePickerText, { color: colors.textPrimary, flex: 1 }]}>
+                    {form.payment_mode === 'cash' ? 'Cash' : form.payment_account_name}
+                  </Text>
+                  <MaterialCommunityIcons
+                    name={showPaymentDropdown ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                </TouchableOpacity>
+                {showPaymentDropdown && (
+                  <View style={[styles.paymentDropdown, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <TouchableOpacity
+                      data-testid="payment-option-cash"
+                      style={[styles.paymentOption, form.payment_mode === 'cash' && { backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.08)' }]}
+                      onPress={() => {
+                        setForm(p => ({ ...p, payment_mode: 'cash', payment_account_name: 'Cash' }));
+                        setShowPaymentDropdown(false);
+                      }}
+                    >
+                      <MaterialCommunityIcons name="cash" size={20} color={Accent.emerald} />
+                      <Text style={[styles.paymentOptionText, { color: colors.textPrimary }]}>Cash</Text>
+                      {form.payment_mode === 'cash' && (
+                        <MaterialCommunityIcons name="check" size={18} color={Accent.emerald} style={{ marginLeft: 'auto' }} />
+                      )}
+                    </TouchableOpacity>
+                    {bankAccounts.map(bank => (
+                      <TouchableOpacity
+                        key={bank.id}
+                        data-testid={`payment-option-${bank.id}`}
+                        style={[styles.paymentOption, form.payment_mode === 'bank' && form.payment_account_name === bank.account_name && { backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.08)' }]}
+                        onPress={() => {
+                          setForm(p => ({ ...p, payment_mode: 'bank', payment_account_name: bank.account_name }));
+                          setShowPaymentDropdown(false);
+                        }}
+                      >
+                        <MaterialCommunityIcons name="bank" size={20} color={Accent.sapphire} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.paymentOptionText, { color: colors.textPrimary }]}>{bank.account_name}</Text>
+                          <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans' }}>{bank.bank_name}{bank.is_default ? ' (Default)' : ''}</Text>
+                        </View>
+                        {form.payment_mode === 'bank' && form.payment_account_name === bank.account_name && (
+                          <MaterialCommunityIcons name="check" size={18} color={Accent.sapphire} style={{ marginLeft: 'auto' }} />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                    {bankAccounts.length === 0 && (
+                      <View style={[styles.paymentOption, { opacity: 0.6 }]}>
+                        <MaterialCommunityIcons name="information-outline" size={16} color={colors.textSecondary} />
+                        <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Add bank accounts in Settings</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Notes Input */}
                 <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Notes (optional)</Text>
                 <TextInput
                   style={[styles.textInput, styles.notesInput, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
