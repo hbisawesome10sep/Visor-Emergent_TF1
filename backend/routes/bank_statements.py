@@ -963,6 +963,211 @@ def parse_yesbank_pdf(pdf, all_text: str) -> list:
     return transactions
 
 
+def clean_hdfc_description(raw_desc: str) -> str:
+    """Clean up HDFC Bank transaction description."""
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    
+    # Known merchants
+    known_merchants = {
+        'amazon': 'Amazon',
+        'flipkart': 'Flipkart',
+        'swiggy': 'Swiggy',
+        'zomato': 'Zomato',
+        'paytm': 'Paytm',
+        'uber': 'Uber',
+        'ola': 'Ola',
+        'vodafone': 'Vodafone',
+        'airtel': 'Airtel',
+        'jio': 'Jio',
+        'reliance': 'Reliance',
+    }
+    
+    lower_desc = desc.lower()
+    
+    # Check for known merchants
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            if 'pos' in lower_desc:
+                return f"Card - {name}"
+            return f"Payment - {name}"
+    
+    # UPI format: UPI-refno-upiid-ref-OK
+    if desc.startswith('UPI-'):
+        # Try to extract payee from UPI ID
+        parts = desc.split('-')
+        if len(parts) >= 3:
+            upi_id = parts[2]
+            if '@' in upi_id:
+                name = upi_id.split('@')[0]
+                return f"UPI - {name.title()}"
+        return "UPI Transfer"
+    
+    # IMPS format: IMPS-ref-Name-Bank-Account-Purpose
+    if desc.startswith('IMPS-'):
+        parts = desc.split('-')
+        if len(parts) >= 3:
+            name = parts[2]
+            if name and any(c.isalpha() for c in name):
+                return f"IMPS - {name.title()}"
+        return "IMPS Transfer"
+    
+    # NEFT format: NEFTDR-Bank-Name-NETBANK...
+    if desc.startswith('NEFTDR') or desc.startswith('NEFT-'):
+        parts = desc.split('-')
+        for part in parts:
+            # Look for person/company name (alphanumeric, not a bank code)
+            if len(part) > 3 and part.isalpha():
+                return f"NEFT - {part.title()}"
+        return "NEFT Transfer"
+    
+    # EMI payment
+    if desc.startswith('EMI'):
+        return "EMI Payment"
+    
+    # ACH debit
+    if desc.startswith('ACHD-') or desc.startswith('ACH-'):
+        parts = desc.split('-')
+        if len(parts) >= 2:
+            company = parts[1]
+            return f"Auto-debit - {company.title()}"
+        return "Auto-debit"
+    
+    # Bill payment
+    if 'BILLPAY' in desc:
+        if 'HDFCPE' in desc:
+            return "HDFC CC Payment"
+        if 'SBICARDS' in desc:
+            return "SBI Card Payment"
+        if 'KOTAK' in desc:
+            return "Kotak Card Payment"
+        return "Bill Payment"
+    
+    # POS transaction (card swipe)
+    if desc.startswith('POS') or 'POSDEBIT' in desc:
+        # Try to extract merchant name
+        parts = desc.split('XXXXXX')
+        if len(parts) > 1:
+            merchant = parts[-1].replace('POSDEBIT', '').strip()
+            if merchant:
+                return f"Card - {merchant.title()}"
+        return "Card Purchase"
+    
+    # Interest credit
+    if 'INTEREST' in desc.upper() or 'CREDITINTEREST' in desc:
+        return "Interest Credit"
+    
+    # Cash deposit
+    if 'CASHDEP' in desc or 'CASH DEP' in desc:
+        return "Cash Deposit"
+    
+    # ATM
+    if 'ATM' in desc.upper():
+        if 'DEP' in desc.upper():
+            return "ATM Deposit"
+        return "ATM Withdrawal"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_hdfc_pdf(pdf, all_text: str) -> list:
+    """
+    Parse HDFC Bank PDF statement using text extraction.
+    HDFC format: Date | Narration | Chq./Ref.No. | ValueDt | WithdrawalAmt. | DepositAmt. | ClosingBalance
+    
+    HDFC's PDF table extraction is unreliable (concatenates rows), so we use text parsing.
+    """
+    transactions = []
+    
+    # Date pattern: DD/MM/YY at start of line
+    date_pattern = re.compile(r'^(\d{2}/\d{2}/\d{2})\s+(.+?)(\d{2}/\d{2}/\d{2})\s+([\d,]+\.\d{2})?\s*([\d,]+\.\d{2})?\s*([\d,]+\.\d{2})$')
+    
+    for page in pdf.pages:
+        text = page.extract_text()
+        if not text:
+            continue
+        
+        lines = text.split('\n')
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Skip header and non-transaction lines
+            if not line or line.startswith('Page') or 'Date' in line and 'Narration' in line:
+                i += 1
+                continue
+            
+            # Check if line starts with a date
+            if re.match(r'^\d{2}/\d{2}/\d{2}', line):
+                # This is a transaction line
+                # Parse: Date Narration... ValueDate Withdrawal Deposit Balance
+                
+                # Extract date
+                date_str = line[:8]
+                date = parse_date(date_str)
+                if not date:
+                    i += 1
+                    continue
+                
+                # Rest of the line contains narration and amounts
+                rest = line[9:].strip()
+                
+                # Description is everything before the ValueDate (another date pattern)
+                value_date_match = re.search(r'(\d{2}/\d{2}/\d{2})\s+([\d,]+\.?\d*)\s*([\d,]+\.?\d*)?\s*([\d,]+\.?\d*)?$', rest)
+                
+                if value_date_match:
+                    description = rest[:value_date_match.start()].strip()
+                    amounts = value_date_match.groups()[1:]  # Skip value date
+                    
+                    # Parse amounts - HDFC: Withdrawal, Deposit, Balance (or just some of these)
+                    bank_debit = 0
+                    bank_credit = 0
+                    
+                    # Clean amounts list
+                    amounts = [a for a in amounts if a]
+                    
+                    if len(amounts) >= 2:
+                        # If we have 2+ amounts, first non-zero before balance is the transaction
+                        amt1 = parse_amount(amounts[0])
+                        if len(amounts) >= 3:
+                            # 3 amounts: withdrawal, deposit, balance
+                            # The transaction is either withdrawal OR deposit (one is empty/0)
+                            amt2 = parse_amount(amounts[1])
+                            if amt1 > 0 and (amt2 == 0 or amt2 > amt1 * 10):
+                                # amt1 is withdrawal (amt2 could be balance)
+                                bank_debit = amt1
+                            elif amt2 > 0:
+                                bank_credit = amt2
+                            else:
+                                bank_debit = amt1
+                        else:
+                            # 2 amounts: transaction and balance
+                            # Need to determine if debit or credit from description
+                            if 'CR' in description.upper() or 'DEP' in description.upper():
+                                bank_credit = amt1
+                            else:
+                                bank_debit = amt1
+                    elif len(amounts) == 1:
+                        # Single amount - check description for credit/debit hint
+                        amt = parse_amount(amounts[0])
+                        if 'CR' in description.upper() or 'DEP' in description.upper() or 'INTEREST' in description.upper():
+                            bank_credit = amt
+                        else:
+                            bank_debit = amt
+                    
+                    if bank_debit > 0 or bank_credit > 0:
+                        transactions.append({
+                            'date': date,
+                            'description': clean_hdfc_description(description),
+                            'bank_debit': bank_debit,
+                            'bank_credit': bank_credit,
+                        })
+            
+            i += 1
+    
+    return transactions
+
+
 def parse_sbi_pdf(pdf, all_text: str) -> list:
     """
     Parse SBI Bank PDF statement.
