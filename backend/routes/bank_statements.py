@@ -627,8 +627,8 @@ def parse_axis_pdf(pdf, all_text: str) -> list:
                 if not row or len(row) < 6:
                     continue
                 
-                # Clean the row
-                cleaned = [str(cell).strip().replace('\n', ' ') if cell else "" for cell in row]
+                # Clean the row - replace newlines with spaces
+                cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
                 
                 # Skip header and empty rows
                 if not cleaned[0] or 'tran date' in cleaned[0].lower() or 'opening balance' in ' '.join(cleaned).lower():
