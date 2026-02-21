@@ -691,6 +691,145 @@ def parse_axis_pdf(pdf, all_text: str) -> list:
     return transactions
 
 
+def clean_indusind_description(raw_desc: str) -> str:
+    """Clean up IndusInd Bank transaction description."""
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    
+    # Known merchants
+    known_merchants = {
+        'paytm': 'Paytm',
+        'phonepe': 'PhonePe',
+        'gpay': 'Google Pay',
+        'amazon': 'Amazon',
+        'flipkart': 'Flipkart',
+        'swiggy': 'Swiggy',
+        'zomato': 'Zomato',
+        'uber': 'Uber',
+        'ola': 'Ola',
+        'slice': 'Slice',
+        'liquiloans': 'Liquiloans',
+    }
+    
+    lower_desc = desc.lower()
+    
+    # Check for known merchants
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            return f"UPI - {name}"
+    
+    # UPI format: UPI/refno/CR or DR/Name/Bank/upiid
+    if desc.startswith('UPI/'):
+        parts = desc.split('/')
+        # Find CR or DR and get the name after it
+        for i, part in enumerate(parts):
+            if part in ('CR', 'DR') and i+1 < len(parts):
+                name = parts[i+1].strip()
+                if name and len(name) > 2 and any(c.isalpha() for c in name):
+                    return f"UPI - {name.title()}"
+    
+    # IMPS format: IMPS/P2A/refno/Bank/Name
+    if desc.startswith('IMPS/'):
+        parts = desc.split('/')
+        # Name is usually the last meaningful part
+        for part in reversed(parts):
+            part = part.strip()
+            if part and len(part) > 3 and any(c.isalpha() for c in part):
+                if part not in ('IMPS', 'P2A', 'P2M'):
+                    return f"IMPS - {part.title()}"
+        return "IMPS Transfer"
+    
+    # TRF FRM - Transfer from another account
+    if 'trf frm' in lower_desc:
+        return "Internal Transfer"
+    
+    # NEFT transfer
+    if desc.startswith('N/') or 'neft' in lower_desc:
+        # Try to extract company name
+        parts = desc.split('/')
+        for part in parts:
+            if len(part) > 5 and part.isupper() and ' ' in part:
+                return f"NEFT - {part.title()}"
+        return "NEFT Transfer"
+    
+    # MC POS TXN - Card transaction
+    if 'mc pos txn' in lower_desc or 'pos txn' in lower_desc:
+        return "Card Purchase"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_indusind_pdf(pdf, all_text: str) -> list:
+    """
+    Parse IndusInd Bank PDF statement.
+    IndusInd format: Date | Particulars | Chq./Ref.No. | Withdrawl | Deposit | Balance
+    """
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        for table in tables:
+            for row in table:
+                if not row or len(row) < 5:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
+                
+                # Skip header and info rows
+                first_col = cleaned[0].lower()
+                if not cleaned[0] or 'date' in first_col or 'particulars' in first_col:
+                    continue
+                if 'indusind' in first_col or 'rajesh' in first_col or 'account' in first_col:
+                    continue
+                
+                # Parse date (DD-Mon-YYYY format like 02-Oct-2023)
+                date = parse_date(cleaned[0])
+                if not date:
+                    continue
+                
+                # Get description (column 1 - Particulars)
+                description = cleaned[1] if len(cleaned) > 1 else ""
+                if not description:
+                    continue
+                
+                # IndusInd has some weird column layouts
+                # Try to find withdrawal and deposit columns
+                bank_debit = 0
+                bank_credit = 0
+                
+                # Look for amounts in the row (skip ref number column)
+                for i in range(2, len(cleaned)):
+                    amount = parse_amount(cleaned[i])
+                    if amount > 0:
+                        # Check if it's in withdrawal or deposit position
+                        # Generally: col 3 = withdrawal, col 4 = deposit
+                        if i == 3:
+                            bank_debit = amount
+                        elif i == 4:
+                            bank_credit = amount
+                        elif bank_debit == 0 and bank_credit == 0:
+                            # If we haven't assigned yet, try to infer from description
+                            if '/DR/' in description or '/dr/' in description:
+                                bank_debit = amount
+                            elif '/CR/' in description or '/cr/' in description:
+                                bank_credit = amount
+                            else:
+                                bank_debit = amount  # Default to debit
+                
+                if bank_debit == 0 and bank_credit == 0:
+                    continue
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_indusind_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
 def parse_sbi_pdf(pdf, all_text: str) -> list:
     """
     Parse SBI Bank PDF statement.
