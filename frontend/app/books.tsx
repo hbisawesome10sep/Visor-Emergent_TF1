@@ -349,25 +349,31 @@ export default function BooksScreen() {
     if (!token) return;
     try {
       const dateRange = getDateRange();
-      const [ledger, pnl, bs, assets, loansData] = await Promise.all([
-        apiRequest(`/books/ledger?start_date=${dateRange.start}&end_date=${dateRange.end}`, { token }),
+      const searchParam = booksSearchQuery ? `&search=${encodeURIComponent(booksSearchQuery)}` : '';
+      const [ledger, pnl, bs, assets, loansData, journal, accounts] = await Promise.all([
+        apiRequest(`/books/ledger?start_date=${dateRange.start}&end_date=${dateRange.end}${searchParam}`, { token }),
         apiRequest(`/books/pnl?start_date=${dateRange.start}&end_date=${dateRange.end}`, { token }),
         apiRequest('/books/balance-sheet', { token }),
         apiRequest('/assets', { token }),
         apiRequest('/loans', { token }),
+        apiRequest(`/journal?start_date=${dateRange.start}&end_date=${dateRange.end}${searchParam}`, { token }),
+        apiRequest(`/journal/accounts${booksSearchQuery ? `?search=${encodeURIComponent(booksSearchQuery)}` : ''}`, { token }),
       ]);
       setLedgerData(ledger);
       setPnlData(pnl);
       setBalanceSheet(bs);
       setFixedAssets(assets || []);
       setLoans(loansData || []);
+      setJournalEntries(journal?.entries || []);
+      setJournalTotal(journal?.total || 0);
+      setJournalAccounts(accounts?.accounts || []);
     } catch (e) {
       console.error('Error fetching books data:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, getDateRange]);
+  }, [token, getDateRange, booksSearchQuery]);
 
   useEffect(() => {
     fetchData();
