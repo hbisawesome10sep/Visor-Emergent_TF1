@@ -2259,6 +2259,7 @@ async def upload_bank_statement(
     bank_name: str = Form(""),
     account_name: str = Form(""),
     password: str = Form(""),  # Optional password for encrypted PDFs
+    bank_hint: str = Form(""),  # Optional bank name hint for parser selection
     user=Depends(get_current_user),
 ):
     """
