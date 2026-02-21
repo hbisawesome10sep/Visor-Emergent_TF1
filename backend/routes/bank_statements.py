@@ -529,7 +529,7 @@ def clean_sbi_description(raw_desc: str) -> str:
 
 def clean_axis_description(raw_desc: str) -> str:
     """Clean up Axis Bank transaction description."""
-    desc = raw_desc.strip().replace('\n', ' ')
+    desc = raw_desc.strip().replace('\n', ' ').replace('  ', ' ')
     
     # Known merchants
     known_merchants = {
@@ -548,6 +548,7 @@ def clean_axis_description(raw_desc: str) -> str:
         'groww': 'Groww',
         'cashfree': 'Cashfree',
         'meesho': 'Meesho',
+        'pennydrop': 'Penny Drop',
     }
     
     lower_desc = desc.lower()
@@ -561,16 +562,18 @@ def clean_axis_description(raw_desc: str) -> str:
     if 'atm-cash' in lower_desc or 'atm cash' in lower_desc:
         return "ATM Withdrawal"
     
-    # NEFT transfer
+    # NEFT transfer - extract name
     if desc.startswith('NEFT'):
-        # Try to extract company/person name
-        parts = desc.split('/')
-        for part in parts:
-            part = part.strip()
-            if part and len(part) > 3 and part.isalpha():
-                return f"NEFT - {part.title()}"
         if 'salary' in lower_desc:
             return "NEFT - Salary"
+        # Try to extract company/person name after the reference number
+        parts = desc.split('-')
+        for part in parts:
+            part = part.strip()
+            # Look for company names (all caps, multiple words)
+            if part and len(part) > 3 and part.isupper() and ' ' not in part:
+                if part not in ('NEFT', 'CR', 'DR'):
+                    return f"NEFT - {part.title()}"
         return "NEFT Transfer"
     
     # IMPS transfer
@@ -594,6 +597,8 @@ def clean_axis_description(raw_desc: str) -> str:
         if len(parts) >= 4:
             name = parts[3].strip()
             if name and len(name) > 2 and any(c.isalpha() for c in name):
+                # Clean up name (remove bank suffix if present)
+                name = name.split('/')[0].strip()
                 return f"UPI - {name.title()}"
     
     # Interest credit
