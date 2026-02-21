@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from typing import Optional
 from database import db
 from auth import get_current_user
 from datetime import datetime, timezone
 import logging
+import io
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
