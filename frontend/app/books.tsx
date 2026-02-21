@@ -195,10 +195,19 @@ export default function BooksScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<TabType>('ledger');
+  const [activeTab, setActiveTab] = useState<TabType>('journal');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [booksSearchQuery, setBooksSearchQuery] = useState('');
+
+  // Journal state
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [journalTotal, setJournalTotal] = useState(0);
+  const [journalAccounts, setJournalAccounts] = useState<any[]>([]);
+  const [selectedLedgerAccount, setSelectedLedgerAccount] = useState<string | null>(null);
+  const [individualLedger, setIndividualLedger] = useState<any>(null);
+  const [loadingLedger, setLoadingLedger] = useState(false);
 
   // Ledger state
   const [ledgerData, setLedgerData] = useState<LedgerData | null>(null);
