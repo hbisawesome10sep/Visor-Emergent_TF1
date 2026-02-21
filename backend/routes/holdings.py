@@ -116,6 +116,13 @@ async def get_holdings(user=Depends(get_current_user)):
     }
 
 
+@router.get("/holdings/live")
+async def get_holdings_live(user=Depends(get_current_user)):
+    """Alias for GET /holdings - returns holdings with live prices."""
+    return await get_holdings(user=user)
+
+
+
 @router.put("/holdings/{holding_id}")
 async def update_holding(holding_id: str, holding: HoldingCreate, user=Depends(get_current_user)):
     existing = await db.holdings.find_one({"_id": ObjectId(holding_id), "user_id": user["id"]})

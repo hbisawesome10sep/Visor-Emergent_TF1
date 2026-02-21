@@ -164,3 +164,64 @@ async def get_portfolio_overview(user=Depends(get_current_user)):
         "categories": breakdown,
         "last_updated": datetime.now(timezone.utc).isoformat(),
     }
+
+
+@router.get("/portfolio-rebalancing")
+async def get_portfolio_rebalancing(user=Depends(get_current_user)):
+    """Get portfolio rebalancing suggestions based on risk profile."""
+    risk = await db.risk_profiles.find_one({"user_id": user["id"]}, {"_id": 0})
+    risk_profile = risk.get("profile", "Moderate") if risk else "Moderate"
+
+    # Target allocation per risk profile
+    targets = {
+        "Conservative": {"Equity": 20, "Debt": 50, "Gold": 15, "Cash": 15},
+        "Moderate": {"Equity": 40, "Debt": 30, "Gold": 15, "Cash": 15},
+        "Aggressive": {"Equity": 60, "Debt": 20, "Gold": 10, "Cash": 10},
+        "Very Aggressive": {"Equity": 75, "Debt": 10, "Gold": 5, "Cash": 10},
+    }
+    target = targets.get(risk_profile, targets["Moderate"])
+
+    # Get current allocation from portfolio
+    portfolio = await get_portfolio_overview(user=user)
+    total = portfolio["total_current_value"] or 1
+    equity_cats = {"Stock", "Stocks", "Mutual Fund", "Mutual Funds", "SIP", "ETFs", "ELSS", "NPS"}
+    debt_cats = {"FD", "Fixed Deposit", "PPF", "EPF", "Bonds", "ULIP"}
+    gold_cats = {"Gold", "Sovereign Gold Bond", "Silver"}
+
+    current = {"Equity": 0, "Debt": 0, "Gold": 0, "Cash": 0}
+    for cat in portfolio.get("categories", []):
+        name = cat["category"]
+        val = cat["current_value"]
+        if name in equity_cats:
+            current["Equity"] += val
+        elif name in debt_cats:
+            current["Debt"] += val
+        elif name in gold_cats:
+            current["Gold"] += val
+        else:
+            current["Cash"] += val
+
+    suggestions = []
+    for asset_class, target_pct in target.items():
+        current_val = current.get(asset_class, 0)
+        current_pct = round((current_val / total) * 100, 1) if total > 0 else 0
+        diff = round(target_pct - current_pct, 1)
+        if abs(diff) > 2:
+            action = "increase" if diff > 0 else "decrease"
+            suggestions.append({
+                "asset_class": asset_class,
+                "current_pct": current_pct,
+                "target_pct": target_pct,
+                "diff": diff,
+                "action": action,
+                "amount": round(abs(diff / 100) * total, 2),
+            })
+
+    return {
+        "risk_profile": risk_profile,
+        "target_allocation": target,
+        "current_allocation": {k: round((v / total) * 100, 1) if total > 0 else 0 for k, v in current.items()},
+        "suggestions": suggestions,
+        "total_portfolio_value": round(total, 2),
+    }
+
