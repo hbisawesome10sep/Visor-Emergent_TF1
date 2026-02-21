@@ -207,6 +207,7 @@ export default function SettingsScreen() {
       } as any);
       formData.append('bank_name', uploadBankName || '');
       formData.append('account_name', uploadAccountName || '');
+      formData.append('password', uploadPassword || ''); // Include password for encrypted PDFs
       
       const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
       
