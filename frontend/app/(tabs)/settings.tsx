@@ -258,6 +258,7 @@ export default function SettingsScreen() {
     setSelectedFile(null);
     setUploadBankName('');
     setUploadAccountName('');
+    setUploadPassword(''); // Clear password
     setUploadResult(null);
     setUploadProgress(0);
     setUploadPhase('idle');
