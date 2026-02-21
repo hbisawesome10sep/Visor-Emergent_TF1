@@ -1588,6 +1588,71 @@ export default function BooksScreen() {
   };
 
   const renderLedgerTab = () => {
+    // Show individual ledger if selected
+    if (selectedLedgerAccount && individualLedger) {
+      return renderIndividualLedger();
+    }
+    if (loadingLedger) {
+      return (
+        <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 8 }}>Loading ledger...</Text>
+        </View>
+      );
+    }
+
+    // Show account list (from journal accounts) with search
+    if (journalAccounts.length > 0) {
+      const accountTypeOrder: Record<string, number> = { 'Personal': 0, 'Real': 1, 'Nominal': 2 };
+      const grouped = journalAccounts.reduce((acc: any, a: any) => {
+        const key = `${a.account_type} (${a.account_group})`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(a);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      return (
+        <View data-testid="ledger-accounts-list" style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 12 }}>
+            {journalAccounts.length} accounts • Tap to view ledger
+          </Text>
+          {Object.entries(grouped).sort(([a], [b]) => (accountTypeOrder[a.split(' ')[0]] ?? 3) - (accountTypeOrder[b.split(' ')[0]] ?? 3)).map(([group, accounts]: [string, any]) => (
+            <View key={group} style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>{group}</Text>
+              {accounts.map((acc: any) => (
+                <TouchableOpacity
+                  key={acc.name}
+                  data-testid={`ledger-account-${acc.name.replace(/\s/g, '-')}`}
+                  onPress={() => fetchIndividualLedger(acc.name)}
+                  style={{
+                    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+                    paddingVertical: 12, paddingHorizontal: 12, marginBottom: 4,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                    borderRadius: 10, borderWidth: 1, borderColor: colors.border + '30',
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }}>{acc.name}</Text>
+                    <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2 }}>{acc.entry_count} entries</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 14, color: acc.balance >= 0 ? (isDark ? '#60A5FA' : '#2563EB') : (isDark ? '#F87171' : '#DC2626'), fontFamily: 'DM Sans', fontWeight: '700' }}>
+                      {formatINRIndian(acc.balance)}
+                    </Text>
+                    <Text style={{ fontSize: 10, color: colors.textSecondary, fontFamily: 'DM Sans' }}>
+                      {acc.balance >= 0 ? 'Dr' : 'Cr'}
+                    </Text>
+                  </View>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+        </View>
+      );
+    }
+
+    // Fallback to old ledger
     if (!ledgerData) return null;
     const accounts = Object.entries(ledgerData.accounts);
     
