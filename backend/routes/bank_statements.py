@@ -1160,6 +1160,163 @@ def clean_pnb_description(raw_desc: str) -> str:
     return desc[:50] if len(desc) > 50 else desc
 
 
+def clean_idbi_description(raw_desc: str) -> str:
+    """Clean up IDBI Bank transaction description."""
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    
+    lower_desc = desc.lower()
+    
+    # Known merchants
+    known_merchants = {
+        'phonepe': 'PhonePe',
+        'paytm': 'Paytm',
+        'amazon': 'Amazon',
+        'flipkart': 'Flipkart',
+        'swiggy': 'Swiggy',
+        'zomato': 'Zomato',
+        'uber': 'Uber',
+        'bharatpe': 'BharatPe',
+    }
+    
+    # Check for known merchants
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            return f"UPI - {name}"
+    
+    # UPI format: UPI/refno/Name
+    if desc.startswith('UPI/'):
+        parts = desc.split('/')
+        if len(parts) >= 3:
+            name = parts[2].strip()
+            if name and any(c.isalpha() for c in name):
+                return f"UPI - {name.title()}"
+        return "UPI Transfer"
+    
+    # VISA-POS (Card transactions)
+    if desc.startswith('VISA-POS/'):
+        merchant = desc[9:].split('/')[0].strip()
+        return f"Card - {merchant.title()}"
+    
+    # ATM Withdrawal
+    if desc.startswith('ATMWDL') or 'ATM' in desc.upper():
+        return "ATM Charges"
+    
+    # NEFT
+    if desc.startswith('NEFT'):
+        parts = desc.split('-')
+        if len(parts) >= 2:
+            name = parts[-1].strip()
+            return f"NEFT - {name.title()}"
+        return "NEFT Transfer"
+    
+    # IMPS
+    if desc.startswith('IMPS'):
+        parts = desc.split('/')
+        if len(parts) >= 2:
+            name = parts[-1].strip()
+            return f"IMPS - {name.title()}"
+        return "IMPS Transfer"
+    
+    # IPAY/ESHP (E-Shop payment)
+    if desc.startswith('IPAY/ESHP'):
+        return "Online Payment"
+    
+    # ACH Payment
+    if desc.startswith('ACH') or 'achpfm' in lower_desc:
+        parts = desc.split('-')
+        if len(parts) >= 2:
+            purpose = parts[1].strip()
+            return f"ACH - {purpose.title()}"
+        return "ACH Payment"
+    
+    # CA Keeping Charges
+    if 'ca keeping' in lower_desc or 'keeping chgs' in lower_desc:
+        return "Account Maintenance Charges"
+    
+    # Cash deposit/withdrawal at branch
+    if desc.startswith('BN') or desc.startswith('ID064') or desc.startswith('ID130'):
+        return "Branch Transaction"
+    
+    # REF (Refund)
+    if desc.startswith('REF\\') or desc.startswith('REF/'):
+        return "Refund"
+    
+    # Interest
+    if 'interest' in lower_desc or 'int.' in lower_desc:
+        return "Interest Credit"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_idbi_pdf(pdf, all_text: str) -> list:
+    """
+    Parse IDBI Bank PDF statement.
+    IDBI format: Srl | Txn Date | Value Date | Description | Cheque No | CR/DR | CCY | Amount (INR) | Balance (INR)
+    """
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        
+        for table in tables:
+            if not table or len(table) < 2:
+                continue
+            
+            for row in table:
+                if not row or len(row) < 7:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
+                
+                # Skip header rows
+                first_col = cleaned[0].lower()
+                if 'srl' in first_col or 'txn' in first_col or not cleaned[0]:
+                    continue
+                
+                # Skip if first column is not a serial number
+                if not cleaned[0].isdigit():
+                    continue
+                
+                # Parse date (column 1 - Txn Date with timestamp)
+                date_str = cleaned[1].split(' ')[0] if ' ' in cleaned[1] else cleaned[1]
+                date = parse_date(date_str)
+                if not date:
+                    continue
+                
+                # Get description (column 3)
+                description = cleaned[3] if len(cleaned) > 3 else ""
+                if not description:
+                    continue
+                
+                # Get CR/DR indicator (column 5)
+                cr_dr = cleaned[5].lower() if len(cleaned) > 5 else ""
+                
+                # Get amount (column 7)
+                amount = parse_amount(cleaned[7]) if len(cleaned) > 7 else 0
+                
+                if amount == 0:
+                    continue
+                
+                # Determine debit or credit
+                if 'cr' in cr_dr:
+                    bank_credit = amount
+                    bank_debit = 0
+                else:
+                    bank_debit = amount
+                    bank_credit = 0
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_idbi_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
 def parse_pnb_pdf(pdf, all_text: str) -> list:
     """
     Parse PNB Bank PDF statement.
