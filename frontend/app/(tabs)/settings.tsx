@@ -75,6 +75,80 @@ export default function SettingsScreen() {
     autoInvestment: false,
   });
 
+  // Bank accounts state
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [banksList, setBanksList] = useState<string[]>([]);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [editingBank, setEditingBank] = useState<any>(null);
+  const [bankForm, setBankForm] = useState({ bank_name: '', account_name: '', account_number: '', ifsc_code: '', is_default: false });
+  const [showBankPicker, setShowBankPicker] = useState(false);
+  const [bankSearch, setBankSearch] = useState('');
+
+  // Fetch bank accounts
+  React.useEffect(() => {
+    if (!token) return;
+    (async () => {
+      try {
+        const [accounts, banks] = await Promise.all([
+          apiRequest('/bank-accounts', { token }),
+          apiRequest('/bank-accounts/banks-list'),
+        ]);
+        setBankAccounts(accounts);
+        setBanksList(banks.banks);
+      } catch {}
+    })();
+  }, [token]);
+
+  const saveBankAccount = async () => {
+    if (!bankForm.bank_name || !bankForm.account_name) {
+      Alert.alert('Required', 'Please select a bank and enter account name');
+      return;
+    }
+    try {
+      if (editingBank) {
+        await apiRequest(`/bank-accounts/${editingBank.id}`, { method: 'PUT', token: token || '', body: bankForm });
+      } else {
+        await apiRequest('/bank-accounts', { method: 'POST', token: token || '', body: bankForm });
+      }
+      const updated = await apiRequest('/bank-accounts', { token: token || '' });
+      setBankAccounts(updated);
+      setShowBankModal(false);
+      setEditingBank(null);
+    } catch (e: any) { Alert.alert('Error', e.message); }
+  };
+
+  const deleteBankAccount = (id: string, name: string) => {
+    Alert.alert('Delete Account', `Remove "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          await apiRequest(`/bank-accounts/${id}`, { method: 'DELETE', token: token || '' });
+          setBankAccounts(prev => prev.filter(b => b.id !== id));
+        } catch (e: any) { Alert.alert('Error', e.message); }
+      }},
+    ]);
+  };
+
+  const deleteAllBankAccounts = () => {
+    Alert.alert('Delete All', 'Remove all bank accounts? This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete All', style: 'destructive', onPress: async () => {
+        try {
+          await apiRequest('/bank-accounts', { method: 'DELETE', token: token || '' });
+          setBankAccounts([]);
+        } catch (e: any) { Alert.alert('Error', e.message); }
+      }},
+    ]);
+  };
+
+  const setDefaultBank = async (id: string) => {
+    try {
+      await apiRequest(`/bank-accounts/${id}/set-default`, { method: 'PUT', token: token || '' });
+      const updated = await apiRequest('/bank-accounts', { token: token || '' });
+      setBankAccounts(updated);
+    } catch (e: any) { Alert.alert('Error', e.message); }
+  };
+
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
