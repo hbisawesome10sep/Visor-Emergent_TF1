@@ -21,7 +21,7 @@ import { formatINR, formatINRShort } from '../src/utils/formatters';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-type TabType = 'ledger' | 'pnl' | 'balance';
+type TabType = 'journal' | 'ledger' | 'pnl' | 'balance';
 
 const ASSET_CATEGORIES = ['Property', 'Vehicle', 'Electronics', 'Furniture', 'Jewelry', 'Other'];
 
