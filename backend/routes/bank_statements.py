@@ -762,25 +762,22 @@ def clean_indusind_description(raw_desc: str) -> str:
 def parse_indusind_pdf(pdf, all_text: str) -> list:
     """
     Parse IndusInd Bank PDF statement.
-    IndusInd format: Date | Particulars | Chq./Ref.No. | Withdrawl | Deposit | Balance
-    Note: The actual transaction table is usually the 3rd table in the PDF.
+    IndusInd format varies by page:
+    - Page 1: Date | Particulars | Chq./Ref.No. | Withdrawl | Deposit | Balance
+    - Page 2+: Date | Particulars | Ref | EMPTY | Withdrawl/Deposit | Withdrawl/Deposit | Balance
+    
+    We detect debit vs credit by looking at /DR/ or /CR/ in the description.
     """
     transactions = []
     
-    for page in pdf.pages:
+    for page_num, page in enumerate(pdf.pages):
         tables = page.extract_tables()
         
-        # Find the transaction table (usually table index 2, with header "Date", "Particulars")
         for table in tables:
             if not table or len(table) < 2:
                 continue
             
-            # Check if this is the transaction table
-            first_row = [str(c).lower() if c else "" for c in table[0]]
-            if 'date' not in first_row[0] and 'particulars' not in ''.join(first_row):
-                continue
-            
-            for row in table[1:]:  # Skip header
+            for row in table:
                 if not row or len(row) < 5:
                     continue
                 
@@ -789,7 +786,11 @@ def parse_indusind_pdf(pdf, all_text: str) -> list:
                 
                 # Skip header and info rows
                 first_col = cleaned[0].lower()
-                if not cleaned[0] or 'date' in first_col or first_col == 'empty':
+                if not cleaned[0] or 'date' in first_col or 'indusind' in first_col:
+                    continue
+                if 'rajesh' in first_col or 'account' in first_col or 'page' in first_col:
+                    continue
+                if first_col in ('empty', ''):
                     continue
                 
                 # Parse date (DD-Mon-YYYY format like 02-Oct-2023)
@@ -802,12 +803,38 @@ def parse_indusind_pdf(pdf, all_text: str) -> list:
                 if not description:
                     continue
                 
-                # IndusInd structure: col 3 = withdrawal, col 4 = deposit
-                bank_debit = parse_amount(cleaned[3]) if len(cleaned) > 3 else 0
-                bank_credit = parse_amount(cleaned[4]) if len(cleaned) > 4 else 0
+                # Determine debit or credit from description pattern
+                is_debit = '/DR/' in description or '/dr/' in description
+                is_credit = '/CR/' in description or '/cr/' in description or 'TRF FRM' in description
                 
-                if bank_debit == 0 and bank_credit == 0:
+                # Find the amount - look for non-empty numeric value in columns 3-6
+                amount = 0
+                for i in range(3, min(7, len(cleaned))):
+                    val = parse_amount(cleaned[i])
+                    if val > 0:
+                        amount = val
+                        break
+                
+                if amount == 0:
                     continue
+                
+                # Assign to debit or credit
+                if is_debit:
+                    bank_debit = amount
+                    bank_credit = 0
+                elif is_credit:
+                    bank_debit = 0
+                    bank_credit = amount
+                else:
+                    # For IMPS without clear indicator, check description keywords
+                    if 'IMPS/P2A' in description:
+                        # P2A is usually incoming
+                        bank_credit = amount
+                        bank_debit = 0
+                    else:
+                        # Default to debit
+                        bank_debit = amount
+                        bank_credit = 0
                 
                 transactions.append({
                     'date': date,
