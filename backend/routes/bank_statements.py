@@ -71,6 +71,7 @@ def detect_bank(user_input: str, pdf_text: str = "") -> str:
     
     # Look for specific bank statement headers
     bank_patterns = {
+        "indusind": ["indusind bank", "indusind"],
         "axis": ["axis bank", "axis account", "statement of axis"],
         "icici": ["icici bank", "icici account", "statement of icici", "statement of transactions in saving account"],
         "sbi": ["state bank of india", "sbi account", "sbi statement"],
