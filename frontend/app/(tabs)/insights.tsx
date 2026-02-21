@@ -26,7 +26,25 @@ type DashboardStats = {
   total_expenses: number;
   total_investments: number;
   savings_rate: number;
+  goal_progress: number;
   category_breakdown: Record<string, number>;
+  health_score?: {
+    overall: number;
+    grade: string;
+    has_sufficient_data?: boolean;
+    breakdown: {
+      savings: number;
+      investments: number;
+      spending: number;
+      goals: number;
+    };
+    metrics?: {
+      savings_rate: number;
+      investment_rate: number;
+      expense_ratio: number;
+      goal_progress: number;
+    };
+  };
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
