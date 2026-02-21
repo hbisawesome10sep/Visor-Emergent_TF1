@@ -103,3 +103,55 @@ async def get_profile(user=Depends(get_current_user)):
         "created_at": user.get("created_at", ""),
         "is_encrypted": bool(user.get("encryption_key", "")),
     }
+
+
+@router.delete("/auth/delete-account")
+async def delete_account(user=Depends(get_current_user)):
+    """
+    Permanently delete user account and ALL associated data.
+    This action is irreversible. The user can re-register with the same email afterward.
+    """
+    user_id = user["id"]
+    email = user["email"]
+    
+    # List of all collections that store user data
+    user_data_collections = [
+        "transactions",
+        "goals",
+        "holdings",
+        "assets",
+        "recurring_investments",
+        "bank_accounts",
+        "journal_entries",
+        "chart_of_accounts",
+        "bank_statement_imports",
+        "user_tax_deductions",
+        "loans",
+        "risk_profiles",
+        "gmail_credentials",
+        "ai_chat_sessions",
+        "notifications",
+        "budgets",
+    ]
+    
+    deleted_counts = {}
+    
+    # Delete all user data from each collection
+    for collection_name in user_data_collections:
+        try:
+            collection = db[collection_name]
+            result = await collection.delete_many({"user_id": user_id})
+            if result.deleted_count > 0:
+                deleted_counts[collection_name] = result.deleted_count
+        except Exception:
+            pass  # Collection may not exist, skip silently
+    
+    # Finally, delete the user record itself
+    await db.users.delete_one({"id": user_id})
+    
+    return {
+        "success": True,
+        "message": f"Account {email} and all associated data have been permanently deleted",
+        "deleted_data": deleted_counts
+    }
+
