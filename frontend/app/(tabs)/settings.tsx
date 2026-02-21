@@ -1304,72 +1304,130 @@ export default function SettingsScreen() {
           <View style={[styles.deleteModal, { backgroundColor: colors.surface, maxWidth: 420, width: '100%' }]}>
             {!uploadResult ? (
               <>
-                <View style={[styles.deleteModalIcon, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
-                  <MaterialCommunityIcons name="file-upload" size={48} color={Accent.emerald} />
-                </View>
-                <Text style={[styles.deleteModalTitle, { color: colors.textPrimary }]}>Upload Bank Statement</Text>
-                
-                {selectedFile && (
-                  <View style={[styles.selectedFileCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: colors.border }]}>
-                    <MaterialCommunityIcons 
-                      name={selectedFile.name?.endsWith('.pdf') ? 'file-pdf-box' : selectedFile.name?.endsWith('.csv') ? 'file-delimited' : 'file-excel'} 
-                      size={24} 
-                      color={selectedFile.name?.endsWith('.pdf') ? '#EF4444' : selectedFile.name?.endsWith('.csv') ? Accent.emerald : Accent.sapphire} 
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }} numberOfLines={1}>
-                        {selectedFile.name}
-                      </Text>
-                      <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2 }}>
-                        {(selectedFile.size / 1024).toFixed(1)} KB
-                      </Text>
+                {uploadingStatement ? (
+                  <>
+                    {/* Progress View */}
+                    <View style={[styles.deleteModalIcon, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
+                      <MaterialCommunityIcons 
+                        name={uploadPhase === 'uploading' ? 'cloud-upload' : uploadPhase === 'processing' ? 'cog' : 'check-circle'} 
+                        size={48} 
+                        color={Accent.emerald} 
+                      />
                     </View>
-                    <TouchableOpacity onPress={handlePickFile}>
-                      <MaterialCommunityIcons name="swap-horizontal" size={20} color={colors.textSecondary} />
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start', marginTop: 16 }}>Bank Name (optional)</Text>
-                <TextInput
-                  data-testid="upload-bank-name-input"
-                  style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
-                  value={uploadBankName}
-                  onChangeText={setUploadBankName}
-                  placeholder="e.g., HDFC Bank"
-                  placeholderTextColor={colors.textSecondary}
-                />
-
-                <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Name (optional)</Text>
-                <TextInput
-                  data-testid="upload-account-name-input"
-                  style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 16 }]}
-                  value={uploadAccountName}
-                  onChangeText={setUploadAccountName}
-                  placeholder="e.g., HDFC Savings"
-                  placeholderTextColor={colors.textSecondary}
-                />
-
-                <View style={[styles.deleteModalActions, { width: '100%' }]}>
-                  <TouchableOpacity
-                    style={[styles.cancelModalBtn, { borderColor: colors.border }]}
-                    onPress={closeUploadModal}
-                  >
-                    <Text style={[styles.cancelModalText, { color: colors.textPrimary }]}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    data-testid="confirm-upload-btn"
-                    style={[styles.confirmDeleteBtn, { backgroundColor: Accent.emerald }]}
-                    onPress={handleUploadStatement}
-                    disabled={uploadingStatement}
-                  >
-                    {uploadingStatement ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Text style={styles.confirmDeleteText}>Upload & Import</Text>
+                    <Text style={[styles.deleteModalTitle, { color: colors.textPrimary }]}>
+                      {uploadPhase === 'uploading' ? 'Uploading...' : uploadPhase === 'processing' ? 'Processing...' : 'Complete!'}
+                    </Text>
+                    <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 16, textAlign: 'center' }}>
+                      {uploadPhase === 'uploading' 
+                        ? 'Sending file to server...' 
+                        : uploadPhase === 'processing' 
+                          ? 'Parsing transactions and creating entries...' 
+                          : 'All done!'}
+                    </Text>
+                    
+                    {/* Progress Bar */}
+                    <View style={[styles.progressBarContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                      <View style={[styles.progressBarFill, { width: `${uploadProgress}%`, backgroundColor: Accent.emerald }]} />
+                    </View>
+                    <Text style={{ fontSize: 12, color: Accent.emerald, fontFamily: 'DM Sans', fontWeight: '700', marginTop: 8 }}>
+                      {uploadProgress}%
+                    </Text>
+                    
+                    {/* Phase indicators */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 16, paddingHorizontal: 4 }}>
+                      {['Upload', 'Parse', 'Done'].map((step, i) => {
+                        const isActive = (i === 0 && uploadPhase === 'uploading') || 
+                                         (i === 1 && uploadPhase === 'processing') || 
+                                         (i === 2 && uploadPhase === 'complete');
+                        const isDone = (i === 0 && uploadProgress >= 45) || 
+                                       (i === 1 && uploadProgress >= 90) || 
+                                       (i === 2 && uploadProgress >= 100);
+                        return (
+                          <View key={step} style={{ alignItems: 'center', flex: 1 }}>
+                            <View style={[styles.phaseIndicator, { 
+                              backgroundColor: isDone ? Accent.emerald : isActive ? 'rgba(16,185,129,0.3)' : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+                            }]}>
+                              {isDone ? (
+                                <MaterialCommunityIcons name="check" size={14} color="#fff" />
+                              ) : (
+                                <Text style={{ fontSize: 11, color: isActive ? Accent.emerald : colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600' }}>
+                                  {i + 1}
+                                </Text>
+                              )}
+                            </View>
+                            <Text style={{ fontSize: 10, color: isActive || isDone ? Accent.emerald : colors.textSecondary, fontFamily: 'DM Sans', marginTop: 4 }}>
+                              {step}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View style={[styles.deleteModalIcon, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
+                      <MaterialCommunityIcons name="file-upload" size={48} color={Accent.emerald} />
+                    </View>
+                    <Text style={[styles.deleteModalTitle, { color: colors.textPrimary }]}>Upload Bank Statement</Text>
+                    
+                    {selectedFile && (
+                      <View style={[styles.selectedFileCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: colors.border }]}>
+                        <MaterialCommunityIcons 
+                          name={selectedFile.name?.endsWith('.pdf') ? 'file-pdf-box' : selectedFile.name?.endsWith('.csv') ? 'file-delimited' : 'file-excel'} 
+                          size={24} 
+                          color={selectedFile.name?.endsWith('.pdf') ? '#EF4444' : selectedFile.name?.endsWith('.csv') ? Accent.emerald : Accent.sapphire} 
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }} numberOfLines={1}>
+                            {selectedFile.name}
+                          </Text>
+                          <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2 }}>
+                            {(selectedFile.size / 1024).toFixed(1)} KB
+                          </Text>
+                        </View>
+                        <TouchableOpacity onPress={handlePickFile}>
+                          <MaterialCommunityIcons name="swap-horizontal" size={20} color={colors.textSecondary} />
+                        </TouchableOpacity>
+                      </View>
                     )}
-                  </TouchableOpacity>
-                </View>
+
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start', marginTop: 16 }}>Bank Name (optional)</Text>
+                    <TextInput
+                      data-testid="upload-bank-name-input"
+                      style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+                      value={uploadBankName}
+                      onChangeText={setUploadBankName}
+                      placeholder="e.g., HDFC Bank"
+                      placeholderTextColor={colors.textSecondary}
+                    />
+
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Name (optional)</Text>
+                    <TextInput
+                      data-testid="upload-account-name-input"
+                      style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 16 }]}
+                      value={uploadAccountName}
+                      onChangeText={setUploadAccountName}
+                      placeholder="e.g., HDFC Savings"
+                      placeholderTextColor={colors.textSecondary}
+                    />
+
+                    <View style={[styles.deleteModalActions, { width: '100%' }]}>
+                      <TouchableOpacity
+                        style={[styles.cancelModalBtn, { borderColor: colors.border }]}
+                        onPress={closeUploadModal}
+                      >
+                        <Text style={[styles.cancelModalText, { color: colors.textPrimary }]}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        data-testid="confirm-upload-btn"
+                        style={[styles.confirmDeleteBtn, { backgroundColor: Accent.emerald }]}
+                        onPress={handleUploadStatement}
+                      >
+                        <Text style={styles.confirmDeleteText}>Upload & Import</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
               </>
             ) : uploadResult.error ? (
               <>
