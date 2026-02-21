@@ -232,6 +232,49 @@ def parse_excel_statement(file_bytes: bytes) -> list:
     return transactions
 
 
+def clean_icici_description(raw_desc: str) -> str:
+    """Clean up ICICI transaction description by extracting key info."""
+    # Remove trailing slashes and clean up
+    desc = raw_desc.strip().rstrip('/')
+    
+    # Try to extract meaningful parts
+    # UPI format: UPI/Name/UPI_ID/Purpose/Bank/RefNo/...
+    if desc.startswith('UPI/') or '/UPI/' in desc:
+        parts = desc.split('/')
+        # Try to find a meaningful name (usually 2nd part after UPI)
+        for i, part in enumerate(parts):
+            if part.upper() == 'UPI' and i+1 < len(parts):
+                name = parts[i+1].strip()
+                # Clean up name
+                if name and len(name) > 2 and not name.startswith('@'):
+                    return f"UPI - {name}"
+    
+    # IMPS/MMT format
+    if 'IMPS/' in desc or 'MMT/' in desc:
+        parts = desc.split('/')
+        for part in parts:
+            if part and not part.isdigit() and len(part) > 3 and '@' not in part:
+                if any(c.isalpha() for c in part):
+                    return f"IMPS - {part.strip()}"
+    
+    # ACH format
+    if 'ACH/' in desc:
+        parts = desc.split('/')
+        for part in parts:
+            if 'Corp' in part or 'ICIC' in part:
+                return f"ACH - Auto-debit"
+    
+    # Netflix, Apple, etc
+    known_merchants = ['netflix', 'apple', 'amazon', 'uber', 'swiggy', 'zomato', 'blinkit', 'gokiwi']
+    lower_desc = desc.lower()
+    for merchant in known_merchants:
+        if merchant in lower_desc:
+            return f"UPI - {merchant.capitalize()}"
+    
+    # Fallback: return first 60 chars
+    return desc[:60] if len(desc) > 60 else desc
+
+
 def parse_icici_pdf_text(all_text: str) -> list:
     """
     Parse ICICI Bank PDF statement from raw text.
@@ -257,7 +300,8 @@ def parse_icici_pdf_text(all_text: str) -> list:
         # Skip header lines and non-transaction content
         if any(skip in line.lower() for skip in ['s no', 'transaction date', 'cheque number', 'legends', 'sincerly', 'team icici', 'statement of transactions']):
             if current_txn and description_lines:
-                current_txn['description'] = ' '.join(description_lines)
+                raw_desc = ' '.join(description_lines)
+                current_txn['description'] = clean_icici_description(raw_desc)
                 transactions.append(current_txn)
                 current_txn = None
                 description_lines = []
@@ -267,7 +311,8 @@ def parse_icici_pdf_text(all_text: str) -> list:
         if match:
             # Save previous transaction
             if current_txn and description_lines:
-                current_txn['description'] = ' '.join(description_lines)
+                raw_desc = ' '.join(description_lines)
+                current_txn['description'] = clean_icici_description(raw_desc)
                 transactions.append(current_txn)
             
             # Start new transaction
@@ -296,7 +341,8 @@ def parse_icici_pdf_text(all_text: str) -> list:
     
     # Save last transaction
     if current_txn and description_lines:
-        current_txn['description'] = ' '.join(description_lines)
+        raw_desc = ' '.join(description_lines)
+        current_txn['description'] = clean_icici_description(raw_desc)
         transactions.append(current_txn)
     
     # Now determine debit/credit based on transaction type in description
