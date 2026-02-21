@@ -2289,8 +2289,10 @@ async def upload_bank_statement(
         elif ext in ("xlsx", "xls"):
             raw_txns = parse_excel_statement(file_bytes)
         elif ext == "pdf":
-            # Pass password and bank_name hint to PDF parser
-            raw_txns = parse_pdf_statement(file_bytes, password=password or None, bank_hint=bank_name)
+            # Pass password and bank_hint to PDF parser
+            # Use explicit bank_hint if provided, otherwise use bank_name as fallback
+            hint = bank_hint.strip() if bank_hint and bank_hint.strip() else bank_name
+            raw_txns = parse_pdf_statement(file_bytes, password=password or None, bank_hint=hint)
         else:
             raise HTTPException(400, "Unsupported format")
     except ValueError as e:
