@@ -1616,6 +1616,208 @@ def parse_kotak_text_format(pdf, all_text: str) -> list:
     return transactions
 
 
+
+def clean_bob_description(raw_desc: str) -> str:
+    """Clean up Bank of Baroda transaction description."""
+    desc = raw_desc
+    
+    # Extract payee from UPI strings
+    # Format: UPI/P2A/318262797206/JIVRAYEL /Punjab Na/UPI
+    upi_match = re.search(r'UPI/P2[AM]/\d+/([^/]+)', desc)
+    if upi_match:
+        payee = upi_match.group(1).strip()
+        if payee:
+            return f"UPI - {payee}"
+    
+    # Extract from NEFT
+    # Format: NEFT/N185232529725945/JOINMAY M/HDFC BANK/NEFT
+    neft_match = re.search(r'NEFT/[A-Z0-9]+/([^/]+)', desc)
+    if neft_match:
+        payee = neft_match.group(1).strip()
+        if payee:
+            return f"NEFT - {payee}"
+    
+    # Extract from ACH-DR
+    # Format: ACH-DR-TPCapfrst IDFC FIRST-1177262059-UTIB702160
+    if 'ACH-DR' in desc:
+        ach_match = re.search(r'ACH-DR-([A-Za-z]+)', desc)
+        if ach_match:
+            return f"ACH Debit - {ach_match.group(1)}"
+    
+    # Extract from ECS
+    # Format: ECS/UTIBDE65064150202305/Bajaj Finance Ltd_SMS OT
+    ecs_match = re.search(r'ECS/[A-Z0-9]+/([^/]+)', desc)
+    if ecs_match:
+        return f"ECS - {ecs_match.group(1).strip()}"
+    
+    # Interest
+    if 'Int.Pd' in desc:
+        return "Interest Paid"
+    
+    # GST
+    if 'GST' in desc:
+        return desc.strip()
+    
+    # Consolidated Charges
+    if 'Consolidated Charges' in desc:
+        return "Bank Charges"
+    
+    # Clean up whitespace
+    desc = re.sub(r'\s+', ' ', desc).strip()
+    return desc[:100] if len(desc) > 100 else desc
+
+
+def parse_bob_pdf(pdf, all_text: str) -> list:
+    """
+    Parse Bank of Baroda PDF statement.
+    
+    Format:
+    - Headers: Txn Date | Transaction | Withdrawals | Deposits | Balance | Other
+    - Date format: DD-MM-YYYY
+    - Amounts with commas, separate columns for withdrawals and deposits
+    """
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        
+        for table in tables:
+            if not table or len(table) < 2:
+                continue
+            
+            for row in table:
+                if not row or len(row) < 5:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).replace('\n', ' ').strip() if cell else "" for cell in row]
+                
+                # Skip header rows and summary rows
+                first_col = cleaned[0].lower()
+                if 'txn date' in first_col or 'date' in first_col:
+                    continue
+                if 'opening' in first_col or 'closing' in first_col:
+                    continue
+                if 'bank account' in first_col or 'savings' in first_col:
+                    continue
+                if not cleaned[0]:
+                    continue
+                
+                # Parse date (DD-MM-YYYY)
+                date_match = re.match(r'(\d{2}-\d{2}-\d{4})', cleaned[0])
+                if not date_match:
+                    continue
+                
+                date = parse_date(date_match.group(1))
+                if not date:
+                    continue
+                
+                # Get description (column 1)
+                description = cleaned[1] if len(cleaned) > 1 else ""
+                if not description:
+                    continue
+                
+                # Get amounts - Withdrawals (column 2), Deposits (column 3)
+                withdrawal = parse_amount(cleaned[2]) if len(cleaned) > 2 else 0
+                deposit = parse_amount(cleaned[3]) if len(cleaned) > 3 else 0
+                
+                if withdrawal == 0 and deposit == 0:
+                    continue
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_bob_description(description),
+                    'bank_debit': withdrawal,  # Bank debits from account = withdrawal
+                    'bank_credit': deposit,    # Bank credits to account = deposit
+                })
+    
+    # If table extraction didn't work, try text-based parsing
+    if not transactions:
+        transactions = parse_bob_text_format(pdf, all_text)
+    
+    return transactions
+
+
+def parse_bob_text_format(pdf, all_text: str) -> list:
+    """Parse Bank of Baroda text-based format as fallback."""
+    transactions = []
+    
+    for page in pdf.pages:
+        text = page.extract_text()
+        if not text:
+            continue
+        
+        lines = text.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            
+            # Match lines starting with date DD-MM-YYYY
+            date_match = re.match(r'^(\d{2}-\d{2}-\d{4})\s+(.+)', line)
+            if not date_match:
+                continue
+            
+            date = parse_date(date_match.group(1))
+            if not date:
+                continue
+            
+            rest = date_match.group(2)
+            
+            # Skip opening/closing balance lines
+            if 'Opening Balance' in rest or 'Closing Balance' in rest:
+                continue
+            
+            # Try to find amounts at the end
+            # Pattern: description amount1 amount2 balance
+            # Amounts are like: 150.00, 16,239.40
+            amount_pattern = r'([\d,]+\.\d{2})'
+            amounts = re.findall(amount_pattern, rest)
+            
+            if len(amounts) >= 2:
+                # Get description (everything before the amounts)
+                desc_end = rest.find(amounts[0])
+                description = rest[:desc_end].strip()
+                
+                if not description:
+                    continue
+                
+                # Parse amounts - need to figure out which is withdrawal/deposit
+                # The balance is usually the last amount
+                # Check if balance increased or decreased
+                if len(amounts) >= 3:
+                    # Format: amount1, amount2, balance
+                    # If amount1 has value and amount2 is empty position, amount1 is withdrawal
+                    # We need to check the position in original text
+                    amt1 = parse_amount(amounts[0])
+                    amt2 = parse_amount(amounts[1]) if len(amounts) > 1 else 0
+                    
+                    # Check position of amounts in the line
+                    pos1 = rest.find(amounts[0])
+                    pos2 = rest.find(amounts[1]) if len(amounts) > 1 else -1
+                    
+                    # If there's a gap between description and first amount, first amount is withdrawal
+                    # This is a heuristic based on typical BOB format
+                    withdrawal = amt1
+                    deposit = 0
+                    
+                    # If second amount appears right after first without gap, might be deposit
+                    if pos2 > 0 and pos2 - pos1 < 15:
+                        # Close together, might be withdrawal empty then deposit
+                        deposit = amt1
+                        withdrawal = 0
+                    
+                    if withdrawal > 0 or deposit > 0:
+                        transactions.append({
+                            'date': date,
+                            'description': clean_bob_description(description),
+                            'bank_debit': withdrawal,
+                            'bank_credit': deposit,
+                        })
+    
+    return transactions
+
+
+
 def parse_union_pdf(pdf, all_text: str) -> list:
     """
     Parse Union Bank PDF statement.
