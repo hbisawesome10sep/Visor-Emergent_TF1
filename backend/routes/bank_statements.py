@@ -237,42 +237,67 @@ def clean_icici_description(raw_desc: str) -> str:
     # Remove trailing slashes and clean up
     desc = raw_desc.strip().rstrip('/')
     
-    # Try to extract meaningful parts
+    # Known merchants to extract
+    known_merchants = {
+        'netflix': 'Netflix',
+        'apple': 'Apple',
+        'amazon': 'Amazon', 
+        'uber': 'Uber',
+        'swiggy': 'Swiggy',
+        'zomato': 'Zomato',
+        'blinkit': 'Blinkit',
+        'gokiwi': 'Gokiwi',
+        'shanti sto': 'Shanti Store',
+        'npci': 'NPCI Cashback',
+        'yash bhati': 'Yash Bhati',
+        'harsh bhat': 'Self Transfer',
+    }
+    
+    lower_desc = desc.lower()
+    
+    # Check for known merchants first
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            return f"UPI - {name}"
+    
+    # Try to extract meaningful parts from UPI format
     # UPI format: UPI/Name/UPI_ID/Purpose/Bank/RefNo/...
-    if desc.startswith('UPI/') or '/UPI/' in desc:
+    if 'upi/' in lower_desc:
         parts = desc.split('/')
-        # Try to find a meaningful name (usually 2nd part after UPI)
         for i, part in enumerate(parts):
             if part.upper() == 'UPI' and i+1 < len(parts):
                 name = parts[i+1].strip()
-                # Clean up name
-                if name and len(name) > 2 and not name.startswith('@'):
-                    return f"UPI - {name}"
+                # Clean up name - should have letters and be meaningful
+                if name and len(name) > 2 and not name.startswith('@') and any(c.isalpha() for c in name):
+                    # Clean common prefixes
+                    if name.lower().startswith('mr ') or name.lower().startswith('ms '):
+                        name = name[3:]
+                    return f"UPI - {name.title()}"
     
     # IMPS/MMT format
-    if 'IMPS/' in desc or 'MMT/' in desc:
+    if 'imps/' in lower_desc or 'mmt/' in lower_desc:
         parts = desc.split('/')
         for part in parts:
+            part = part.strip()
             if part and not part.isdigit() and len(part) > 3 and '@' not in part:
-                if any(c.isalpha() for c in part):
-                    return f"IMPS - {part.strip()}"
+                if any(c.isalpha() for c in part) and not part.startswith('L'):
+                    return f"IMPS - {part.title()}"
+        return "IMPS Transfer"
     
-    # ACH format
-    if 'ACH/' in desc:
-        parts = desc.split('/')
-        for part in parts:
-            if 'Corp' in part or 'ICIC' in part:
-                return f"ACH - Auto-debit"
+    # ACH format - auto-debit
+    if 'ach/' in lower_desc or '/cms/' in lower_desc:
+        return "ACH - Auto-debit"
     
-    # Netflix, Apple, etc
-    known_merchants = ['netflix', 'apple', 'amazon', 'uber', 'swiggy', 'zomato', 'blinkit', 'gokiwi']
-    lower_desc = desc.lower()
-    for merchant in known_merchants:
-        if merchant in lower_desc:
-            return f"UPI - {merchant.capitalize()}"
+    # CMS - Cash Management
+    if 'cms/' in lower_desc:
+        return "CMS - Collection"
     
-    # Fallback: return first 60 chars
-    return desc[:60] if len(desc) > 60 else desc
+    # If starts with BANK/, it's likely a bank reference
+    if desc.startswith('BANK/') or desc.startswith('Bank/'):
+        return "Bank Transfer"
+    
+    # Fallback: return first 50 chars cleaned
+    return desc[:50] if len(desc) > 50 else desc
 
 
 def parse_icici_pdf_text(all_text: str) -> list:
