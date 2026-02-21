@@ -1,15 +1,21 @@
 """
 Bank Statement Parser & Importer
 
-Handles PDF, CSV, and Excel bank statements.
+Handles PDF, CSV, and Excel bank statements from multiple Indian banks.
+Supports password-protected PDFs.
+
 Key feature: Reverses bank's debit/credit to user's perspective.
 
-Bank's perspective: Credit = Deposit, Debit = Withdrawal
-User's perspective: Debit = Deposit (money comes in), Credit = Withdrawal (money goes out)
+Supported Banks:
+- ICICI Bank
+- SBI (State Bank of India)
+- HDFC Bank
+- Axis Bank
+- (Generic fallback for others)
 """
 
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
-from typing import Optional
+from typing import Optional, Tuple
 from uuid import uuid4
 from datetime import datetime, timezone
 from database import db
@@ -24,6 +30,20 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
 
+# Supported banks with their detection keywords
+SUPPORTED_BANKS = {
+    "icici": ["icici", "icici bank"],
+    "sbi": ["sbi", "state bank of india", "state bank"],
+    "hdfc": ["hdfc", "hdfc bank"],
+    "axis": ["axis", "axis bank"],
+    "kotak": ["kotak", "kotak mahindra"],
+    "pnb": ["pnb", "punjab national bank"],
+    "bob": ["bob", "bank of baroda"],
+    "canara": ["canara", "canara bank"],
+    "union": ["union", "union bank"],
+    "idbi": ["idbi", "idbi bank"],
+}
+
 # Common date formats in Indian bank statements
 DATE_FORMATS = [
     "%d.%m.%Y", "%d.%m.%y",  # ICICI format: 01.01.2026
@@ -31,6 +51,17 @@ DATE_FORMATS = [
     "%Y-%m-%d", "%Y/%m/%d", "%d %b %Y", "%d %b %y",
     "%d-%b-%Y", "%d-%b-%y", "%d %B %Y", "%m/%d/%Y",
 ]
+
+
+def detect_bank(user_input: str, pdf_text: str = "") -> str:
+    """Detect bank from user input or PDF content."""
+    combined = (user_input + " " + pdf_text).lower()
+    
+    for bank_code, keywords in SUPPORTED_BANKS.items():
+        if any(kw in combined for kw in keywords):
+            return bank_code
+    
+    return "generic"
 
 
 def parse_date(date_str: str) -> Optional[str]:
