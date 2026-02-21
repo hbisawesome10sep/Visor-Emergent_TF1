@@ -86,6 +86,14 @@ export default function SettingsScreen() {
   const [showBankPicker, setShowBankPicker] = useState(false);
   const [bankSearch, setBankSearch] = useState('');
 
+  // Bank statement upload state
+  const [uploadingStatement, setUploadingStatement] = useState(false);
+  const [uploadResult, setUploadResult] = useState<any>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadBankName, setUploadBankName] = useState('');
+  const [uploadAccountName, setUploadAccountName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+
   // Fetch bank accounts
   React.useEffect(() => {
     if (!token) return;
