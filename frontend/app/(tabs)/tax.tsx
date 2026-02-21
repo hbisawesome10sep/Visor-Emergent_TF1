@@ -249,214 +249,30 @@ export default function TaxScreen() {
         )}
 
         {/* User-Added Tax Deductions */}
-        {userTaxDeductions.length > 0 && (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={[styles.taxSubsectionTitle, { color: colors.textSecondary, marginBottom: 10 }]}>Your Selected Deductions</Text>
-            {userTaxDeductions.map((deduction: any) => {
-              const pct = deduction.limit && deduction.limit > 0 ? Math.min((deduction.invested_amount / deduction.limit) * 100, 100) : 0;
-              const isFull = deduction.limit > 0 && deduction.invested_amount >= deduction.limit;
-              const barColor = isFull ? Accent.emerald : '#F97316';
-              const remaining = deduction.limit ? Math.max(deduction.limit - deduction.invested_amount, 0) : null;
-              return (
-                <View key={deduction.id} data-testid={`user-deduction-${deduction.deduction_id}`} style={[styles.glassCard, {
-                  backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.85)',
-                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', marginBottom: 10,
-                }]}>
-                  <View style={styles.taxHeader}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                      <View style={[styles.taxIconWrap, { backgroundColor: isFull ? 'rgba(16,185,129,0.12)' : 'rgba(249,115,22,0.12)' }]}>
-                        <MaterialCommunityIcons name="file-document-check" size={18} color={isFull ? Accent.emerald : '#F97316'} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>{deduction.section}</Text>
-                        <Text style={[styles.taxUsed, { color: colors.textSecondary }]} numberOfLines={1}>{deduction.name}</Text>
-                      </View>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <TouchableOpacity data-testid={`edit-deduction-${deduction.id}`} style={[styles.deductionActionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={() => handleEditDeduction(deduction)}>
-                        <MaterialCommunityIcons name="pencil" size={16} color={colors.textSecondary} />
-                      </TouchableOpacity>
-                      <TouchableOpacity data-testid={`delete-deduction-${deduction.id}`} style={[styles.deductionActionBtn, { backgroundColor: 'rgba(239,68,68,0.1)' }]} onPress={() => handleDeleteDeduction(deduction)}>
-                        <MaterialCommunityIcons name="trash-can-outline" size={16} color="#EF4444" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  <View style={styles.deductionAmountRow}>
-                    <Text style={[styles.deductionAmountLabel, { color: colors.textSecondary }]}>Invested:</Text>
-                    <Text style={[styles.deductionAmountValue, { color: colors.textPrimary }]}>
-                      {formatINR(deduction.invested_amount || 0)}{deduction.limit ? ` / ${formatINRShort(deduction.limit)}` : ''}
-                    </Text>
-                  </View>
-                  {deduction.limit > 0 && (
-                    <>
-                      <View style={[styles.taxBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
-                        <View style={[styles.taxBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
-                      </View>
-                      {remaining !== null && remaining > 0 && (
-                        <Text style={[styles.taxRemaining, { color: colors.textSecondary }]}>{formatINRShort(remaining)} remaining for max benefit</Text>
-                      )}
-                    </>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        )}
+        <UserDeductionsSection
+          deductions={userTaxDeductions}
+          colors={colors}
+          isDark={isDark}
+          onEdit={handleEditDeduction}
+          onDelete={handleDeleteDeduction}
+        />
 
         {/* ═══ AUTO-DETECTED DEDUCTIONS FROM TRANSACTIONS ═══ */}
-        {autoDeductions && autoDeductions.sections?.length > 0 && (
-          <View style={{ marginBottom: 16 }}>
-            <View style={[styles.autoDetectedHeader, { marginBottom: 10, marginTop: userTaxDeductions.length > 0 ? 4 : 0 }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <MaterialCommunityIcons name="lightning-bolt" size={14} color="#8B5CF6" />
-                <Text style={[styles.taxSubsectionTitle, { color: '#8B5CF6', marginBottom: 0 }]}>Auto-Detected from Transactions</Text>
-              </View>
-              <View style={[styles.autoCountBadge, { backgroundColor: 'rgba(139,92,246,0.12)' }]}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#8B5CF6', fontFamily: 'DM Sans' }}>{autoDeductions.count}</Text>
-              </View>
-            </View>
-
-            {autoDeductions.sections.map((section: any) => {
-              const pct = section.limit > 0 ? Math.min((section.total_amount / section.limit) * 100, 100) : 0;
-              const isFull = section.limit > 0 && section.total_amount >= section.limit;
-              const barColor = isFull ? Accent.emerald : '#8B5CF6';
-              return (
-                <View key={section.section} data-testid={`auto-deduction-section-${section.section}`} style={[styles.glassCard, {
-                  backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.85)',
-                  borderColor: isDark ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)',
-                  borderLeftWidth: 3, borderLeftColor: '#8B5CF6', marginBottom: 10,
-                }]}>
-                  <View style={styles.taxHeader}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                      <View style={[styles.taxIconWrap, { backgroundColor: 'rgba(139,92,246,0.12)' }]}>
-                        <MaterialCommunityIcons name="auto-fix" size={18} color="#8B5CF6" />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>{section.section_label}</Text>
-                        <Text style={[styles.taxUsed, { color: colors.textSecondary }]}>
-                          {formatINRShort(section.total_amount)}{section.limit > 0 ? ` / ${formatINRShort(section.limit)}` : ''}
-                        </Text>
-                      </View>
-                    </View>
-                    {section.limit > 0 && (
-                      <View style={[styles.taxPercentBadge, { backgroundColor: isFull ? 'rgba(16,185,129,0.1)' : 'rgba(139,92,246,0.1)' }]}>
-                        <Text style={[styles.taxPercentText, { color: isFull ? Accent.emerald : '#8B5CF6' }]}>{pct.toFixed(0)}%</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {section.limit > 0 && (
-                    <View style={[styles.taxBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
-                      <View style={[styles.taxBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
-                    </View>
-                  )}
-
-                  {/* Individual transactions */}
-                  <View style={{ marginTop: 6, gap: 6 }}>
-                    {section.transactions.map((txn: any) => (
-                      <View key={txn.id} data-testid={`auto-deduction-txn-${txn.id}`} style={[styles.autoTxnRow, {
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
-                      }]}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={[styles.autoTxnName, { color: colors.textPrimary }]} numberOfLines={1}>{txn.name}</Text>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                            <Text style={[styles.autoTxnMeta, { color: colors.textSecondary }]}>{txn.source_date}</Text>
-                            <View style={[styles.autoTxnBadge, { backgroundColor: txn.detected_from === 'category' ? 'rgba(59,130,246,0.1)' : 'rgba(245,158,11,0.1)' }]}>
-                              <Text style={{ fontSize: 9, fontWeight: '600', color: txn.detected_from === 'category' ? '#3B82F6' : '#F59E0B', fontFamily: 'DM Sans' }}>
-                                {txn.detected_from === 'category' ? 'Category' : 'Keywords'}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                        <Text style={[styles.autoTxnAmount, { color: colors.textPrimary }]}>{formatINR(txn.amount)}</Text>
-                        <View style={{ flexDirection: 'row', gap: 6, marginLeft: 8 }}>
-                          <TouchableOpacity data-testid={`edit-auto-${txn.id}`} style={[styles.deductionActionBtn, { width: 26, height: 26, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={() => handleEditAutoDeduction(txn)}>
-                            <MaterialCommunityIcons name="pencil" size={13} color={colors.textSecondary} />
-                          </TouchableOpacity>
-                          <TouchableOpacity data-testid={`dismiss-auto-${txn.id}`} style={[styles.deductionActionBtn, { width: 26, height: 26, backgroundColor: 'rgba(239,68,68,0.1)' }]} onPress={() => handleDismissAutoDeduction(txn)}>
-                            <MaterialCommunityIcons name="close" size={13} color="#EF4444" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
+        <AutoDeductionsSection
+          autoDeductions={autoDeductions}
+          colors={colors}
+          isDark={isDark}
+          hasUserDeductions={userTaxDeductions.length > 0}
+          onEditTransaction={handleEditAutoDeduction}
+          onDismissTransaction={handleDismissAutoDeduction}
+        />
 
         {/* ═══ SECTION 2: CAPITAL GAINS / LOSS ═══ */}
-        {capitalGainsData && (capitalGainsData.gains?.length > 0 || capitalGainsData.summary?.total_estimated_tax > 0) && (
-          <View data-testid="capital-gains-section">
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 20 }]}>Capital Gains / Loss</Text>
-            <View style={[styles.glassCard, {
-              backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.85)',
-              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', marginBottom: 12,
-            }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.taxUsed, { color: colors.textSecondary, marginBottom: 4 }]}>Short Term (STCG)</Text>
-                  <Text style={[styles.taxTitle, { color: Accent.ruby }]}>{formatINR(capitalGainsData.summary?.total_stcg || 0)}</Text>
-                  <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>Tax: {formatINR(capitalGainsData.summary?.estimated_stcg_tax || 0)}</Text>
-                </View>
-                <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                  <Text style={[styles.taxUsed, { color: colors.textSecondary, marginBottom: 4 }]}>Long Term (LTCG)</Text>
-                  <Text style={[styles.taxTitle, { color: Accent.sapphire }]}>{formatINR(capitalGainsData.summary?.total_ltcg || 0)}</Text>
-                  <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>Tax: {formatINR(capitalGainsData.summary?.estimated_ltcg_tax || 0)}</Text>
-                </View>
-              </View>
-              {capitalGainsData.summary?.ltcg_exemption > 0 && capitalGainsData.summary?.total_ltcg > 0 && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: 8, borderRadius: 8, backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)', marginBottom: 10 }}>
-                  <MaterialCommunityIcons name="information" size={14} color={Accent.sapphire} />
-                  <Text style={{ fontSize: 11, color: colors.textSecondary, flex: 1 }}>LTCG exemption: {formatINR(capitalGainsData.summary.ltcg_exemption)} (Taxable: {formatINR(capitalGainsData.summary.ltcg_taxable)})</Text>
-                </View>
-              )}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}>
-                <Text style={[styles.taxTitle, { color: colors.textPrimary }]}>Total Estimated Tax</Text>
-                <Text style={[styles.taxTitle, { color: Accent.ruby, fontSize: 16 }]}>{formatINR(capitalGainsData.summary?.total_estimated_tax || 0)}</Text>
-              </View>
-            </View>
-
-            {capitalGainsData.gains?.length > 0 && capitalGainsData.gains.map((gain: any, idx: number) => (
-              <View key={idx} data-testid={`capital-gain-item-${idx}`} style={[styles.glassCard, {
-                backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.85)',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', marginBottom: 8, padding: 14,
-              }]}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Text style={[styles.taxTitle, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>{gain.description}</Text>
-                  <View style={[styles.taxPercentBadge, { backgroundColor: gain.is_long_term ? 'rgba(59,130,246,0.1)' : 'rgba(239,68,68,0.1)' }]}>
-                    <Text style={[styles.taxPercentText, { color: gain.is_long_term ? Accent.sapphire : Accent.ruby, fontSize: 10 }]}>{gain.is_long_term ? 'LTCG' : 'STCG'}</Text>
-                  </View>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>Sold: {formatINR(gain.sell_amount)} | Cost: {formatINR(gain.cost_basis)}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: gain.gain_loss >= 0 ? Accent.emerald : Accent.ruby }}>{gain.gain_loss >= 0 ? '+' : ''}{formatINR(gain.gain_loss)}</Text>
-                </View>
-                <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>{gain.holding_days} days | Tax: {formatINR(gain.tax_liability)} @ {(gain.tax_rate * 100).toFixed(1)}%</Text>
-              </View>
-            ))}
-
-            {capitalGainsData.notes?.length > 0 && (
-              <View style={{ marginBottom: 16, paddingHorizontal: 4 }}>
-                {capitalGainsData.notes.map((note: string, idx: number) => (
-                  <Text key={idx} style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 2 }}>* {note}</Text>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Empty state for capital gains */}
-        {(!capitalGainsData || (!capitalGainsData.gains?.length && !capitalGainsData.summary?.total_estimated_tax)) && (
-          <View style={{ marginTop: 20 }}>
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Capital Gains / Loss</Text>
-            <View style={[styles.emptyCard, { backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.85)', borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
-              <MaterialCommunityIcons name="chart-timeline-variant" size={32} color={colors.textSecondary} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No capital gains/losses recorded yet</Text>
-            </View>
-          </View>
-        )}
+        <CapitalGainsSection
+          capitalGainsData={capitalGainsData}
+          colors={colors}
+          isDark={isDark}
+        />
 
         {/* ═══ SECTION 3: INCOME TAX CALCULATOR ═══ */}
         <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 24 }]}>Income Tax Calculator</Text>
