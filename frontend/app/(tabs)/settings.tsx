@@ -991,6 +991,123 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ═══ BANK ACCOUNT MODAL ═══ */}
+      <Modal visible={showBankModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.deleteModal, { backgroundColor: colors.surface, maxWidth: 420, width: '100%' }]}>
+            <Text style={[styles.deleteModalTitle, { color: colors.textPrimary, marginBottom: 16 }]}>
+              {editingBank ? 'Edit Bank Account' : 'Add Bank Account'}
+            </Text>
+
+            {/* Bank Selector */}
+            <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Bank *</Text>
+            <TouchableOpacity
+              data-testid="bank-name-selector"
+              style={[styles.deleteInput, { borderColor: showBankPicker ? Accent.sapphire : colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+              onPress={() => setShowBankPicker(!showBankPicker)}
+            >
+              <Text style={{ fontSize: 14, color: bankForm.bank_name ? colors.textPrimary : colors.textSecondary, fontFamily: 'DM Sans' }}>
+                {bankForm.bank_name || 'Select Bank'}
+              </Text>
+              <MaterialCommunityIcons name={showBankPicker ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            {showBankPicker && (
+              <View style={{ width: '100%', maxHeight: 200, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background, marginBottom: 8 }}>
+                <TextInput
+                  style={{ padding: 10, fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', borderBottomWidth: 1, borderBottomColor: colors.border }}
+                  placeholder="Search banks..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={bankSearch}
+                  onChangeText={setBankSearch}
+                  data-testid="bank-search-input"
+                />
+                <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled>
+                  {(bankSearch ? banksList.filter(b => b.toLowerCase().includes(bankSearch.toLowerCase())) : banksList).map(bank => (
+                    <TouchableOpacity
+                      key={bank}
+                      style={{ paddingHorizontal: 12, paddingVertical: 10, backgroundColor: bankForm.bank_name === bank ? (isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.08)') : 'transparent' }}
+                      onPress={() => {
+                        setBankForm(p => ({ ...p, bank_name: bank, account_name: p.account_name || bank.split(' (')[0] + ' Savings' }));
+                        setShowBankPicker(false);
+                        setBankSearch('');
+                      }}
+                    >
+                      <Text style={{ fontSize: 13, color: colors.textPrimary, fontFamily: 'DM Sans' }}>{bank}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Account Name */}
+            <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Name *</Text>
+            <TextInput
+              data-testid="bank-account-name-input"
+              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+              value={bankForm.account_name}
+              onChangeText={v => setBankForm(p => ({ ...p, account_name: v }))}
+              placeholder="e.g., HDFC Savings"
+              placeholderTextColor={colors.textSecondary}
+            />
+
+            {/* Account Number */}
+            <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Number (optional)</Text>
+            <TextInput
+              data-testid="bank-account-number-input"
+              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+              value={bankForm.account_number}
+              onChangeText={v => setBankForm(p => ({ ...p, account_number: v }))}
+              placeholder="Account number"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="numeric"
+            />
+
+            {/* IFSC Code */}
+            <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>IFSC Code (optional)</Text>
+            <TextInput
+              data-testid="bank-ifsc-input"
+              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+              value={bankForm.ifsc_code}
+              onChangeText={v => setBankForm(p => ({ ...p, ifsc_code: v.toUpperCase() }))}
+              placeholder="e.g., HDFC0001234"
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="characters"
+            />
+
+            {/* Set as Default */}
+            <TouchableOpacity
+              data-testid="bank-set-default-toggle"
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, width: '100%' }}
+              onPress={() => setBankForm(p => ({ ...p, is_default: !p.is_default }))}
+            >
+              <MaterialCommunityIcons
+                name={bankForm.is_default ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                size={22}
+                color={bankForm.is_default ? Accent.sapphire : colors.textSecondary}
+              />
+              <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans' }}>Set as default account</Text>
+            </TouchableOpacity>
+
+            <View style={[styles.deleteModalActions, { width: '100%' }]}>
+              <TouchableOpacity
+                style={[styles.cancelModalBtn, { borderColor: colors.border }]}
+                onPress={() => { setShowBankModal(false); setEditingBank(null); }}
+              >
+                <Text style={[styles.cancelModalText, { color: colors.textPrimary }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                data-testid="save-bank-account-btn"
+                style={[styles.confirmDeleteBtn, { backgroundColor: Accent.sapphire }]}
+                onPress={saveBankAccount}
+              >
+                <Text style={styles.confirmDeleteText}>{editingBank ? 'Update' : 'Add'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
