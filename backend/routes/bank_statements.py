@@ -847,6 +847,121 @@ def parse_indusind_pdf(pdf, all_text: str) -> list:
     return transactions
 
 
+def clean_yesbank_description(raw_desc: str) -> str:
+    """Clean up Yes Bank transaction description."""
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    
+    # Known merchants
+    known_merchants = {
+        'paytm': 'Paytm',
+        'phonepe': 'PhonePe',
+        'gpay': 'Google Pay',
+        'amazon': 'Amazon',
+        'flipkart': 'Flipkart',
+        'swiggy': 'Swiggy',
+        'zomato': 'Zomato',
+    }
+    
+    lower_desc = desc.lower()
+    
+    # Check for known merchants
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            return f"UPI - {name}"
+    
+    # IMPS format: IMPS/Purpose/Name/Account/RRN/Bank
+    if desc.startswith('IMPS/'):
+        parts = desc.split('/')
+        # Name is usually the 3rd part
+        if len(parts) >= 3:
+            name = parts[2].strip()
+            if name and len(name) > 2 and any(c.isalpha() for c in name):
+                return f"IMPS - {name.title()}"
+        return "IMPS Transfer"
+    
+    # Funds Transfer
+    if 'funds trf to' in lower_desc:
+        return "Funds Transfer Out"
+    if 'funds trf from' in lower_desc:
+        return "Funds Transfer In"
+    
+    # UPI
+    if desc.startswith('UPI/'):
+        parts = desc.split('/')
+        if len(parts) >= 3:
+            name = parts[2].strip()
+            if name and len(name) > 2:
+                return f"UPI - {name.title()}"
+        return "UPI Transfer"
+    
+    # NEFT
+    if 'neft' in lower_desc:
+        return "NEFT Transfer"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_yesbank_pdf(pdf, all_text: str) -> list:
+    """
+    Parse Yes Bank PDF statement.
+    Yes Bank format: Reference No | Transaction Date | Credited Amount | Debited Amount | Balance | Description
+    """
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        
+        for table in tables:
+            if not table or len(table) < 2:
+                continue
+            
+            for row in table:
+                if not row or len(row) < 5:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
+                
+                # Skip header and empty rows
+                first_col = cleaned[0].lower()
+                if not cleaned[0] or 'reference' in first_col or 'date' in first_col:
+                    continue
+                if first_col in ('', 'empty'):
+                    continue
+                
+                # Yes Bank has date in column 1 (not column 0 which is Reference No)
+                date_str = cleaned[1] if len(cleaned) > 1 else ""
+                # Remove time portion if present (e.g., "2022-12-04 09:01:00" -> "2022-12-04")
+                if ' ' in date_str:
+                    date_str = date_str.split(' ')[0]
+                
+                date = parse_date(date_str)
+                if not date:
+                    continue
+                
+                # Get credit and debit amounts (columns 2 and 3)
+                bank_credit = parse_amount(cleaned[2]) if len(cleaned) > 2 else 0
+                bank_debit = parse_amount(cleaned[3]) if len(cleaned) > 3 else 0
+                
+                # Get description (column 5)
+                description = cleaned[5] if len(cleaned) > 5 else ""
+                if not description:
+                    description = "Bank Transaction"
+                
+                if bank_debit == 0 and bank_credit == 0:
+                    continue
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_yesbank_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
 def parse_sbi_pdf(pdf, all_text: str) -> list:
     """
     Parse SBI Bank PDF statement.
