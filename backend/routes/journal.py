@@ -351,7 +351,7 @@ async def get_account_ledger(
     }
 
 
-@router.get("/journal/ledger/{account_name:path}/pdf")
+@router.get("/journal/ledger-pdf/{account_name:path}")
 async def export_ledger_pdf(
     account_name: str,
     start_date: Optional[str] = None,
