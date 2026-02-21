@@ -93,6 +93,8 @@ export default function SettingsScreen() {
   const [uploadBankName, setUploadBankName] = useState('');
   const [uploadAccountName, setUploadAccountName] = useState('');
   const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadPhase, setUploadPhase] = useState<'idle' | 'uploading' | 'processing' | 'complete'>('idle');
 
   // Fetch bank accounts
   React.useEffect(() => {
