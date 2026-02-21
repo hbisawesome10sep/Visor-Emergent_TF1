@@ -3,6 +3,7 @@ from typing import List
 from database import db
 from auth import get_current_user
 from models import FixedAssetCreate, FixedAssetUpdate, FixedAssetResponse
+from routes.journal import create_journal_entry, delete_journal_for_reference
 from datetime import datetime, timezone
 import uuid
 import logging
@@ -28,6 +29,10 @@ async def get_fixed_assets(user=Depends(get_current_user)):
 async def create_fixed_asset(asset: FixedAssetCreate, user=Depends(get_current_user)):
     asset_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
+
+    payment_mode = asset.payment_mode or "cash"
+    payment_account_name = asset.payment_account_name or "Cash"
+
     asset_doc = {
         "id": asset_id,
         "user_id": user["id"],
@@ -38,9 +43,27 @@ async def create_fixed_asset(asset: FixedAssetCreate, user=Depends(get_current_u
         "current_value": asset.current_value,
         "depreciation_rate": asset.depreciation_rate,
         "notes": asset.notes,
+        "payment_mode": payment_mode,
+        "payment_account_name": payment_account_name,
         "created_at": now,
     }
     await db.fixed_assets.insert_one(asset_doc)
+
+    # Auto-create journal entry: Dr. Asset A/c (Real), Cr. Cash/Bank A/c
+    pay_account = "Cash A/c" if payment_mode == "cash" else f"{payment_account_name} A/c"
+    pay_type = "Real" if payment_mode == "cash" else "Personal"
+    await create_journal_entry(
+        user_id=user["id"],
+        date=asset.purchase_date,
+        narration=f"Being {asset.name} ({asset.category}) purchased",
+        entries=[
+            {"account_name": f"{asset.name} A/c", "account_type": "Real", "account_group": "Asset", "debit": asset.purchase_value, "credit": 0},
+            {"account_name": pay_account, "account_type": pay_type, "account_group": "Asset", "debit": 0, "credit": asset.purchase_value},
+        ],
+        reference_type="asset",
+        reference_id=asset_id,
+    )
+
     asset_doc["accumulated_depreciation"] = 0
     return FixedAssetResponse(**asset_doc)
 
@@ -68,4 +91,6 @@ async def delete_fixed_asset(asset_id: str, user=Depends(get_current_user)):
     result = await db.fixed_assets.delete_one({"id": asset_id, "user_id": user["id"]})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Asset not found")
+    # Delete linked journal entries
+    await delete_journal_for_reference(user["id"], asset_id)
     return {"message": "Asset deleted"}
