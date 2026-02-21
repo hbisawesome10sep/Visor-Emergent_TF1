@@ -38,6 +38,7 @@ from routes.bookkeeping import router as bookkeeping_router
 from routes.gmail import router as gmail_router
 from routes.bank_accounts import router as bank_accounts_router
 from routes.journal import router as journal_router
+from routes.bank_statements import router as bank_statements_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -65,6 +66,7 @@ app.include_router(bookkeeping_router)
 app.include_router(gmail_router)
 app.include_router(bank_accounts_router)
 app.include_router(journal_router)
+app.include_router(bank_statements_router)
 
 # Add CORS middleware
 app.add_middleware(
