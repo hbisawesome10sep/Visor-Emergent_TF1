@@ -1265,6 +1265,147 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ═══ BANK STATEMENT UPLOAD MODAL ═══ */}
+      <Modal visible={showUploadModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.deleteModal, { backgroundColor: colors.surface, maxWidth: 420, width: '100%' }]}>
+            {!uploadResult ? (
+              <>
+                <View style={[styles.deleteModalIcon, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
+                  <MaterialCommunityIcons name="file-upload" size={48} color={Accent.emerald} />
+                </View>
+                <Text style={[styles.deleteModalTitle, { color: colors.textPrimary }]}>Upload Bank Statement</Text>
+                
+                {selectedFile && (
+                  <View style={[styles.selectedFileCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: colors.border }]}>
+                    <MaterialCommunityIcons 
+                      name={selectedFile.name?.endsWith('.pdf') ? 'file-pdf-box' : selectedFile.name?.endsWith('.csv') ? 'file-delimited' : 'file-excel'} 
+                      size={24} 
+                      color={selectedFile.name?.endsWith('.pdf') ? '#EF4444' : selectedFile.name?.endsWith('.csv') ? Accent.emerald : Accent.sapphire} 
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }} numberOfLines={1}>
+                        {selectedFile.name}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2 }}>
+                        {(selectedFile.size / 1024).toFixed(1)} KB
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={handlePickFile}>
+                      <MaterialCommunityIcons name="swap-horizontal" size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start', marginTop: 16 }}>Bank Name (optional)</Text>
+                <TextInput
+                  data-testid="upload-bank-name-input"
+                  style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+                  value={uploadBankName}
+                  onChangeText={setUploadBankName}
+                  placeholder="e.g., HDFC Bank"
+                  placeholderTextColor={colors.textSecondary}
+                />
+
+                <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Name (optional)</Text>
+                <TextInput
+                  data-testid="upload-account-name-input"
+                  style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 16 }]}
+                  value={uploadAccountName}
+                  onChangeText={setUploadAccountName}
+                  placeholder="e.g., HDFC Savings"
+                  placeholderTextColor={colors.textSecondary}
+                />
+
+                <View style={[styles.deleteModalActions, { width: '100%' }]}>
+                  <TouchableOpacity
+                    style={[styles.cancelModalBtn, { borderColor: colors.border }]}
+                    onPress={closeUploadModal}
+                  >
+                    <Text style={[styles.cancelModalText, { color: colors.textPrimary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    data-testid="confirm-upload-btn"
+                    style={[styles.confirmDeleteBtn, { backgroundColor: Accent.emerald }]}
+                    onPress={handleUploadStatement}
+                    disabled={uploadingStatement}
+                  >
+                    {uploadingStatement ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.confirmDeleteText}>Upload & Import</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : uploadResult.error ? (
+              <>
+                <View style={[styles.deleteModalIcon, { backgroundColor: 'rgba(239,68,68,0.1)' }]}>
+                  <MaterialCommunityIcons name="alert-circle" size={48} color={Accent.ruby} />
+                </View>
+                <Text style={[styles.deleteModalTitle, { color: colors.textPrimary }]}>Upload Failed</Text>
+                <Text style={[styles.deleteModalDesc, { color: colors.textSecondary }]}>{uploadResult.error}</Text>
+                <TouchableOpacity
+                  style={[styles.syncBtn, { borderColor: colors.border, marginTop: 16, width: '100%' }]}
+                  onPress={closeUploadModal}
+                >
+                  <Text style={[styles.syncBtnText, { color: colors.textPrimary }]}>Close</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <View style={[styles.deleteModalIcon, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
+                  <MaterialCommunityIcons name="check-circle" size={48} color={Accent.emerald} />
+                </View>
+                <Text style={[styles.deleteModalTitle, { color: colors.textPrimary }]}>Import Successful!</Text>
+                
+                <View style={[styles.resultCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: colors.border }]}>
+                  <View style={styles.resultRow}>
+                    <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Bank Account</Text>
+                    <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }}>{uploadResult.account_name}</Text>
+                  </View>
+                  <View style={styles.resultRow}>
+                    <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Total in Statement</Text>
+                    <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600' }}>{uploadResult.total_in_statement}</Text>
+                  </View>
+                  <View style={styles.resultRow}>
+                    <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Imported</Text>
+                    <Text style={{ fontSize: 14, color: Accent.emerald, fontFamily: 'DM Sans', fontWeight: '700' }}>{uploadResult.imported}</Text>
+                  </View>
+                  {uploadResult.skipped_duplicates > 0 && (
+                    <View style={styles.resultRow}>
+                      <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Skipped (Duplicates)</Text>
+                      <Text style={{ fontSize: 14, color: Accent.amber, fontFamily: 'DM Sans', fontWeight: '600' }}>{uploadResult.skipped_duplicates}</Text>
+                    </View>
+                  )}
+                  {uploadResult.date_range?.start && (
+                    <View style={styles.resultRow}>
+                      <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Date Range</Text>
+                      <Text style={{ fontSize: 12, color: colors.textPrimary, fontFamily: 'DM Sans' }}>
+                        {uploadResult.date_range.start} to {uploadResult.date_range.end}
+                      </Text>
+                    </View>
+                  )}
+                  {uploadResult.account_created && (
+                    <View style={[styles.resultBadge, { backgroundColor: 'rgba(59,130,246,0.1)' }]}>
+                      <MaterialCommunityIcons name="bank-plus" size={16} color={Accent.sapphire} />
+                      <Text style={{ fontSize: 12, color: Accent.sapphire, fontFamily: 'DM Sans', fontWeight: '600' }}>New bank account created</Text>
+                    </View>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.confirmDeleteBtn, { backgroundColor: Accent.emerald, marginTop: 16, width: '100%', paddingVertical: 14 }]}
+                  onPress={closeUploadModal}
+                >
+                  <Text style={styles.confirmDeleteText}>Done</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
