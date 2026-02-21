@@ -26,6 +26,7 @@ router = APIRouter(prefix="/api")
 
 # Common date formats in Indian bank statements
 DATE_FORMATS = [
+    "%d.%m.%Y", "%d.%m.%y",  # ICICI format: 01.01.2026
     "%d/%m/%Y", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y",
     "%Y-%m-%d", "%Y/%m/%d", "%d %b %Y", "%d %b %y",
     "%d-%b-%Y", "%d-%b-%y", "%d %B %Y", "%m/%d/%Y",
@@ -111,11 +112,11 @@ def detect_header_columns(headers: list) -> dict:
         if any(k in hl for k in ["date", "txn date", "transaction date", "value date", "posting date"]):
             if mapping["date"] == -1:
                 mapping["date"] = i
-        elif any(k in hl for k in ["narration", "description", "particulars", "details", "remarks", "transaction details"]):
+        elif any(k in hl for k in ["narration", "description", "particulars", "details", "remarks", "transaction details", "transaction remarks"]):
             mapping["description"] = i
-        elif any(k in hl for k in ["withdrawal", "debit", "dr", "debit amount", "withdrawal amt"]):
+        elif any(k in hl for k in ["withdrawal", "debit", "dr", "debit amount", "withdrawal amt", "withdrawal amount"]):
             mapping["debit"] = i
-        elif any(k in hl for k in ["deposit", "credit", "cr", "credit amount", "deposit amt"]):
+        elif any(k in hl for k in ["deposit", "credit", "cr", "credit amount", "deposit amt", "deposit amount"]):
             mapping["credit"] = i
         elif any(k in hl for k in ["balance", "closing balance", "running balance"]):
             mapping["balance"] = i
