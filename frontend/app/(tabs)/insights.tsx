@@ -129,210 +129,126 @@ interface InsightCardProps {
 function InsightCard({
   icon, title, value, subtitle, status, fillPercentage, benchmarkInfo, isDark, colors
 }: InsightCardProps) {
-  const [showBack, setShowBack] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const statusColor = getStatusColor(status);
   const statusLabel = getStatusLabel(status);
-  const fillAnim = useRef(new Animated.Value(0)).current;
-  const waveAnim = useRef(new Animated.Value(0)).current;
-  const bubbleAnim = useRef(new Animated.Value(0)).current;
 
-  // Gradient colors based on status
-  const getGradient = (): [string, string] => {
-    switch (status) {
-      case 'excellent': return [Accent.emerald, '#047857'];
-      case 'good': return [Accent.teal, '#0F766E'];
-      case 'fair': return [Accent.amber, '#D97706'];
-      case 'needs_work': return ['#EA580C', Accent.ruby];
-      case 'critical': return [Accent.ruby, '#B91C1C'];
-      default: return [Accent.sapphire, '#4F46E5'];
-    }
-  };
-
-  useEffect(() => {
-    Animated.timing(fillAnim, {
-      toValue: Math.min(Math.max(fillPercentage, 0), 100),
-      duration: 1500,
-      useNativeDriver: false,
-    }).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(waveAnim, { toValue: 1, duration: 3000, useNativeDriver: true }),
-        Animated.timing(waveAnim, { toValue: 0, duration: 3000, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(bubbleAnim, { toValue: 1, duration: 2500, useNativeDriver: true }),
-        Animated.timing(bubbleAnim, { toValue: 0, duration: 0, useNativeDriver: true }),
-      ])
-    ).start();
-  }, [fillPercentage]);
-
-  const fillHeight = fillAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-  });
-
-  const waveX = waveAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-15, 15],
-  });
-
-  const bubbleY = bubbleAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -50],
-  });
-
-  const bubbleOpacity = bubbleAnim.interpolate({
-    inputRange: [0, 0.7, 1],
-    outputRange: [0.5, 0.2, 0],
-  });
-
-  const gradient = getGradient();
-
-  // Card background for back side
+  // Use neutral card background instead of colored gradient
   const cardBg = isDark 
-    ? 'rgba(30, 41, 59, 0.95)' 
-    : 'rgba(255, 255, 255, 0.98)';
+    ? 'rgba(30, 41, 59, 0.6)' 
+    : 'rgba(248, 250, 252, 0.95)';
   const borderColor = isDark 
-    ? `${statusColor}40` 
-    : `${statusColor}30`;
-
-  if (showBack) {
-    return (
-      <TouchableOpacity 
-        activeOpacity={0.95} 
-        onPress={() => setShowBack(false)}
-        style={[styles.insightCard, styles.insightCardBack, { backgroundColor: cardBg, borderColor }]}
-      >
-        <TouchableOpacity 
-          style={[styles.flipIconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-          onPress={() => setShowBack(false)}
-        >
-          <MaterialCommunityIcons name="rotate-left" size={14} color={colors.textSecondary} />
-        </TouchableOpacity>
-
-        <View style={styles.backContent}>
-          <Text style={[styles.backTitle, { color: colors.textPrimary }]}>{benchmarkInfo.title}</Text>
-          
-          {/* Show calculation formula if provided */}
-          {benchmarkInfo.calculation && (
-            <View style={[styles.calculationBox, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)' }]}>
-              <Text style={[styles.calculationLabel, { color: colors.textSecondary }]}>How it's calculated:</Text>
-              <Text style={[styles.calculationFormula, { color: Accent.emerald }]}>{benchmarkInfo.calculation}</Text>
-            </View>
-          )}
-          
-          {/* Show actual rupee amounts if provided */}
-          {benchmarkInfo.actualAmounts && (
-            <View style={[styles.amountsBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-              {benchmarkInfo.actualAmounts.label1 && (
-                <View style={styles.amountRow}>
-                  <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label1}</Text>
-                  <Text style={[styles.amountValue, { color: colors.textPrimary }]}>{benchmarkInfo.actualAmounts.value1}</Text>
-                </View>
-              )}
-              {benchmarkInfo.actualAmounts.label2 && (
-                <View style={styles.amountRow}>
-                  <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label2}</Text>
-                  <Text style={[styles.amountValue, { color: colors.textPrimary }]}>{benchmarkInfo.actualAmounts.value2}</Text>
-                </View>
-              )}
-              {benchmarkInfo.actualAmounts.label3 && (
-                <View style={styles.amountRow}>
-                  <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label3}</Text>
-                  <Text style={[styles.amountValue, { color: statusColor, fontWeight: '700' as any }]}>{benchmarkInfo.actualAmounts.value3}</Text>
-                </View>
-              )}
-            </View>
-          )}
-          
-          {/* Comparison stats */}
-          <View style={[styles.backStatsBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-            <View style={styles.backStatRow}>
-              <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>Your Score</Text>
-              <Text style={[styles.backStatValue, { color: statusColor }]}>{benchmarkInfo.yourValue}</Text>
-            </View>
-            <View style={styles.backStatRow}>
-              <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>India Avg</Text>
-              <Text style={[styles.backStatValue, { color: colors.textPrimary }]}>{benchmarkInfo.nationalAverage}</Text>
-            </View>
-            <View style={styles.backStatRow}>
-              <Text style={[styles.backStatLabel, { color: colors.textSecondary }]}>Target</Text>
-              <Text style={[styles.backStatValue, { color: Accent.emerald }]}>{benchmarkInfo.recommended}</Text>
-            </View>
-          </View>
-          
-          <Text style={[styles.backDesc, { color: colors.textSecondary }]}>{benchmarkInfo.description}</Text>
-          <Text style={[styles.backSource, { color: colors.textSecondary }]}>Source: {benchmarkInfo.source}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
+    ? 'rgba(255, 255, 255, 0.08)' 
+    : 'rgba(0, 0, 0, 0.06)';
 
   return (
     <TouchableOpacity 
       activeOpacity={0.9} 
-      onPress={() => setShowBack(true)}
-      style={styles.insightCard}
+      onPress={() => setExpanded(!expanded)}
+      style={[
+        styles.insightCard, 
+        { 
+          backgroundColor: cardBg, 
+          borderColor,
+          borderWidth: 1,
+          borderRadius: 16,
+        }
+      ]}
     >
-      <LinearGradient
-        colors={gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.insightGradient}
-      >
-        {/* Animated liquid fill */}
-        <View style={styles.liquidContainer}>
-          <Animated.View
-            style={[
-              styles.liquidFill,
-              { height: fillHeight, backgroundColor: 'rgba(255,255,255,0.12)' },
-            ]}
-          >
-            <Animated.View
-              style={[styles.wave, { transform: [{ translateX: waveX }] }]}
-            />
-          </Animated.View>
-          <Animated.View
-            style={[styles.bubble, { transform: [{ translateY: bubbleY }], opacity: bubbleOpacity }]}
-          />
-          <Animated.View
-            style={[styles.bubble, styles.bubble2, { transform: [{ translateY: bubbleY }], opacity: bubbleOpacity }]}
-          />
-        </View>
-
-        {/* Card content */}
-        <View style={styles.insightContent}>
-          <View style={styles.cardHeader}>
-            <View style={styles.insightIconBox}>
-              <MaterialCommunityIcons name={icon as any} size={18} color="rgba(255,255,255,0.9)" />
-            </View>
-            <View style={styles.insightBadge}>
-              <Text style={styles.insightBadgeText}>{statusLabel}</Text>
-            </View>
+      {/* Main Content - Always Visible */}
+      <View style={styles.insightContent}>
+        {/* Header Row */}
+        <View style={styles.cardHeader}>
+          <View style={[styles.insightIconBox, { backgroundColor: `${statusColor}20` }]}>
+            <MaterialCommunityIcons name={icon as any} size={20} color={statusColor} />
           </View>
-
-          {/* Flip info hint */}
-          <TouchableOpacity 
-            style={styles.flipIconBtnFront}
-            onPress={() => setShowBack(true)}
-          >
-            <MaterialCommunityIcons name="information-outline" size={14} color="rgba(255,255,255,0.6)" />
-          </TouchableOpacity>
-
-          <Text style={styles.insightTitle}>{title}</Text>
-          <Text style={styles.insightValue}>{value}</Text>
-          <Text style={styles.insightSubtitle}>{subtitle}</Text>
-
-          {/* Bottom fill bar */}
-          <View style={styles.insightBarBg}>
-            <View style={[styles.insightBarFill, { width: `${Math.min(fillPercentage, 100)}%` }]} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>{title}</Text>
+            <Text style={[styles.insightSubtitleSmall, { color: colors.textSecondary }]}>{subtitle}</Text>
+          </View>
+          <View style={[styles.insightBadgeNeutral, { backgroundColor: `${statusColor}15` }]}>
+            <Text style={[styles.insightBadgeTextNeutral, { color: statusColor }]}>{statusLabel}</Text>
           </View>
         </View>
-      </LinearGradient>
+
+        {/* Value + Explanation Row */}
+        <View style={styles.valueExplanationRow}>
+          <Text style={[styles.insightValueLarge, { color: colors.textPrimary }]}>{value}</Text>
+          <Text style={[styles.explanationText, { color: colors.textSecondary }]}>
+            {benchmarkInfo.description.length > 80 
+              ? benchmarkInfo.description.substring(0, 80) + '...' 
+              : benchmarkInfo.description}
+          </Text>
+        </View>
+
+        {/* Progress Bar */}
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' }]}>
+            <View style={[styles.progressBarFill, { 
+              width: `${Math.min(Math.max(fillPercentage, 0), 100)}%`, 
+              backgroundColor: statusColor 
+            }]} />
+          </View>
+          <View style={styles.progressLabels}>
+            <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>You: {benchmarkInfo.yourValue}</Text>
+            <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>Target: {benchmarkInfo.recommended}</Text>
+          </View>
+        </View>
+
+        {/* Expandable Details */}
+        {expanded && (
+          <View style={[styles.expandedDetails, { borderTopColor: borderColor }]}>
+            {/* Calculation Formula */}
+            {benchmarkInfo.calculation && (
+              <View style={[styles.formulaBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+                <Text style={[styles.formulaLabel, { color: colors.textSecondary }]}>Formula:</Text>
+                <Text style={[styles.formulaText, { color: Accent.sapphire }]}>{benchmarkInfo.calculation}</Text>
+              </View>
+            )}
+
+            {/* Actual Amounts */}
+            {benchmarkInfo.actualAmounts && (
+              <View style={styles.amountsGrid}>
+                {benchmarkInfo.actualAmounts.label1 && (
+                  <View style={styles.amountItem}>
+                    <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label1}</Text>
+                    <Text style={[styles.amountValue, { color: colors.textPrimary }]}>{benchmarkInfo.actualAmounts.value1}</Text>
+                  </View>
+                )}
+                {benchmarkInfo.actualAmounts.label2 && (
+                  <View style={styles.amountItem}>
+                    <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>{benchmarkInfo.actualAmounts.label2}</Text>
+                    <Text style={[styles.amountValue, { color: colors.textPrimary }]}>{benchmarkInfo.actualAmounts.value2}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Comparison */}
+            <View style={styles.comparisonRow}>
+              <View style={styles.comparisonItem}>
+                <Text style={[styles.comparisonLabel, { color: colors.textSecondary }]}>India Avg</Text>
+                <Text style={[styles.comparisonValue, { color: colors.textPrimary }]}>{benchmarkInfo.nationalAverage}</Text>
+              </View>
+              <View style={styles.comparisonItem}>
+                <Text style={[styles.comparisonLabel, { color: colors.textSecondary }]}>Recommended</Text>
+                <Text style={[styles.comparisonValue, { color: Accent.sapphire }]}>{benchmarkInfo.recommended}</Text>
+              </View>
+            </View>
+
+            <Text style={[styles.sourceText, { color: colors.textSecondary }]}>Source: {benchmarkInfo.source}</Text>
+          </View>
+        )}
+
+        {/* Expand/Collapse Indicator */}
+        <View style={styles.expandIndicator}>
+          <MaterialCommunityIcons 
+            name={expanded ? "chevron-up" : "chevron-down"} 
+            size={20} 
+            color={colors.textSecondary} 
+          />
+        </View>
+      </View>
     </TouchableOpacity>
   );
 }
