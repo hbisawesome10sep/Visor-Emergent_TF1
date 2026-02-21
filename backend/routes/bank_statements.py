@@ -529,7 +529,8 @@ def clean_sbi_description(raw_desc: str) -> str:
 
 def clean_axis_description(raw_desc: str) -> str:
     """Clean up Axis Bank transaction description."""
-    desc = raw_desc.strip().replace('\n', ' ').replace('  ', ' ')
+    # First, always clean newlines and extra spaces
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
     
     # Known merchants
     known_merchants = {
@@ -609,7 +610,7 @@ def clean_axis_description(raw_desc: str) -> str:
     if 'cradj' in lower_desc:
         return "UPI Reversal/Refund"
     
-    # Return first 50 chars
+    # Return first 50 chars (already cleaned of newlines)
     return desc[:50] if len(desc) > 50 else desc
 
 
