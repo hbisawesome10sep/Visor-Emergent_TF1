@@ -54,11 +54,38 @@ DATE_FORMATS = [
 
 
 def detect_bank(user_input: str, pdf_text: str = "") -> str:
-    """Detect bank from user input or PDF content."""
-    combined = (user_input + " " + pdf_text).lower()
+    """Detect bank from user input or PDF content.
+    User input takes priority over PDF content detection.
+    """
+    # First, check user input (highest priority)
+    user_lower = user_input.lower().strip()
+    if user_lower:
+        for bank_code, keywords in SUPPORTED_BANKS.items():
+            if any(kw in user_lower for kw in keywords):
+                return bank_code
     
+    # Then, check PDF text
+    # Use smarter detection - check for statement/account headers
+    pdf_lower = pdf_text.lower()
+    
+    # Look for specific bank statement headers
+    bank_patterns = {
+        "axis": ["axis bank", "axis account", "statement of axis"],
+        "icici": ["icici bank", "icici account", "statement of icici", "statement of transactions in saving account"],
+        "sbi": ["state bank of india", "sbi account", "sbi statement"],
+        "hdfc": ["hdfc bank", "hdfc account", "hdfc statement"],
+        "kotak": ["kotak mahindra", "kotak bank"],
+        "pnb": ["punjab national bank"],
+        "bob": ["bank of baroda"],
+    }
+    
+    for bank_code, patterns in bank_patterns.items():
+        if any(p in pdf_lower for p in patterns):
+            return bank_code
+    
+    # Fallback to generic keyword matching
     for bank_code, keywords in SUPPORTED_BANKS.items():
-        if any(kw in combined for kw in keywords):
+        if any(kw in pdf_lower for kw in keywords):
             return bank_code
     
     return "generic"
