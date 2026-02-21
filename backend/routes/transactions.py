@@ -6,6 +6,7 @@ from database import db
 from auth import get_current_user
 from models import TransactionCreate, TransactionResponse
 from routes.tax import process_auto_tax_deduction, remove_auto_tax_deduction, update_auto_tax_deduction
+from routes.journal import create_journal_from_transaction, delete_journal_for_reference
 
 router = APIRouter(prefix="/api")
 
@@ -27,6 +28,7 @@ async def get_transactions(
             {"description": {"$regex": search, "$options": "i"}},
             {"category": {"$regex": search, "$options": "i"}},
             {"notes": {"$regex": search, "$options": "i"}},
+            {"payment_account_name": {"$regex": search, "$options": "i"}},
         ]
 
     txns = await db.transactions.find(query, {"_id": 0}).sort("date", -1).to_list(500)
@@ -37,6 +39,10 @@ async def get_transactions(
 async def create_transaction(txn: TransactionCreate, user=Depends(get_current_user)):
     txn_id = str(uuid4())
     now = datetime.now(timezone.utc).isoformat()
+
+    payment_mode = txn.payment_mode or "cash"
+    payment_account_name = txn.payment_account_name or "Cash"
+
     txn_doc = {
         "id": txn_id,
         "user_id": user["id"],
@@ -53,6 +59,8 @@ async def create_transaction(txn: TransactionCreate, user=Depends(get_current_us
         "buy_sell": txn.buy_sell,
         "units": txn.units,
         "price_per_unit": txn.price_per_unit,
+        "payment_mode": payment_mode,
+        "payment_account_name": payment_account_name,
         "created_at": now,
     }
     await db.transactions.insert_one(txn_doc)
@@ -64,6 +72,19 @@ async def create_transaction(txn: TransactionCreate, user=Depends(get_current_us
         amount=txn.amount, date_str=txn.date,
     )
 
+    # Auto-create journal entry (double-entry)
+    await create_journal_from_transaction(
+        user_id=user["id"],
+        txn_id=txn_id,
+        txn_type=txn.type,
+        category=txn.category,
+        description=txn.description,
+        amount=txn.amount,
+        date=txn.date,
+        payment_mode=payment_mode,
+        payment_account_name=payment_account_name,
+    )
+
     return TransactionResponse(**txn_doc)
 
 
@@ -73,6 +94,7 @@ async def delete_transaction(txn_id: str, user=Depends(get_current_user)):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Transaction not found")
     await remove_auto_tax_deduction(user["id"], txn_id)
+    await delete_journal_for_reference(user["id"], txn_id)
     return {"message": "Transaction deleted"}
 
 
@@ -81,6 +103,10 @@ async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(g
     existing = await db.transactions.find_one({"id": txn_id, "user_id": user["id"]}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Transaction not found")
+
+    payment_mode = txn.payment_mode or "cash"
+    payment_account_name = txn.payment_account_name or "Cash"
+
     update_data = {
         "type": txn.type,
         "amount": txn.amount,
@@ -95,6 +121,8 @@ async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(g
         "buy_sell": txn.buy_sell,
         "units": txn.units,
         "price_per_unit": txn.price_per_unit,
+        "payment_mode": payment_mode,
+        "payment_account_name": payment_account_name,
     }
     await db.transactions.update_one({"id": txn_id, "user_id": user["id"]}, {"$set": update_data})
     await update_auto_tax_deduction(
@@ -103,5 +131,20 @@ async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(g
         notes=txn.notes or "", txn_type=txn.type,
         amount=txn.amount, date_str=txn.date,
     )
+
+    # Re-create journal entry for updated transaction
+    await delete_journal_for_reference(user["id"], txn_id)
+    await create_journal_from_transaction(
+        user_id=user["id"],
+        txn_id=txn_id,
+        txn_type=txn.type,
+        category=txn.category,
+        description=txn.description,
+        amount=txn.amount,
+        date=txn.date,
+        payment_mode=payment_mode,
+        payment_account_name=payment_account_name,
+    )
+
     updated = await db.transactions.find_one({"id": txn_id}, {"_id": 0})
     return TransactionResponse(**updated)

@@ -46,6 +46,8 @@ class TransactionCreate(BaseModel):
     buy_sell: Optional[str] = None
     units: Optional[float] = None
     price_per_unit: Optional[float] = None
+    payment_mode: Optional[str] = "cash"
+    payment_account_name: Optional[str] = "Cash"
 
 class TransactionResponse(BaseModel):
     id: str
@@ -63,6 +65,8 @@ class TransactionResponse(BaseModel):
     buy_sell: Optional[str] = None
     units: Optional[float] = None
     price_per_unit: Optional[float] = None
+    payment_mode: Optional[str] = "cash"
+    payment_account_name: Optional[str] = "Cash"
     created_at: str
 
 
