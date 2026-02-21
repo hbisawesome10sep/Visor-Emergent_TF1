@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 
 # Use public backend URL for testing
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://finance-hub-690.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://invest-modular.preview.emergentagent.com').rstrip('/')
 
 @pytest.fixture
 def api_client():
