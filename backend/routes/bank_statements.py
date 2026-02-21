@@ -701,10 +701,12 @@ async def upload_bank_statement(
     file: UploadFile = File(...),
     bank_name: str = Form(""),
     account_name: str = Form(""),
+    password: str = Form(""),  # Optional password for encrypted PDFs
     user=Depends(get_current_user),
 ):
     """
     Upload a bank statement (PDF/CSV/Excel) and import transactions.
+    Supports password-protected PDFs.
     
     Reverses bank's debit/credit to user's perspective:
     - Bank Credit (deposit) → User: Dr. Bank A/c, Cr. Income A/c
@@ -729,7 +731,8 @@ async def upload_bank_statement(
         elif ext in ("xlsx", "xls"):
             raw_txns = parse_excel_statement(file_bytes)
         elif ext == "pdf":
-            raw_txns = parse_pdf_statement(file_bytes)
+            # Pass password and bank_name hint to PDF parser
+            raw_txns = parse_pdf_statement(file_bytes, password=password or None, bank_hint=bank_name)
         else:
             raise HTTPException(400, "Unsupported format")
     except ValueError as e:
