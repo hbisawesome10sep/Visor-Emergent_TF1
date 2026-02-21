@@ -1724,4 +1724,7 @@ const styles = StyleSheet.create({
   resultCard: { width: '100%', borderRadius: 14, padding: 14, borderWidth: 1, marginTop: 16 },
   resultRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)' },
   resultBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, marginTop: 10 },
+  progressBarContainer: { width: '100%', height: 8, borderRadius: 4, overflow: 'hidden' },
+  progressBarFill: { height: '100%', borderRadius: 4 },
+  phaseIndicator: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
 });
