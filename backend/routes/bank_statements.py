@@ -2800,6 +2800,7 @@ async def recategorize_transactions(user=Depends(get_current_user)):
         "total_transactions": len(imported_txns),
         "updated": updated,
         "unchanged": unchanged,
+        "type_changes": type_changes,
         "errors": errors
     }
 
