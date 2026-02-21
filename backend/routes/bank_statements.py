@@ -43,6 +43,7 @@ SUPPORTED_BANKS = {
     "union": ["union", "union bank"],
     "idbi": ["idbi", "idbi bank"],
     "indusind": ["indusind", "indusind bank"],
+    "yes": ["yes bank", "yes"],
 }
 
 # Common date formats in Indian bank statements
