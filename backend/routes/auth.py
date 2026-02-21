@@ -68,7 +68,10 @@ async def login(credentials: UserLogin):
     for field in USER_SENSITIVE_FIELDS:
         val = user.get(field, "")
         if dek and val and isinstance(val, str) and val.startswith("ENC:"):
-            decrypted[field] = decrypt_field(val, dek)
+            try:
+                decrypted[field] = decrypt_field(val, dek)
+            except Exception:
+                decrypted[field] = val  # Keep encrypted if decryption fails
         else:
             decrypted[field] = val
 
