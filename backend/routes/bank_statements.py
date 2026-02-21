@@ -757,7 +757,6 @@ async def upload_bank_statement(
         bank_account_id = existing_account["id"]
     else:
         bank_account_id = str(uuid4())
-        dek = user.get("encryption_key", "")
         await db.bank_accounts.insert_one({
             "id": bank_account_id,
             "user_id": user["id"],
