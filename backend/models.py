@@ -142,7 +142,9 @@ class FixedAssetResponse(BaseModel):
     current_value: float
     depreciation_rate: float
     accumulated_depreciation: float
-    notes: Optional[str]
+    notes: Optional[str] = None
+    payment_mode: Optional[str] = "cash"
+    payment_account_name: Optional[str] = "Cash"
     created_at: str
 
 class AccountCreate(BaseModel):
