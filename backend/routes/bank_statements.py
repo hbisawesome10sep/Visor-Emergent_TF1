@@ -2714,6 +2714,9 @@ async def recategorize_transactions(user=Depends(get_current_user)):
     """
     Re-categorize all imported bank statement transactions using the latest categorization logic.
     This will also regenerate journal entries with the correct accounts.
+    
+    Key improvement: Uses original transaction type to determine if it was a credit (income)
+    or debit (expense), then applies appropriate categorization.
     """
     # Find all transactions imported from bank statements
     imported_txns = await db.transactions.find({
@@ -2727,26 +2730,37 @@ async def recategorize_transactions(user=Depends(get_current_user)):
     updated = 0
     unchanged = 0
     errors = 0
+    type_changes = 0
     
     for txn in imported_txns:
         try:
-            # Re-categorize based on description
             description = txn.get("description", "")
             old_category = txn.get("category", "")
-            new_category, cat_type = categorize_transaction(description)
+            old_type = txn.get("type", "expense")
             
-            # Determine transaction type
-            if cat_type == "investment":
+            # Determine if this was originally a credit (income) or debit (expense)
+            # If it was marked as income before, it was a bank credit
+            is_credit = old_type == "income"
+            
+            # Re-categorize with proper is_credit flag
+            new_category, cat_type = categorize_transaction(description, is_credit=is_credit)
+            
+            # Determine new transaction type
+            if is_credit:
+                new_type = "income"  # Credits are always income
+            elif cat_type == "investment":
                 new_type = "investment"
-            elif cat_type == "income":
-                new_type = "income"
             else:
                 new_type = "expense"
             
-            # Check if category changed
-            if old_category == new_category:
+            # Check if anything changed
+            if old_category == new_category and old_type == new_type:
                 unchanged += 1
                 continue
+            
+            # Track type changes
+            if old_type != new_type:
+                type_changes += 1
             
             # Update the transaction
             await db.transactions.update_one(
@@ -2775,7 +2789,7 @@ async def recategorize_transactions(user=Depends(get_current_user)):
             )
             
             updated += 1
-            logger.info(f"Re-categorized: '{description[:50]}' from '{old_category}' to '{new_category}'")
+            logger.info(f"Re-categorized: '{description[:50]}' | {old_category}->{new_category} | {old_type}->{new_type}")
             
         except Exception as e:
             logger.error(f"Error re-categorizing transaction {txn.get('id')}: {e}")
