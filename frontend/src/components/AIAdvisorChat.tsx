@@ -221,7 +221,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
         transparent={false}
         onRequestClose={() => setIsOpen(false)}
       >
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.container, { backgroundColor: safeColors.background }]}>
           {/* Header */}
           <View style={[styles.header, {
             backgroundColor: isDark ? 'rgba(10,10,11,0.98)' : 'rgba(255,255,255,0.98)',
@@ -237,8 +237,8 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 <MaterialCommunityIcons name="robot" size={22} color="#fff" />
               </LinearGradient>
               <View style={styles.headerText}>
-                <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Visor</Text>
-                <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                <Text style={[styles.headerTitle, { color: safeColors.textPrimary }]}>Visor</Text>
+                <Text style={[styles.headerSubtitle, { color: safeColors.textSecondary }]}>
                   Your Financial Advisor
                 </Text>
               </View>
@@ -248,13 +248,13 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
                 onPress={clearChat}
               >
-                <MaterialCommunityIcons name="delete-outline" size={20} color={colors.textSecondary} />
+                <MaterialCommunityIcons name="delete-outline" size={20} color={safeColors.textSecondary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
                 onPress={() => setIsOpen(false)}
               >
-                <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
+                <MaterialCommunityIcons name="close" size={22} color={safeColors.textSecondary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -274,7 +274,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
               {isLoadingHistory ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#8B5CF6" />
-                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                  <Text style={[styles.loadingText, { color: safeColors.textSecondary }]}>
                     Loading conversation...
                   </Text>
                 </View>
@@ -286,16 +286,16 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                   >
                     <MaterialCommunityIcons name="robot-happy" size={48} color="#fff" />
                   </LinearGradient>
-                  <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                  <Text style={[styles.emptyTitle, { color: safeColors.textPrimary }]}>
                     Hi! I'm Visor 👋
                   </Text>
-                  <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.emptySubtitle, { color: safeColors.textSecondary }]}>
                     Your personal Indian financial advisor. I understand your finances deeply
                     and can help with tax planning, investments, loans, and more!
                   </Text>
 
                   {/* Quick prompts */}
-                  <Text style={[styles.quickTitle, { color: colors.textPrimary }]}>
+                  <Text style={[styles.quickTitle, { color: safeColors.textPrimary }]}>
                     Try asking me:
                   </Text>
                   <View style={styles.quickPrompts}>
@@ -309,7 +309,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                         onPress={() => sendMessage(prompt.prompt)}
                       >
                         <MaterialCommunityIcons name={prompt.icon as any} size={16} color="#8B5CF6" />
-                        <Text style={[styles.quickChipText, { color: colors.textPrimary }]}>
+                        <Text style={[styles.quickChipText, { color: safeColors.textPrimary }]}>
                           {prompt.label}
                         </Text>
                       </TouchableOpacity>
@@ -345,7 +345,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                     <Text
                       style={[
                         styles.messageText,
-                        { color: msg.role === 'user' ? '#fff' : colors.textPrimary },
+                        { color: msg.role === 'user' ? '#fff' : safeColors.textPrimary },
                       ]}
                     >
                       {formatMessage(msg.content)}
@@ -356,15 +356,15 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                       <View style={[styles.calculatorResult, {
                         backgroundColor: isDark ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.08)',
                       }]}>
-                        <Text style={[styles.calcTitle, { color: colors.textPrimary }]}>
+                        <Text style={[styles.calcTitle, { color: safeColors.textPrimary }]}>
                           📊 Calculator Result
                         </Text>
                         {Object.entries(msg.calculator_result).map(([key, value]) => (
                           <View key={key} style={styles.calcRow}>
-                            <Text style={[styles.calcLabel, { color: colors.textSecondary }]}>
+                            <Text style={[styles.calcLabel, { color: safeColors.textSecondary }]}>
                               {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </Text>
-                            <Text style={[styles.calcValue, { color: colors.textPrimary }]}>
+                            <Text style={[styles.calcValue, { color: safeColors.textPrimary }]}>
                               {typeof value === 'number' ? `₹${value.toLocaleString('en-IN')}` : String(value)}
                             </Text>
                           </View>
@@ -382,7 +382,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 }]}>
                   <View style={styles.typingIndicator}>
                     <ActivityIndicator size="small" color="#8B5CF6" />
-                    <Text style={[styles.typingText, { color: colors.textSecondary }]}>
+                    <Text style={[styles.typingText, { color: safeColors.textSecondary }]}>
                       Visor is thinking...
                     </Text>
                   </View>
@@ -398,12 +398,12 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
               <TextInput
                 style={[styles.input, {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                  color: colors.textPrimary,
+                  color: safeColors.textPrimary,
                 }]}
                 value={inputText}
                 onChangeText={setInputText}
                 placeholder="Ask about investments, taxes, loans..."
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={safeColors.textSecondary}
                 multiline
                 maxLength={1000}
                 returnKeyType="send"
@@ -419,7 +419,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 <MaterialCommunityIcons
                   name="send"
                   size={20}
-                  color={inputText.trim() ? '#fff' : colors.textSecondary}
+                  color={inputText.trim() ? '#fff' : safeColors.textSecondary}
                 />
               </TouchableOpacity>
             </View>
