@@ -38,9 +38,46 @@ Indian individuals juggle multiple financial instruments — savings accounts, P
 
 ---
 
+## Code Architecture (Post-Refactoring)
+
+```
+/app
+├── backend
+│   ├── auth.py              # Auth middleware/utilities
+│   ├── config.py            # App configuration
+│   ├── database.py          # MongoDB connection
+│   ├── models.py            # Data models
+│   ├── seed_data.py         # Demo data seeding
+│   ├── server.py            # Modular FastAPI server (107 lines)
+│   ├── routes/
+│   │   ├── ai_advisor.py
+│   │   ├── ai_chat.py
+│   │   ├── assets.py
+│   │   ├── auth.py
+│   │   ├── bookkeeping.py
+│   │   ├── dashboard.py
+│   │   ├── gmail.py
+│   │   ├── goals.py
+│   │   ├── holdings.py
+│   │   ├── loans.py
+│   │   ├── market_data.py
+│   │   ├── portfolio.py
+│   │   ├── recurring.py
+│   │   ├── risk_profile.py
+│   │   ├── tax.py
+│   │   └── transactions.py
+│   └── tests/
+│       ├── test_modular_refactor.py
+│       └── test_full_regression.py
+└── frontend
+    └── ... (React Native / Expo)
+```
+
+---
+
 ## Feature Inventory
 
-### 1. Onboarding & Authentication
+### 1. Onboarding & Authentication — ✅ DONE
 
 | Feature | Status |
 |---------|--------|
@@ -52,11 +89,7 @@ Indian individuals juggle multiple financial instruments — savings accounts, P
 | Auto-lock after 5 minutes of inactivity | Done |
 | Security state persisted per user account | Done |
 
-**Flow**: Landing Page → Sign Up / Log In → PIN + Biometric Setup (first time only) → Dashboard
-
----
-
-### 2. Dashboard
+### 2. Dashboard — ✅ DONE
 
 | Feature | Status |
 |---------|--------|
@@ -69,9 +102,7 @@ Indian individuals juggle multiple financial instruments — savings accounts, P
 | Quick access to Settings via gear icon (top-right) | Done |
 | Dark / Light theme toggle | Done |
 
----
-
-### 3. Transaction Management
+### 3. Transaction Management — ✅ DONE
 
 | Feature | Status |
 |---------|--------|
@@ -83,242 +114,82 @@ Indian individuals juggle multiple financial instruments — savings accounts, P
 | Notes field | Done |
 | Date selection via native calendar picker | Done |
 | Buy/Sell mode for investment transactions | Done |
-| **Tax Eligibility Hint** — real-time banner showing if a transaction qualifies for tax deduction (e.g., "PF Contribution → Section 80C") | Done |
+| Tax Eligibility Hint | Done |
 
----
-
-### 4. Investment Tracking
+### 4. Investment Tracking — ✅ DONE
 
 | Feature | Status |
 |---------|--------|
-| **Live Indian Markets** — Nifty 50, SENSEX, Nifty Bank, Gold (10g), Silver (1Kg) | Done |
-| Force-refresh on every screen open (always live prices) | Done |
-| Portfolio overview with total value, gain/loss, and returns % | Done |
-| Holdings breakdown — individual stocks, MFs, ETFs with live P&L | Done |
+| Live Indian Markets — Nifty 50, SENSEX, Nifty Bank, Gold, Silver | Done |
+| Force-refresh on every screen open | Done |
+| Portfolio overview with total value, gain/loss, returns % | Done |
+| Holdings breakdown with live P&L | Done |
 | Asset allocation pie chart | Done |
-| Risk profiling questionnaire with strategy recommendations | Done |
+| Risk profiling questionnaire | Done |
 | Portfolio rebalancing suggestions | Done |
 | SIP/Recurring investment tracker | Done |
-| Financial Goals — set targets, track progress, deadline with calendar | Done |
-| Add/Edit holdings with buy date, units, price per unit | Done |
+| Financial Goals with targets and deadlines | Done |
+| Add/Edit holdings | Done |
 
----
-
-### 5. Tax Hub (Dedicated Screen)
-
-The Tax screen is the centrepiece intelligence layer of Visor. It operates on an **Assessment Year (A.Y.) / Financial Year (F.Y.)** basis.
-
-#### 5a. Tax Planning
+### 5. Tax Hub — ✅ DONE
 
 | Feature | Status |
 |---------|--------|
-| Chapter VI-A deductions browser (80C, 80D, 80E, 80G, etc.) | Done |
-| Searchable deduction catalog with full descriptions, limits, eligibility, examples, and required documents | Done |
-| User-added deductions with invested amount and progress bars | Done |
-| **Auto-Detected Deductions from Transactions** | Done |
-| Tax saved estimates (20%/30% slab) | Done |
+| Chapter VI-A deductions browser | Done |
+| Auto-Detected Deductions from Transactions | Done |
+| Capital Gains (STCG/LTCG) | Done |
+| Income Tax Calculator (Old vs New Regime) | Done |
 | FY-aware filtering | Done |
 
-#### 5b. Auto Tax Deduction Detection Engine
-
-| Capability | Detail |
-|------------|--------|
-| Detection method | Category-based + Description/Notes keyword analysis |
-| Supported sections | 80C, 80D, 80CCD(1B), 80E, 80G, 80GG, 80TTA, 24(b) |
-| Detection examples | PPF → 80C, Health Insurance → 80D, "Education loan" → 80E, "Donation to PM CARES" → 80G |
-| FY validation | Only transactions dated within the selected FY are considered |
-| Cascade behavior | Create txn → auto-create deduction; Delete txn → auto-remove deduction; Edit txn → re-evaluate |
-| User override | Edit auto-detected amount or dismiss entirely |
-| Priority logic | Description keywords take priority over generic category mapping |
-
-#### 5c. Capital Gains
-
-| Feature | Status |
-|---------|--------|
-| STCG / LTCG breakdown | Done |
-| Individual gain/loss items with holding period | Done |
-| Tax liability per item (STCG equity 20%, LTCG equity 12.5% above 1.25L) | Done |
-
-#### 5d. Income Tax Calculator
-
-| Feature | Status |
-|---------|--------|
-| Old Regime vs New Regime toggle | Done |
-| FY/AY selector (2025-26, 2024-25, 2023-24) | Done |
-| Income summary (salary + other sources) | Done |
-| Deductions breakdown per regime | Done |
-| Slab-wise tax computation | Done |
-| Rebate u/s 87A | Done |
-| Surcharge (progressive 10%-37%) | Done |
-| Health & Education Cess (4%) | Done |
-| Capital gains tax addition | Done |
-| Effective tax rate | Done |
-| Side-by-side regime comparison with savings recommendation | Done |
-
-**Tax Slabs Implemented**:
-- **Old Regime**: 0-2.5L@0%, 2.5-5L@5%, 5-10L@20%, 10L+@30% | Std Deduction: 50K | Rebate: up to 5L income → 12,500
-- **New Regime (Budget 2025)**: 0-4L@0%, 4-8L@5%, 8-12L@10%, 12-16L@15%, 16-20L@20%, 20-24L@25%, 24L+@30% | Std Deduction: 75K | Rebate: up to 12L income → 60,000
-
----
-
-### 6. AI Financial Advisor — "Visor"
+### 6. AI Financial Advisor — "Visor" — ✅ DONE
 
 | Feature | Status |
 |---------|--------|
 | Conversational AI chat interface | Done |
-| Screen-context awareness (Dashboard, Transactions, Investments, Tax, etc.) | Done |
-| Personalised advice based on user's actual financial data | Done |
-| Tax planning guidance on the Tax screen | Done |
-| **STRICT finance-only guardrails** — refuses all non-finance queries (medical, recipes, etc.) | Done |
-| **Live price lookup** — real-time stock, MF, ETF, index, and commodity prices via yfinance | Done |
-| **Indian commodity prices** — Gold (per 10g) and Silver (per Kg) from app's GoldAPI data, not COMEX USD | Done |
-| **Conversational memory** — last 10 messages included as context for follow-up questions | Done |
-| **Individual message deletion** — long-press (Pressable) on any message to delete it, server-synced IDs | Done |
-| **Professional AI identity** — never reveals internal systems, feeds, APIs, or ticker symbols | Done |
-| **Stop-words filter** — prevents common English words from being treated as stock tickers | Done |
-| Coverage: 70+ Indian stocks, Nifty/SENSEX/Bank Nifty indices, Gold, Silver, Copper, Crude, ETFs | Done |
+| Screen-context awareness | Done |
+| Live price lookup | Done |
+| Indian commodity prices | Done |
+| Conversational memory | Done |
+| Individual message deletion | Done |
+| Finance-only guardrails | Done |
 | Powered by OpenAI GPT-5.2 | Done |
 
----
-
-### 7. Books & Reports
+### 7. Books & Reports — ✅ DONE
 
 | Feature | Status |
 |---------|--------|
-| General Ledger | Done |
-| Profit & Loss Statement | Done |
-| Balance Sheet | Done |
-| Budget Tracker | Done |
-| Asset Register | Done |
-| Loan Tracker | Done |
-| Custom date range filtering | Done |
-| **Export to Excel (.xlsx)** | Done |
-| **Export to PDF** | Done |
-| **Export to CSV** (client-side) | Done |
-| **Export to JSON** (client-side) | Done |
+| General Ledger, P&L, Balance Sheet | Done |
+| Budget Tracker, Asset Register, Loan Tracker | Done |
+| Export to Excel, PDF, CSV, JSON | Done |
+
+### 8. Settings — ✅ DONE
+### 9. Data Security & Encryption — ✅ DONE
+### 10. Cross-Platform Polish — ✅ DONE
 
 ---
 
-### 8. Settings
+## API Surface (All routes prefixed with /api)
 
-| Feature | Status |
-|---------|--------|
-| Profile management | Done |
-| PIN change | Done |
-| Biometric toggle | Done |
-| Security reset | Done |
-| Accessed via gear icon on Dashboard | Done |
-
----
-
-### 9. Data Security & Encryption
-
-| Feature | Status |
-|---------|--------|
-| AES-256-GCM field-level encryption for all PII | Done |
-| Per-user Data Encryption Keys (DEK) | Done |
-| Encrypted fields: `full_name`, `dob`, `pan`, `aadhaar` | Done |
-| Encrypted fields: loan `account_number` | Done |
-| Gmail OAuth tokens encrypted at rest (`access_token`, `refresh_token`, `client_secret`) | Done |
-| Universal migration — encrypts ALL existing users on startup | Done |
-| Auto-decrypt in `get_current_user` middleware for seamless downstream use | Done |
-| `is_encrypted` flag in profile response | Done |
-
----
-
-### 9. Cross-Platform Polish
-
-| Item | Status |
-|------|--------|
-| Dark mode + Light mode with full theme consistency | Done |
-| iOS DateTimePicker — inline spinner with themeVariant inside modals | Done |
-| Android DateTimePicker — native dialog popup | Done |
-| iOS nested modal fix (TaxDeductionsModal detail view) | Done |
-| expo-file-system migration to legacy API for exports | Done |
-
----
-
-## API Surface (25+ Endpoints)
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/auth/login` | POST | User authentication |
-| `/api/auth/register` | POST | User registration |
-| `/api/dashboard/stats` | GET | Dashboard summary |
-| `/api/transactions` | GET/POST | List & create transactions |
-| `/api/transactions/{id}` | PUT/DELETE | Update & delete transactions |
-| `/api/holdings/live` | GET | Live holdings with current prices |
-| `/api/market-data` | GET | Indian market indices (force refresh supported) |
-| `/api/portfolio-overview` | GET | Portfolio value & returns |
-| `/api/portfolio-rebalancing` | GET | Rebalancing suggestions |
-| `/api/goals` | GET/POST | Financial goals |
-| `/api/risk-profile` | GET/POST | Risk assessment |
-| `/api/recurring` | GET | Recurring transactions |
-| `/api/tax-summary` | GET | Tax deduction summary |
-| `/api/capital-gains` | GET | Capital gains breakdown |
-| `/api/tax-calculator` | GET | Full tax computation (Old + New regime) |
-| `/api/user-tax-deductions` | GET/POST/PUT/DELETE | Manual tax deductions CRUD |
-| `/api/auto-tax-deductions` | GET | Auto-detected deductions (FY-filtered) |
-| `/api/auto-tax-deductions/{id}` | PUT/DELETE | Edit/dismiss auto deductions |
-| `/api/calculate-tax` | POST | Standalone tax calculation |
-| `/api/ai/chat` | POST | AI advisor conversation |
-| `/api/books/export/{report}/{format}` | GET | Export reports (Excel/PDF) |
-
----
-
-## App Navigation
-
-```
-Landing Page (intro)
-  ├── Log In → Dashboard
-  └── Sign Up → Security Setup → Dashboard
-
-Bottom Tab Navigation:
-  ├── Dashboard    (Home, Stats, Charts, Settings gear)
-  ├── Transactions (CRUD, Categories, Tax Hints)
-  ├── Insights     (Analytics, Trends)
-  ├── Invest       (Markets, Holdings, Goals, SIPs)
-  └── Tax          (Planning, Capital Gains, Calculator)
-
-Other Screens:
-  ├── Settings     (via gear icon on Dashboard)
-  ├── Books & Reports (via Insights or direct)
-  └── AI Visor     (floating chat, context-aware)
-```
-
----
-
-## Data Model (MongoDB Collections)
-
-| Collection | Purpose |
-|------------|---------|
-| `users` | User accounts, profile, encrypted PII |
-| `transactions` | All income/expense/investment entries |
-| `holdings` | Investment holdings with buy details |
-| `goals` | Financial targets with deadlines |
-| `market_data` | Cached live market prices |
-| `user_tax_deductions` | Manually added tax deductions |
-| `auto_tax_deductions` | Auto-detected deductions linked to transactions |
-| `risk_profiles` | User risk assessment results |
-| `assets` | Physical asset register |
-| `loans` | Loan tracking entries |
+All endpoints defined in modular route files under `/app/backend/routes/`.
+**Regression tested: 49/49 tests passed (100%) — Feb 21, 2026**
 
 ---
 
 ## Roadmap & Backlog
 
-### P0 — High Priority (Next Up)
-- **Data Source Integration**: Auto-import transactions by parsing Gmail and SMS messages
-- **Field-Level Encryption**: Encrypt all PII (Aadhaar, PAN, account numbers) at rest
+### P0 — Completed
+- ~~Backend Monolith Refactoring~~ ✅ (Feb 21, 2026)
+- ~~Full Regression Test~~ ✅ (Feb 21, 2026 — 49/49 passed)
+- ~~Field-Level Encryption~~ ✅
 
-### P1 — Medium Priority
-- Refactor `server.py` into modular route files (`routes/transactions.py`, `routes/tax.py`, `routes/ai.py`)
-- Break down large frontend files into smaller components
-- Enhanced AI advisor with portfolio-specific recommendations
+### P1 — Pending
+- Google OAuth `redirect_uri_mismatch` fix for Gmail auto-import
+- Frontend component refactoring (tax.tsx, investments.tsx)
+- User's upcoming "bigger task" (TBD)
 
-### P2 — Low Priority / Future
+### P2 — Future
 - Backend migration from Python/FastAPI to Node.js
-- Budget planning and forecasting
+- Enhanced auto-deduction engine
 - Multi-currency support
 - Family/household financial management
 - Bank statement PDF auto-parser
@@ -332,11 +203,10 @@ Other Screens:
 |---------|---------|--------|
 | yfinance | Nifty 50, SENSEX, Nifty Bank live prices | Active |
 | GoldAPI.io | Gold & Silver live prices | Active |
-| OpenAI GPT-4 | AI financial advisor | Active |
-| google-api-python-client | Gmail transaction parsing | Partial |
-| expo-local-authentication | Biometric auth (Fingerprint/Face ID) | Active |
+| OpenAI GPT-5.2 | AI financial advisor (via Emergent Key) | Active |
+| google-api-python-client | Gmail transaction parsing | Blocked (OAuth error) |
+| expo-local-authentication | Biometric auth | Active |
 | pdfplumber | Bank statement PDF parsing | Partial |
-| @react-native-community/datetimepicker | Native date selection | Active |
 
 ---
 
@@ -346,4 +216,4 @@ Other Screens:
 
 ---
 
-*Document last updated: February 20, 2026*
+*Document last updated: February 21, 2026*
