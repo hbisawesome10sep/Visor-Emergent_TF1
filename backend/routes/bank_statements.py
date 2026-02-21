@@ -1375,6 +1375,217 @@ def clean_union_description(raw_desc: str) -> str:
     return desc[:50] if len(desc) > 50 else desc
 
 
+def clean_kotak_description(raw_desc: str) -> str:
+    """Clean up Kotak Bank transaction description."""
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    
+    lower_desc = desc.lower()
+    
+    # Known merchants
+    known_merchants = {
+        'paytm': 'Paytm',
+        'phonepe': 'PhonePe',
+        'bajaj finance': 'Bajaj Finance',
+        'ullu digital': 'Ullu',
+        'cashfree': 'Cashfree',
+        'razorecom': 'Razorpay',
+    }
+    
+    # Check for known merchants
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            return f"UPI - {name}"
+    
+    # UPI format: UPI/Name/refno/Purpose
+    if desc.startswith('UPI/'):
+        parts = desc.split('/')
+        if len(parts) >= 2:
+            name = parts[1].strip()
+            if name and any(c.isalpha() for c in name):
+                return f"UPI - {name.title()}"
+        return "UPI Transfer"
+    
+    # IMPS
+    if desc.startswith('IMPS-') or desc.startswith('Recd:IMPS'):
+        parts = desc.replace('Recd:IMPS/', '').replace('IMPS-', '').split('/')
+        if parts:
+            name = parts[0].strip()
+            if name and any(c.isalpha() for c in name):
+                return f"IMPS - {name.title()}"
+        return "IMPS Transfer"
+    
+    # NEFT
+    if 'NEFT' in desc.upper():
+        parts = desc.split(' ')
+        for part in parts:
+            if len(part) > 5 and part.isupper() and part not in ('NEFT', 'NEFTINW'):
+                return f"NEFT - {part.title()}"
+        return "NEFT Transfer"
+    
+    # Own Transfer
+    if 'own transfer' in lower_desc:
+        return "Own Account Transfer"
+    
+    # Cash Deposit
+    if 'cash deposit' in lower_desc:
+        return "Cash Deposit"
+    
+    # OS (Online Services / Payment Gateway)
+    if desc.startswith('OS '):
+        merchant = desc[3:].split(' ')[0]
+        return f"Payment - {merchant.title()}"
+    
+    # Chrg / Charges
+    if desc.startswith('Chrg:') or desc.startswith('Rem Chrgs:'):
+        return "Bank Charges"
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_kotak_pdf(pdf, all_text: str) -> list:
+    """
+    Parse Kotak Bank PDF statement.
+    Supports two formats:
+    - Format 1 (Text-based): Date | Narration | Chq/Ref No | Amount(Dr/Cr) | Balance
+    - Format 2 (Table-based): # | TRANSACTION | DETAILS | REF | DEBIT | CREDIT | BALANCE
+    """
+    transactions = []
+    
+    # Try table-based parsing first (Format 2)
+    table_txns = parse_kotak_table_format(pdf)
+    if table_txns:
+        return table_txns
+    
+    # Fall back to text-based parsing (Format 1)
+    return parse_kotak_text_format(pdf, all_text)
+
+
+def parse_kotak_table_format(pdf) -> list:
+    """Parse Kotak Format 2 (table-based)."""
+    transactions = []
+    
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        
+        for table in tables:
+            if not table or len(table) < 2:
+                continue
+            
+            # Check if this is a transaction table
+            first_row = [str(c).lower() if c else "" for c in table[0]]
+            if 'transaction' not in ' '.join(first_row):
+                continue
+            
+            for row in table[1:]:
+                if not row or len(row) < 6:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
+                
+                # Skip header rows
+                if cleaned[0] == '#' or not cleaned[0]:
+                    continue
+                
+                # Parse date (column 1 - "DD Mon YYYY HH:MM AM/PM")
+                date_str = cleaned[1].split(' ')[0:3]  # Get "DD Mon YYYY"
+                date_str = ' '.join(date_str)
+                date = parse_date(date_str)
+                if not date:
+                    continue
+                
+                # Get description (column 2)
+                description = cleaned[2] if len(cleaned) > 2 else ""
+                if not description:
+                    continue
+                
+                # Get debit and credit (columns 4 and 5)
+                debit_str = cleaned[4] if len(cleaned) > 4 else ""
+                credit_str = cleaned[5] if len(cleaned) > 5 else ""
+                
+                # Kotak uses - prefix for debit and + prefix for credit
+                bank_debit = parse_amount(debit_str.replace('-', '').replace('+', ''))
+                bank_credit = parse_amount(credit_str.replace('-', '').replace('+', ''))
+                
+                if bank_debit == 0 and bank_credit == 0:
+                    continue
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_kotak_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
+def parse_kotak_text_format(pdf, all_text: str) -> list:
+    """Parse Kotak Format 1 (text-based)."""
+    transactions = []
+    
+    for page in pdf.pages:
+        text = page.extract_text()
+        if not text:
+            continue
+        
+        lines = text.split('\n')
+        i = 0
+        
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Check if line starts with a date (DD-MM-YYYY)
+            if re.match(r'^\d{2}-\d{2}-\d{4}', line):
+                # This is a transaction line
+                date_str = line[:10]
+                date = parse_date(date_str)
+                
+                if date:
+                    # Find amount - look for (Dr) or (Cr) pattern
+                    # Combine with next lines if needed (multi-line entries)
+                    full_line = line
+                    j = i + 1
+                    while j < len(lines) and j < i + 5:
+                        next_line = lines[j].strip()
+                        if re.match(r'^\d{2}-\d{2}-\d{4}', next_line):
+                            break
+                        if '(Dr)' in next_line or '(Cr)' in next_line:
+                            full_line += ' ' + next_line
+                            break
+                        full_line += ' ' + next_line
+                        j += 1
+                    
+                    # Extract amount with Dr/Cr
+                    amount_match = re.search(r'([\d,]+\.?\d*)\s*\((Dr|Cr)\)', full_line)
+                    if amount_match:
+                        amount = parse_amount(amount_match.group(1))
+                        is_credit = amount_match.group(2) == 'Cr'
+                        
+                        # Extract description (between date and amount)
+                        desc_end = full_line.find(amount_match.group(0))
+                        description = full_line[10:desc_end].strip()
+                        
+                        if amount > 0:
+                            if is_credit:
+                                bank_credit = amount
+                                bank_debit = 0
+                            else:
+                                bank_debit = amount
+                                bank_credit = 0
+                            
+                            transactions.append({
+                                'date': date,
+                                'description': clean_kotak_description(description),
+                                'bank_debit': bank_debit,
+                                'bank_credit': bank_credit,
+                            })
+            i += 1
+    
+    return transactions
+
+
 def parse_union_pdf(pdf, all_text: str) -> list:
     """
     Parse Union Bank PDF statement.
