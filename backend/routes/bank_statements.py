@@ -251,6 +251,7 @@ def clean_icici_description(raw_desc: str) -> str:
         'npci': 'NPCI Cashback',
         'yash bhati': 'Yash Bhati',
         'harsh bhat': 'Self Transfer',
+        'dinesh': 'Dinesh',
     }
     
     lower_desc = desc.lower()
@@ -259,6 +260,24 @@ def clean_icici_description(raw_desc: str) -> str:
     for key, name in known_merchants.items():
         if key in lower_desc:
             return f"UPI - {name}"
+    
+    # Handle descriptions that start with reference numbers (like MA/123...)
+    # and contain UPI/ somewhere later
+    if desc.startswith('MA/') or desc.startswith('L/'):
+        if 'upi/' in lower_desc:
+            parts = desc.split('/')
+            for i, part in enumerate(parts):
+                if part.upper() == 'UPI' and i+1 < len(parts):
+                    name = parts[i+1].strip()
+                    if name and len(name) > 2 and not name.startswith('@') and any(c.isalpha() for c in name):
+                        if name.lower().startswith('mr ') or name.lower().startswith('ms '):
+                            name = name[3:]
+                        return f"UPI - {name.title()}"
+        return "Bank Transfer"
+    
+    # Handle WITHDR (withdrawal) descriptions  
+    if desc.startswith('WITHDR'):
+        return "ATM/Cash Withdrawal"
     
     # Try to extract meaningful parts from UPI format
     # UPI format: UPI/Name/UPI_ID/Purpose/Bank/RefNo/...
