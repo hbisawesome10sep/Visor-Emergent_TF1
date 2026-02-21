@@ -42,6 +42,7 @@ SUPPORTED_BANKS = {
     "canara": ["canara", "canara bank"],
     "union": ["union", "union bank"],
     "idbi": ["idbi", "idbi bank"],
+    "indusind": ["indusind", "indusind bank"],
 }
 
 # Common date formats in Indian bank statements
