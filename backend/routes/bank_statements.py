@@ -853,7 +853,7 @@ async def upload_bank_statement(
             errors += 1
 
     return {
-        "message": f"Statement processed successfully",
+        "message": "Statement processed successfully",
         "bank_name": bank_name,
         "account_name": account_name,
         "bank_account_id": bank_account_id,
