@@ -245,7 +245,12 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
         if any(kw in desc for kw in keywords):
             return category, txn_type
     
-    # If no specific category found, return "Other"
+    # If this is a credit (money coming IN) and no specific category found,
+    # classify as "Transfer In" (income) rather than "Other" (expense)
+    if is_credit:
+        return "Transfer In", "income"
+    
+    # If no specific category found, return "Other" for debits
     # UPI app names (Cred, GPay, Paytm, PhonePe) are just intermediaries
     # and should NOT be used for categorization - they go to "Other"
     return "Other", "expense"
