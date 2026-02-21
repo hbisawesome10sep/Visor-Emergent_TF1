@@ -1624,4 +1624,14 @@ const styles = StyleSheet.create({
   cancelModalText: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '600' as any },
   confirmDeleteBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: Accent.ruby, alignItems: 'center' },
   confirmDeleteText: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700' as any, color: '#fff' },
+
+  // Upload Statement Styles
+  formatBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  uploadBtn: { borderRadius: 999, overflow: 'hidden' },
+  uploadBtnGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, height: 50, borderRadius: 999 },
+  uploadBtnText: { color: '#fff', fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any },
+  selectedFileCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, borderWidth: 1, width: '100%', marginTop: 8 },
+  resultCard: { width: '100%', borderRadius: 14, padding: 14, borderWidth: 1, marginTop: 16 },
+  resultRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)' },
+  resultBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, marginTop: 10 },
 });
