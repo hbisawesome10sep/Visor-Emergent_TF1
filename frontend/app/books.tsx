@@ -2376,6 +2376,7 @@ export default function BooksScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
           showsVerticalScrollIndicator={false}
         >
+          {activeTab === 'journal' && renderJournalTab()}
           {activeTab === 'ledger' && renderLedgerTab()}
           {activeTab === 'pnl' && renderPnLTab()}
           {activeTab === 'balance' && renderBalanceSheetTab()}
