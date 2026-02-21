@@ -1404,7 +1404,7 @@ export default function BooksScreen() {
     setExporting(true);
     try {
       const dateRange = getDateRange();
-      const pdfUrl = `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/journal/ledger/${encodeURIComponent(accountName)}/pdf?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+      const pdfUrl = `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/journal/ledger-pdf/${encodeURIComponent(accountName)}?start_date=${dateRange.start}&end_date=${dateRange.end}`;
 
       if (Platform.OS !== 'web') {
         const filename = `Ledger_${accountName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
