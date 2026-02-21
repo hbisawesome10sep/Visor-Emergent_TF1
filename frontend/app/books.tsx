@@ -452,6 +452,8 @@ export default function BooksScreen() {
         current_value: parseFloat(assetForm.current_value || assetForm.purchase_value),
         depreciation_rate: parseFloat(assetForm.depreciation_rate || '10'),
         notes: assetForm.notes || null,
+        payment_mode: assetForm.payment_mode || 'cash',
+        payment_account_name: assetForm.payment_account_name || 'Cash',
       };
       
       if (editingAsset) {
