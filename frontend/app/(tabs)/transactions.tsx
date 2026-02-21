@@ -48,6 +48,12 @@ type Transaction = {
   description: string; date: string; created_at: string;
   is_recurring?: boolean; recurring_frequency?: string;
   is_split?: boolean; split_count?: number; notes?: string;
+  payment_mode?: string; payment_account_name?: string;
+};
+
+type BankAccount = {
+  id: string; bank_name: string; account_name: string;
+  account_number: string; ifsc_code: string; is_default: boolean;
 };
 
 // ── Date helpers ──
