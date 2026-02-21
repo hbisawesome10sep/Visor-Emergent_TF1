@@ -1364,6 +1364,229 @@ export default function BooksScreen() {
     },
   });
 
+  // ═══ Fetch individual ledger ═══
+  const fetchIndividualLedger = useCallback(async (accountName: string) => {
+    if (!token) return;
+    setLoadingLedger(true);
+    try {
+      const dateRange = getDateRange();
+      const data = await apiRequest(`/journal/ledger/${encodeURIComponent(accountName)}?start_date=${dateRange.start}&end_date=${dateRange.end}`, { token });
+      setIndividualLedger(data);
+      setSelectedLedgerAccount(accountName);
+    } catch (e) {
+      console.error('Error fetching individual ledger:', e);
+    } finally {
+      setLoadingLedger(false);
+    }
+  }, [token, getDateRange]);
+
+  // ═══ Export individual ledger as PDF ═══
+  const exportIndividualLedgerPDF = async (accountName: string) => {
+    if (!token) return;
+    setExporting(true);
+    try {
+      const dateRange = getDateRange();
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/journal/ledger/${encodeURIComponent(accountName)}?start_date=${dateRange.start}&end_date=${dateRange.end}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await response.json();
+      // Build CSV content for sharing (PDF requires server-side generation)
+      let csv = `"Ledger Account: ${accountName}"\n`;
+      csv += `"Type: ${data.account_type} | Group: ${data.account_group}"\n`;
+      csv += `"Period: ${dateRange.start} to ${dateRange.end}"\n\n`;
+      csv += 'Date,Entry#,Narration,Contra Account,Debit,Credit,Balance\n';
+      (data.entries || []).forEach((e: any) => {
+        csv += `${e.date},${e.entry_number},"${e.narration}","${e.contra_account}",${e.debit.toFixed(2)},${e.credit.toFixed(2)},${e.balance.toFixed(2)}\n`;
+      });
+      csv += `\n"Total","","","",${data.total_debit.toFixed(2)},${data.total_credit.toFixed(2)},${data.closing_balance.toFixed(2)}\n`;
+      const filename = `Ledger_${accountName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}`;
+      if (Platform.OS !== 'web') {
+        const fileUri = FileSystem.documentDirectory + filename + '.csv';
+        await FileSystem.writeAsStringAsync(fileUri, csv);
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, { mimeType: 'text/csv', dialogTitle: `Share ${accountName} Ledger` });
+        }
+      } else {
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename + '.csv';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to export ledger');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // ═══ JOURNAL TAB ═══
+  const renderJournalTab = () => {
+    if (journalEntries.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <MaterialCommunityIcons name="book-edit" size={48} color={colors.textSecondary} />
+          <Text style={styles.emptyStateText}>No journal entries found</Text>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', textAlign: 'center', marginTop: 4 }}>
+            Journal entries are auto-created when you add transactions
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View data-testid="journal-tab-content" style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, color: colors.textSecondary, fontFamily: 'DM Sans' }}>
+            {journalTotal} {journalTotal === 1 ? 'entry' : 'entries'}
+          </Text>
+        </View>
+
+        {journalEntries.map((entry: any) => (
+          <View key={entry.id} data-testid={`journal-entry-${entry.entry_number}`}
+            style={{
+              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              borderRadius: 12, padding: 14, marginBottom: 10,
+              borderWidth: 1, borderColor: colors.border + '40',
+            }}>
+            {/* Header */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.1)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                  <Text style={{ fontSize: 11, color: '#6366F1', fontFamily: 'DM Sans', fontWeight: '700' }}>#{entry.entry_number}</Text>
+                </View>
+                <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans' }}>{formatIndianDate(entry.date)}</Text>
+              </View>
+              <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                <Text style={{ fontSize: 10, color: colors.textSecondary, fontFamily: 'DM Sans', textTransform: 'capitalize' }}>{entry.reference_type}</Text>
+              </View>
+            </View>
+
+            {/* Debit / Credit Entries */}
+            {(entry.entries || []).map((line: any, idx: number) => (
+              <View key={idx} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4, paddingLeft: line.credit > 0 ? 20 : 0 }}>
+                <Text style={{ flex: 1, fontSize: 13, color: colors.textPrimary, fontFamily: 'DM Sans' }}>
+                  {line.credit > 0 ? 'To ' : ''}{line.account_name}
+                  <Text style={{ fontSize: 10, color: colors.textSecondary }}> ({line.account_type})</Text>
+                </Text>
+                <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600', color: line.debit > 0 ? (isDark ? '#60A5FA' : '#2563EB') : (isDark ? '#F87171' : '#DC2626'), minWidth: 80, textAlign: 'right' }}>
+                  {formatINRIndian(line.debit > 0 ? line.debit : line.credit)}
+                </Text>
+              </View>
+            ))}
+
+            {/* Narration */}
+            <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border + '30' }}>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontStyle: 'italic' }}>
+                Narration: {entry.narration}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // ═══ INDIVIDUAL LEDGER VIEW ═══
+  const renderIndividualLedger = () => {
+    if (!individualLedger) return null;
+    return (
+      <View data-testid="individual-ledger-view" style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
+        {/* Back + Export buttons */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <TouchableOpacity
+            data-testid="ledger-back-btn"
+            onPress={() => { setSelectedLedgerAccount(null); setIndividualLedger(null); }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={20} color={colors.primary} />
+            <Text style={{ fontSize: 14, color: colors.primary, fontFamily: 'DM Sans', fontWeight: '600' }}>All Accounts</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            data-testid="export-individual-ledger-btn"
+            onPress={() => exportIndividualLedgerPDF(individualLedger.account_name)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
+          >
+            <MaterialCommunityIcons name="download" size={16} color="#6366F1" />
+            <Text style={{ fontSize: 12, color: '#6366F1', fontFamily: 'DM Sans', fontWeight: '600' }}>Export</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Account Header */}
+        <View style={{
+          backgroundColor: isDark ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.06)',
+          borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#6366F1' + '30',
+        }}>
+          <Text style={{ fontSize: 18, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '700', marginBottom: 4 }}>
+            {individualLedger.account_name}
+          </Text>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans' }}>
+            {individualLedger.account_type} Account • {individualLedger.account_group}
+          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+            <View>
+              <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Total Debit</Text>
+              <Text style={{ fontSize: 16, color: isDark ? '#60A5FA' : '#2563EB', fontFamily: 'DM Sans', fontWeight: '700' }}>
+                {formatINRIndian(individualLedger.total_debit)}
+              </Text>
+            </View>
+            <View>
+              <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Total Credit</Text>
+              <Text style={{ fontSize: 16, color: isDark ? '#F87171' : '#DC2626', fontFamily: 'DM Sans', fontWeight: '700' }}>
+                {formatINRIndian(individualLedger.total_credit)}
+              </Text>
+            </View>
+            <View>
+              <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans' }}>Balance</Text>
+              <Text style={{ fontSize: 16, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '700' }}>
+                {formatINRIndian(individualLedger.closing_balance)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Ledger Table Header */}
+        <View style={{ flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 8, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderRadius: 8, marginBottom: 4 }}>
+          <Text style={{ flex: 2, fontSize: 10, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '700' }}>DATE</Text>
+          <Text style={{ flex: 4, fontSize: 10, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '700' }}>PARTICULARS</Text>
+          <Text style={{ flex: 2, fontSize: 10, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '700', textAlign: 'right' }}>DEBIT</Text>
+          <Text style={{ flex: 2, fontSize: 10, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '700', textAlign: 'right' }}>CREDIT</Text>
+          <Text style={{ flex: 2, fontSize: 10, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '700', textAlign: 'right' }}>BALANCE</Text>
+        </View>
+
+        {/* Ledger Rows */}
+        {(individualLedger.entries || []).map((entry: any, idx: number) => (
+          <View key={idx} style={{
+            flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 8,
+            borderBottomWidth: 1, borderBottomColor: colors.border + '20',
+          }}>
+            <Text style={{ flex: 2, fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans' }}>{formatIndianDate(entry.date)}</Text>
+            <View style={{ flex: 4 }}>
+              <Text style={{ fontSize: 11, color: colors.textPrimary, fontFamily: 'DM Sans' }} numberOfLines={2}>{entry.contra_account || entry.narration}</Text>
+            </View>
+            <Text style={{ flex: 2, fontSize: 11, color: entry.debit > 0 ? (isDark ? '#60A5FA' : '#2563EB') : colors.textSecondary, fontFamily: 'DM Sans', fontWeight: entry.debit > 0 ? '600' : '400', textAlign: 'right' }}>
+              {entry.debit > 0 ? formatINRIndian(entry.debit) : '-'}
+            </Text>
+            <Text style={{ flex: 2, fontSize: 11, color: entry.credit > 0 ? (isDark ? '#F87171' : '#DC2626') : colors.textSecondary, fontFamily: 'DM Sans', fontWeight: entry.credit > 0 ? '600' : '400', textAlign: 'right' }}>
+              {entry.credit > 0 ? formatINRIndian(entry.credit) : '-'}
+            </Text>
+            <Text style={{ flex: 2, fontSize: 11, color: colors.textPrimary, fontFamily: 'DM Sans', fontWeight: '600', textAlign: 'right' }}>
+              {formatINRIndian(entry.balance)}
+            </Text>
+          </View>
+        ))}
+
+        {(individualLedger.entries || []).length === 0 && (
+          <View style={{ alignItems: 'center', paddingVertical: 30 }}>
+            <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans' }}>No entries in this period</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderLedgerTab = () => {
     if (!ledgerData) return null;
     const accounts = Object.entries(ledgerData.accounts);
