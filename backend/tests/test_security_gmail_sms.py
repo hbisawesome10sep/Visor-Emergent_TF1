@@ -12,7 +12,7 @@ import sys
 # Add backend to path for encryption module testing
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://fintrack-india-14.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://account-books.preview.emergentagent.com')
 TEST_EMAIL = "rajesh@visor.demo"
 TEST_PASSWORD = "Demo@123"
 

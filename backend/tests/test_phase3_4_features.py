@@ -18,7 +18,7 @@ import os
 import time
 import urllib.parse
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fintrack-india-14.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://account-books.preview.emergentagent.com')
 TEST_EMAIL = "rajesh@visor.demo"
 TEST_PASSWORD = "Demo@123"
 
