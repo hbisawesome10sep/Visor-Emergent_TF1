@@ -458,25 +458,178 @@ def parse_icici_pdf_text(all_text: str) -> list:
     } for t in transactions]
 
 
-def parse_pdf_statement(file_bytes: bytes) -> list:
-    """Parse a PDF bank statement using pdfplumber."""
+def clean_sbi_description(raw_desc: str) -> str:
+    """Clean up SBI transaction description by extracting key info."""
+    desc = raw_desc.strip()
+    
+    # Known merchants
+    known_merchants = {
+        'zepto': 'Zepto',
+        'zomato': 'Zomato',
+        'swiggy': 'Swiggy',
+        'amazon': 'Amazon',
+        'flipkart': 'Flipkart',
+        'paytm': 'Paytm',
+        'phonepe': 'PhonePe',
+        'gpay': 'Google Pay',
+        'netflix': 'Netflix',
+        'spotify': 'Spotify',
+        'uber': 'Uber',
+        'ola': 'Ola',
+        'rapido': 'Rapido',
+        'blinkit': 'Blinkit',
+    }
+    
+    lower_desc = desc.lower()
+    
+    # Check for known merchants
+    for key, name in known_merchants.items():
+        if key in lower_desc:
+            return f"UPI - {name}"
+    
+    # SBI UPI format: UPI/CR/refno/Name/BankCode/upiid/...
+    # or UPI/DR/refno/Name/BankCode/upiid/...
+    if 'upi/' in lower_desc:
+        parts = desc.split('/')
+        # Find the name - usually after CR or DR and ref number
+        for i, part in enumerate(parts):
+            if part.upper() in ('CR', 'DR') and i+2 < len(parts):
+                # Skip the reference number (all digits)
+                name_part = parts[i+2].strip()
+                if name_part and not name_part.isdigit() and len(name_part) > 2:
+                    # Clean the name
+                    name_part = name_part.title()
+                    return f"UPI - {name_part}"
+    
+    # NEFT/RTGS/IMPS transfers
+    if 'neft' in lower_desc:
+        return "NEFT Transfer"
+    if 'rtgs' in lower_desc:
+        return "RTGS Transfer"
+    if 'imps' in lower_desc:
+        return "IMPS Transfer"
+    
+    # ATM withdrawal
+    if 'atm' in lower_desc or 'cash wdl' in lower_desc:
+        return "ATM Withdrawal"
+    
+    # Interest credit
+    if 'int' in lower_desc and ('cr' in lower_desc or 'credit' in lower_desc):
+        return "Interest Credit"
+    
+    # DEP TFR / WDL TFR - strip these prefixes
+    if desc.startswith('DEP TFR'):
+        desc = desc[7:].strip()
+    elif desc.startswith('WDL TFR'):
+        desc = desc[7:].strip()
+    
+    # Return first 50 chars
+    return desc[:50] if len(desc) > 50 else desc
+
+
+def parse_sbi_pdf(pdf, all_text: str) -> list:
+    """
+    Parse SBI Bank PDF statement.
+    SBI format: Uses table extraction with columns:
+    Txn Date | Value Date | Description | Ref/Cheque | Debit | Credit | Balance
+    """
+    transactions = []
+    
+    # SBI uses table extraction
+    for page in pdf.pages:
+        tables = page.extract_tables()
+        for table in tables:
+            for row in table:
+                if not row or len(row) < 6:
+                    continue
+                
+                # Clean the row
+                cleaned = [str(cell).strip().replace('\n', ' ') if cell else "" for cell in row]
+                
+                # Skip header rows
+                if any(h in cleaned[0].lower() for h in ['date', 'txn', 'balance', '']):
+                    if 'balance' in ' '.join(cleaned).lower():
+                        continue
+                
+                # Try to parse date from first column
+                date = parse_date(cleaned[0])
+                if not date:
+                    continue
+                
+                # Get description (usually 3rd column)
+                description = cleaned[2] if len(cleaned) > 2 else ""
+                if not description:
+                    continue
+                
+                # Get debit and credit (columns 4 and 5 typically)
+                # SBI format: col 4 = debit, col 5 = credit (or col 3 = debit, col 4 = credit)
+                debit_col = 4 if len(cleaned) > 5 else 3
+                credit_col = 5 if len(cleaned) > 5 else 4
+                
+                bank_debit = parse_amount(cleaned[debit_col]) if len(cleaned) > debit_col else 0
+                bank_credit = parse_amount(cleaned[credit_col]) if len(cleaned) > credit_col else 0
+                
+                if bank_debit == 0 and bank_credit == 0:
+                    continue
+                
+                transactions.append({
+                    'date': date,
+                    'description': clean_sbi_description(description),
+                    'bank_debit': bank_debit,
+                    'bank_credit': bank_credit,
+                })
+    
+    return transactions
+
+
+def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str = "") -> list:
+    """
+    Parse a PDF bank statement using pdfplumber.
+    Supports password-protected PDFs.
+    
+    Args:
+        file_bytes: PDF file content
+        password: Optional password for encrypted PDFs
+        bank_hint: User-provided bank name hint for parser selection
+    """
     import pdfplumber
     transactions = []
-
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        # First, try to extract all text for text-based parsing (for ICICI-style statements)
+    
+    # Try to open PDF, with or without password
+    try:
+        if password:
+            pdf = pdfplumber.open(io.BytesIO(file_bytes), password=password)
+        else:
+            pdf = pdfplumber.open(io.BytesIO(file_bytes))
+    except Exception as e:
+        error_str = str(e).lower()
+        if 'password' in error_str or 'encrypted' in error_str:
+            raise ValueError("This PDF is password-protected. Please provide the password.")
+        raise ValueError(f"Could not open PDF: {str(e)}")
+    
+    with pdf:
+        # Extract all text for bank detection
         all_text = ""
         for page in pdf.pages:
             text = page.extract_text()
             if text:
                 all_text += text + "\n"
         
-        # Check if this is an ICICI statement (look for ICICI markers and transaction patterns)
-        is_icici = "icici" in all_text.lower() and ("statement of transactions" in all_text.lower() or "transaction remarks" in all_text.lower())
-        if is_icici:
+        # Detect bank
+        bank = detect_bank(bank_hint, all_text)
+        logger.info(f"Detected bank: {bank}")
+        
+        # Use bank-specific parser
+        if bank == "sbi":
+            transactions = parse_sbi_pdf(pdf, all_text)
+            if transactions:
+                logger.info(f"Parsed {len(transactions)} transactions using SBI parser")
+                return transactions
+        
+        elif bank == "icici":
             icici_txns = parse_icici_pdf_text(all_text)
             if icici_txns:
-                logger.info(f"Parsed {len(icici_txns)} transactions using ICICI text parser")
+                logger.info(f"Parsed {len(icici_txns)} transactions using ICICI parser")
                 return icici_txns
         
         # Standard table-based parsing for other banks
