@@ -76,20 +76,21 @@ function getMetricStatus(value: number, target: number, isInverted: boolean = fa
 }
 
 function getStatusColor(status: 'excellent' | 'good' | 'fair' | 'critical'): string {
+  // Use muted, professional colors instead of harsh red/green/yellow
   switch (status) {
-    case 'excellent': return Accent.emerald;
+    case 'excellent': return Accent.sapphire;  // Blue instead of green
     case 'good': return Accent.teal;
-    case 'fair': return Accent.amber;
-    case 'critical': return Accent.ruby;
+    case 'fair': return Accent.amethyst;       // Purple instead of yellow
+    case 'critical': return '#64748B';         // Slate gray instead of red
   }
 }
 
 function getStatusLabel(status: 'excellent' | 'good' | 'fair' | 'critical'): string {
   switch (status) {
-    case 'excellent': return 'Excellent';
+    case 'excellent': return 'On Track';
     case 'good': return 'Good';
-    case 'fair': return 'Fair';
-    case 'critical': return 'Critical';
+    case 'fair': return 'Review';
+    case 'critical': return 'Needs Data';
   }
 }
 
