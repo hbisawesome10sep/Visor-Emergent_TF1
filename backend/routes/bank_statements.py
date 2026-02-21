@@ -603,9 +603,15 @@ def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str 
             pdf = pdfplumber.open(io.BytesIO(file_bytes))
     except Exception as e:
         error_str = str(e).lower()
-        if 'password' in error_str or 'encrypted' in error_str:
-            raise ValueError("This PDF is password-protected. Please provide the password.")
-        raise ValueError(f"Could not open PDF: {str(e)}")
+        error_type = type(e).__name__
+        
+        # Check for password-protected PDF
+        if 'password' in error_str or 'encrypted' in error_str or 'pdfminer' in error_type.lower():
+            if not password:
+                raise ValueError("This PDF is password-protected. Please provide the password in the 'PDF Password' field.")
+            else:
+                raise ValueError("Incorrect PDF password. Please check and try again.")
+        raise ValueError(f"Could not open PDF: {str(e) or 'Unknown error'}")
     
     with pdf:
         # Extract all text for bank detection
