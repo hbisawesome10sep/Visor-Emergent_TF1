@@ -1,0 +1,149 @@
+{
+  "summary": "Full Backend Regression Test After Modular Refactoring - 49/49 tests passed (100%). All backend routes working correctly after refactoring from monolithic server.py to modular route files.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/risk-profile POST", "issue": "Test data format correction needed - 'answers' field must be a list, not a dict (fixed in test)", "priority": "LOW"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "note": "Frontend testing skipped per request - backend only regression test"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_modular_refactor.py",
+    "/app/backend/tests/test_full_regression.py",
+    "/app/test_reports/pytest/pytest_complete_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Refactoring successful - all 16 route modules imported correctly into server.py",
+    "All CRUD operations verified: transactions, goals, holdings, loans, recurring, assets, user-tax-deductions",
+    "Auth flow working: login, register (with validation), profile",
+    "AI Chat working with emergent LLM integration",
+    "Market data live price fetching working (yfinance + GoldAPI)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_modular_refactor.py",
+    "/app/backend/tests/test_full_regression.py"
+  ],
+  "success_rate": {
+    "backend": "100% (49/49 tests passed)",
+    "frontend": "N/A - skipped per request"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "seed_data_creation": "None - used existing demo data. New test users created during registration tests are prefixed with test_reg_ and test_refactor_",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All backend APIs verified working after refactoring. Routes tested: auth (login/register/profile), transactions CRUD, goals CRUD, dashboard/stats, health-score, tax-summary, capital-gains, tax-calculator, holdings CRUD, loans CRUD, recurring CRUD, market-data, portfolio-overview, assets CRUD, risk-profile, bookkeeping (ledger/pnl/balance-sheet), ai/chat, ai/history, user-tax-deductions CRUD, auto-tax-deductions. Health endpoint returns healthy status.",
+  "api_endpoints_tested": {
+    "auth_module": [
+      "POST /api/auth/login - PASS",
+      "POST /api/auth/register - PASS (with validation for duplicate email, invalid PAN/Aadhaar)",
+      "GET /api/auth/profile - PASS"
+    ],
+    "transactions_module": [
+      "GET /api/transactions - PASS",
+      "GET /api/transactions?type=income - PASS",
+      "POST /api/transactions - PASS",
+      "PUT /api/transactions/{id} - PASS",
+      "DELETE /api/transactions/{id} - PASS"
+    ],
+    "goals_module": [
+      "GET /api/goals - PASS",
+      "POST /api/goals - PASS",
+      "PUT /api/goals/{id} - PASS",
+      "DELETE /api/goals/{id} - PASS"
+    ],
+    "dashboard_module": [
+      "GET /api/dashboard/stats - PASS",
+      "GET /api/dashboard/stats?start_date&end_date - PASS",
+      "GET /api/health-score - PASS"
+    ],
+    "tax_module": [
+      "GET /api/tax-summary - PASS",
+      "GET /api/capital-gains - PASS",
+      "GET /api/tax-calculator - PASS",
+      "GET /api/tax-calculator?fy=2024-25 - PASS",
+      "GET /api/user-tax-deductions - PASS",
+      "POST /api/user-tax-deductions - PASS",
+      "PUT /api/user-tax-deductions/{id} - PASS",
+      "DELETE /api/user-tax-deductions/{id} - PASS",
+      "GET /api/auto-tax-deductions - PASS",
+      "GET /api/auto-tax-deductions?fy=2024-25 - PASS"
+    ],
+    "holdings_module": [
+      "GET /api/holdings - PASS",
+      "POST /api/holdings - PASS",
+      "PUT /api/holdings/{id} - PASS",
+      "DELETE /api/holdings/{id} - PASS"
+    ],
+    "loans_module": [
+      "GET /api/loans - PASS",
+      "POST /api/loans - PASS",
+      "GET /api/loans/{id} - PASS (with EMI schedule)",
+      "PUT /api/loans/{id} - PASS",
+      "DELETE /api/loans/{id} - PASS"
+    ],
+    "recurring_module": [
+      "GET /api/recurring - PASS",
+      "POST /api/recurring - PASS",
+      "PUT /api/recurring/{id} - PASS",
+      "POST /api/recurring/{id}/pause - PASS",
+      "DELETE /api/recurring/{id} - PASS"
+    ],
+    "market_data_module": [
+      "GET /api/market-data - PASS (public)",
+      "POST /api/market-data/refresh - PASS"
+    ],
+    "portfolio_module": [
+      "GET /api/portfolio-overview - PASS"
+    ],
+    "assets_module": [
+      "GET /api/assets - PASS",
+      "POST /api/assets - PASS",
+      "PUT /api/assets/{id} - PASS",
+      "DELETE /api/assets/{id} - PASS"
+    ],
+    "risk_profile_module": [
+      "GET /api/risk-profile - PASS",
+      "POST /api/risk-profile - PASS"
+    ],
+    "bookkeeping_module": [
+      "GET /api/books/ledger - PASS",
+      "GET /api/books/pnl - PASS",
+      "GET /api/books/balance-sheet - PASS"
+    ],
+    "ai_chat_module": [
+      "POST /api/ai/chat - PASS",
+      "GET /api/ai/history - PASS"
+    ],
+    "health_endpoint": [
+      "GET /api/health - PASS"
+    ]
+  },
+  "routes_files_verified": [
+    "/app/backend/routes/auth.py",
+    "/app/backend/routes/transactions.py",
+    "/app/backend/routes/goals.py",
+    "/app/backend/routes/dashboard.py",
+    "/app/backend/routes/tax.py",
+    "/app/backend/routes/holdings.py",
+    "/app/backend/routes/loans.py",
+    "/app/backend/routes/recurring.py",
+    "/app/backend/routes/market_data.py",
+    "/app/backend/routes/portfolio.py",
+    "/app/backend/routes/assets.py",
+    "/app/backend/routes/risk_profile.py",
+    "/app/backend/routes/bookkeeping.py",
+    "/app/backend/routes/ai_chat.py",
+    "/app/backend/routes/ai_advisor.py",
+    "/app/backend/routes/gmail.py"
+  ],
+  "mocked_apis": "None - all APIs are real implementations with live data (yfinance for market data, emergent LLM for AI chat)"
+}
