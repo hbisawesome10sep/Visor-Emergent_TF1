@@ -10,7 +10,7 @@ import os
 from datetime import datetime, timedelta
 
 # Base URL from environment
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://finvizor-3.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://finance-hub-690.preview.emergentagent.com')
 
 # Test credentials
 TEST_EMAIL = "rajesh@visor.demo"
