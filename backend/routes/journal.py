@@ -49,7 +49,6 @@ ACCOUNT_TYPE_MAP = {
     "Education": ("Nominal", "Expense"),
     "EMI": ("Nominal", "Expense"),
     "Loan Repayment": ("Nominal", "Expense"),
-    "Credit Card Payment": ("Nominal", "Expense"),
     "Subscriptions": ("Nominal", "Expense"),
     "Personal Care": ("Nominal", "Expense"),
     "Clothing": ("Nominal", "Expense"),
