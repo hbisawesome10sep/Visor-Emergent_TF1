@@ -219,6 +219,119 @@ export default function SettingsScreen() {
     }
   };
 
+  // ═══ BANKING TAB ═══
+  const BankingTab = () => {
+    const filteredBanks = bankSearch
+      ? banksList.filter(b => b.toLowerCase().includes(bankSearch.toLowerCase()))
+      : banksList;
+
+    return (
+      <View data-testid="banking-tab">
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)' }]}>
+              <MaterialCommunityIcons name="bank" size={22} color={Accent.sapphire} />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Bank Accounts</Text>
+          </View>
+
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 16, lineHeight: 20 }}>
+            Add your bank accounts to track payments and receipts. Set a default account for transactions.
+          </Text>
+
+          {/* Bank Account Cards */}
+          {bankAccounts.map(bank => (
+            <View key={bank.id} data-testid={`bank-card-${bank.id}`} style={[styles.toggleRow, { borderColor: bank.is_default ? Accent.sapphire : colors.border, marginBottom: 10 }]}>
+              <View style={[styles.toggleIconWrap, { backgroundColor: bank.is_default ? 'rgba(59,130,246,0.15)' : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+                <MaterialCommunityIcons name="bank" size={20} color={bank.is_default ? Accent.sapphire : colors.textSecondary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>{bank.account_name}</Text>
+                  {bank.is_default && (
+                    <View style={{ backgroundColor: 'rgba(59,130,246,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 9, color: Accent.sapphire, fontWeight: '700', fontFamily: 'DM Sans' }}>DEFAULT</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>{bank.bank_name}</Text>
+                {bank.account_number && (
+                  <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2 }}>
+                    A/c: ****{bank.account_number.slice(-4)}
+                  </Text>
+                )}
+              </View>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {!bank.is_default && (
+                  <TouchableOpacity onPress={() => setDefaultBank(bank.id)} style={{ padding: 6 }} data-testid={`set-default-${bank.id}`}>
+                    <MaterialCommunityIcons name="star-outline" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => {
+                  setEditingBank(bank);
+                  setBankForm({
+                    bank_name: bank.bank_name,
+                    account_name: bank.account_name,
+                    account_number: bank.account_number || '',
+                    ifsc_code: bank.ifsc_code || '',
+                    is_default: bank.is_default,
+                  });
+                  setShowBankModal(true);
+                }} style={{ padding: 6 }} data-testid={`edit-bank-${bank.id}`}>
+                  <MaterialCommunityIcons name="pencil" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteBankAccount(bank.id, bank.account_name)} style={{ padding: 6 }} data-testid={`delete-bank-${bank.id}`}>
+                  <MaterialCommunityIcons name="trash-can-outline" size={18} color={Accent.ruby} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          {bankAccounts.length === 0 && (
+            <View style={{ alignItems: 'center', paddingVertical: 20, opacity: 0.6 }}>
+              <MaterialCommunityIcons name="bank-off" size={40} color={colors.textSecondary} />
+              <Text style={{ fontSize: 14, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 8 }}>No bank accounts added</Text>
+            </View>
+          )}
+
+          {/* Add Bank Account Button */}
+          <TouchableOpacity
+            data-testid="add-bank-account-btn"
+            style={[styles.syncBtn, { borderColor: Accent.sapphire, marginTop: 12 }]}
+            onPress={() => {
+              setEditingBank(null);
+              setBankForm({ bank_name: '', account_name: '', account_number: '', ifsc_code: '', is_default: false });
+              setBankSearch('');
+              setShowBankPicker(false);
+              setShowBankModal(true);
+            }}
+          >
+            <MaterialCommunityIcons name="plus" size={20} color={Accent.sapphire} />
+            <Text style={[styles.syncBtnText, { color: Accent.sapphire }]}>Add Bank Account</Text>
+          </TouchableOpacity>
+
+          {/* Delete All Button */}
+          {bankAccounts.length > 1 && (
+            <TouchableOpacity
+              data-testid="delete-all-banks-btn"
+              style={{ alignItems: 'center', marginTop: 12, paddingVertical: 10 }}
+              onPress={deleteAllBankAccounts}
+            >
+              <Text style={{ fontSize: 13, color: Accent.ruby, fontFamily: 'DM Sans', fontWeight: '600' }}>Delete All Bank Accounts</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={[styles.futureFeature, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', marginTop: 8 }]}>
+          <MaterialCommunityIcons name="clock-outline" size={18} color={colors.textSecondary} />
+          <Text style={[styles.futureText, { color: colors.textSecondary }]}>
+            Coming soon: Auto-fetch bank accounts via registered mobile number (pending government approval)
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   // ═══ ACCOUNT TAB ═══
   const AccountTab = () => (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
