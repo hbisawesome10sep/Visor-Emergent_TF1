@@ -388,6 +388,18 @@ export default function BooksScreen() {
     }).start();
   }, [fetchData, fadeAnim]);
 
+  // Fetch bank accounts for asset payment mode
+  useEffect(() => {
+    if (!token) return;
+    (async () => {
+      try {
+        const data = await apiRequest('/bank-accounts', { token });
+        setBankAccountsForBooks(data || []);
+      } catch {}
+    })();
+  }, [token]);
+
+
   // Refetch when date preset changes
   useEffect(() => {
     if (!loading) {
