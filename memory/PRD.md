@@ -56,6 +56,15 @@
 - Auto-create transactions + journal entries
 - Duplicate detection to prevent re-imports
 - Frontend UI in Settings → Banking tab with file picker and upload modal
+- **Progress indicator** with Upload → Parse → Done phases
+
+### Frontend Component Refactoring — ✅ DONE (Feb 21, 2026)
+- **tax.tsx**: Reduced from 878 to 683 lines (~22% reduction)
+  - Extracted `CalcRow`, `UserDeductionsSection`, `AutoDeductionsSection`, `CapitalGainsSection`
+  - All components in `/app/frontend/src/components/tax/`
+- **investments.tsx**: Component files created but not integrated (to avoid breaking changes)
+  - Created `MarketTickerBar`, `GoalsSection` in `/app/frontend/src/components/investments/`
+  - Ready for future integration
 
 ### Bug Fixes Applied (Feb 21, 2026)
 - Fixed `GET /api/holdings/live` (405 → 200)
@@ -83,9 +92,31 @@
 - Bank Statement Upload: POST `/api/bank-statements/upload` (multipart/form-data)
 - Import History: GET `/api/bank-statements/history`
 
+### Gmail OAuth Endpoints
+- Auth URL: GET `/api/gmail/auth-url`
+- Callback: GET `/api/gmail/callback`
+- Status: GET `/api/gmail/status`
+
+---
+
+## Google OAuth Configuration
+
+**Redirect URI to add in Google Cloud Console:**
+```
+https://accounting-suite-16.preview.emergentagent.com/api/gmail/callback
+```
+
+Steps:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Navigate to **APIs & Services** → **Credentials**
+3. Click on your OAuth 2.0 Client ID
+4. Under "Authorized redirect URIs", add the above URL
+5. Click **Save**
+
 ---
 
 ## Test Results
+- **Frontend Refactoring (Feb 21, 2026)**: 100% frontend tests passed
 - **Phase 5 (Feb 21, 2026)**: 12/13 backend tests passed, Frontend UI verified
 - **Phase 3+4 (Feb 21, 2026)**: 24/24 backend tests passed
 - **Phase 1+2 (Feb 21, 2026)**: 25/25 backend tests passed
@@ -97,18 +128,13 @@
 ---
 
 ## Upcoming/Future Tasks
-1. **Frontend for Bank Statement Upload Enhancements** — P2
-   - Add file drag-and-drop support (web)
-   - Show import progress for large files
-   
-2. **Frontend Component Refactoring** — P2
-   - Break down large screen components (tax.tsx, investments.tsx)
-   
-3. **Google OAuth Fix** — P2 (Blocked)
+1. **Google OAuth Fix** — P2 (User needs to update Google Cloud Console redirect URI)
    - Fix `redirect_uri_mismatch` for Gmail integration
+   - Redirect URI: `https://accounting-suite-16.preview.emergentagent.com/api/gmail/callback`
 
-4. **Always-Visible Search Bar on Transactions** — P2
-   - Make search bar always visible instead of toggle
+2. **investments.tsx Component Integration** — P3
+   - Integrate `MarketTickerBar` and `GoalsSection` components
+   - Further extract SIP section and Holdings section
 
 ---
 
