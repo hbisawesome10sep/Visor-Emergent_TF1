@@ -458,7 +458,8 @@ export default function InsightsScreen() {
     .slice(0, 6);
 
   // AI Recommendations based on real data
-  const aiRecommendations = [
+  // Only show meaningful recommendations when we have income data
+  const aiRecommendations = hasSufficientData ? [
     // Savings recommendation
     {
       priority: savingsRate < 20 ? 'high' : savingsRate < 30 ? 'medium' : 'low',
@@ -469,7 +470,7 @@ export default function InsightsScreen() {
         : savingsRate < 30
         ? `You're saving ${savingsRate.toFixed(0)}% - good! Push to 30% to accelerate wealth building. Try the 50/30/20 rule.`
         : `Outstanding! Your ${savingsRate.toFixed(0)}% savings rate puts you in the top 5% of Indian savers.`,
-      impact: savingsRate < 20 ? `Target: Save ₹${formatINRShort((income * 0.2) - monthlySavings)}/month more` : 'On track',
+      impact: savingsRate < 20 ? `Target: Save ₹${formatINRShort(Math.max(0, (income * 0.2) - monthlySavings))}/month more` : 'On track',
       source: 'RBI Financial Literacy Guidelines',
     },
     // Investment recommendation
@@ -490,7 +491,9 @@ export default function InsightsScreen() {
       title: emiRatio > 40 ? 'High EMI Burden' : 'EMI Under Control',
       description: emiRatio > 40
         ? `Your EMI-to-income ratio of ${emiRatio.toFixed(0)}% exceeds RBI's 40% threshold. Avoid new loans and consider prepaying high-interest debt.`
-        : `EMI ratio of ${emiRatio.toFixed(0)}% is healthy. Maintain this to preserve loan eligibility for future needs.`,
+        : actualEMI > 0 
+          ? `EMI ratio of ${emiRatio.toFixed(0)}% is healthy. Maintain this to preserve loan eligibility for future needs.`
+          : `No EMI payments detected. Great debt-free status! Consider this when planning future loans.`,
       impact: emiRatio > 40 ? 'Risk: Loan rejection, financial stress' : 'Good loan eligibility',
       source: 'RBI Lending Guidelines',
     },
@@ -524,6 +527,24 @@ export default function InsightsScreen() {
         : `Excellent! Keeping expenses at ${spendingRate.toFixed(0)}% leaves room for savings and investments.`,
       impact: spendingRate > 70 ? `Potential savings: ₹${formatINRShort(income * 0.1)}/month` : 'Good discipline',
       source: 'NSO Household Survey',
+    },
+  ] : [
+    // Show helpful prompts when no data
+    {
+      priority: 'medium',
+      icon: 'plus-circle',
+      title: 'Add Income Data',
+      description: 'Upload bank statements or add income transactions to unlock personalized financial insights and recommendations.',
+      impact: 'Get savings rate, investment tips, and more',
+      source: 'Visor AI',
+    },
+    {
+      priority: 'low',
+      icon: 'bank',
+      title: 'Connect Your Accounts',
+      description: 'Import transactions from your bank statements to see spending patterns, EMI tracking, and financial health analysis.',
+      impact: 'Automated expense categorization',
+      source: 'Visor AI',
     },
   ];
 
