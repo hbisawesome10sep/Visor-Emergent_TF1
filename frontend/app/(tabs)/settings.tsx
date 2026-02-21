@@ -159,6 +159,76 @@ export default function SettingsScreen() {
     } catch (e: any) { Alert.alert('Error', e.message); }
   };
 
+  // Bank statement upload functions
+  const handlePickFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
+        copyToCacheDirectory: true,
+      });
+      
+      if (!result.canceled && result.assets?.[0]) {
+        setSelectedFile(result.assets[0]);
+        setShowUploadModal(true);
+      }
+    } catch (e: any) {
+      Alert.alert('Error', 'Failed to pick file: ' + e.message);
+    }
+  };
+
+  const handleUploadStatement = async () => {
+    if (!selectedFile) return;
+    
+    setUploadingStatement(true);
+    setUploadResult(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: selectedFile.uri,
+        name: selectedFile.name,
+        type: selectedFile.mimeType || 'application/octet-stream',
+      } as any);
+      formData.append('bank_name', uploadBankName || '');
+      formData.append('account_name', uploadAccountName || '');
+      
+      const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+      const response = await fetch(`${API_URL}/api/bank-statements/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Upload failed');
+      }
+      
+      const result = await response.json();
+      setUploadResult(result);
+      
+      // Refresh bank accounts list
+      const updated = await apiRequest('/bank-accounts', { token: token || '' });
+      setBankAccounts(updated);
+      
+    } catch (e: any) {
+      Alert.alert('Upload Failed', e.message);
+      setUploadResult({ error: e.message });
+    } finally {
+      setUploadingStatement(false);
+    }
+  };
+
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    setSelectedFile(null);
+    setUploadBankName('');
+    setUploadAccountName('');
+    setUploadResult(null);
+  };
+
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
