@@ -37,5 +37,5 @@ GMAIL_SCOPES = [
 
 # Auto-detect redirect URI from frontend URL
 if not GMAIL_REDIRECT_URI:
-    _fe_url = os.environ.get("FRONTEND_URL", "https://invest-modular.preview.emergentagent.com")
+    _fe_url = os.environ.get("FRONTEND_URL", "https://investment-hub-77.preview.emergentagent.com")
     GMAIL_REDIRECT_URI = f"{_fe_url}/api/gmail/callback"
