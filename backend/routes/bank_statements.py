@@ -2592,20 +2592,18 @@ async def upload_bank_statement(
             # PERSPECTIVE REVERSAL:
             # Bank Credit (deposit to account) → User receives money → Income/Receipt
             # Bank Debit (withdrawal from account) → User pays money → Expense/Payment
-            if raw["bank_credit"] > 0:
+            is_credit = raw["bank_credit"] > 0
+            
+            if is_credit:
                 # Bank credited user → deposit → user's income/receipt
-                txn_type = "income"
                 amount = raw["bank_credit"]
-                category, _ = categorize_transaction(raw["description"])
-                if category == "Other":
-                    category = "Other"
+                category, cat_type = categorize_transaction(raw["description"], is_credit=True)
+                txn_type = "income"  # Credits are always income
             else:
                 # Bank debited user → withdrawal → user's expense/payment
-                txn_type = "expense"
                 amount = raw["bank_debit"]
-                category, cat_type = categorize_transaction(raw["description"])
-                if cat_type == "investment":
-                    txn_type = "investment"
+                category, cat_type = categorize_transaction(raw["description"], is_credit=False)
+                txn_type = "investment" if cat_type == "investment" else "expense"
 
             if amount <= 0:
                 skipped += 1
