@@ -947,6 +947,12 @@ def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str 
                 logger.info(f"Parsed {len(axis_txns)} transactions using Axis parser")
                 return axis_txns
         
+        elif bank == "indusind":
+            indusind_txns = parse_indusind_pdf(pdf, all_text)
+            if indusind_txns:
+                logger.info(f"Parsed {len(indusind_txns)} transactions using IndusInd parser")
+                return indusind_txns
+        
         # Standard table-based parsing for other banks
         all_rows = []
         for page in pdf.pages:
