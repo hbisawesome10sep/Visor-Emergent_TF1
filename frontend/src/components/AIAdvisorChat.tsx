@@ -43,6 +43,15 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Safety check for colors
+  const safeColors = colors || {
+    background: isDark ? '#0A0A0B' : '#FFFFFF',
+    textPrimary: isDark ? '#FFFFFF' : '#000000',
+    textSecondary: isDark ? '#9CA3AF' : '#6B7280',
+    primary: '#10B981',
+    card: isDark ? '#1F2937' : '#F9FAFB',
+  };
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Pulse animation for the floating button
