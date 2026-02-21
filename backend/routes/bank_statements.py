@@ -767,6 +767,12 @@ def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str 
                 logger.info(f"Parsed {len(icici_txns)} transactions using ICICI parser")
                 return icici_txns
         
+        elif bank == "axis":
+            axis_txns = parse_axis_pdf(pdf, all_text)
+            if axis_txns:
+                logger.info(f"Parsed {len(axis_txns)} transactions using Axis parser")
+                return axis_txns
+        
         # Standard table-based parsing for other banks
         all_rows = []
         for page in pdf.pages:
