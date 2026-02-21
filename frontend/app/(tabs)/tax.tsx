@@ -14,6 +14,12 @@ import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort } from '../../src/utils/formatters';
 import TaxDeductionsModal from '../../src/components/TaxDeductionsModal';
 import { TaxDeduction } from '../../src/data/taxDeductions';
+import { 
+  CalcRow, 
+  UserDeductionsSection, 
+  AutoDeductionsSection, 
+  CapitalGainsSection 
+} from '../../src/components/tax';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
