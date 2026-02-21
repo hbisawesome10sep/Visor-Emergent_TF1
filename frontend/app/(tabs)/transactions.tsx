@@ -241,12 +241,15 @@ export default function TransactionsScreen() {
   // ── Modal handlers ──
   const openAdd = (type?: string) => {
     setEditingTxn(null);
+    const defaults = getDefaultPaymentMode();
     setForm({
       type: type || 'expense', amount: '', category: '', description: '',
       date: '', notes: '', is_recurring: false, recurring_frequency: 'Monthly',
       is_split: false, split_count: '2',
       buy_sell: 'buy', units: '', price_per_unit: '',
+      payment_mode: defaults.payment_mode, payment_account_name: defaults.payment_account_name,
     });
+    setShowPaymentDropdown(false);
     setShowModal(true);
   };
 
@@ -266,7 +269,10 @@ export default function TransactionsScreen() {
       buy_sell: (txn as any).buy_sell || 'buy',
       units: (txn as any).units ? String((txn as any).units) : '',
       price_per_unit: (txn as any).price_per_unit ? String((txn as any).price_per_unit) : '',
+      payment_mode: txn.payment_mode || 'cash',
+      payment_account_name: txn.payment_account_name || 'Cash',
     });
+    setShowPaymentDropdown(false);
     setShowModal(true);
   };
 
