@@ -680,11 +680,11 @@ export default function InsightsScreen() {
               calculation: `Estimated EMIs ÷ Income × 100`,
               actualAmounts: {
                 label1: 'Monthly Income',
-                value1: `₹${formatINRShort(income)}`,
-                label2: 'Est. EMI (35% of expenses)',
-                value2: `₹${formatINRShort(emiEstimate)}`,
+                value1: hasSufficientData ? `₹${formatINRShort(income)}` : 'N/A',
+                label2: 'Actual EMI Payments',
+                value2: `₹${formatINRShort(actualEMI)}`,
                 label3: 'EMI Ratio',
-                value3: `${emiRatio.toFixed(1)}%`,
+                value3: hasSufficientData ? `${emiRatio.toFixed(1)}%` : 'N/A',
               },
             }}
             isDark={isDark}
