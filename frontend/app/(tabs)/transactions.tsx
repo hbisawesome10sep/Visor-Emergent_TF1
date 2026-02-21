@@ -105,6 +105,8 @@ export default function TransactionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
 
   // Set screen context for AI awareness
   useEffect(() => {
