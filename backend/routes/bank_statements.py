@@ -1768,6 +1768,12 @@ def parse_pdf_statement(file_bytes: bytes, password: str = None, bank_hint: str 
                 logger.info(f"Parsed {len(idbi_txns)} transactions using IDBI parser")
                 return idbi_txns
         
+        elif bank == "canara":
+            canara_txns = parse_canara_pdf(pdf, all_text)
+            if canara_txns:
+                logger.info(f"Parsed {len(canara_txns)} transactions using Canara parser")
+                return canara_txns
+        
         # Standard table-based parsing for other banks
         all_rows = []
         for page in pdf.pages:
