@@ -2702,3 +2702,86 @@ async def get_upload_history(user=Depends(get_current_user)):
             for r in results
         ]
     }
+
+
+@router.post("/bank-statements/recategorize")
+async def recategorize_transactions(user=Depends(get_current_user)):
+    """
+    Re-categorize all imported bank statement transactions using the latest categorization logic.
+    This will also regenerate journal entries with the correct accounts.
+    """
+    # Find all transactions imported from bank statements
+    imported_txns = await db.transactions.find({
+        "user_id": user["id"],
+        "notes": {"$regex": "Imported from.*statement", "$options": "i"}
+    }).to_list(10000)
+    
+    if not imported_txns:
+        return {"message": "No imported transactions found", "updated": 0, "unchanged": 0}
+    
+    updated = 0
+    unchanged = 0
+    errors = 0
+    
+    for txn in imported_txns:
+        try:
+            # Re-categorize based on description
+            description = txn.get("description", "")
+            old_category = txn.get("category", "")
+            new_category, cat_type = categorize_transaction(description)
+            
+            # Determine transaction type
+            if cat_type == "investment":
+                new_type = "investment"
+            elif cat_type == "income":
+                new_type = "income"
+            else:
+                new_type = "expense"
+            
+            # Check if category changed
+            if old_category == new_category:
+                unchanged += 1
+                continue
+            
+            # Update the transaction
+            await db.transactions.update_one(
+                {"id": txn["id"]},
+                {"$set": {"category": new_category, "type": new_type}}
+            )
+            
+            # Delete old journal entries for this transaction
+            await db.journal_entries.delete_many({
+                "user_id": user["id"],
+                "reference_type": "transaction",
+                "reference_id": txn["id"]
+            })
+            
+            # Create new journal entry with correct category
+            await create_journal_from_transaction(
+                user_id=user["id"],
+                txn_id=txn["id"],
+                txn_type=new_type,
+                category=new_category,
+                description=description,
+                amount=txn.get("amount", 0),
+                date=txn.get("date"),
+                payment_mode=txn.get("payment_mode", "bank"),
+                payment_account_name=txn.get("payment_account_name", "Bank Account"),
+            )
+            
+            updated += 1
+            logger.info(f"Re-categorized: '{description[:50]}' from '{old_category}' to '{new_category}'")
+            
+        except Exception as e:
+            logger.error(f"Error re-categorizing transaction {txn.get('id')}: {e}")
+            errors += 1
+    
+    return {
+        "message": "Re-categorization complete",
+        "total_transactions": len(imported_txns),
+        "updated": updated,
+        "unchanged": unchanged,
+        "errors": errors
+    }
+
+
