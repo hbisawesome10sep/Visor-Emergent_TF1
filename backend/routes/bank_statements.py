@@ -1378,7 +1378,10 @@ def clean_union_description(raw_desc: str) -> str:
 def parse_union_pdf(pdf, all_text: str) -> list:
     """
     Parse Union Bank PDF statement.
-    Union Bank format: Tran Id | Tran Date | Remarks | Amount (Rs.) | Balance (Rs.)
+    Supports both formats:
+    - Old format: S.No | Date | Transaction Id | Remarks | Amount(Rs.) | Balance(Rs.)
+    - New format: Tran Id | Tran Date | Remarks | Amount (Rs.) | Balance (Rs.)
+    
     Amount has (Dr) or (Cr) suffix for debit/credit.
     """
     transactions = []
@@ -1390,36 +1393,54 @@ def parse_union_pdf(pdf, all_text: str) -> list:
             if not table or len(table) < 2:
                 continue
             
-            # Check if this is a transaction table
-            first_row = [str(c).lower() if c else "" for c in table[0]]
-            is_txn_table = 'tran' in first_row[0] or 'date' in ' '.join(first_row)
-            
-            start_idx = 1 if is_txn_table else 0
-            
-            for row in table[start_idx:]:
+            for row in table:
                 if not row or len(row) < 4:
                     continue
                 
                 # Clean the row
                 cleaned = [str(cell).replace('\n', ' ').replace('  ', ' ').strip() if cell else "" for cell in row]
                 
-                # Skip header rows
+                # Skip header rows and empty rows
                 first_col = cleaned[0].lower()
-                if 'tran' in first_col or not cleaned[0]:
+                if 'tran' in first_col or 's.no' in first_col or not cleaned[0]:
+                    continue
+                if 'scan' in first_col or 'account' in first_col or 'closing' in first_col:
                     continue
                 
-                # Parse date (column 1 - DD/MM/YYYY)
-                date = parse_date(cleaned[1])
+                # Detect format based on row structure
+                # Old format: S.No (number) | Date | Tran Id | Remarks | Amount | Balance
+                # New format: Tran Id (alphanumeric) | Date | Remarks | Amount | Balance
+                
+                date_col = 1  # Default for old format
+                remarks_col = 3  # Default for old format
+                amount_col = 4  # Default for old format
+                
+                # Check if first column is a serial number (old format) or transaction ID (new format)
+                if cleaned[0].isdigit() and len(cleaned[0]) <= 4:
+                    # Old format with S.No
+                    date_col = 1
+                    remarks_col = 3
+                    amount_col = 4
+                elif cleaned[0].startswith('S') and len(cleaned[0]) > 4:
+                    # New format with Transaction ID
+                    date_col = 1
+                    remarks_col = 2
+                    amount_col = 3
+                else:
+                    continue
+                
+                # Parse date
+                date = parse_date(cleaned[date_col])
                 if not date:
                     continue
                 
-                # Get description (column 2 - Remarks)
-                description = cleaned[2] if len(cleaned) > 2 else ""
+                # Get description
+                description = cleaned[remarks_col] if len(cleaned) > remarks_col else ""
                 if not description:
                     continue
                 
-                # Get amount with Dr/Cr indicator (column 3)
-                amount_str = cleaned[3] if len(cleaned) > 3 else ""
+                # Get amount with Dr/Cr indicator
+                amount_str = cleaned[amount_col] if len(cleaned) > amount_col else ""
                 if not amount_str:
                     continue
                 
