@@ -275,9 +275,20 @@ export default function SettingsScreen() {
     ]);
   };
 
-  const handleDeleteAccount = () => {
-    if (deleteConfirmText.toUpperCase() === 'DELETE') {
-      Alert.alert('Account Deleted', 'Your account has been permanently deleted.', [
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText.toUpperCase() !== 'DELETE') {
+      Alert.alert('Error', 'Please type DELETE to confirm.');
+      return;
+    }
+
+    try {
+      // Call the backend to delete the account and all associated data
+      await apiRequest('/auth/delete-account', { 
+        method: 'DELETE', 
+        token: token || '' 
+      });
+      
+      Alert.alert('Account Deleted', 'Your account and all associated data have been permanently deleted.', [
         {
           text: 'OK',
           onPress: async () => {
@@ -287,8 +298,9 @@ export default function SettingsScreen() {
         },
       ]);
       setShowDeleteModal(false);
-    } else {
-      Alert.alert('Error', 'Please type DELETE to confirm.');
+      setDeleteConfirmText('');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to delete account. Please try again.');
     }
   };
 
