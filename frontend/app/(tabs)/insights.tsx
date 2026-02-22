@@ -563,6 +563,7 @@ export default function InsightsScreen() {
           spendingRate={spendingRate}
           investmentRate={investmentRate}
           goalProgress={goalProgress}
+          hasSufficientData={hasSufficientData}
           isDark={isDark}
           colors={colors}
         />
