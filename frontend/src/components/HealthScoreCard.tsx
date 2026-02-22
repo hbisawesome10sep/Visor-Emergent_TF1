@@ -154,4 +154,7 @@ const styles = StyleSheet.create({
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 10, marginTop: 6, borderTopWidth: 1 },
   totalLabel: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' as any },
   totalValue: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '800' as any },
+  noDataContainer: { alignItems: 'center', paddingVertical: 20 },
+  noDataTitle: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, marginTop: 12, marginBottom: 6 },
+  noDataDesc: { fontSize: 13, fontFamily: 'DM Sans', textAlign: 'center', lineHeight: 18, paddingHorizontal: 10 },
 });
