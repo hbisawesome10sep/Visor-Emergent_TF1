@@ -9,7 +9,7 @@ import requests
 import os
 from uuid import uuid4
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://account-books.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://bankstatement-hub.preview.emergentagent.com')
 
 # Test credentials from review request
 TEST_EMAIL = "rajesh@visor.demo"

@@ -104,7 +104,7 @@
 
 **Redirect URI to add in Google Cloud Console:**
 ```
-https://account-books.preview.emergentagent.com/api/gmail/callback
+https://bankstatement-hub.preview.emergentagent.com/api/gmail/callback
 ```
 
 Steps:
