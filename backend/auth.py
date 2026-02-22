@@ -27,7 +27,11 @@ async def get_current_user(authorization: str = Header(None)):
     token = authorization.split(" ")[1]
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
+        # Support both 'user_id' and 'sub' for compatibility
+        user_id = payload.get("user_id") or payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         # Auto-decrypt PII fields so all downstream endpoints get plaintext
