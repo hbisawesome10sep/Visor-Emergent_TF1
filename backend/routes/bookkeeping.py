@@ -78,13 +78,13 @@ async def get_ledger(
                     "total_credit": 0,
                 }
             accounts[acc]["entries"].append({
-                "date": jdoc["date"],
-                "entry_number": jdoc["entry_number"],
-                "narration": jdoc["narration"],
-                "debit": entry["debit"],
-                "credit": entry["credit"],
-                "reference_type": jdoc["reference_type"],
-                "reference_id": jdoc["reference_id"],
+                "date": jdoc.get("date", ""),
+                "entry_number": jdoc.get("entry_number", 0),
+                "narration": jdoc.get("narration", ""),
+                "debit": entry.get("debit", 0),
+                "credit": entry.get("credit", 0),
+                "reference_type": jdoc.get("reference_type", ""),
+                "reference_id": jdoc.get("reference_id", ""),
             })
             accounts[acc]["total_debit"] += entry["debit"]
             accounts[acc]["total_credit"] += entry["credit"]
