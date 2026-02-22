@@ -64,6 +64,9 @@ async def get_ledger(
     # Build accounts from journal entries
     accounts = {}
     for jdoc in journal_docs:
+        # Skip entries without the 'entries' field
+        if "entries" not in jdoc or not jdoc["entries"]:
+            continue
         for entry in jdoc["entries"]:
             acc = entry["account_name"]
             if acc not in accounts:
