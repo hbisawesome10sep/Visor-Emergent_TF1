@@ -26,14 +26,36 @@ type Props = {
   spendingRate: number;
   investmentRate: number;
   goalProgress: number;
+  hasSufficientData?: boolean;
   isDark: boolean;
   colors: any;
 };
 
-export const HealthScoreCard = ({ healthScore, breakdown, savingsRate, spendingRate, investmentRate, goalProgress, isDark, colors }: Props) => {
+export const HealthScoreCard = ({ healthScore, breakdown, savingsRate, spendingRate, investmentRate, goalProgress, hasSufficientData = true, isDark, colors }: Props) => {
   const [showBack, setShowBack] = React.useState(false);
-  const scoreColor = getScoreColor(healthScore);
-  const scoreInfo = getScoreLabel(healthScore);
+  const scoreColor = hasSufficientData ? getScoreColor(healthScore) : '#64748B';
+  const scoreInfo = hasSufficientData ? getScoreLabel(healthScore) : { label: 'Add Data', color: '#64748B' };
+
+  // If no data, show prompt
+  if (!hasSufficientData) {
+    return (
+      <View
+        data-testid="health-score-card"
+        style={[styles.card, {
+          backgroundColor: isDark ? 'rgba(100, 116, 139, 0.1)' : 'rgba(100, 116, 139, 0.08)',
+          borderColor: isDark ? 'rgba(100, 116, 139, 0.3)' : 'rgba(100, 116, 139, 0.2)',
+        }]}
+      >
+        <View style={styles.noDataContainer}>
+          <MaterialCommunityIcons name="database-plus-outline" size={40} color="#64748B" />
+          <Text style={[styles.noDataTitle, { color: colors.textPrimary }]}>Add Income Data</Text>
+          <Text style={[styles.noDataDesc, { color: colors.textSecondary }]}>
+            Upload bank statements or add income transactions to calculate your financial health score.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <TouchableOpacity
