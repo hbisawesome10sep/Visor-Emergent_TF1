@@ -1260,7 +1260,7 @@ export default function SettingsScreen() {
             <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Number (optional)</Text>
             <TextInput
               data-testid="bank-account-number-input"
-              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8, color: colors.textPrimary }]}
               value={bankForm.account_number}
               onChangeText={v => setBankForm(p => ({ ...p, account_number: v }))}
               placeholder="Account number"
