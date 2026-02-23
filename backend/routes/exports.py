@@ -370,7 +370,7 @@ async def export_balance_sheet_pdf(
                 liabilities.append({"name": name, "amount": abs(balance)})
     
     total_assets = sum(a["amount"] for a in assets)
-    total_liabilities = sum(l["amount"] for l in liabilities)
+    total_liabilities = sum(liab["amount"] for liab in liabilities)
     net_worth = income_total - expense_total + total_assets - total_liabilities
     
     buf = io.BytesIO()
@@ -415,7 +415,7 @@ async def export_balance_sheet_pdf(
     
     liability_data = [["Particulars", "Amount (₹)"]]
     for l in sorted(liabilities, key=lambda x: -x["amount"]):
-        liability_data.append([l["name"], format_inr(l["amount"])])
+        liability_data.append([liab["name"], format_inr(liab["amount"])])
     liability_data.append(["Total Liabilities", format_inr(total_liabilities)])
     
     liability_table = Table(liability_data, colWidths=[120*mm, 50*mm])
@@ -927,7 +927,7 @@ async def export_balance_sheet_excel(
                 liabilities.append({"name": name, "amount": abs(balance)})
     
     total_assets = sum(a["amount"] for a in assets)
-    total_liabilities = sum(l["amount"] for l in liabilities)
+    total_liabilities = sum(liab["amount"] for liab in liabilities)
     net_worth = income_total - expense_total + total_assets - total_liabilities
     
     wb = Workbook()
@@ -997,8 +997,8 @@ async def export_balance_sheet_excel(
     row += 1
     
     for l in sorted(liabilities, key=lambda x: -x["amount"]):
-        ws.cell(row=row, column=1, value=l["name"]).border = thin_border
-        amt_cell = ws.cell(row=row, column=2, value=l["amount"])
+        ws.cell(row=row, column=1, value=liab["name"]).border = thin_border
+        amt_cell = ws.cell(row=row, column=2, value=liab["amount"])
         amt_cell.number_format = '₹#,##0.00'
         amt_cell.border = thin_border
         row += 1
