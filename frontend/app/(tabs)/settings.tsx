@@ -1734,7 +1734,7 @@ const styles = StyleSheet.create({
   deleteModalTitle: { fontSize: 22, fontFamily: 'DM Sans', fontWeight: '700' as any, marginBottom: 8 },
   deleteModalDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   deleteModalPrompt: { fontSize: 13, marginBottom: 12 },
-  deleteInput: { width: '100%', height: 48, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, textAlign: 'center', marginBottom: 20 },
+  deleteInput: { width: '100%', height: 48, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, fontSize: 16, fontFamily: 'DM Sans', fontWeight: '700' as any, textAlign: 'center', marginBottom: 20, color: undefined },
   deleteModalActions: { flexDirection: 'row', gap: 12, width: '100%' },
   cancelModalBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
   cancelModalText: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '600' as any },
