@@ -70,6 +70,7 @@ app.include_router(bank_accounts_router)
 app.include_router(journal_router)
 app.include_router(bank_statements_router)
 app.include_router(exports_router)
+app.include_router(credit_cards_router)
 
 # Add CORS middleware
 app.add_middleware(
