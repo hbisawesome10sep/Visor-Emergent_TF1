@@ -101,12 +101,17 @@ export default function TransactionsScreen() {
   const HEADER_HEIGHT = 60 + insets.top;
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [ccTransactions, setCCTransactions] = useState<Transaction[]>([]);
+  const [creditCards, setCreditCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
+  
+  // Transaction Source Toggle: 'bank' or 'credit_card'
+  const [txnSource, setTxnSource] = useState<'bank' | 'credit_card'>('bank');
 
   // Set screen context for AI awareness
   useEffect(() => {
