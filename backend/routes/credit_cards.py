@@ -13,7 +13,7 @@ from datetime import datetime, timezone, timedelta
 from database import db
 from auth import get_current_user
 from encryption import encrypt_field, decrypt_field
-from routes.journal import create_journal_entry_direct
+from routes.journal import create_journal_from_transaction
 import logging
 import re
 
