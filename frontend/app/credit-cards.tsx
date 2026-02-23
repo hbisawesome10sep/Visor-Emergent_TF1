@@ -4,10 +4,10 @@ import {
   Modal, Alert, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '../../src/utils/theme';
-import { apiRequest } from '../../src/utils/api';
-import { useAuth } from '../../src/context/AuthContext';
-import { formatINR } from '../../src/utils/formatters';
+import { useTheme } from '../src/context/ThemeContext';
+import { apiRequest } from '../src/utils/api';
+import { useAuth } from '../src/context/AuthContext';
+import { formatINR } from '../src/utils/formatters';
 
 type CreditCard = {
   id: string;
