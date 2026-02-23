@@ -526,6 +526,56 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Credit Cards Card */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: 14 }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)' }]}>
+              <MaterialCommunityIcons name="credit-card" size={22} color="#8B5CF6" />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Credit Cards</Text>
+          </View>
+
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 16, lineHeight: 20 }}>
+            Manage your credit cards, track expenses, upload statements, and monitor utilization. 
+            EMI and subscription payments are automatically detected.
+          </Text>
+
+          {/* Credit Card Features */}
+          <View style={[styles.banksList, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', marginBottom: 16 }]}>
+            <Text style={[styles.banksTitle, { color: colors.textSecondary }]}>Features</Text>
+            <View style={{ gap: 8, marginTop: 8 }}>
+              {[
+                { icon: 'credit-card-plus', text: 'Add multiple credit cards' },
+                { icon: 'file-document', text: 'Upload credit card statements' },
+                { icon: 'chart-donut', text: 'Track utilization & due dates' },
+                { icon: 'repeat', text: 'Auto-detect EMI & SIP payments' },
+              ].map((item, i) => (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <MaterialCommunityIcons name={item.icon as any} size={18} color="#8B5CF6" />
+                  <Text style={{ fontSize: 13, color: colors.textPrimary, fontFamily: 'DM Sans' }}>{item.text}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Manage Credit Cards Button */}
+          <TouchableOpacity
+            data-testid="manage-credit-cards-btn"
+            style={styles.uploadBtn}
+            onPress={() => router.push('/credit-cards')}
+          >
+            <LinearGradient 
+              colors={['#8B5CF6', '#7C3AED']} 
+              start={{ x: 0, y: 0 }} 
+              end={{ x: 1, y: 0 }} 
+              style={styles.uploadBtnGradient}
+            >
+              <MaterialCommunityIcons name="credit-card-settings" size={22} color="#fff" />
+              <Text style={styles.uploadBtnText}>Manage Credit Cards</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
         <View style={[styles.futureFeature, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', marginTop: 8 }]}>
           <MaterialCommunityIcons name="clock-outline" size={18} color={colors.textSecondary} />
           <Text style={[styles.futureText, { color: colors.textSecondary }]}>
