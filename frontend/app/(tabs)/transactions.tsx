@@ -577,22 +577,45 @@ export default function TransactionsScreen() {
           backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.95)',
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
         }]}>
-          <View style={styles.summaryItem}>
-            <Text style={[styles.summaryAmount, { color: colors.income }]}>+{formatINRShort(summary.income)}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Income</Text>
-          </View>
-          <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.summaryItem}>
-            <Text style={[styles.summaryAmount, { color: colors.expense }]}>-{formatINRShort(summary.expense)}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Expenses</Text>
-          </View>
-          <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.summaryItem}>
-            <Text style={[styles.summaryAmount, { color: summary.net >= 0 ? colors.income : colors.expense }]}>
-              {summary.net >= 0 ? '+' : ''}{formatINRShort(summary.net)}
-            </Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Net</Text>
-          </View>
+          {txnSource === 'bank' ? (
+            <>
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryAmount, { color: colors.income }]}>+{formatINRShort(summary.income)}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Income</Text>
+              </View>
+              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryAmount, { color: colors.expense }]}>-{formatINRShort(summary.expense)}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Expenses</Text>
+              </View>
+              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryAmount, { color: summary.net >= 0 ? colors.income : colors.expense }]}>
+                  {summary.net >= 0 ? '+' : ''}{formatINRShort(summary.net)}
+                </Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Net</Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryAmount, { color: colors.expense }]}>{formatINRShort(summary.expense)}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Purchases</Text>
+              </View>
+              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryAmount, { color: colors.income }]}>{formatINRShort(summary.payment)}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Payments</Text>
+              </View>
+              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.summaryItem}>
+                <Text style={[styles.summaryAmount, { color: summary.expense - summary.payment > 0 ? colors.expense : colors.income }]}>
+                  {formatINRShort(Math.abs(summary.expense - summary.payment))}
+                </Text>
+                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Outstanding</Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* ═══ TRANSACTION LIST ═══ */}
@@ -612,18 +635,24 @@ export default function TransactionsScreen() {
               </View>
             ))}
           </View>
-        ) : transactions.length === 0 ? (
+        ) : dateGroups.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={[styles.emptyIconWrap, { backgroundColor: isDark ? 'rgba(147, 51, 234, 0.1)' : 'rgba(147, 51, 234, 0.08)' }]}>
-              <MaterialCommunityIcons name="receipt" size={56} color="#9333EA" />
+              <MaterialCommunityIcons 
+                name={txnSource === 'credit_card' ? 'credit-card-off' : 'receipt'} 
+                size={56} 
+                color={txnSource === 'credit_card' ? '#8B5CF6' : '#9333EA'} 
+              />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-              {hasFilters ? 'No matching transactions' : 'No transactions yet'}
+              {hasFilters ? 'No matching transactions' : txnSource === 'credit_card' ? 'No credit card transactions' : 'No transactions yet'}
             </Text>
             <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
               {hasFilters
                 ? 'Try adjusting your filters to see more results'
-                : 'Add your first transaction to start tracking your finances'}
+                : txnSource === 'credit_card' 
+                  ? 'Add a credit card in Settings and record your expenses'
+                  : 'Add your first transaction to start tracking your finances'}
             </Text>
             {hasFilters ? (
               <TouchableOpacity style={styles.clearFiltersLargeBtn} onPress={clearFilters}>
