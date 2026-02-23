@@ -179,78 +179,16 @@ The Financial Health Score (0-100) is calculated based on 4 key metrics:
 
 ---
 
-## 🎬 Video Content Strategy (Educational)
+## 📈 What's Coming Next
 
-### Video Series: "Master Your Money"
-
-| Episode | Topic | Duration | Status |
-|---------|-------|----------|--------|
-| 1 | App Introduction & Setup | 3-5 min | 📝 Planned |
-| 2 | Uploading Your First Bank Statement | 2-3 min | 📝 Planned |
-| 3 | Understanding Your Financial Health Score | 3-4 min | 📝 Planned |
-| 4 | Setting Up Investment Tracking | 4-5 min | 📝 Planned |
-| 5 | Tax Planning Made Easy (80C, 80D Explained) | 5-7 min | 📝 Planned |
-| 6 | Reading Your P/L and Balance Sheet | 4-5 min | 📝 Planned |
-| 7 | Setting and Achieving Financial Goals | 3-4 min | 📝 Planned |
-| 8 | AI Advisor: Ask Anything About Finance | 3-4 min | 📝 Planned |
-
-### In-App Video Integration
-
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| Onboarding Videos | Quick tutorial on first launch | P1 |
-| Contextual Help | "?" icon with short explainer videos | P2 |
-| Feature Tours | Animated walkthroughs for new features | P2 |
-| Tax Guide Videos | Section-wise tax saving tutorials | P1 |
-| Investment Education | Asset class explainers | P2 |
-
----
-
-## 🔐 Security & Privacy
-
-| Feature | Description | Status |
-|---------|-------------|--------|
-| JWT Authentication | Secure token-based auth | ✅ |
-| Biometric Lock | Face ID / Fingerprint | ✅ |
-| Data Encryption | At-rest encryption for sensitive data | ✅ |
-| No Third-Party Sharing | User data never sold | ✅ |
-| Local Processing | Statement parsing done server-side | ✅ |
-| Secure API | HTTPS only, rate limiting | ✅ |
-
----
-
-## 📈 Roadmap
-
-### Phase 1 - Core (COMPLETED) ✅
-- [x] User Authentication
-- [x] Bank Statement Parsing (15+ banks)
-- [x] Transaction Management
-- [x] Double-Entry Bookkeeping
-- [x] Basic Tax Planning
-- [x] Investment Tracking
-- [x] Financial Health Score
-
-### Phase 2 - Intelligence (IN PROGRESS) 🔄
-- [x] AI Financial Advisor
-- [x] Smart Tax Notifications
-- [x] Auto Deduction Detection
-- [x] Financial Health Card Redesign
-- [ ] Deep Insights Overhaul
-- [ ] Anomaly Detection
-
-### Phase 3 - Automation (PLANNED) 📝
-- [ ] Gmail Integration
-- [ ] Auto Bank Sync (Account Aggregator)
-- [ ] Bill Payment Reminders
-- [ ] Investment Rebalancing Alerts
-- [ ] Tax Filing Integration
-
-### Phase 4 - Premium (FUTURE) 🔮
-- [ ] Family Finance (Multi-user)
-- [ ] Business Expense Tracking
-- [ ] CA/Accountant Sharing
-- [ ] Advanced Tax Optimization
-- [ ] Investment Recommendations
+| Feature | Priority | ETA |
+|---------|----------|-----|
+| Gmail Auto-Import | P1 | Q1 2026 |
+| PDF/Excel Exports | P1 | Q1 2026 |
+| More Bank Support | P1 | Ongoing |
+| Anomaly Detection | P2 | Q2 2026 |
+| Family Accounts | P2 | Q2 2026 |
+| Account Aggregator Integration | P3 | Q3 2026 |
 
 ---
 
