@@ -29,6 +29,7 @@ import LiquidFillCard from '../../src/components/LiquidFillCard';
 import PieChart from '../../src/components/PieChart';
 import TrendChart from '../../src/components/TrendChart';
 import FAB from '../../src/components/FAB';
+import { FinancialHealthCard } from '../../src/components/FinancialHealthCard';
 import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
