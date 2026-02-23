@@ -1,21 +1,41 @@
-# Visor Finance - Complete Product Requirements Document
-## Personal Finance Management App for India
+# VISOR FINANCE
+## Complete Personal Finance Management for India
 
 ---
 
-## 🎯 Product Vision
-Visor Finance is a comprehensive personal finance management application designed specifically for Indian users. It combines intelligent bank statement parsing, double-entry bookkeeping (Indian accounting standards), investment tracking, tax planning, and AI-powered financial insights to help users take complete control of their financial life.
+## 🎯 What is Visor?
+
+**Visor Finance** is an all-in-one personal finance app designed specifically for Indians. It automatically imports your bank statements, categorizes transactions, maintains proper books of accounts (Indian accounting standards), tracks investments, optimizes taxes, and provides AI-powered insights - all in one beautiful mobile app.
+
+### The Problem We Solve
+- 📊 **No visibility** into where money goes each month
+- 📱 **Multiple apps** for banking, investments, taxes
+- 📚 **No proper books** - hard to track net worth
+- 💸 **Missed tax savings** due to lack of planning
+- 🤔 **No guidance** on financial decisions
+
+### Our Solution
+One app that:
+- ✅ Imports bank statements automatically (15+ Indian banks)
+- ✅ Categorizes every transaction intelligently  
+- ✅ Maintains double-entry books (Journal, Ledger, P/L, Balance Sheet)
+- ✅ Tracks all investments in one place
+- ✅ Maximizes tax savings with smart alerts
+- ✅ Provides AI-powered financial advice
 
 ---
 
-## 📱 Platform
-- **Mobile App**: React Native + Expo (iOS & Android)
-- **Backend**: FastAPI + MongoDB
-- **Authentication**: JWT-based auth with biometric support
+## 📱 Platform & Availability
+
+| Platform | Status |
+|----------|--------|
+| iOS (iPhone) | ✅ Available via Expo Go |
+| Android | ✅ Available via Expo Go |
+| Web | ✅ Preview Available |
 
 ---
 
-## 🏗️ Core Features
+## 🏆 Core Product Features
 
 ### 1. Dashboard (Home Screen)
 **Purpose**: At-a-glance view of financial health
