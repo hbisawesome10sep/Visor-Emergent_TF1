@@ -242,6 +242,19 @@ export default function TaxScreen() {
           }}
         />
 
+        {/* ═══ SMART TAX NOTIFICATIONS ═══ */}
+        <SmartTaxNotifications
+          autoDeductions={autoDeductions}
+          userDeductions={userTaxDeductions}
+          colors={colors}
+          isDark={isDark}
+          fyEndDate={selectedFY.fy === '2025-26' ? 'March 31, 2026' : selectedFY.fy === '2024-25' ? 'March 31, 2025' : 'March 31, 2024'}
+          onTakeAction={(section) => {
+            // Open the tax deductions modal with the section pre-selected
+            setShowTaxDeductionsModal(true);
+          }}
+        />
+
         {/* ═══ SECTION 1: TAX PLANNING ═══ */}
         <View style={styles.taxPlanningHeader}>
           <View>
