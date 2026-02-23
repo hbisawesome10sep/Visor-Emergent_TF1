@@ -565,22 +565,71 @@ export default function BooksScreen() {
     setExporting(true);
     try {
       const dateRange = getDateRange();
-      let filename = `Visor_${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'PnL' : activeTab === 'journal' ? 'Journal' : 'BalanceSheet'}_${new Date().toISOString().split('T')[0]}`;
+      const baseFilename = `Visor_${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'PnL' : activeTab === 'journal' ? 'Journal' : 'BalanceSheet'}_${new Date().toISOString().split('T')[0]}`;
       
-      // For now, convert Excel/PDF requests to CSV (backend endpoints not yet implemented)
+      // PDF and Excel exports via backend API
       if (format === 'excel' || format === 'pdf') {
-        Alert.alert(
-          'Format Coming Soon',
-          `${format.toUpperCase()} export is coming soon. Would you like to export as CSV instead?`,
-          [
-            { text: 'Cancel', style: 'cancel', onPress: () => { setExporting(false); setShowExportModal(false); } },
-            { text: 'Export CSV', onPress: () => handleExport('csv') },
-          ]
-        );
+        const apiBase = process.env.EXPO_PUBLIC_BACKEND_URL;
+        let endpoint = '';
+        let mimeType = '';
+        let fileExt = '';
+        
+        if (activeTab === 'journal') {
+          endpoint = format === 'pdf' 
+            ? `/api/exports/journal/pdf?start_date=${dateRange.start}&end_date=${dateRange.end}`
+            : `/api/exports/journal/excel?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+        } else if (activeTab === 'ledger') {
+          endpoint = format === 'pdf'
+            ? `/api/exports/ledger/pdf?start_date=${dateRange.start}&end_date=${dateRange.end}`
+            : `/api/exports/ledger/excel?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+        } else if (activeTab === 'pnl') {
+          endpoint = format === 'pdf'
+            ? `/api/exports/pnl/pdf?start_date=${dateRange.start}&end_date=${dateRange.end}`
+            : `/api/exports/pnl/excel?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+        } else if (activeTab === 'balance') {
+          endpoint = format === 'pdf'
+            ? `/api/exports/balance-sheet/pdf?as_of_date=${dateRange.end}`
+            : `/api/exports/balance-sheet/excel?as_of_date=${dateRange.end}`;
+        }
+        
+        mimeType = format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        fileExt = format === 'pdf' ? '.pdf' : '.xlsx';
+        const filename = baseFilename + fileExt;
+        
+        if (Platform.OS !== 'web') {
+          const fileUri = FileSystem.documentDirectory + filename;
+          const download = await FileSystem.downloadAsync(`${apiBase}${endpoint}`, fileUri, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          
+          if (download.status === 200 && await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(download.uri, { mimeType, dialogTitle: `Share ${activeTab.toUpperCase()} Report` });
+          } else {
+            Alert.alert('Error', 'Failed to download file. Please try again.');
+          }
+        } else {
+          // Web: open in new tab
+          const response = await fetch(`${apiBase}${endpoint}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+        
+        setExporting(false);
+        setShowExportModal(false);
         return;
       }
       
       // CSV and JSON exports (handled locally)
+      let filename = baseFilename;
       let content = '';
       
       if (format === 'csv') {
