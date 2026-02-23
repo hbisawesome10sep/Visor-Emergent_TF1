@@ -224,6 +224,23 @@ export default function TaxScreen() {
         showsVerticalScrollIndicator={false}
       >
 
+        {/* ═══ DEDUCTION TRACKER FLOATING BAR ═══ */}
+        <DeductionFloatingBar
+          autoDeductions={autoDeductions}
+          userDeductions={userTaxDeductions}
+          colors={colors}
+          isDark={isDark}
+          onApprove={(txn) => {
+            // Mark as approved (the transaction stays in auto-deductions)
+            Alert.alert('Approved', `"${txn.name}" has been approved as a deduction.`);
+          }}
+          onDismiss={handleDismissAutoDeduction}
+          onEdit={handleEditAutoDeduction}
+          onViewAll={() => {
+            // Scroll to auto-deductions section
+          }}
+        />
+
         {/* ═══ SECTION 1: TAX PLANNING ═══ */}
         <View style={styles.taxPlanningHeader}>
           <View>
