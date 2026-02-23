@@ -68,6 +68,7 @@ app.include_router(gmail_router)
 app.include_router(bank_accounts_router)
 app.include_router(journal_router)
 app.include_router(bank_statements_router)
+app.include_router(exports_router)
 
 # Add CORS middleware
 app.add_middleware(
