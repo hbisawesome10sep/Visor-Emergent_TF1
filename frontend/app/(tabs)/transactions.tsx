@@ -451,6 +451,57 @@ export default function TransactionsScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         showsVerticalScrollIndicator={false}
       >
+        {/* ═══ TRANSACTION SOURCE TOGGLE (Bank/UPI vs Credit Card) ═══ */}
+        <View style={[styles.sourceToggleContainer, {
+          backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        }]}>
+          <TouchableOpacity
+            data-testid="txn-source-bank"
+            style={[
+              styles.sourceToggleBtn,
+              txnSource === 'bank' && styles.sourceToggleBtnActive,
+              txnSource === 'bank' && { backgroundColor: '#10B981' },
+            ]}
+            onPress={() => { setTxnSource('bank'); setActiveType('all'); }}
+          >
+            <MaterialCommunityIcons 
+              name="bank" 
+              size={18} 
+              color={txnSource === 'bank' ? '#fff' : colors.textSecondary} 
+            />
+            <Text style={[
+              styles.sourceToggleText,
+              { color: txnSource === 'bank' ? '#fff' : colors.textSecondary },
+            ]}>Bank / UPI</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            data-testid="txn-source-cc"
+            style={[
+              styles.sourceToggleBtn,
+              txnSource === 'credit_card' && styles.sourceToggleBtnActive,
+              txnSource === 'credit_card' && { backgroundColor: '#8B5CF6' },
+            ]}
+            onPress={() => { setTxnSource('credit_card'); setActiveType('all'); }}
+          >
+            <MaterialCommunityIcons 
+              name="credit-card" 
+              size={18} 
+              color={txnSource === 'credit_card' ? '#fff' : colors.textSecondary} 
+            />
+            <Text style={[
+              styles.sourceToggleText,
+              { color: txnSource === 'credit_card' ? '#fff' : colors.textSecondary },
+            ]}>Credit Card</Text>
+            {ccTransactions.length > 0 && txnSource !== 'credit_card' && (
+              <View style={styles.ccBadge}>
+                <Text style={styles.ccBadgeText}>{ccTransactions.length}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
         {/* ═══ TYPE FILTER PILLS ═══ */}
         <View style={styles.filterSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPillsRow}>
