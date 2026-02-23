@@ -44,6 +44,9 @@ async def create_transaction(txn: TransactionCreate, user=Depends(get_current_us
     payment_mode = txn.payment_mode or "cash"
     payment_account_name = txn.payment_account_name or "Cash"
 
+    # Detect EMI/SIP/Subscription patterns for flagging
+    detected_type, is_flagged = detect_special_transaction(txn.description or "", txn.amount)
+    
     txn_doc = {
         "id": txn_id,
         "user_id": user["id"],
@@ -62,6 +65,9 @@ async def create_transaction(txn: TransactionCreate, user=Depends(get_current_us
         "price_per_unit": txn.price_per_unit,
         "payment_mode": payment_mode,
         "payment_account_name": payment_account_name,
+        "is_flagged": is_flagged,
+        "flagged_type": detected_type,
+        "is_approved": False,
         "created_at": now,
     }
     await db.transactions.insert_one(txn_doc)
