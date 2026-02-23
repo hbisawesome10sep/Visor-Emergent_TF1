@@ -40,6 +40,7 @@ from routes.bank_accounts import router as bank_accounts_router
 from routes.journal import router as journal_router
 from routes.bank_statements import router as bank_statements_router
 from routes.exports import router as exports_router
+from routes.credit_cards import router as credit_cards_router
 
 # Create FastAPI app
 app = FastAPI(
