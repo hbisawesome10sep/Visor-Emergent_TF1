@@ -7,6 +7,7 @@ from auth import get_current_user
 from models import TransactionCreate, TransactionResponse
 from routes.tax import process_auto_tax_deduction, remove_auto_tax_deduction, update_auto_tax_deduction
 from routes.journal import create_journal_from_transaction, delete_journal_for_reference
+from routes.credit_cards import detect_special_transaction
 
 router = APIRouter(prefix="/api")
 
