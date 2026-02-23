@@ -124,11 +124,22 @@ async def create_credit_card(data: dict, user=Depends(get_current_user)):
     }
     await db.credit_cards.insert_one(doc)
     
+    # Return without _id (MongoDB adds it after insert)
     return {
-        **doc,
+        "id": card_id,
+        "user_id": user["id"],
+        "card_name": card_name,
+        "issuer": issuer,
         "card_number": card_number_raw,
+        "last_four": last_four,
+        "credit_limit": data.get("credit_limit", 0),
+        "billing_cycle_day": data.get("billing_cycle_day", 1),
+        "due_day": data.get("due_day", 15),
+        "is_default": is_default,
+        "is_active": True,
+        "created_at": now,
         "current_outstanding": 0,
-        "available_credit": doc["credit_limit"],
+        "available_credit": data.get("credit_limit", 0),
     }
 
 
