@@ -49,6 +49,23 @@ type DashboardStats = {
   };
 };
 
+type MonthlyTrend = {
+  month: string;
+  income: number;
+  expenses: number;
+  savings: number;
+};
+
+type SmartAlert = {
+  id: string;
+  type: 'warning' | 'success' | 'info' | 'critical';
+  icon: string;
+  title: string;
+  message: string;
+  action?: string;
+  value?: string;
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════════
