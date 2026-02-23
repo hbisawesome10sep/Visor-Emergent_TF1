@@ -555,15 +555,18 @@ export default function InsightsScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Accent.emerald} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* ═══ FINANCIAL HEALTH SCORE ═══ */}
-        <HealthScoreCard
-          healthScore={healthScore}
-          breakdown={breakdown}
-          savingsRate={savingsRate}
-          spendingRate={spendingRate}
-          investmentRate={investmentRate}
-          goalProgress={goalProgress}
-          hasSufficientData={hasSufficientData}
+        {/* ═══ FINANCIAL HEALTH SCORE (New Redesigned) ═══ */}
+        <FinancialHealthCard
+          data={{
+            overall_score: healthScore,
+            grade: healthScore >= 80 ? 'Excellent' : healthScore >= 65 ? 'Good' : healthScore >= 50 ? 'Fair' : healthScore >= 35 ? 'Needs Work' : 'Critical',
+            has_sufficient_data: hasSufficientData,
+            savings_rate: savingsRate,
+            investment_rate: investmentRate,
+            expense_ratio: spendingRate,
+            goal_progress: goalProgress,
+            breakdown: breakdown,
+          }}
           isDark={isDark}
           colors={colors}
         />
