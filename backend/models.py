@@ -67,6 +67,9 @@ class TransactionResponse(BaseModel):
     price_per_unit: Optional[float] = None
     payment_mode: Optional[str] = "cash"
     payment_account_name: Optional[str] = "Cash"
+    is_flagged: bool = False
+    flagged_type: Optional[str] = None
+    is_approved: bool = False
     created_at: str
 
 
