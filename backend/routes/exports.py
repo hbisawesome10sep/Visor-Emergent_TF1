@@ -414,7 +414,7 @@ async def export_balance_sheet_pdf(
     elements.append(Paragraph("II. LIABILITIES", section_style))
     
     liability_data = [["Particulars", "Amount (₹)"]]
-    for l in sorted(liabilities, key=lambda x: -x["amount"]):
+    for liab in sorted(liabilities, key=lambda x: -x["amount"]):
         liability_data.append([liab["name"], format_inr(liab["amount"])])
     liability_data.append(["Total Liabilities", format_inr(total_liabilities)])
     
