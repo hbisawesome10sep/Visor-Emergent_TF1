@@ -669,10 +669,18 @@ export default function BooksScreen() {
           generated_at: new Date().toISOString(),
           period: dateRange,
           user: user?.full_name,
-          data: activeTab === 'ledger' ? ledgerData : activeTab === 'pnl' ? pnlData : balanceSheet,
+          data: activeTab === 'journal' ? { entries: journalEntries, total: journalTotal } : activeTab === 'ledger' ? ledgerData : activeTab === 'pnl' ? pnlData : balanceSheet,
         };
         content = JSON.stringify(exportData, null, 2);
         filename += '.json';
+      }
+      
+      // Check if there's content to export
+      if (!content) {
+        Alert.alert('No Data', 'No data available to export for the selected period.');
+        setExporting(false);
+        setShowExportModal(false);
+        return;
       }
       
       // Write file and share
@@ -682,7 +690,7 @@ export default function BooksScreen() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
           mimeType: format === 'json' ? 'application/json' : 'text/csv',
-          dialogTitle: `Share ${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'P&L' : 'Balance Sheet'}`,
+          dialogTitle: `Share ${activeTab === 'journal' ? 'Journal' : activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'P&L' : 'Balance Sheet'}`,
         });
       } else {
         Alert.alert('Success', `File saved as ${filename}`);
