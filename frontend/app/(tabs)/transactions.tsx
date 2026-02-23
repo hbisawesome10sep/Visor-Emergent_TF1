@@ -193,25 +193,37 @@ export default function TransactionsScreen() {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
   }, []);
 
-  // Summary
+  // Summary for bank/UPI transactions
   const summary = useMemo(() => {
-    const inc = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const exp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-    const inv = transactions.filter(t => t.type === 'investment').reduce((s, t) => s + t.amount, 0);
+    const txns = txnSource === 'bank' ? transactions : ccTransactions;
+    const inc = txns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const exp = txns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const inv = txns.filter(t => t.type === 'investment').reduce((s, t) => s + t.amount, 0);
+    const pay = txns.filter(t => t.type === 'payment').reduce((s, t) => s + t.amount, 0);
     const net = inc - exp - inv;
-    return { income: inc, expense: exp, investment: inv, net, total: transactions.length };
-  }, [transactions]);
+    return { income: inc, expense: exp, investment: inv, payment: pay, net, total: txns.length };
+  }, [transactions, ccTransactions, txnSource]);
 
   const fetchTxns = useCallback(async () => {
     if (!token) return;
     try {
+      // Fetch bank/UPI transactions
       const params = new URLSearchParams();
       if (activeType !== 'all') params.append('type', activeType);
       if (activeCategory) params.append('category', activeCategory);
       if (searchQuery.trim()) params.append('search', searchQuery.trim());
       const qs = params.toString() ? `?${params.toString()}` : '';
-      const data = await apiRequest(`/transactions${qs}`, { token });
-      setTransactions(data);
+      
+      // Fetch both bank transactions and credit card transactions in parallel
+      const [bankData, ccData, cardsData] = await Promise.all([
+        apiRequest(`/transactions${qs}`, { token }),
+        apiRequest(`/credit-card-transactions${qs}`, { token }).catch(() => []),
+        apiRequest('/credit-cards', { token }).catch(() => []),
+      ]);
+      
+      setTransactions(bankData);
+      setCCTransactions(ccData);
+      setCreditCards(cardsData);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
   }, [token, activeType, activeCategory, searchQuery]);
