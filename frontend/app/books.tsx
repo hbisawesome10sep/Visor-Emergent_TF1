@@ -565,63 +565,18 @@ export default function BooksScreen() {
     setExporting(true);
     try {
       const dateRange = getDateRange();
-      let filename = `Visor_${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'PnL' : 'BalanceSheet'}_${new Date().toISOString().split('T')[0]}`;
+      let filename = `Visor_${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'PnL' : activeTab === 'journal' ? 'Journal' : 'BalanceSheet'}_${new Date().toISOString().split('T')[0]}`;
       
+      // For now, convert Excel/PDF requests to CSV (backend endpoints not yet implemented)
       if (format === 'excel' || format === 'pdf') {
-        // Call backend API for Excel/PDF export
-        const response = await fetch(
-          `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/books/export/${activeTab === 'balance' ? 'balance' : activeTab}/${format}?start_date=${dateRange.start}&end_date=${dateRange.end}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        Alert.alert(
+          'Format Coming Soon',
+          `${format.toUpperCase()} export is coming soon. Would you like to export as CSV instead?`,
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => { setExporting(false); setShowExportModal(false); } },
+            { text: 'Export CSV', onPress: () => handleExport('csv') },
+          ]
         );
-        
-        if (!response.ok) {
-          throw new Error('Export failed');
-        }
-        
-        // For mobile: download and share
-        if (Platform.OS !== 'web') {
-          const blob = await response.blob();
-          const fileUri = FileSystem.documentDirectory + filename + (format === 'excel' ? '.xlsx' : '.pdf');
-          
-          // Convert blob to base64
-          const reader = new FileReader();
-          reader.onload = async () => {
-            const base64 = (reader.result as string).split(',')[1];
-            await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: 'base64' });
-            
-            if (await Sharing.isAvailableAsync()) {
-              await Sharing.shareAsync(fileUri, {
-                mimeType: format === 'excel' 
-                  ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-                  : 'application/pdf',
-                dialogTitle: `Share ${activeTab === 'ledger' ? 'Ledger' : activeTab === 'pnl' ? 'P&L' : 'Balance Sheet'}`,
-              });
-            } else {
-              Alert.alert('Success', `File saved as ${filename}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
-            }
-            setExporting(false);
-            setShowExportModal(false);
-          };
-          reader.readAsDataURL(blob);
-        } else {
-          // For web: use browser download
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename + (format === 'excel' ? '.xlsx' : '.pdf');
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          setExporting(false);
-          setShowExportModal(false);
-          Alert.alert('Success', `Downloaded ${filename}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
-        }
         return;
       }
       
