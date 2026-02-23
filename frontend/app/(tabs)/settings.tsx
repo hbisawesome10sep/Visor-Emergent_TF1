@@ -1272,7 +1272,7 @@ export default function SettingsScreen() {
             <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>IFSC Code (optional)</Text>
             <TextInput
               data-testid="bank-ifsc-input"
-              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8, color: colors.textPrimary }]}
               value={bankForm.ifsc_code}
               onChangeText={v => setBankForm(p => ({ ...p, ifsc_code: v.toUpperCase() }))}
               placeholder="e.g., HDFC0001234"
