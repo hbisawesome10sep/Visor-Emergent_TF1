@@ -3,3 +3,4 @@ export { UserDeductionsSection } from './UserDeductionsSection';
 export { AutoDeductionsSection } from './AutoDeductionsSection';
 export { CapitalGainsSection } from './CapitalGainsSection';
 export { DeductionFloatingBar } from './DeductionFloatingBar';
+export { SmartTaxNotifications } from './SmartTaxNotifications';
