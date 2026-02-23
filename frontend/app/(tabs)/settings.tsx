@@ -1249,7 +1249,7 @@ export default function SettingsScreen() {
             <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' }}>Account Name *</Text>
             <TextInput
               data-testid="bank-account-name-input"
-              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8 }]}
+              style={[styles.deleteInput, { borderColor: colors.border, backgroundColor: colors.background, textAlign: 'left', paddingHorizontal: 12, marginBottom: 8, color: colors.textPrimary }]}
               value={bankForm.account_name}
               onChangeText={v => setBankForm(p => ({ ...p, account_name: v }))}
               placeholder="e.g., HDFC Savings"
