@@ -352,14 +352,35 @@ export default function TransactionsScreen() {
     setDatePreset('All Time');
   };
 
-  const dateGroups = useMemo(() => groupByDate(transactions), [transactions]);
-  const cats = form.type === 'income' ? INCOME_CATS : form.type === 'investment' ? INVEST_CATS : EXPENSE_CATS;
-  const typeFilters = [
-    { key: 'all', label: 'All', color: colors.primary },
-    { key: 'income', label: 'Income', color: colors.income },
-    { key: 'expense', label: 'Expense', color: colors.expense },
-    { key: 'investment', label: 'Investment', color: colors.investment },
-  ];
+  const dateGroups = useMemo(() => {
+    const txns = txnSource === 'bank' ? transactions : ccTransactions;
+    return groupByDate(txns);
+  }, [transactions, ccTransactions, txnSource]);
+  
+  // Categories based on transaction source
+  const cats = useMemo(() => {
+    if (txnSource === 'credit_card') {
+      return ['Shopping', 'Food & Dining', 'EMI', 'Subscriptions', 'Travel', 'Fuel', 'Utilities', 'Entertainment', 'Health', 'Other'];
+    }
+    return form.type === 'income' ? INCOME_CATS : form.type === 'investment' ? INVEST_CATS : EXPENSE_CATS;
+  }, [txnSource, form.type]);
+  
+  // Type filters based on transaction source
+  const typeFilters = useMemo(() => {
+    if (txnSource === 'credit_card') {
+      return [
+        { key: 'all', label: 'All', color: colors.primary },
+        { key: 'expense', label: 'Purchases', color: colors.expense },
+        { key: 'payment', label: 'Payments', color: colors.income },
+      ];
+    }
+    return [
+      { key: 'all', label: 'All', color: colors.primary },
+      { key: 'income', label: 'Income', color: colors.income },
+      { key: 'expense', label: 'Expense', color: colors.expense },
+      { key: 'investment', label: 'Investment', color: colors.investment },
+    ];
+  }, [txnSource, colors]);
 
   const hasFilters = activeType !== 'all' || activeCategory !== '' || searchQuery !== '';
 
