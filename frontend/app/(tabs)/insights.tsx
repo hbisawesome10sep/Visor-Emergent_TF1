@@ -329,8 +329,17 @@ export default function InsightsScreen() {
       const url = selectedFrequency === 'Custom'
         ? '/dashboard/stats'
         : `/dashboard/stats?start_date=${start}&end_date=${end}`;
-      const data = await apiRequest(url, { token });
-      setStats(data);
+      
+      // Fetch all data in parallel
+      const [statsData, trendsData, alertsData] = await Promise.all([
+        apiRequest(url, { token }),
+        apiRequest('/dashboard/monthly-trends', { token }).catch(() => ({ trends: [] })),
+        apiRequest('/dashboard/smart-alerts', { token }).catch(() => ({ alerts: [] })),
+      ]);
+      
+      setStats(statsData);
+      setMonthlyTrends(trendsData.trends || []);
+      setSmartAlerts(alertsData.alerts || []);
     } catch (e) {
       console.error(e);
       setStats({
