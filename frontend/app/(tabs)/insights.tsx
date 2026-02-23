@@ -601,6 +601,24 @@ export default function InsightsScreen() {
           colors={colors}
         />
 
+        {/* ═══ SMART ALERTS ═══ */}
+        {smartAlerts.length > 0 && (
+          <SmartAlertsCard
+            alerts={smartAlerts}
+            isDark={isDark}
+            colors={colors}
+          />
+        )}
+
+        {/* ═══ MONTHLY SAVINGS TREND ═══ */}
+        {monthlyTrends.length > 0 && (
+          <MonthlyTrendCard
+            data={monthlyTrends}
+            isDark={isDark}
+            colors={colors}
+          />
+        )}
+
         {/* ═══ KEY FINANCIAL INSIGHTS ═══ */}
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Key Financial Insights</Text>
         
