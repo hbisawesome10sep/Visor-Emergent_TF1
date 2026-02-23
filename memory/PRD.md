@@ -254,81 +254,49 @@ The Financial Health Score (0-100) is calculated based on 4 key metrics:
 
 ---
 
-## 💰 Monetization Strategy
+## 💰 Pricing & Plans
 
-| Tier | Price | Features |
-|------|-------|----------|
-| **Free** | ₹0 | Basic tracking, 1 bank, limited history |
-| **Pro** | ₹199/month | Unlimited banks, full history, exports |
-| **Premium** | ₹499/month | AI advisor, family accounts, priority support |
-| **Lifetime** | ₹4,999 | All Pro features forever |
-
----
-
-## 🛠️ Technical Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    VISOR FINANCE APP                         │
-├─────────────────────────────────────────────────────────────┤
-│  Frontend (React Native + Expo)                              │
-│  ├── Dashboard (index.tsx)                                   │
-│  ├── Transactions (transactions.tsx)                         │
-│  ├── Investments (investments.tsx)                           │
-│  ├── Books & Reports (books.tsx)                             │
-│  ├── Tax Planning (tax.tsx)                                  │
-│  ├── Insights (insights.tsx)                                 │
-│  └── Settings (settings.tsx)                                 │
-├─────────────────────────────────────────────────────────────┤
-│  Backend (FastAPI + Python)                                  │
-│  ├── Auth & Users                                            │
-│  ├── Bank Statement Parser (15+ banks)                       │
-│  ├── Transaction Engine                                      │
-│  ├── Bookkeeping (Journal, Ledger, P/L, BS)                  │
-│  ├── Tax Calculator & Deduction Engine                       │
-│  ├── Portfolio & Holdings                                    │
-│  ├── Market Data (Live Prices)                               │
-│  ├── AI Advisor (GPT Integration)                            │
-│  └── Gmail Integration                                       │
-├─────────────────────────────────────────────────────────────┤
-│  Database (MongoDB)                                          │
-│  ├── users, transactions, journal_entries                    │
-│  ├── holdings, goals, recurring_transactions                 │
-│  ├── tax_deductions, bank_accounts                           │
-│  └── ai_chat_history                                         │
-└─────────────────────────────────────────────────────────────┘
-```
+| Plan | Price | What You Get |
+|------|-------|--------------|
+| **Free** | ₹0/forever | 1 bank account, 3 months history, basic insights |
+| **Pro** | ₹199/month | Unlimited banks, full history, all exports, tax planning |
+| **Premium** | ₹499/month | Everything in Pro + AI advisor, family accounts, priority support |
+| **Lifetime** | ₹4,999 one-time | All Pro features forever, no recurring fees |
 
 ---
 
-## 📞 Support & Contact
+## 🛠️ Technical Stack
 
-- **App Support**: In-app chat with AI advisor
-- **Email**: support@visorfinance.app (placeholder)
-- **Documentation**: In-app help section
-
----
-
-## 📝 Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | Jan 2026 | Initial release |
-| 1.1.0 | Feb 2026 | Multi-bank support, tax planning |
-| 1.2.0 | Feb 23, 2026 | Financial Health redesign, Smart Tax Notifications |
+| Component | Technology |
+|-----------|------------|
+| Mobile App | React Native + Expo |
+| Backend API | FastAPI (Python) |
+| Database | MongoDB |
+| Authentication | JWT + Biometrics |
+| AI | GPT-4 Integration |
+| Market Data | Yahoo Finance + GoldAPI |
 
 ---
 
-## 🎯 Success Metrics
+## 📞 Support
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| Daily Active Users | 10,000 | - |
-| Bank Statements Parsed | 100,000 | - |
-| Avg. Health Score Improvement | +15 points in 3 months | - |
-| Tax Saved per User | ₹25,000 avg | - |
-| App Store Rating | 4.5+ stars | - |
+- **In-App AI Chat**: Ask any financial question
+- **Email**: support@visorfinance.app
+- **Help Center**: In-app documentation
 
 ---
 
-*Last Updated: February 23, 2026*
+## 📈 Current Status
+
+| Metric | Status |
+|--------|--------|
+| App Version | 1.2.0 |
+| Last Updated | February 23, 2026 |
+| Banks Supported | 15+ |
+| Core Features | ✅ Complete |
+| Tax Features | ✅ Complete |
+| AI Advisor | ✅ Complete |
+
+---
+
+*© 2026 Visor Finance. All rights reserved.*
