@@ -15,6 +15,8 @@ import { FinancialHealthCard } from '../../src/components/FinancialHealthCard';
 import { SpendingBreakdownCard } from '../../src/components/SpendingBreakdownCard';
 import { CompareCard } from '../../src/components/CompareCard';
 import { AIRecommendations } from '../../src/components/AIRecommendations';
+import { MonthlyTrendCard } from '../../src/components/MonthlyTrendCard';
+import { SmartAlertsCard } from '../../src/components/SmartAlertsCard';
 import { Accent } from '../../src/utils/theme';
 import AIAdvisorChat from '../../src/components/AIAdvisorChat';
 
