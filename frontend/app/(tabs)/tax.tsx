@@ -18,7 +18,8 @@ import {
   CalcRow, 
   UserDeductionsSection, 
   AutoDeductionsSection, 
-  CapitalGainsSection 
+  CapitalGainsSection,
+  DeductionFloatingBar,
 } from '../../src/components/tax';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
