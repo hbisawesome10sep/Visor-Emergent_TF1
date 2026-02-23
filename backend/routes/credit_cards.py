@@ -320,7 +320,27 @@ async def create_credit_card_transaction(data: dict, user=Depends(get_current_us
     # Create journal entry for double-entry bookkeeping
     await create_cc_journal_entry(user["id"], doc, card)
     
-    return doc
+    # Return clean response without _id
+    return {
+        "id": txn_id,
+        "user_id": user["id"],
+        "card_id": card_id,
+        "card_name": card.get("card_name", ""),
+        "type": txn_type,
+        "amount": amount,
+        "category": category,
+        "description": data.get("description", ""),
+        "merchant": data.get("merchant", ""),
+        "date": data.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d")),
+        "is_recurring": data.get("is_recurring", False),
+        "recurring_frequency": data.get("recurring_frequency"),
+        "is_flagged": is_flagged,
+        "flagged_type": detected_type,
+        "is_approved": False,
+        "notes": data.get("notes", ""),
+        "statement_ref": data.get("statement_ref"),
+        "created_at": now,
+    }
 
 
 @router.put("/credit-card-transactions/{txn_id}")
