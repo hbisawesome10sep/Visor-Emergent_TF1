@@ -285,6 +285,8 @@ export default function InsightsScreen() {
   const HEADER_HEIGHT = 100 + insets.top;
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTrend[]>([]);
+  const [smartAlerts, setSmartAlerts] = useState<SmartAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState<'Quarter' | 'Month' | 'Year' | 'Custom'>('Month');
