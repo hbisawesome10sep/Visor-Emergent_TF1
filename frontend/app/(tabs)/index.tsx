@@ -426,89 +426,21 @@ export default function DashboardScreen() {
           </Text>
         </View>
 
-        {/* ═══ FINANCIAL HEALTH SCORE CARD ═══ */}
-        <TouchableOpacity
-          activeOpacity={0.95}
-          onPress={() => setShowScoreBack(!showScoreBack)}
-          style={[styles.healthScoreCard, {
-            backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)',
-            borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)',
-          }]}
-        >
-          {/* Flip icon */}
-          <TouchableOpacity 
-            style={[styles.scoreFlipBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
-            onPress={() => setShowScoreBack(!showScoreBack)}
-          >
-            <MaterialCommunityIcons 
-              name={showScoreBack ? "rotate-left" : "information-outline"} 
-              size={16} 
-              color={colors.textSecondary} 
-            />
-          </TouchableOpacity>
-
-          {!showScoreBack ? (
-            <View style={styles.healthScoreFront}>
-              <View style={styles.scoreRow}>
-                {/* Score Ring */}
-                <View style={styles.scoreRingBox}>
-                  <Svg width={90} height={90}>
-                    <G rotation="-90" origin="45, 45">
-                      <Circle cx="45" cy="45" r="38" stroke={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'} strokeWidth="8" fill="transparent" />
-                      <Circle cx="45" cy="45" r="38" stroke={scoreColor} strokeWidth="8" fill="transparent" strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 38}`}
-                        strokeDashoffset={(1 - healthScore / 100) * 2 * Math.PI * 38}
-                      />
-                    </G>
-                  </Svg>
-                  <View style={styles.scoreCenter}>
-                    <Text style={[styles.scoreNum, { color: scoreColor }]}>{healthScore}</Text>
-                    <Text style={[styles.scoreOf, { color: colors.textSecondary }]}>/100</Text>
-                  </View>
-                </View>
-
-                {/* Score Info */}
-                <View style={styles.scoreInfo}>
-                  <Text style={[styles.scoreTitle, { color: colors.textPrimary }]}>Financial Health Score</Text>
-                  <View style={[styles.scoreLabelBadge, { backgroundColor: `${scoreInfo.color}20` }]}>
-                    <Text style={[styles.scoreLabelText, { color: scoreInfo.color }]}>{scoreInfo.label}</Text>
-                  </View>
-                  <Text style={[styles.scoreDesc, { color: colors.textSecondary }]}>
-                    {healthScore >= 70 ? "Great habits!" : healthScore >= 50 ? "Room to improve" : "Needs attention"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.healthScoreBack}>
-              <Text style={[styles.scoreBackTitle, { color: colors.textPrimary }]}>Score Breakdown</Text>
-              <Text style={[styles.scoreBackDesc, { color: colors.textSecondary }]}>Based on RBI guidelines</Text>
-              
-              <View style={[styles.scoreBreakdown, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
-                <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Savings ({stats?.savings_rate?.toFixed(0) || 0}% of income)</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.savings)}/25</Text>
-                </View>
-                <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Spending ({stats?.expense_ratio?.toFixed(0) || 0}% of income)</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.spending)}/25</Text>
-                </View>
-                <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Investments ({stats?.investment_ratio?.toFixed(0) || 0}% of income)</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.investments)}/25</Text>
-                </View>
-                <View style={styles.breakdownRow}>
-                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Goals ({stats?.goal_progress?.toFixed(0) || 0}% achieved)</Text>
-                  <Text style={[styles.breakdownValue, { color: colors.textPrimary }]}>{Math.round(breakdown.goals)}/25</Text>
-                </View>
-                <View style={[styles.breakdownTotal, { borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
-                  <Text style={[styles.breakdownTotalLabel, { color: colors.textPrimary }]}>Total</Text>
-                  <Text style={[styles.breakdownTotalValue, { color: scoreColor }]}>{healthScore}/100</Text>
-                </View>
-              </View>
-            </View>
-          )}
-        </TouchableOpacity>
+        {/* ═══ FINANCIAL HEALTH SCORE CARD (New Redesigned) ═══ */}
+        <FinancialHealthCard
+          data={{
+            overall_score: healthScore,
+            grade: scoreInfo.label,
+            has_sufficient_data: stats?.health_score?.has_sufficient_data ?? (stats?.total_income > 0),
+            savings_rate: stats?.savings_rate || 0,
+            investment_rate: stats?.investment_ratio || 0,
+            expense_ratio: stats?.expense_ratio || 0,
+            goal_progress: stats?.goal_progress || 0,
+            breakdown: breakdown,
+          }}
+          isDark={isDark}
+          colors={colors}
+        />
 
         {/* ═══ OVERVIEW CARDS (Liquid Fill) ═══ */}
         <View style={styles.section}>
