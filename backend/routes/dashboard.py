@@ -287,3 +287,211 @@ async def get_health_score(user=Depends(get_current_user)):
             "goals": round(goal_score, 1),
         }
     }
+
+
+@router.get("/dashboard/monthly-trends")
+async def get_monthly_trends(user=Depends(get_current_user)):
+    """Get monthly income/expense/savings trends for the last 6 months."""
+    user_id = user["id"]
+    
+    # Get transactions from last 6 months
+    now = datetime.now(timezone.utc)
+    six_months_ago = now - timedelta(days=180)
+    
+    txns = await db.transactions.find({
+        "user_id": user_id,
+        "date": {"$gte": six_months_ago.strftime("%Y-%m-%d")}
+    }, {"_id": 0}).to_list(5000)
+    
+    # Group by month
+    monthly_data = {}
+    for t in txns:
+        date_str = t.get("date", "")
+        if not date_str:
+            continue
+        try:
+            dt = datetime.strptime(date_str, "%Y-%m-%d")
+            month_key = dt.strftime("%Y-%m")
+            month_label = dt.strftime("%b")
+        except Exception:
+            continue
+        
+        if month_key not in monthly_data:
+            monthly_data[month_key] = {"month": month_label, "income": 0, "expenses": 0, "investments": 0}
+        
+        if t["type"] == "income":
+            monthly_data[month_key]["income"] += t["amount"]
+        elif t["type"] == "expense":
+            monthly_data[month_key]["expenses"] += t["amount"]
+        elif t["type"] == "investment":
+            monthly_data[month_key]["investments"] += t["amount"]
+    
+    # Sort by month and calculate savings
+    sorted_months = sorted(monthly_data.keys())
+    result = []
+    for month_key in sorted_months[-6:]:  # Last 6 months
+        data = monthly_data[month_key]
+        savings = data["income"] - data["expenses"] - data["investments"]
+        result.append({
+            "month": data["month"],
+            "income": round(data["income"], 2),
+            "expenses": round(data["expenses"], 2),
+            "savings": round(savings, 2),
+        })
+    
+    return {"trends": result}
+
+
+@router.get("/dashboard/smart-alerts")
+async def get_smart_alerts(user=Depends(get_current_user)):
+    """Generate smart financial alerts based on user's data."""
+    user_id = user["id"]
+    
+    now = datetime.now(timezone.utc)
+    current_month = now.strftime("%Y-%m")
+    last_month = (now - timedelta(days=30)).strftime("%Y-%m")
+    
+    # Fetch data
+    txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(5000)
+    goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    budgets = await db.budgets.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    
+    alerts = []
+    alert_id = 1
+    
+    # Calculate current month stats
+    current_income = sum(t["amount"] for t in txns if t["type"] == "income" and t.get("date", "").startswith(current_month))
+    current_expenses = sum(t["amount"] for t in txns if t["type"] == "expense" and t.get("date", "").startswith(current_month))
+    last_month_expenses = sum(t["amount"] for t in txns if t["type"] == "expense" and t.get("date", "").startswith(last_month))
+    
+    total_income = sum(t["amount"] for t in txns if t["type"] == "income")
+    total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
+    
+    # Alert 1: Overspending compared to last month
+    if last_month_expenses > 0 and current_expenses > last_month_expenses * 1.2:
+        pct_increase = ((current_expenses - last_month_expenses) / last_month_expenses) * 100
+        alerts.append({
+            "id": f"alert_{alert_id}",
+            "type": "warning",
+            "icon": "trending-up",
+            "title": "Spending Up This Month",
+            "message": f"You've spent {pct_increase:.0f}% more than last month. Consider reviewing discretionary expenses.",
+            "value": f"₹{current_expenses:,.0f}",
+            "action": "Review"
+        })
+        alert_id += 1
+    
+    # Alert 2: Low savings rate
+    if total_income > 0:
+        savings_rate = ((total_income - total_expenses) / total_income) * 100
+        if savings_rate < 10:
+            alerts.append({
+                "id": f"alert_{alert_id}",
+                "type": "critical",
+                "icon": "piggy-bank-outline",
+                "title": "Low Savings Rate",
+                "message": "Your savings rate is below 10%. Aim for at least 20% to build wealth.",
+                "value": f"{savings_rate:.1f}%",
+                "action": "Plan"
+            })
+            alert_id += 1
+        elif savings_rate >= 30:
+            alerts.append({
+                "id": f"alert_{alert_id}",
+                "type": "success",
+                "icon": "check-circle",
+                "title": "Excellent Savings!",
+                "message": "You're saving over 30% of your income. Great financial discipline!",
+                "value": f"{savings_rate:.1f}%"
+            })
+            alert_id += 1
+    
+    # Alert 3: Budget alerts
+    current_month_by_category = {}
+    for t in txns:
+        if t["type"] == "expense" and t.get("date", "").startswith(current_month):
+            cat = t["category"]
+            current_month_by_category[cat] = current_month_by_category.get(cat, 0) + t["amount"]
+    
+    for budget in budgets:
+        cat = budget.get("category", "")
+        limit = budget.get("amount", 0)
+        spent = current_month_by_category.get(cat, 0)
+        if limit > 0 and spent > limit * 0.9:
+            alerts.append({
+                "id": f"alert_{alert_id}",
+                "type": "critical" if spent > limit else "warning",
+                "icon": "alert-circle" if spent > limit else "alert",
+                "title": f"{cat} Budget Alert",
+                "message": f"{'Exceeded' if spent > limit else 'Near'} your {cat} budget limit.",
+                "value": f"₹{spent:,.0f} / ₹{limit:,.0f}",
+                "action": "Adjust"
+            })
+            alert_id += 1
+    
+    # Alert 4: Goal progress
+    for goal in goals:
+        target = goal.get("target_amount", 0)
+        current = goal.get("current_amount", 0)
+        deadline = goal.get("deadline", "")
+        name = goal.get("name", "Goal")
+        
+        if target > 0:
+            progress = (current / target) * 100
+            if progress >= 100:
+                alerts.append({
+                    "id": f"alert_{alert_id}",
+                    "type": "success",
+                    "icon": "trophy",
+                    "title": f"Goal Achieved: {name}",
+                    "message": "Congratulations! You've reached your target.",
+                    "value": f"₹{current:,.0f}"
+                })
+                alert_id += 1
+            elif deadline:
+                try:
+                    deadline_dt = datetime.strptime(deadline, "%Y-%m-%d")
+                    days_left = (deadline_dt - now).days
+                    if 0 < days_left <= 30 and progress < 80:
+                        alerts.append({
+                            "id": f"alert_{alert_id}",
+                            "type": "warning",
+                            "icon": "clock-alert",
+                            "title": f"Goal Deadline Near: {name}",
+                            "message": f"Only {days_left} days left and {100-progress:.0f}% remaining.",
+                            "value": f"₹{target - current:,.0f} to go",
+                            "action": "Boost"
+                        })
+                        alert_id += 1
+                except Exception:
+                    pass
+    
+    # Alert 5: No income recorded this month
+    if current_income == 0 and now.day > 10:
+        alerts.append({
+            "id": f"alert_{alert_id}",
+            "type": "info",
+            "icon": "cash-register",
+            "title": "No Income Recorded",
+            "message": "Record your income to get accurate financial insights.",
+            "action": "Add"
+        })
+        alert_id += 1
+    
+    # Alert 6: Emergency fund check
+    avg_monthly_expense = total_expenses / max(1, len(set(t.get("date", "")[:7] for t in txns if t["type"] == "expense")))
+    emergency_fund_months = (total_income - total_expenses) / avg_monthly_expense if avg_monthly_expense > 0 else 0
+    
+    if emergency_fund_months < 3 and total_income > 0:
+        alerts.append({
+            "id": f"alert_{alert_id}",
+            "type": "warning",
+            "icon": "shield-alert",
+            "title": "Build Emergency Fund",
+            "message": f"You have ~{emergency_fund_months:.1f} months of expenses saved. Aim for 6 months.",
+            "action": "Plan"
+        })
+        alert_id += 1
+    
+    return {"alerts": alerts[:8]}  # Limit to 8 most important alerts
+
