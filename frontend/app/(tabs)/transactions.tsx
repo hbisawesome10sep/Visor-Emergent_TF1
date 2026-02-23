@@ -1232,6 +1232,51 @@ export default function TransactionsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
 
+  // Source Toggle (Bank/UPI vs Credit Card)
+  sourceToggleContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 4,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  sourceToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  sourceToggleBtnActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sourceToggleText: {
+    fontSize: 13,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
+  ccBadge: {
+    backgroundColor: '#8B5CF6',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginLeft: 4,
+  },
+  ccBadgeText: {
+    fontSize: 10,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+    color: '#fff',
+  },
+
   // Sticky Header
   stickyHeader: {
     position: 'absolute',
