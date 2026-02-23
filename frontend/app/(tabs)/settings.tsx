@@ -1512,10 +1512,11 @@ export default function SettingsScreen() {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.confirmDeleteBtn, { backgroundColor: Accent.emerald, marginTop: 16, width: '100%', paddingVertical: 14 }]}
+                  data-testid="upload-success-done-btn"
+                  style={[styles.confirmDeleteBtn, { backgroundColor: Accent.emerald, marginTop: 16, width: '100%', paddingVertical: 14, minHeight: 50, justifyContent: 'center', alignItems: 'center' }]}
                   onPress={closeUploadModal}
                 >
-                  <Text style={styles.confirmDeleteText}>Done</Text>
+                  <Text style={[styles.confirmDeleteText, { textAlign: 'center' }]}>Done</Text>
                 </TouchableOpacity>
               </>
             )}
