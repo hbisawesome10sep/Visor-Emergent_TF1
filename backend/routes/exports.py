@@ -996,7 +996,7 @@ async def export_balance_sheet_excel(
     ws.cell(row=row, column=2).border = thin_border
     row += 1
     
-    for l in sorted(liabilities, key=lambda x: -x["amount"]):
+    for liab in sorted(liabilities, key=lambda x: -x["amount"]):
         ws.cell(row=row, column=1, value=liab["name"]).border = thin_border
         amt_cell = ws.cell(row=row, column=2, value=liab["amount"])
         amt_cell.number_format = '₹#,##0.00'
