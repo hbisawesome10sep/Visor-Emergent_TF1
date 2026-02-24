@@ -19,6 +19,7 @@ import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '..
 import PieChart from '../../src/components/PieChart';
 import { WhatIfSimulator } from '../../src/components/WhatIfSimulator';
 import { MarketTickerBar, GoalsSection } from '../../src/components/investments';
+import EMITrackerModal from '../../src/components/EMITrackerModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
