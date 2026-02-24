@@ -276,8 +276,6 @@ export default function CreditCardsScreen() {
             </Text>
           </View>
         </View>
-          </Text>
-        </View>
 
         {/* Summary Card */}
         {cards.length > 0 && (
