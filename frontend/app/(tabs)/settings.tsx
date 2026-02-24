@@ -349,6 +349,324 @@ export default function SettingsScreen() {
     }
   };
 
+  // ═══ CARDS TAB ═══
+  const CardsTab = () => {
+    const [cards, setCards] = React.useState<any[]>([]);
+    const [loadingCards, setLoadingCards] = React.useState(true);
+    const [ccImportResult, setCcImportResult] = React.useState<any>(null);
+    const [uploadingCC, setUploadingCC] = React.useState(false);
+    const [ccUploadPhase, setCcUploadPhase] = React.useState<'idle'|'uploading'|'done'>('idle');
+    const [selectedCCFile, setSelectedCCFile] = React.useState<any>(null);
+    const [selectedCardId, setSelectedCardId] = React.useState('');
+    const [selectedIssuer, setSelectedIssuer] = React.useState('');
+    const [billingPeriod, setBillingPeriod] = React.useState('');
+    const [ccPassword, setCcPassword] = React.useState('');
+    const [importHistory, setImportHistory] = React.useState<any[]>([]);
+    const [showHistory, setShowHistory] = React.useState(false);
+
+    const CC_ISSUERS = ['HDFC', 'ICICI', 'SBI', 'AXIS', 'KOTAK', 'INDUSIND', 'SC', 'RBL', 'YES', 'AMEX', 'CITI', 'HSBC', 'Auto-detect'];
+
+    React.useEffect(() => {
+      (async () => {
+        try {
+          const data = await apiRequest('/credit-cards', { token: token || '' });
+          setCards(data.cards || []);
+          if (data.cards?.length > 0) setSelectedCardId(data.cards[0].id);
+          const hist = await apiRequest('/cc-statements/history', { token: token || '' });
+          setImportHistory(hist.history || []);
+        } catch {}
+        setLoadingCards(false);
+      })();
+    }, []);
+
+    const pickCCFile = async () => {
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: ['application/pdf', 'text/csv', 'application/vnd.ms-excel',
+                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+          copyToCacheDirectory: true,
+        });
+        if (!result.canceled && result.assets?.[0]) {
+          setSelectedCCFile(result.assets[0]);
+        }
+      } catch (e) { Alert.alert('Error', 'Could not pick file'); }
+    };
+
+    const handleCCUpload = async () => {
+      if (!selectedCCFile) { Alert.alert('No file', 'Please select a credit card statement'); return; }
+      if (!selectedCardId) { Alert.alert('No card', 'Please select a credit card'); return; }
+
+      setUploadingCC(true);
+      setCcUploadPhase('uploading');
+      setCcImportResult(null);
+
+      try {
+        const formData = new FormData();
+        formData.append('file', { uri: selectedCCFile.uri, name: selectedCCFile.name, type: selectedCCFile.mimeType || 'application/octet-stream' } as any);
+        formData.append('card_id', selectedCardId);
+        formData.append('issuer', selectedIssuer === 'Auto-detect' ? '' : selectedIssuer);
+        formData.append('billing_period', billingPeriod);
+        formData.append('password', ccPassword);
+        formData.append('create_journal', 'true');
+
+        const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+        const resp = await fetch(`${API_URL}/api/cc-statements/upload`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Upload failed');
+        setCcUploadPhase('done');
+        setCcImportResult(data);
+        setSelectedCCFile(null);
+        // Refresh history
+        const hist = await apiRequest('/cc-statements/history', { token: token || '' });
+        setImportHistory(hist.history || []);
+      } catch (e: any) {
+        Alert.alert('Upload Failed', e.message || 'Please check the file format');
+        setCcUploadPhase('idle');
+      } finally {
+        setUploadingCC(false);
+      }
+    };
+
+    const utilColor = (u: number) => u >= 80 ? '#EF4444' : u >= 50 ? '#F59E0B' : '#10B981';
+
+    return (
+      <View testID="cards-tab">
+        {/* Header Info */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconWrap, { backgroundColor: 'rgba(99,102,241,0.15)' }]}>
+              <MaterialCommunityIcons name="credit-card-multiple" size={22} color="#6366F1" />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Credit Cards</Text>
+          </View>
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 14, lineHeight: 20 }}>
+            Manage your credit cards. Statements are parsed separately from bank statements with correct liability-based double-entry bookkeeping.
+          </Text>
+
+          {/* CC Bookkeeping Note */}
+          <View style={[styles.infoBanner, { backgroundColor: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.07)', borderColor: 'rgba(99,102,241,0.2)' }]}>
+            <MaterialCommunityIcons name="information-outline" size={14} color="#6366F1" style={{ marginTop: 1 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 11, color: '#6366F1', fontFamily: 'DM Sans', fontWeight: '600' }}>CC Double-Entry Logic</Text>
+              <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2, lineHeight: 16 }}>
+                Purchase → Dr. Expense, Cr. CC Payable{'\n'}
+                Payment → Dr. CC Payable, Cr. Bank A/c{'\n'}
+                Interest/Fee → Dr. Finance Charges, Cr. CC Payable
+              </Text>
+            </View>
+          </View>
+
+          {/* Manage Cards button */}
+          <TouchableOpacity
+            testID="manage-cc-btn"
+            style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.08)', borderColor: 'rgba(99,102,241,0.3)' }]}
+            onPress={() => router.push('/credit-cards')}
+          >
+            <MaterialCommunityIcons name="credit-card-settings" size={18} color="#6366F1" />
+            <Text style={[styles.actionBtnText, { color: '#6366F1' }]}>Manage Credit Cards</Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color="#6366F1" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Cards Overview */}
+        {!loadingCards && cards.length > 0 && (
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary, marginBottom: 12 }]}>Your Cards</Text>
+            {cards.map(card => {
+              const utilization = card.credit_limit > 0 ? (card.current_outstanding / card.credit_limit) * 100 : 0;
+              return (
+                <View key={card.id} style={[styles.toggleRow, { borderColor: isDark ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.15)', marginBottom: 10 }]}>
+                  <View style={[styles.toggleIconWrap, { backgroundColor: 'rgba(99,102,241,0.1)' }]}>
+                    <MaterialCommunityIcons name="credit-card" size={20} color="#6366F1" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>{card.card_name}</Text>
+                    <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>{card.issuer} •••• {card.last_four}</Text>
+                    {/* Utilization mini bar */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 6 }}>
+                      <View style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }}>
+                        <View style={{ width: `${Math.min(utilization, 100)}%`, height: '100%', borderRadius: 2, backgroundColor: utilColor(utilization) }} />
+                      </View>
+                      <Text style={{ fontSize: 10, color: utilColor(utilization), fontFamily: 'DM Sans', fontWeight: '600' }}>{utilization.toFixed(0)}%</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* CC Statement Upload */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.1)' }]}>
+              <MaterialCommunityIcons name="file-import" size={22} color="#10B981" />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Import CC Statement</Text>
+          </View>
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 16, lineHeight: 20 }}>
+            Upload your credit card statement (PDF or CSV). Supports HDFC, ICICI, SBI Card, Axis, Kotak and more.
+          </Text>
+
+          {/* Card selector */}
+          {cards.length > 0 && (
+            <>
+              <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Select Card</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {cards.map(c => (
+                  <TouchableOpacity
+                    testID={`cc-card-select-${c.id}`}
+                    key={c.id}
+                    onPress={() => setSelectedCardId(c.id)}
+                    style={{
+                      paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, marginRight: 8,
+                      backgroundColor: selectedCardId === c.id ? '#6366F1' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                      borderWidth: 1, borderColor: selectedCardId === c.id ? '#6366F1' : colors.border,
+                    }}
+                  >
+                    <Text style={{ fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600', color: selectedCardId === c.id ? '#fff' : colors.textPrimary }}>
+                      {c.card_name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
+          )}
+
+          {cards.length === 0 && (
+            <View style={[styles.infoBanner, { backgroundColor: isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.07)', borderColor: 'rgba(245,158,11,0.2)', marginBottom: 12 }]}>
+              <MaterialCommunityIcons name="alert-circle-outline" size={14} color="#F59E0B" />
+              <Text style={{ flex: 1, fontSize: 12, color: '#F59E0B', fontFamily: 'DM Sans' }}>
+                Add a credit card first before importing a statement.
+              </Text>
+            </View>
+          )}
+
+          {/* Issuer selector */}
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Card Issuer (helps with parsing)</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+            {CC_ISSUERS.map(iss => (
+              <TouchableOpacity
+                testID={`issuer-${iss}`}
+                key={iss}
+                onPress={() => setSelectedIssuer(iss)}
+                style={{
+                  paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, marginRight: 8,
+                  backgroundColor: selectedIssuer === iss ? '#10B981' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                  borderWidth: 1, borderColor: selectedIssuer === iss ? '#10B981' : colors.border,
+                }}
+              >
+                <Text style={{ fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600', color: selectedIssuer === iss ? '#fff' : colors.textPrimary }}>
+                  {iss}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Billing Period */}
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Billing Period (optional, e.g. Jan 2026)</Text>
+          <TextInput
+            testID="billing-period-input"
+            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)', color: colors.textPrimary, borderColor: colors.border }]}
+            placeholder="e.g. Jan 2026"
+            placeholderTextColor={colors.textSecondary}
+            value={billingPeriod}
+            onChangeText={setBillingPeriod}
+          />
+
+          {/* PDF password */}
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>PDF Password (if encrypted)</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)', color: colors.textPrimary, borderColor: colors.border }]}
+            placeholder="Leave blank if not encrypted"
+            placeholderTextColor={colors.textSecondary}
+            value={ccPassword}
+            onChangeText={setCcPassword}
+            secureTextEntry
+          />
+
+          {/* File picker */}
+          <TouchableOpacity
+            testID="pick-cc-file-btn"
+            style={[styles.uploadZone, {
+              backgroundColor: selectedCCFile ? (isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)') : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+              borderColor: selectedCCFile ? '#10B981' : colors.border,
+            }]}
+            onPress={pickCCFile}
+          >
+            <MaterialCommunityIcons name={selectedCCFile ? 'file-check' : 'file-upload-outline'} size={28} color={selectedCCFile ? '#10B981' : colors.textSecondary} />
+            <Text style={{ fontSize: 13, color: selectedCCFile ? '#10B981' : colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginTop: 6 }}>
+              {selectedCCFile ? selectedCCFile.name : 'Select CC Statement'}
+            </Text>
+            <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2 }}>
+              PDF, CSV or Excel (.xlsx)
+            </Text>
+          </TouchableOpacity>
+
+          {/* Import result */}
+          {ccImportResult && ccUploadPhase === 'done' && (
+            <View style={[styles.resultBanner, { backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.07)', borderColor: '#10B981' }]}>
+              <MaterialCommunityIcons name="check-circle" size={20} color="#10B981" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700', color: '#10B981' }}>Import Successful</Text>
+                <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 3 }}>
+                  {ccImportResult.saved} transactions imported • {ccImportResult.duplicates} duplicates skipped
+                </Text>
+                <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: 'DM Sans', marginTop: 2 }}>
+                  {ccImportResult.journal_entries_created} journal entries created
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Upload button */}
+          <TouchableOpacity
+            testID="upload-cc-statement-btn"
+            style={[styles.uploadBtn, { backgroundColor: uploadingCC ? '#6B7280' : '#10B981', opacity: (!selectedCCFile || uploadingCC) ? 0.7 : 1 }]}
+            onPress={handleCCUpload}
+            disabled={!selectedCCFile || uploadingCC}
+          >
+            {uploadingCC ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <MaterialCommunityIcons name="upload" size={18} color="#fff" />
+                <Text style={styles.uploadBtnText}>Import Statement</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Import History */}
+        {importHistory.length > 0 && (
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <TouchableOpacity onPress={() => setShowHistory(!showHistory)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Import History ({importHistory.length})</Text>
+              <MaterialCommunityIcons name={showHistory ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+            {showHistory && importHistory.map((h, i) => (
+              <View key={h.id || i} style={[styles.toggleRow, { borderColor: colors.border, marginTop: 10, marginBottom: 0 }]}>
+                <View style={[styles.toggleIconWrap, { backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)' }]}>
+                  <MaterialCommunityIcons name="file-check-outline" size={18} color="#10B981" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.toggleTitle, { color: colors.textPrimary }]}>{h.card_name}</Text>
+                  <Text style={[styles.toggleDesc, { color: colors.textSecondary }]}>
+                    {h.saved} txns • {h.billing_period || h.issuer} • {new Date(h.imported_at).toLocaleDateString('en-IN')}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   // ═══ BANKING TAB ═══
   const BankingTab = () => {
     const filteredBanks = bankSearch
