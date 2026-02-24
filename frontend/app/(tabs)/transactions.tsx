@@ -1286,6 +1286,13 @@ export default function TransactionsScreen() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      {/* Flagged Transactions Modal */}
+      <FlaggedTransactionsModal
+        visible={showFlaggedModal}
+        onClose={() => setShowFlaggedModal(false)}
+        onApproved={fetchTxns}
+      />
     </View>
   );
 }
