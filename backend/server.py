@@ -132,3 +132,74 @@ async def get_tunnel_url():
     except Exception:
         pass
     return {"url": None, "expo_url": None, "active": False}
+
+
+# Server-rendered QR page — always shows current Expo Go QR code
+@app.get("/api/qr-page", response_class=HTMLResponse)
+async def qr_page():
+    """Server-rendered QR code page for Expo Go."""
+    from fastapi.responses import HTMLResponse
+    expo_url = ""
+    active = False
+    try:
+        with open("/tmp/tunnel_url.txt") as f:
+            cf_url = f.read().strip()
+        if cf_url:
+            hostname = cf_url.replace("https://", "")
+            expo_url = f"exp://{hostname}"
+            active = True
+    except Exception:
+        pass
+
+    qr_img = f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data={expo_url}" if active else ""
+    status_html = '<span style="color:#4ade80">&#9679; Tunnel Active</span>' if active else '<span style="color:#f59e0b">&#9679; Starting up...</span>'
+    url_display = expo_url if active else "Tunnel starting, refresh in 15 seconds..."
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="25">
+  <title>Visor Finance — Expo Go</title>
+  <style>
+    *{{margin:0;padding:0;box-sizing:border-box}}
+    body{{background:#0f1117;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}}
+    .card{{background:#1a1d27;border:1px solid #2a2d3a;border-radius:20px;padding:36px 44px;text-align:center;max-width:400px;width:100%}}
+    .logo{{font-size:26px;font-weight:700;color:#10b981;margin-bottom:2px}}
+    .tag{{font-size:13px;color:#6b7280;margin-bottom:28px}}
+    .qr{{background:#fff;border-radius:14px;padding:16px;display:inline-flex;margin-bottom:20px}}
+    .qr img{{width:220px;height:220px;display:block}}
+    .no-qr{{background:#fff;border-radius:14px;padding:16px;display:inline-flex;align-items:center;justify-content:center;width:252px;height:252px;margin-bottom:20px;color:#6b7280;font-size:13px}}
+    .label{{font-size:15px;color:#d1d5db;font-weight:500;margin-bottom:6px}}
+    .sub{{font-size:13px;color:#6b7280;margin-bottom:16px;line-height:1.5}}
+    .url{{background:#0f1117;border:1px solid #2a2d3a;border-radius:10px;padding:10px 14px;font-size:11px;color:#10b981;word-break:break-all;font-family:monospace;margin-bottom:16px}}
+    .status{{font-size:13px;margin-bottom:24px}}
+    .steps{{text-align:left}}
+    .step{{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}}
+    .num{{background:#10b981;color:#fff;border-radius:50%;width:20px;height:20px;min-width:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px}}
+    .st{{font-size:13px;color:#9ca3af;line-height:1.5}}
+    .st strong{{color:#e5e7eb}}
+    .hint{{font-size:11px;color:#374151;margin-top:16px}}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Visor Finance</div>
+    <div class="tag">Personal Finance for Indians</div>
+    {"f'<div class=qr><img src=\"{qr_img}\" alt=\"Expo QR Code\"/></div>'" if active else "<div class='no-qr'>Tunnel starting...<br>Refresh in 15s</div>"}
+    <div class="label">Scan with Expo Go</div>
+    <div class="sub">Open <strong>Expo Go</strong> &rarr; <strong>Scan QR Code</strong></div>
+    <div class="url">{url_display}</div>
+    <div class="status">{status_html}</div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div class="st">Install <strong>Expo Go</strong> from App Store / Play Store</div></div>
+      <div class="step"><div class="num">2</div><div class="st">Open Expo Go &rarr; tap <strong>Scan QR Code</strong></div></div>
+      <div class="step"><div class="num">3</div><div class="st">Scan the QR above — Visor loads on your phone</div></div>
+      <div class="step"><div class="num">4</div><div class="st">Login: <strong>rajesh@visor.demo</strong> / <strong>Demo@123</strong></div></div>
+    </div>
+    <div class="hint">Page auto-refreshes every 25 seconds</div>
+  </div>
+</body>
+</html>"""
+    return HTMLResponse(content=html)
