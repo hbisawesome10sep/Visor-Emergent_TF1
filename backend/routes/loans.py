@@ -387,6 +387,7 @@ async def get_emi_tracker_dashboard(user=Depends(get_current_user)):
             "next_emi_date": None,
             "source": "credit_card",
         })
+        total_monthly_emi += txn["amount"]
     
     # Sort active EMIs by outstanding amount
     active_emis.sort(key=lambda x: -x["outstanding"])
