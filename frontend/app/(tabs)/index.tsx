@@ -1740,4 +1740,74 @@ const styles = StyleSheet.create({
     fontFamily: 'DM Sans',
     textAlign: 'center',
   },
+
+  // ── Credit Card Summary Card ──
+  ccSummaryCard: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+  },
+  ccSummaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  ccSummaryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  ccSummaryIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ccSummaryTitle: {
+    fontSize: 14,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+  },
+  ccSummarySubtitle: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    marginTop: 1,
+  },
+  ccSummaryStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  ccSummaryStat: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  ccSummaryDivider: {
+    width: 1,
+    height: 32,
+  },
+  ccSummaryStatLabel: {
+    fontSize: 10,
+    fontFamily: 'DM Sans',
+    marginBottom: 4,
+  },
+  ccSummaryStatValue: {
+    fontSize: 15,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+  },
+  ccUtilizationBar: {
+    height: 5,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  ccUtilizationFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
 });
