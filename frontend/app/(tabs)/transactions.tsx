@@ -1338,6 +1338,38 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
+  // Flagged Transactions Bar
+  flaggedBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+  },
+  flaggedIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flaggedContent: {
+    flex: 1,
+  },
+  flaggedTitle: {
+    fontSize: 14,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
+  flaggedSubtitle: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    marginTop: 2,
+  },
+
   // Sticky Header
   stickyHeader: {
     position: 'absolute',
