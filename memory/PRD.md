@@ -228,12 +228,23 @@ The Financial Health Score (0-100) is calculated based on 4 key metrics:
 
 | Metric | Status |
 |--------|--------|
-| App Version | 1.2.0 |
-| Last Updated | February 23, 2026 |
+| App Version | 1.3.0 |
+| Last Updated | February 24, 2026 |
 | Banks Supported | 15+ |
 | Core Features | ✅ Complete |
 | Tax Features | ✅ Complete |
 | AI Advisor | ✅ Complete |
+| Credit Card Management | ✅ Complete |
+| EMI Tracker | ✅ Complete |
+
+---
+
+## 📝 Changelog
+
+### v1.3.0 - February 24, 2026
+- ✅ **EMI Tracker Card** integrated into Investments tab (opens modal with active EMIs, monthly totals, progress)
+- ✅ **Credit Card Summary Card** on Dashboard home screen (outstanding, limit, utilization %, color-coded bar)
+- ✅ **Bug Fix**: CC EMI transactions now correctly included in monthly EMI total (`loans.py`)
 
 ---
 
