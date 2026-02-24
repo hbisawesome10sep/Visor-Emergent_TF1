@@ -296,7 +296,9 @@ export default function FlaggedTransactionsModal({ visible, onClose, onApproved 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.88)',
+    backgroundColor: 'rgba(0,0,0,0.62)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     justifyContent: 'flex-end',
   },
   container: {
