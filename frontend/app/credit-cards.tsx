@@ -575,6 +575,173 @@ export default function CreditCardsScreen() {
           </View>
         </View>
       </Modal>
+      {/* ── Add Transaction Modal ── */}
+      <Modal visible={showTxnModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Record Transaction</Text>
+              <TouchableOpacity onPress={() => setShowTxnModal(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Transaction Type Toggle */}
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Type</Text>
+              <View style={styles.typeToggleRow}>
+                {TXN_TYPES.map(t => (
+                  <TouchableOpacity
+                    testID={`txn-type-${t.key}`}
+                    key={t.key}
+                    style={[styles.typeToggleBtn, {
+                      backgroundColor: txnForm.type === t.key
+                        ? t.color + '20'
+                        : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                      borderColor: txnForm.type === t.key ? t.color : 'transparent',
+                      borderWidth: 1.5,
+                    }]}
+                    onPress={() => setTxnForm({ ...txnForm, type: t.key })}
+                  >
+                    <MaterialCommunityIcons name={t.icon as any} size={18} color={txnForm.type === t.key ? t.color : colors.textSecondary} />
+                    <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600', color: txnForm.type === t.key ? t.color : colors.textSecondary }}>
+                      {t.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Card Selector */}
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Card *</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.issuerScroll}>
+                {cards.map(card => (
+                  <TouchableOpacity
+                    testID={`card-select-${card.id}`}
+                    key={card.id}
+                    style={[styles.issuerChip, {
+                      backgroundColor: txnForm.card_id === card.id
+                        ? '#6366F1'
+                        : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                      borderColor: txnForm.card_id === card.id
+                        ? '#6366F1'
+                        : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
+                    }]}
+                    onPress={() => setTxnForm({ ...txnForm, card_id: card.id })}
+                  >
+                    <Text style={[styles.issuerText, { color: txnForm.card_id === card.id ? '#fff' : colors.textPrimary }]}>
+                      {card.card_name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Amount */}
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Amount (₹) *</Text>
+              <TextInput
+                testID="txn-amount-input"
+                style={[styles.input, {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  color: colors.textPrimary,
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }]}
+                placeholder="0.00"
+                placeholderTextColor={colors.textSecondary}
+                value={txnForm.amount}
+                onChangeText={t => setTxnForm({ ...txnForm, amount: t })}
+                keyboardType="decimal-pad"
+              />
+
+              {/* Description */}
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Description *</Text>
+              <TextInput
+                testID="txn-description-input"
+                style={[styles.input, {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  color: colors.textPrimary,
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }]}
+                placeholder="e.g., Dinner at Zomato"
+                placeholderTextColor={colors.textSecondary}
+                value={txnForm.description}
+                onChangeText={t => setTxnForm({ ...txnForm, description: t })}
+              />
+
+              {/* Merchant */}
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Merchant (Optional)</Text>
+              <TextInput
+                style={[styles.input, {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  color: colors.textPrimary,
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }]}
+                placeholder="e.g., Zomato"
+                placeholderTextColor={colors.textSecondary}
+                value={txnForm.merchant}
+                onChangeText={t => setTxnForm({ ...txnForm, merchant: t })}
+              />
+
+              {/* Category */}
+              {txnForm.type === 'expense' && (
+                <>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Category</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.issuerScroll}>
+                    {CC_CATEGORIES.map(cat => (
+                      <TouchableOpacity
+                        testID={`category-${cat}`}
+                        key={cat}
+                        style={[styles.issuerChip, {
+                          backgroundColor: txnForm.category === cat
+                            ? '#6366F1'
+                            : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                          borderColor: txnForm.category === cat
+                            ? '#6366F1'
+                            : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
+                        }]}
+                        onPress={() => setTxnForm({ ...txnForm, category: cat })}
+                      >
+                        <Text style={[styles.issuerText, { color: txnForm.category === cat ? '#fff' : colors.textPrimary }]}>{cat}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </>
+              )}
+
+              {/* Date */}
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Date</Text>
+              <TextInput
+                testID="txn-date-input"
+                style={[styles.input, {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  color: colors.textPrimary,
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }]}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textSecondary}
+                value={txnForm.date}
+                onChangeText={t => setTxnForm({ ...txnForm, date: t })}
+              />
+
+              <TouchableOpacity
+                testID="txn-submit-btn"
+                style={[styles.submitBtn, {
+                  backgroundColor: txnForm.type === 'expense' ? '#EF4444' : '#10B981',
+                  opacity: savingTxn ? 0.7 : 1,
+                }]}
+                onPress={handleAddTransaction}
+                disabled={savingTxn}
+              >
+                {savingTxn ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.submitBtnText}>
+                    {txnForm.type === 'expense' ? 'Record Expense' : 'Record Payment'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
