@@ -4,6 +4,7 @@ A comprehensive personal finance management application.
 """
 
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware
 import asyncio
 import logging
