@@ -1199,12 +1199,18 @@ export default function InvestmentsScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* ═══ ADD GOAL FAB ═══ */}
+      {/* ═══ GOAL FAB ═══ */}
       <TouchableOpacity data-testid="goal-fab" style={styles.fab} onPress={openAddGoal}>
         <LinearGradient colors={[Accent.emerald, Accent.teal]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
           <MaterialCommunityIcons name="plus" size={28} color="#fff" />
         </LinearGradient>
       </TouchableOpacity>
+
+      {/* ═══ EMI TRACKER MODAL ═══ */}
+      <EMITrackerModal
+        visible={showEMITracker}
+        onClose={() => setShowEMITracker(false)}
+      />
 
       {/* ═══ GOAL MODAL ═══ */}
       <Modal visible={showGoalModal} animationType="slide" transparent>
