@@ -40,6 +40,20 @@ export default function CreditCardsScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null);
   
+  // Add Transaction state
+  const [showTxnModal, setShowTxnModal] = useState(false);
+  const [savingTxn, setSavingTxn] = useState(false);
+  const [txnForm, setTxnForm] = useState({
+    card_id: '',
+    type: 'expense',
+    amount: '',
+    description: '',
+    merchant: '',
+    category: 'Food & Dining',
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+  });
+
   // Form state
   const [formData, setFormData] = useState({
     card_name: '',
