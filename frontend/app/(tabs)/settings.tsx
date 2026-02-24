@@ -338,6 +338,8 @@ export default function SettingsScreen() {
         return <NotificationsTab />;
       case 'financial':
         return <FinancialTab />;
+      case 'cards':
+        return <CardsTab />;
       case 'appearance':
         return <AppearanceTab />;
       case 'data':
