@@ -1,0 +1,67 @@
+{
+  "summary": "Comprehensive testing of EMI Tracker card (Investments screen) and Credit Card Summary (Dashboard). All 17 backend tests pass. All 7 feature requirements verified and working. Backend APIs return correct data, frontend correctly displays both features.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/emi-tracker/dashboard",
+        "issue": "Credit Card EMIs (source='credit_card') are added to active_emis list but NOT included in total_monthly_emi summary. Demo user's 'Bajaj Finserv EMI - iPhone' (₹8,999/month) shows in Active Loans but monthly total shows ₹0.00. Fix: Add total_monthly_emi += txn['amount'] for CC EMIs at line ~389 in loans.py"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Investments page - EMI Tracker card",
+        "issues": [
+          "INFORMATIONAL: data-testid attribute on TouchableOpacity doesn't get mapped to DOM in React Native Web (document.querySelectorAll('[data-testid]') returns empty). Should use testID prop instead of data-testid for React Native components - React Native Web properly maps testID to data-testid HTML attribute."
+        ]
+      },
+      {
+        "screen": "Console warnings",
+        "issues": [
+          "Invalid DOM property 'transform-origin', should use 'transformOrigin' (non-breaking React Native Web CSS prop warning)"
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_emi_tracker_cc_summary.py",
+    "/app/test_reports/pytest/pytest_emi_cc_summary.xml"
+  ],
+  "action_items": [
+    "LOW: In backend/routes/loans.py, add 'total_monthly_emi += txn[\"amount\"]' for CC EMIs (around line 389) so that credit card EMIs are included in the monthly total displayed in the EMI Tracker modal",
+    "LOW: Replace data-testid prop with testID prop on React Native components (TouchableOpacity, etc.) for proper DOM attribute mapping in React Native Web"
+  ],
+  "critical_code_review_comments": [
+    "CC EMI missing from monthly EMI total: In loans.py get_emi_tracker_dashboard(), the cc_emi_txns loop (line 369-389) appends CC EMIs to active_emis but doesn't update total_monthly_emi. This means the summary card shows ₹0.00 monthly EMI even when there are active CC EMIs like Bajaj Finserv EMI - iPhone (₹8,999).",
+    "data-testid not working in React Native Web: React Native's data-testid prop is not forwarded to HTML DOM by React Native Web. Use testID prop instead (RN Web maps testID to data-testid HTML attribute automatically)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_emi_tracker_cc_summary.py"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 tests pass)",
+    "frontend": "100% (all 7 feature requirements verified)"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "seed_data_creation": "None - used existing demo account data (2 credit cards HDFC Regalia, 1 CC EMI: Bajaj Finserv EMI - iPhone ₹8,999)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "EMI Tracker card and CC Summary card both verified. Key findings: (1) EMI Tracker card found at scroll position ~3000px on investments page, after 'Recurring Investments' section, before 'Financial Goals'. (2) EMI Tracker modal opens correctly showing Active Loans & EMIs (1): Bajaj Finserv EMI - iPhone, HDFC Regalia, ₹8,999 EMI. Close button at approximately (1240, 282) in viewport when modal is open. (3) CC Summary card on dashboard shows 2 cards, Outstanding ₹33.0K, Credit Limit ₹6.0L, Utilization 5.5% with green utilization bar. (4) Monthly EMI shows ₹0.00 due to CC EMI not being counted in total_monthly_emi - minor backend bug. (5) data-testid attributes on TouchableOpacity don't appear in DOM - React Native Web limitation.",
+  "features_verified": {
+    "emi_tracker_card_visible": "PASS - Found at scroll ~3000px on investments page between Recurring Investments and Financial Goals",
+    "emi_tracker_modal_opens": "PASS - Modal shows Monthly EMI (₹0.00*), Outstanding (₹0), Paid So Far (₹0), Active Loans & EMIs (1), Overall Progress (0%)",
+    "emi_tracker_modal_active_emis": "PASS - Shows Bajaj Finserv EMI - iPhone / HDFC Regalia / ₹8,999 EMI / Outstanding ₹9.0K",
+    "emi_tracker_modal_close_button": "PASS - Close button at top-right of modal, clicks successfully and closes modal",
+    "dashboard_cc_summary_card": "PASS - Shows Credit Cards / 2 cards / Outstanding ₹33.0K / Credit Limit ₹6.0L / Utilization 5.5% / Green utilization bar",
+    "cc_card_navigates_to_credit_cards": "PASS - URL changes to /credit-cards when CC summary card is clicked",
+    "app_loads_no_regressions": "PASS - App loads, login works, all navigation tabs functional (DASHBOARD, TRANSACTIONS, INSIGHTS, INVEST, TAX)",
+    "emi_monthly_total_note": "NOTE: Monthly EMI total shows ₹0.00 because CC EMI transactions are not counted in total_monthly_emi (backend bug)"
+  }
+}
