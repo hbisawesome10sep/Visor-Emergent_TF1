@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
-  Modal, Alert, RefreshControl, ActivityIndicator,
+  Modal, Alert, RefreshControl, ActivityIndicator, Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../src/context/ThemeContext';
 import { apiRequest } from '../src/utils/api';
 import { useAuth } from '../src/context/AuthContext';
 import { formatINR } from '../src/utils/formatters';
+
+const CC_CATEGORIES = ['Food & Dining', 'Shopping', 'Travel', 'Entertainment', 'Utilities', 'Healthcare', 'Fuel', 'Education', 'EMI', 'Subscriptions', 'Other'];
+const TXN_TYPES = [
+  { key: 'expense', label: 'Expense', icon: 'credit-card-minus', color: '#EF4444' },
+  { key: 'payment', label: 'Payment', icon: 'credit-card-check', color: '#10B981' },
+];
 
 type CreditCard = {
   id: string;
