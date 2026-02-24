@@ -376,11 +376,11 @@ export default function CreditCardsScreen() {
                 <View style={styles.cardDetails}>
                   <View style={styles.detailRow}>
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Credit Limit</Text>
-                    <Text style={[styles.detailValue, { color: colors.textPrimary }]}>{formatINR(card.credit_limit)}</Text>
+                    <Text style={[styles.detailValue, { color: colors.textPrimary }]}>{formatINRShort(card.credit_limit)}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Outstanding</Text>
-                    <Text style={[styles.detailValue, { color: '#EF4444' }]}>{formatINR(card.current_outstanding)}</Text>
+                    <Text style={[styles.detailValue, { color: '#EF4444' }]}>{formatINRShort(card.current_outstanding)}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Due Date</Text>
