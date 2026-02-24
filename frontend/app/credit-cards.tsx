@@ -190,6 +190,60 @@ export default function CreditCardsScreen() {
     return '#10B981';
   };
 
+  const openAddTransaction = (card?: CreditCard) => {
+    setTxnForm({
+      card_id: card?.id || (cards.length > 0 ? cards[0].id : ''),
+      type: 'expense',
+      amount: '',
+      description: '',
+      merchant: '',
+      category: 'Food & Dining',
+      date: new Date().toISOString().split('T')[0],
+      notes: '',
+    });
+    setShowTxnModal(true);
+  };
+
+  const handleAddTransaction = async () => {
+    if (!txnForm.card_id) {
+      Alert.alert('Error', 'Please select a credit card');
+      return;
+    }
+    if (!txnForm.amount || parseFloat(txnForm.amount) <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+    if (!txnForm.description.trim()) {
+      Alert.alert('Error', 'Description is required');
+      return;
+    }
+
+    setSavingTxn(true);
+    try {
+      await apiRequest('/credit-card-transactions', {
+        method: 'POST',
+        body: {
+          card_id: txnForm.card_id,
+          type: txnForm.type,
+          amount: parseFloat(txnForm.amount),
+          description: txnForm.description.trim(),
+          merchant: txnForm.merchant.trim(),
+          category: txnForm.category,
+          date: txnForm.date,
+          notes: txnForm.notes.trim(),
+        },
+        token,
+      });
+      setShowTxnModal(false);
+      Alert.alert('Success', `Transaction recorded successfully`);
+      fetchCards(); // Refresh outstanding amounts
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to record transaction');
+    } finally {
+      setSavingTxn(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
