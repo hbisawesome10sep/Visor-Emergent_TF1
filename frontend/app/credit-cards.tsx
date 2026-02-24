@@ -287,19 +287,19 @@ export default function CreditCardsScreen() {
               <View style={styles.summaryItem}>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Limit</Text>
                 <Text style={[styles.summaryValue, { color: colors.textPrimary }]}>
-                  {formatINR(cards.reduce((sum, c) => sum + c.credit_limit, 0))}
+                  {formatINRShort(cards.reduce((sum, c) => sum + c.credit_limit, 0))}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Outstanding</Text>
                 <Text style={[styles.summaryValue, { color: '#EF4444' }]}>
-                  {formatINR(cards.reduce((sum, c) => sum + c.current_outstanding, 0))}
+                  {formatINRShort(cards.reduce((sum, c) => sum + c.current_outstanding, 0))}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
                 <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Available</Text>
                 <Text style={[styles.summaryValue, { color: '#10B981' }]}>
-                  {formatINR(cards.reduce((sum, c) => sum + c.available_credit, 0))}
+                  {formatINRShort(cards.reduce((sum, c) => sum + c.available_credit, 0))}
                 </Text>
               </View>
             </View>
