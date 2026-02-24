@@ -4,10 +4,11 @@ import {
   Modal, Alert, RefreshControl, ActivityIndicator, Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useTheme } from '../src/context/ThemeContext';
 import { apiRequest } from '../src/utils/api';
 import { useAuth } from '../src/context/AuthContext';
-import { formatINR } from '../src/utils/formatters';
+import { formatINR, formatINRShort } from '../src/utils/formatters';
 
 const CC_CATEGORIES = ['Food & Dining', 'Shopping', 'Travel', 'Entertainment', 'Utilities', 'Healthcare', 'Fuel', 'Education', 'EMI', 'Subscriptions', 'Other'];
 const TXN_TYPES = [
