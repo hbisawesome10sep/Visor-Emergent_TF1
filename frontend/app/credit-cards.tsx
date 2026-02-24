@@ -295,6 +295,28 @@ export default function CreditCardsScreen() {
           </View>
         )}
 
+        {/* Quick Add Transaction Banner */}
+        {cards.length > 0 && (
+          <TouchableOpacity
+            testID="add-txn-banner"
+            activeOpacity={0.85}
+            onPress={() => openAddTransaction()}
+            style={[styles.quickAddBanner, {
+              backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.07)',
+              borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)',
+            }]}
+          >
+            <View style={[styles.quickAddIcon, { backgroundColor: isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)' }]}>
+              <MaterialCommunityIcons name="plus" size={20} color="#10B981" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickAddTitle, { color: colors.textPrimary }]}>Record a Transaction</Text>
+              <Text style={[styles.quickAddSubtitle, { color: colors.textSecondary }]}>Add expense or payment manually</Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={20} color="#10B981" />
+          </TouchableOpacity>
+        )}
+
         {/* Cards List */}
         {cards.length === 0 ? (
           <View style={[styles.emptyState, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }]}>
