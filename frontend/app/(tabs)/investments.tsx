@@ -1161,6 +1161,30 @@ export default function InvestmentsScreen() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.9: EMI TRACKER
+           ═══════════════════════════════════════════════════════════ */}
+        <TouchableOpacity
+          data-testid="emi-tracker-card"
+          activeOpacity={0.85}
+          onPress={() => setShowEMITracker(true)}
+          style={[styles.emiTrackerCard, {
+            backgroundColor: isDark ? 'rgba(245, 158, 11, 0.08)' : 'rgba(245, 158, 11, 0.06)',
+            borderColor: isDark ? 'rgba(245, 158, 11, 0.25)' : 'rgba(245, 158, 11, 0.2)',
+          }]}
+        >
+          <View style={[styles.emiTrackerIcon, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.15)' }]}>
+            <MaterialCommunityIcons name="calendar-clock" size={26} color={Accent.amber} />
+          </View>
+          <View style={styles.emiTrackerInfo}>
+            <Text style={[styles.emiTrackerTitle, { color: colors.textPrimary }]}>EMI Tracker</Text>
+            <Text style={[styles.emiTrackerSubtitle, { color: colors.textSecondary }]}>
+              View active loans, upcoming payments & repayment progress
+            </Text>
+          </View>
+          <MaterialCommunityIcons name="chevron-right" size={22} color={Accent.amber} />
+        </TouchableOpacity>
+
+        {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
            ═══════════════════════════════════════════════════════════ */}
         <GoalsSection
