@@ -23,6 +23,7 @@ const TABS = [
   { key: 'account', label: 'Account', icon: 'account' },
   { key: 'security', label: 'Security', icon: 'shield-check' },
   { key: 'banking', label: 'Banking', icon: 'bank' },
+  { key: 'cards', label: 'Cards', icon: 'credit-card-multiple' },
   { key: 'sources', label: 'Sources', icon: 'link-variant' },
   { key: 'notifications', label: 'Alerts', icon: 'bell' },
   { key: 'financial', label: 'Financial', icon: 'target' },
