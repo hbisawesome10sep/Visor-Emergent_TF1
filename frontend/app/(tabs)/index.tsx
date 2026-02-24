@@ -1774,6 +1774,104 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 14,
   },
+
+  // ── CC Section (always-visible dashboard block) ──
+  ccSection: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 16,
+  },
+  ccSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  ccSectionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  ccSectionIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ccSectionTitle: {
+    fontSize: 15,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+  },
+  ccManageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  ccManageText: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+    color: '#818CF8',
+  },
+  ccStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  ccStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  ccStatDivider: {
+    width: 1,
+    height: 30,
+  },
+  ccStatLabel: {
+    fontSize: 10,
+    fontFamily: 'DM Sans',
+    marginBottom: 3,
+    textTransform: 'uppercase' as any,
+    letterSpacing: 0.4,
+  },
+  ccStatAmount: {
+    fontSize: 16,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+  },
+  ccUtilBar: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  ccUtilFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  ccCardCount: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    textAlign: 'right' as any,
+  },
+  ccEmptyState: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  ccEmptyTitle: {
+    fontSize: 14,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+    marginBottom: 4,
+  },
+  ccEmptySubtitle: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    textAlign: 'center' as any,
+    lineHeight: 17,
+  },
   ccSummaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
