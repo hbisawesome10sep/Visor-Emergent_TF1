@@ -760,7 +760,21 @@ export default function CreditCardsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { padding: 20, paddingBottom: 10 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 10,
+    paddingTop: 56,
+    gap: 14,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: { fontSize: 28, fontFamily: 'DM Sans', fontWeight: '700' },
   subtitle: { fontSize: 14, fontFamily: 'DM Sans', marginTop: 4 },
   summaryCard: {
