@@ -56,6 +56,15 @@ type DashboardStats = {
   goal_count: number;
   goal_progress: number;
   transaction_count: number;
+  credit_card_summary?: {
+    total_outstanding: number;
+    total_limit: number;
+    utilization: number;
+    total_expenses: number;
+    total_payments: number;
+    monthly_expenses: number;
+    cards_count: number;
+  };
 };
 
 type Goal = {
