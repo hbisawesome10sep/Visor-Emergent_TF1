@@ -394,6 +394,29 @@ export default function CreditCardsScreen() {
                     />
                   </View>
                 </View>
+
+                {/* Card Action Row */}
+                <View style={[styles.cardActionRow, { borderTopColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)' }]}>
+                  <TouchableOpacity
+                    testID={`add-expense-btn-${card.id}`}
+                    style={[styles.cardActionBtn, { backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.07)' }]}
+                    onPress={() => openAddTransaction(card)}
+                  >
+                    <MaterialCommunityIcons name="credit-card-minus" size={14} color="#EF4444" />
+                    <Text style={[styles.cardActionText, { color: '#EF4444' }]}>Add Expense</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    testID={`add-payment-btn-${card.id}`}
+                    style={[styles.cardActionBtn, { backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.07)' }]}
+                    onPress={() => {
+                      openAddTransaction(card);
+                      setTxnForm(f => ({ ...f, type: 'payment', category: 'Payment' }));
+                    }}
+                  >
+                    <MaterialCommunityIcons name="credit-card-check" size={14} color="#10B981" />
+                    <Text style={[styles.cardActionText, { color: '#10B981' }]}>Record Payment</Text>
+                  </TouchableOpacity>
+                </View>
               </TouchableOpacity>
             );
           })
