@@ -509,6 +509,31 @@ export default function TransactionsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* ═══ FLAGGED TRANSACTIONS ALERT BAR ═══ */}
+        {flaggedCount > 0 && (
+          <TouchableOpacity
+            data-testid="flagged-transactions-btn"
+            style={[styles.flaggedBar, {
+              backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(245, 158, 11, 0.08)',
+              borderColor: Accent.amber,
+            }]}
+            onPress={() => setShowFlaggedModal(true)}
+          >
+            <View style={[styles.flaggedIcon, { backgroundColor: `${Accent.amber}20` }]}>
+              <MaterialCommunityIcons name="flag-checkered" size={18} color={Accent.amber} />
+            </View>
+            <View style={styles.flaggedContent}>
+              <Text style={[styles.flaggedTitle, { color: colors.textPrimary }]}>
+                {flaggedCount} transaction{flaggedCount > 1 ? 's' : ''} need review
+              </Text>
+              <Text style={[styles.flaggedSubtitle, { color: colors.textSecondary }]}>
+                Detected as potential EMI/SIP payments
+              </Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={20} color={Accent.amber} />
+          </TouchableOpacity>
+        )}
+
         {/* ═══ TYPE FILTER PILLS ═══ */}
         <View style={styles.filterSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterPillsRow}>
