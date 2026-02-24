@@ -436,7 +436,7 @@ export default function CreditCardsScreen() {
         <MaterialCommunityIcons name="plus" size={28} color="#fff" />
       </TouchableOpacity>
 
-      {/* Add/Edit Modal */}
+      {/* Add/Edit Card Modal */}
       <Modal visible={showAddModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
