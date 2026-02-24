@@ -1097,7 +1097,15 @@ export default function InvestmentsScreen() {
                       <MaterialCommunityIcons name="calendar-sync" size={18} color={catColor} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.sipName, { color: colors.textPrimary }]} numberOfLines={1}>{sip.name}</Text>
+                      <View style={styles.sipNameRow}>
+                        <Text style={[styles.sipName, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>{sip.name}</Text>
+                        {(sip as any).auto_detected && (
+                          <View style={[styles.autoDetectedBadge, { backgroundColor: '#6366F120' }]}>
+                            <MaterialCommunityIcons name="magic-staff" size={10} color="#6366F1" />
+                            <Text style={[styles.autoDetectedText, { color: '#6366F1' }]}>Auto</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={[styles.sipCategory, { color: colors.textSecondary }]}>{sip.category} • {freqLabel}</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
