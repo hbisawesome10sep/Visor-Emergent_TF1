@@ -117,3 +117,18 @@ async def shutdown():
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "visor-finance-api"}
+
+
+# Tunnel URL endpoint — reads active cloudflared tunnel URL for QR page
+@app.get("/api/tunnel-url")
+async def get_tunnel_url():
+    """Return the current Expo Go tunnel URL."""
+    try:
+        with open("/tmp/tunnel_url.txt") as f:
+            url = f.read().strip()
+        if url:
+            hostname = url.replace("https://", "")
+            return {"url": url, "expo_url": f"exp://{hostname}", "active": True}
+    except Exception:
+        pass
+    return {"url": None, "expo_url": None, "active": False}
