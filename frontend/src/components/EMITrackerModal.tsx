@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
   // Detail Modal
   detailOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'flex-end',
   },
   detailContainer: {
