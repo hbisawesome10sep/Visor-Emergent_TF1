@@ -1945,4 +1945,37 @@ const styles = StyleSheet.create({
   sipActions: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, gap: 8, borderTopWidth: 1, borderTopColor: 'rgba(128,128,128,0.1)' },
   sipActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
   sipActionText: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '600' as any },
+
+  // ── EMI Tracker Card ──
+  emiTrackerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 14,
+  },
+  emiTrackerIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emiTrackerInfo: {
+    flex: 1,
+  },
+  emiTrackerTitle: {
+    fontSize: 16,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+    marginBottom: 3,
+  },
+  emiTrackerSubtitle: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    lineHeight: 17,
+  },
 });
