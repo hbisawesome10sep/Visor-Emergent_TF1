@@ -5,6 +5,14 @@
 LOG=/var/log/supervisor/cloudflared.out.log
 URL_FILE=/tmp/tunnel_url.txt
 ENV_FILE=/app/frontend/.env
+CF_BIN=/app/cloudflared
+
+# Download binary if missing (e.g. after OS-level wipe)
+if [ ! -f "$CF_BIN" ]; then
+  echo "[tunnel] Downloading cloudflared binary..."
+  curl -sL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -o $CF_BIN
+  chmod +x $CF_BIN
+fi
 
 echo "" > $URL_FILE
 echo "[tunnel] Starting cloudflared tunnel to localhost:3000..."
