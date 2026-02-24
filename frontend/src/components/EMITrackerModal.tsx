@@ -483,7 +483,7 @@ export default function EMITrackerModal({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.88)',
     justifyContent: 'flex-end',
   },
   container: {
@@ -522,7 +522,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   closeBtn: {
-    padding: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(128,128,128,0.12)',
+    outline: 'none',
+    borderWidth: 0,
   },
   scrollView: {
     flex: 1,
