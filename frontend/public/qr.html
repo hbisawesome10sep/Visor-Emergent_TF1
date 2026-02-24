@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visor Finance — Scan to Open</title>
+  <title>Visor Finance — Expo Go</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -17,47 +18,64 @@
       background: #1a1d27;
       border: 1px solid #2a2d3a;
       border-radius: 20px;
-      padding: 40px 48px;
+      padding: 36px 44px;
       text-align: center;
-      max-width: 420px;
+      max-width: 400px;
       width: 100%;
     }
-    .logo { font-size: 28px; font-weight: 700; color: #10b981; margin-bottom: 4px; }
-    .tagline { font-size: 13px; color: #6b7280; margin-bottom: 32px; }
-    .qr-wrapper {
+    .logo { font-size: 26px; font-weight: 700; color: #10b981; margin-bottom: 2px; }
+    .tagline { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
+    #qr-container {
       background: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      display: inline-block;
-      margin-bottom: 28px;
+      border-radius: 14px;
+      padding: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      min-width: 220px;
+      min-height: 220px;
     }
-    .qr-wrapper img { width: 220px; height: 220px; display: block; }
-    .instruction { font-size: 15px; color: #d1d5db; margin-bottom: 8px; font-weight: 500; }
-    .sub { font-size: 13px; color: #6b7280; margin-bottom: 24px; line-height: 1.5; }
-    .url-box {
+    #qr-status {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+    .instruction { font-size: 15px; color: #d1d5db; font-weight: 500; margin-bottom: 6px; }
+    .sub { font-size: 13px; color: #6b7280; margin-bottom: 18px; line-height: 1.5; }
+    #url-box {
       background: #0f1117;
       border: 1px solid #2a2d3a;
       border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 12px;
+      padding: 10px 14px;
+      font-size: 11px;
       color: #10b981;
       word-break: break-all;
       font-family: monospace;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
+      min-height: 36px;
     }
-    .badge {
+    #status-badge {
       display: inline-flex; align-items: center; gap: 6px;
-      background: #052e16; border: 1px solid #166534;
-      color: #4ade80; border-radius: 20px;
-      padding: 6px 14px; font-size: 12px; font-weight: 600;
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 12px; font-weight: 600;
+      margin-bottom: 24px;
     }
-    .dot { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; animation: pulse 1.5s infinite; }
+    .badge-active { background: #052e16; border: 1px solid #166534; color: #4ade80; }
+    .badge-loading { background: #1e1b4b; border: 1px solid #3730a3; color: #818cf8; }
+    .badge-error { background: #2d0a0a; border: 1px solid #7f1d1d; color: #f87171; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 1.5s infinite; flex-shrink: 0; }
+    .dot-green { background: #4ade80; }
+    .dot-blue { background: #818cf8; }
+    .dot-red { background: #f87171; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    .steps { text-align: left; margin-top: 28px; }
-    .step { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
-    .step-num { background: #10b981; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .steps { text-align: left; }
+    .step { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
+    .step-num { background: #10b981; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
     .step-text { font-size: 13px; color: #9ca3af; line-height: 1.5; }
     .step-text strong { color: #e5e7eb; }
+    .refresh-hint { font-size: 11px; color: #4b5563; margin-top: 16px; }
+    #last-updated { font-size: 11px; color: #4b5563; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -65,16 +83,20 @@
     <div class="logo">Visor Finance</div>
     <div class="tagline">Personal Finance for Indians</div>
 
-    <div class="qr-wrapper">
-      <img src="/expo-qr.png" alt="Expo QR Code">
+    <div id="qr-container">
+      <div id="qr-code"></div>
     </div>
+    <div id="qr-status" style="color:#818cf8;font-size:12px;margin-bottom:8px;">Loading tunnel URL...</div>
 
     <div class="instruction">Scan with Expo Go</div>
-    <div class="sub">Open <strong>Expo Go</strong> on your iPhone or Android, tap <strong>"Scan QR code"</strong></div>
+    <div class="sub">Open <strong>Expo Go</strong> on your phone → <strong>Scan QR Code</strong></div>
 
-    <div class="url-box">exp://serving-twelve-definitely-mar.trycloudflare.com</div>
+    <div id="url-box">Connecting to tunnel...</div>
 
-    <div class="badge"><span class="dot"></span> Tunnel Active</div>
+    <div id="status-badge" class="badge-loading">
+      <span class="dot dot-blue"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
 
     <div class="steps">
       <div class="step">
@@ -87,13 +109,77 @@
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <div class="step-text">Scan the QR above — Visor will load on your device</div>
+        <div class="step-text">Point camera at QR above — Visor loads instantly</div>
       </div>
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-text">Login: <strong>rajesh@visor.demo</strong> / <strong>Demo@123</strong></div>
       </div>
     </div>
+
+    <div class="refresh-hint">This page auto-refreshes every 20 seconds</div>
+    <div id="last-updated"></div>
   </div>
+
+  <script>
+    let qrInstance = null;
+    let lastUrl = null;
+
+    async function fetchAndUpdate() {
+      try {
+        const resp = await fetch('/api/tunnel-url');
+        const data = await resp.json();
+
+        const badge = document.getElementById('status-badge');
+        const statusText = document.getElementById('status-text');
+        const urlBox = document.getElementById('url-box');
+        const qrStatus = document.getElementById('qr-status');
+        const lastUpdated = document.getElementById('last-updated');
+
+        if (data.active && data.expo_url) {
+          const expoUrl = data.expo_url;
+
+          // Only regenerate QR if URL changed
+          if (expoUrl !== lastUrl) {
+            lastUrl = expoUrl;
+            urlBox.textContent = expoUrl;
+            qrStatus.textContent = '';
+
+            // Clear and regenerate QR
+            const container = document.getElementById('qr-code');
+            container.innerHTML = '';
+            qrInstance = new QRCode(container, {
+              text: expoUrl,
+              width: 200,
+              height: 200,
+              colorDark: '#000000',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.L
+            });
+          }
+
+          badge.className = 'badge-active';
+          badge.innerHTML = '<span class="dot dot-green"></span><span>Tunnel Active</span>';
+
+        } else {
+          badge.className = 'badge-loading';
+          badge.innerHTML = '<span class="dot dot-blue"></span><span>Tunnel Starting...</span>';
+          urlBox.textContent = 'Waiting for tunnel to start...';
+          qrStatus.textContent = 'Starting up, please wait ~15 seconds...';
+        }
+
+        lastUpdated.textContent = 'Last checked: ' + new Date().toLocaleTimeString();
+
+      } catch (e) {
+        const badge = document.getElementById('status-badge');
+        badge.className = 'badge-error';
+        badge.innerHTML = '<span class="dot dot-red"></span><span>Server Error</span>';
+      }
+    }
+
+    // Fetch immediately, then every 20 seconds
+    fetchAndUpdate();
+    setInterval(fetchAndUpdate, 20000);
+  </script>
 </body>
 </html>
