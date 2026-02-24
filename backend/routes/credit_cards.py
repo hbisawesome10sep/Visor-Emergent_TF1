@@ -503,21 +503,37 @@ async def approve_flagged_transaction(
         recurring_id = str(uuid4())
         now = datetime.now(timezone.utc).isoformat()
         
+        # Calculate next execution date from transaction date
+        start_date = txn.get("date", datetime.now().strftime("%Y-%m-%d"))
+        day_of_month_val = int(start_date.split("-")[2]) if start_date else 1
+        
+        # Next execution = next month on same day
+        try:
+            from dateutil.relativedelta import relativedelta
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            next_exec_dt = start_dt + relativedelta(months=1)
+            next_exec = next_exec_dt.strftime("%Y-%m-%d")
+        except Exception:
+            next_exec = start_date
+        
         recurring_doc = {
-            "id": recurring_id,
             "user_id": user["id"],
             "name": txn.get("description", approved_type),
             "amount": txn["amount"],
             "frequency": "monthly",
             "category": approved_type,
-            "start_date": txn.get("date", datetime.now().strftime("%Y-%m-%d")),
-            "day_of_month": int(txn.get("date", "2025-01-15").split("-")[2]),
+            "start_date": start_date,
+            "day_of_month": day_of_month_val,
             "is_active": True,
             "source": source,
             "source_card_id": txn.get("card_id") if source == "credit_card" else None,
+            "next_execution": next_exec,
+            "total_invested": txn["amount"],
+            "execution_count": 1,
+            "auto_detected": True,  # badge in UI
             "created_at": now,
         }
-        await db.recurring_transactions.insert_one(recurring_doc)
+        result = await db.recurring_transactions.insert_one(recurring_doc)
     
     # Handle SIP - create/update investment entry
     if approved_type == "SIP":
