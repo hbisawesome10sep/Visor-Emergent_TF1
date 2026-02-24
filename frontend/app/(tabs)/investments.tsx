@@ -151,6 +151,7 @@ export default function InvestmentsScreen() {
   const [rebalanceData, setRebalanceData] = useState<any>(null);
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
   const [showSipModal, setShowSipModal] = useState(false);
+  const [showEMITracker, setShowEMITracker] = useState(false);
   const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
   const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
 
