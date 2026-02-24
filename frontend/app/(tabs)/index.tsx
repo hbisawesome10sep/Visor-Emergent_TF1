@@ -496,6 +496,74 @@ export default function DashboardScreen() {
 
         {/* ═══ EXPENSE BREAKDOWN (Pie Chart) ═══ */}
         {pieData.length > 0 && (
+
+        {/* ═══ CREDIT CARD SUMMARY ═══ */}
+        {stats?.credit_card_summary && stats.credit_card_summary.cards_count > 0 && (
+          <TouchableOpacity
+            data-testid="cc-summary-card"
+            activeOpacity={0.85}
+            onPress={() => router.push('/credit-cards')}
+            style={[styles.ccSummaryCard, {
+              backgroundColor: isDark ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.05)',
+              borderColor: isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.2)',
+            }]}
+          >
+            <View style={styles.ccSummaryHeader}>
+              <View style={styles.ccSummaryLeft}>
+                <View style={[styles.ccSummaryIconWrap, { backgroundColor: isDark ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.12)' }]}>
+                  <MaterialCommunityIcons name="credit-card-multiple" size={20} color="#6366F1" />
+                </View>
+                <View>
+                  <Text style={[styles.ccSummaryTitle, { color: colors.textPrimary }]}>Credit Cards</Text>
+                  <Text style={[styles.ccSummarySubtitle, { color: colors.textSecondary }]}>
+                    {stats.credit_card_summary.cards_count} card{stats.credit_card_summary.cards_count > 1 ? 's' : ''}
+                  </Text>
+                </View>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={18} color="#6366F1" />
+            </View>
+
+            <View style={styles.ccSummaryStats}>
+              <View style={styles.ccSummaryStat}>
+                <Text style={[styles.ccSummaryStatLabel, { color: colors.textSecondary }]}>Outstanding</Text>
+                <Text style={[styles.ccSummaryStatValue, { color: '#EF4444' }]}>
+                  {formatINRShort(stats.credit_card_summary.total_outstanding)}
+                </Text>
+              </View>
+              <View style={[styles.ccSummaryDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]} />
+              <View style={styles.ccSummaryStat}>
+                <Text style={[styles.ccSummaryStatLabel, { color: colors.textSecondary }]}>Credit Limit</Text>
+                <Text style={[styles.ccSummaryStatValue, { color: colors.textPrimary }]}>
+                  {formatINRShort(stats.credit_card_summary.total_limit)}
+                </Text>
+              </View>
+              <View style={[styles.ccSummaryDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]} />
+              <View style={styles.ccSummaryStat}>
+                <Text style={[styles.ccSummaryStatLabel, { color: colors.textSecondary }]}>Utilization</Text>
+                <Text style={[styles.ccSummaryStatValue, {
+                  color: stats.credit_card_summary.utilization >= 80 ? '#EF4444'
+                    : stats.credit_card_summary.utilization >= 50 ? '#F59E0B'
+                    : '#10B981',
+                }]}>
+                  {stats.credit_card_summary.utilization.toFixed(1)}%
+                </Text>
+              </View>
+            </View>
+
+            {/* Utilization Bar */}
+            <View style={[styles.ccUtilizationBar, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' }]}>
+              <View style={[styles.ccUtilizationFill, {
+                width: `${Math.min(stats.credit_card_summary.utilization, 100)}%` as any,
+                backgroundColor: stats.credit_card_summary.utilization >= 80 ? '#EF4444'
+                  : stats.credit_card_summary.utilization >= 50 ? '#F59E0B'
+                  : '#10B981',
+              }]} />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* ═══ EXPENSE BREAKDOWN (Pie Chart) ═══ */}
+        {pieData.length > 0 && (
           <View
             style={[
               styles.glassCard,
