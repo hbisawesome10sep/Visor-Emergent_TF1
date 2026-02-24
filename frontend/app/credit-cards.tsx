@@ -262,9 +262,20 @@ export default function CreditCardsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Credit Cards</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Manage your credit cards and track spending
+          <TouchableOpacity
+            testID="cc-back-btn"
+            onPress={() => router.back()}
+            style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={20} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>Credit Cards</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Manage your cards and track spending
+            </Text>
+          </View>
+        </View>
           </Text>
         </View>
 
