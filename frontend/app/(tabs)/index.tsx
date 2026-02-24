@@ -495,7 +495,6 @@ export default function DashboardScreen() {
               <LiquidFillCard
                 title="CC Spend"
                 amount={formatINRShort(stats.credit_card_summary.total_outstanding)}
-                subtitle={`${stats.credit_card_summary.utilization.toFixed(1)}% utilization`}
                 fillPercent={Math.min(100, stats.credit_card_summary.utilization)}
                 gradient={['#7C3AED', '#6366F1']}
                 icon="credit-card"
