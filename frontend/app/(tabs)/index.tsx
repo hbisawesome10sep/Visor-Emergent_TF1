@@ -494,9 +494,6 @@ export default function DashboardScreen() {
           </ScrollView>
         </View>
 
-        {/* ═══ EXPENSE BREAKDOWN (Pie Chart) ═══ */}
-        {pieData.length > 0 && (
-
         {/* ═══ CREDIT CARD SUMMARY ═══ */}
         {stats?.credit_card_summary && stats.credit_card_summary.cards_count > 0 && (
           <TouchableOpacity
