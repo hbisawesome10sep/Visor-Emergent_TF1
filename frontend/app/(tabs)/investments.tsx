@@ -1164,7 +1164,7 @@ export default function InvestmentsScreen() {
              SECTION 5.9: EMI TRACKER
            ═══════════════════════════════════════════════════════════ */}
         <TouchableOpacity
-          data-testid="emi-tracker-card"
+          testID="emi-tracker-card"
           activeOpacity={0.85}
           onPress={() => setShowEMITracker(true)}
           style={[styles.emiTrackerCard, {
