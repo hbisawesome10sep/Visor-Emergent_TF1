@@ -33,6 +33,7 @@ type CreditCard = {
 export default function CreditCardsScreen() {
   const { colors, isDark } = useTheme();
   const { token } = useAuth();
+  const router = useRouter();
   
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [issuers, setIssuers] = useState<string[]>([]);
