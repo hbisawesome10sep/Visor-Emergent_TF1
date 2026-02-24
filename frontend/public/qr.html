@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visor Finance — Expo Go</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -25,7 +24,7 @@
     }
     .logo { font-size: 26px; font-weight: 700; color: #10b981; margin-bottom: 2px; }
     .tagline { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
-    #qr-container {
+    #qr-wrap {
       background: #fff;
       border-radius: 14px;
       padding: 18px;
@@ -33,14 +32,20 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 22px;
-      min-width: 220px;
-      min-height: 220px;
+      width: 236px; height: 236px;
     }
-    #qr-status {
-      font-size: 13px;
-      color: #6b7280;
-      margin-bottom: 6px;
+    #qr-img { width: 200px; height: 200px; display: block; }
+    #qr-placeholder {
+      width: 200px; height: 200px;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 8px;
     }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid #e5e7eb;
+      border-top-color: #10b981; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .instruction { font-size: 15px; color: #d1d5db; font-weight: 500; margin-bottom: 6px; }
     .sub { font-size: 13px; color: #6b7280; margin-bottom: 18px; line-height: 1.5; }
     #url-box {
@@ -53,29 +58,25 @@
       word-break: break-all;
       font-family: monospace;
       margin-bottom: 16px;
-      min-height: 36px;
     }
     #status-badge {
       display: inline-flex; align-items: center; gap: 6px;
-      border-radius: 20px; padding: 5px 12px;
+      border-radius: 20px; padding: 5px 14px;
       font-size: 12px; font-weight: 600;
       margin-bottom: 24px;
     }
-    .badge-active { background: #052e16; border: 1px solid #166534; color: #4ade80; }
-    .badge-loading { background: #1e1b4b; border: 1px solid #3730a3; color: #818cf8; }
-    .badge-error { background: #2d0a0a; border: 1px solid #7f1d1d; color: #f87171; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 1.5s infinite; flex-shrink: 0; }
-    .dot-green { background: #4ade80; }
-    .dot-blue { background: #818cf8; }
-    .dot-red { background: #f87171; }
+    .active { background: #052e16; border: 1px solid #166534; color: #4ade80; }
+    .loading { background: #1e1b4b; border: 1px solid #3730a3; color: #818cf8; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 1.5s infinite; }
+    .dot-g { background: #4ade80; }
+    .dot-b { background: #818cf8; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .steps { text-align: left; }
     .step { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
-    .step-num { background: #10b981; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-    .step-text { font-size: 13px; color: #9ca3af; line-height: 1.5; }
-    .step-text strong { color: #e5e7eb; }
-    .refresh-hint { font-size: 11px; color: #4b5563; margin-top: 16px; }
-    #last-updated { font-size: 11px; color: #4b5563; margin-top: 4px; }
+    .num { background: #10b981; color: #fff; border-radius: 50%; width: 20px; height: 20px; min-width: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 1px; }
+    .st { font-size: 13px; color: #9ca3af; line-height: 1.5; }
+    .st strong { color: #e5e7eb; }
+    .hint { font-size: 11px; color: #374151; margin-top: 16px; }
   </style>
 </head>
 <body>
@@ -83,103 +84,72 @@
     <div class="logo">Visor Finance</div>
     <div class="tagline">Personal Finance for Indians</div>
 
-    <div id="qr-container">
-      <div id="qr-code"></div>
+    <div id="qr-wrap">
+      <div id="qr-placeholder">
+        <div class="spinner"></div>
+        <span style="font-size:11px;color:#9ca3af">Loading...</span>
+      </div>
+      <img id="qr-img" style="display:none" alt="QR Code" />
     </div>
-    <div id="qr-status" style="color:#818cf8;font-size:12px;margin-bottom:8px;">Loading tunnel URL...</div>
 
     <div class="instruction">Scan with Expo Go</div>
-    <div class="sub">Open <strong>Expo Go</strong> on your phone → <strong>Scan QR Code</strong></div>
+    <div class="sub">Open <strong>Expo Go</strong> → <strong>Scan QR Code</strong></div>
 
-    <div id="url-box">Connecting to tunnel...</div>
+    <div id="url-box">Fetching tunnel URL...</div>
 
-    <div id="status-badge" class="badge-loading">
-      <span class="dot dot-blue"></span>
-      <span id="status-text">Connecting...</span>
+    <div id="status-badge" class="loading">
+      <span class="dot dot-b"></span>
+      <span id="st">Connecting...</span>
     </div>
 
     <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-text">Install <strong>Expo Go</strong> from App Store / Play Store</div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-text">Open Expo Go → tap <strong>Scan QR Code</strong></div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-text">Point camera at QR above — Visor loads instantly</div>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-text">Login: <strong>rajesh@visor.demo</strong> / <strong>Demo@123</strong></div>
-      </div>
+      <div class="step"><div class="num">1</div><div class="st">Install <strong>Expo Go</strong> from App Store / Play Store</div></div>
+      <div class="step"><div class="num">2</div><div class="st">Open Expo Go → tap <strong>Scan QR Code</strong></div></div>
+      <div class="step"><div class="num">3</div><div class="st">Scan the QR above — Visor loads on your device</div></div>
+      <div class="step"><div class="num">4</div><div class="st">Login: <strong>rajesh@visor.demo</strong> / <strong>Demo@123</strong></div></div>
     </div>
-
-    <div class="refresh-hint">This page auto-refreshes every 20 seconds</div>
-    <div id="last-updated"></div>
+    <div class="hint">Auto-refreshes every 20s &nbsp;·&nbsp; <span id="ts"></span></div>
   </div>
 
   <script>
-    let qrInstance = null;
-    let lastUrl = null;
+    let lastUrl = '';
 
-    async function fetchAndUpdate() {
+    async function refresh() {
       try {
-        const resp = await fetch('/api/tunnel-url');
-        const data = await resp.json();
-
+        const r = await fetch('/api/tunnel-url');
+        const d = await r.json();
         const badge = document.getElementById('status-badge');
-        const statusText = document.getElementById('status-text');
+        const st = document.getElementById('st');
         const urlBox = document.getElementById('url-box');
-        const qrStatus = document.getElementById('qr-status');
-        const lastUpdated = document.getElementById('last-updated');
+        const qrImg = document.getElementById('qr-img');
+        const ph = document.getElementById('qr-placeholder');
+        document.getElementById('ts').textContent = new Date().toLocaleTimeString();
 
-        if (data.active && data.expo_url) {
-          const expoUrl = data.expo_url;
+        if (d.active && d.expo_url) {
+          urlBox.textContent = d.expo_url;
+          badge.className = 'active';
+          badge.innerHTML = '<span class="dot dot-g"></span><span>Tunnel Active</span>';
 
-          // Only regenerate QR if URL changed
-          if (expoUrl !== lastUrl) {
-            lastUrl = expoUrl;
-            urlBox.textContent = expoUrl;
-            qrStatus.textContent = '';
-
-            // Clear and regenerate QR
-            const container = document.getElementById('qr-code');
-            container.innerHTML = '';
-            qrInstance = new QRCode(container, {
-              text: expoUrl,
-              width: 200,
-              height: 200,
-              colorDark: '#000000',
-              colorLight: '#ffffff',
-              correctLevel: QRCode.CorrectLevel.L
-            });
+          if (d.expo_url !== lastUrl) {
+            lastUrl = d.expo_url;
+            // Use qrserver.com to generate QR as a plain image — no JS lib needed
+            const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=' + encodeURIComponent(d.expo_url);
+            qrImg.onload = () => { ph.style.display = 'none'; qrImg.style.display = 'block'; };
+            qrImg.src = qrUrl;
           }
-
-          badge.className = 'badge-active';
-          badge.innerHTML = '<span class="dot dot-green"></span><span>Tunnel Active</span>';
-
         } else {
-          badge.className = 'badge-loading';
-          badge.innerHTML = '<span class="dot dot-blue"></span><span>Tunnel Starting...</span>';
-          urlBox.textContent = 'Waiting for tunnel to start...';
-          qrStatus.textContent = 'Starting up, please wait ~15 seconds...';
+          urlBox.textContent = 'Tunnel starting up... (~15 seconds)';
+          badge.className = 'loading';
+          badge.innerHTML = '<span class="dot dot-b"></span><span>Starting...</span>';
+          ph.style.display = 'flex'; qrImg.style.display = 'none';
         }
-
-        lastUpdated.textContent = 'Last checked: ' + new Date().toLocaleTimeString();
-
-      } catch (e) {
-        const badge = document.getElementById('status-badge');
-        badge.className = 'badge-error';
-        badge.innerHTML = '<span class="dot dot-red"></span><span>Server Error</span>';
+      } catch(e) {
+        document.getElementById('st').textContent = 'Error — retrying...';
       }
     }
 
-    // Fetch immediately, then every 20 seconds
-    fetchAndUpdate();
-    setInterval(fetchAndUpdate, 20000);
+    refresh();
+    setInterval(refresh, 20000);
   </script>
 </body>
 </html>
