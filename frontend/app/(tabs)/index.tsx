@@ -1782,7 +1782,32 @@ const styles = StyleSheet.create({
   ccSection: {
     marginHorizontal: 20,
     marginBottom: 16,
-    padding: 16,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  ccGradient: {
+    padding: 18,
+    borderRadius: 18,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  ccCircle1: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    top: -30,
+    right: -20,
+  },
+  ccCircle2: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    bottom: -20,
+    left: 30,
   },
   ccSectionHeader: {
     flexDirection: 'row',
