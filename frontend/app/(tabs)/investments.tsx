@@ -200,6 +200,13 @@ export default function InvestmentsScreen() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Re-fetch when tab comes back into focus (e.g., after approving a SIP in Transactions)
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
   const onRefresh = () => { setRefreshing(true); fetchData(); };
 
   // ── Date picker helpers ──
