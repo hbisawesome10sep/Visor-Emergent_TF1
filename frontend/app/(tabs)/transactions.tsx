@@ -16,6 +16,7 @@ import { useScreenContext } from '../../src/context/ScreenContext';
 import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
 import { Accent } from '../../src/utils/theme';
+import FlaggedTransactionsModal from '../../src/components/FlaggedTransactionsModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
