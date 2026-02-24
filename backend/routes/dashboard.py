@@ -16,21 +16,39 @@ async def get_dashboard_stats(
     user_id = user["id"]
 
     query = {"user_id": user_id}
+    cc_query = {"user_id": user_id}
     if start_date and end_date:
         query["date"] = {"$gte": start_date, "$lte": end_date}
+        cc_query["date"] = {"$gte": start_date, "$lte": end_date}
 
     txns = await db.transactions.find(query, {"_id": 0}).to_list(1000)
+    cc_txns = await db.credit_card_transactions.find(cc_query, {"_id": 0}).to_list(500)
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    credit_cards = await db.credit_cards.find({"user_id": user_id, "is_active": True}, {"_id": 0}).to_list(20)
 
     total_income = sum(t["amount"] for t in txns if t["type"] == "income")
     total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
     total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
+    
+    # Credit Card metrics
+    cc_total_expenses = sum(t["amount"] for t in cc_txns if t["type"] == "expense")
+    cc_total_payments = sum(t["amount"] for t in cc_txns if t["type"] == "payment")
+    cc_outstanding = cc_total_expenses - cc_total_payments
+    cc_total_limit = sum(c.get("credit_limit", 0) for c in credit_cards)
+    cc_utilization = (cc_outstanding / cc_total_limit * 100) if cc_total_limit > 0 else 0
+    
     net_balance = total_income - total_expenses - total_investments
 
     category_breakdown = {}
     for t in txns:
         if t["type"] == "expense":
             cat = t["category"]
+            category_breakdown[cat] = category_breakdown.get(cat, 0) + t["amount"]
+    
+    # Add credit card expenses to category breakdown
+    for t in cc_txns:
+        if t["type"] == "expense":
+            cat = t.get("category", "Other")
             category_breakdown[cat] = category_breakdown.get(cat, 0) + t["amount"]
 
     recent = sorted(txns, key=lambda x: x.get("date", ""), reverse=True)[:5]
@@ -40,16 +58,19 @@ async def get_dashboard_stats(
     monthly_income = sum(t["amount"] for t in txns if t["type"] == "income" and t.get("date", "").startswith(current_month))
     monthly_expenses = sum(t["amount"] for t in txns if t["type"] == "expense" and t.get("date", "").startswith(current_month))
     monthly_investments = sum(t["amount"] for t in txns if t["type"] == "investment" and t.get("date", "").startswith(current_month))
+    monthly_cc_expenses = sum(t["amount"] for t in cc_txns if t["type"] == "expense" and t.get("date", "").startswith(current_month))
 
     total_goal_target = sum(g["target_amount"] for g in goals) if goals else 0
     total_goal_current = sum(g["current_amount"] for g in goals) if goals else 0
     goal_progress = (total_goal_current / total_goal_target * 100) if total_goal_target > 0 else 0
 
-    savings = total_income - total_expenses - total_investments
+    # Include credit card expenses in total spending for accurate metrics
+    combined_expenses = total_expenses + cc_total_expenses
+    savings = total_income - combined_expenses - total_investments
     savings_rate = (savings / total_income * 100) if total_income > 0 else 0
-    expense_ratio = (total_expenses / total_income * 100) if total_income > 0 else 0
+    expense_ratio = (combined_expenses / total_income * 100) if total_income > 0 else 0
     investment_ratio = (total_investments / total_income * 100) if total_income > 0 else 0
-    monthly_savings = monthly_income - monthly_expenses - monthly_investments
+    monthly_savings = monthly_income - monthly_expenses - monthly_cc_expenses - monthly_investments
 
     budget_items = []
     for cat, amount in sorted(category_breakdown.items(), key=lambda x: -x[1]):
