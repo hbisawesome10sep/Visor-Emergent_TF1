@@ -113,6 +113,10 @@ export default function TransactionsScreen() {
   
   // Transaction Source Toggle: 'bank' or 'credit_card'
   const [txnSource, setTxnSource] = useState<'bank' | 'credit_card'>('bank');
+  
+  // Flagged Transactions Modal
+  const [showFlaggedModal, setShowFlaggedModal] = useState(false);
+  const [flaggedCount, setFlaggedCount] = useState(0);
 
   // Set screen context for AI awareness
   useEffect(() => {
