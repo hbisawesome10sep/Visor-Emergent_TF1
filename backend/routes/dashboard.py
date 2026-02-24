@@ -241,6 +241,15 @@ async def get_dashboard_stats(
                 "goal_progress": round(hs_goal_score, 1),
             },
         },
+        "credit_card_summary": {
+            "total_outstanding": round(cc_outstanding, 2),
+            "total_limit": round(cc_total_limit, 2),
+            "utilization": round(cc_utilization, 1),
+            "total_expenses": round(cc_total_expenses, 2),
+            "total_payments": round(cc_total_payments, 2),
+            "monthly_expenses": round(monthly_cc_expenses, 2),
+            "cards_count": len(credit_cards),
+        },
     }
 
 
