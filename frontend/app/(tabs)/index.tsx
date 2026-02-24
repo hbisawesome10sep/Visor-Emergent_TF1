@@ -491,6 +491,19 @@ export default function DashboardScreen() {
               colors={colors}
               isDark={isDark}
             />
+            {stats?.credit_card_summary && stats.credit_card_summary.cards_count > 0 && (
+              <LiquidFillCard
+                title="CC Spend"
+                amount={formatINRShort(stats.credit_card_summary.total_outstanding)}
+                subtitle={`${stats.credit_card_summary.utilization.toFixed(1)}% utilization`}
+                fillPercent={Math.min(100, stats.credit_card_summary.utilization)}
+                gradient={['#7C3AED', '#6366F1']}
+                icon="credit-card"
+                onPress={() => router.push('/credit-cards')}
+                colors={colors}
+                isDark={isDark}
+              />
+            )}
           </ScrollView>
         </View>
 
