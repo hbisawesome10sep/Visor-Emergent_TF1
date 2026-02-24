@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(128,128,128,0.12)',
-    outline: 'none',
+    outlineStyle: 'none',
     borderWidth: 0,
   },
   scrollView: {
