@@ -220,15 +220,17 @@ export default function TransactionsScreen() {
       const qs = params.toString() ? `?${params.toString()}` : '';
       
       // Fetch both bank transactions and credit card transactions in parallel
-      const [bankData, ccData, cardsData] = await Promise.all([
+      const [bankData, ccData, cardsData, flaggedData] = await Promise.all([
         apiRequest(`/transactions${qs}`, { token }),
         apiRequest(`/credit-card-transactions${qs}`, { token }).catch(() => []),
         apiRequest('/credit-cards', { token }).catch(() => []),
+        apiRequest('/flagged-transactions', { token }).catch(() => []),
       ]);
       
       setTransactions(bankData);
       setCCTransactions(ccData);
       setCreditCards(cardsData);
+      setFlaggedCount(flaggedData?.length || 0);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
   }, [token, activeType, activeCategory, searchQuery]);
