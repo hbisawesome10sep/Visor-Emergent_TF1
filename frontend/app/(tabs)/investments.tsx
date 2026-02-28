@@ -516,8 +516,8 @@ export default function InvestmentsScreen() {
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.detail || 'Upload failed');
         
-        const summary = data.summary ? `\n\nTotal Invested: ₹${data.summary.total_invested?.toLocaleString('en-IN')}\nCurrent Value: ₹${data.summary.total_current?.toLocaleString('en-IN')}\nGain/Loss: ${data.summary.gain_loss_pct >= 0 ? '+' : ''}${data.summary.gain_loss_pct?.toFixed(2)}%` : '';
-        Alert.alert('Success', `${data.message || `Imported ${data.holdings?.length || 0} holdings`}${summary}`);
+        const sipMsg = data.sip_count > 0 ? `\n\nDetected ${data.sip_count} SIP${data.sip_count > 1 ? 's' : ''} — see suggestions below in the SIP section.` : '';
+        Alert.alert('Success', `${data.message || `Imported ${data.imported || 0} holdings`}${sipMsg}`);
         setShowCasModal(false);
         setCasPassword('');
         fetchData();
