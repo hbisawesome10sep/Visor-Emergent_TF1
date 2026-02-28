@@ -1573,31 +1573,54 @@ export default function InvestmentsScreen() {
       {/* ═══ CAS UPLOAD MODAL ═══ */}
       <Modal visible={showCasModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Upload CAS Statement</Text>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Import eCAS Statement</Text>
               <TouchableOpacity data-testid="cas-modal-close" onPress={() => setShowCasModal(false)}>
                 <MaterialCommunityIcons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
-            <Text style={[styles.casDesc, { color: colors.textSecondary }]}>
-              Upload your NSDL/CDSL Consolidated Account Statement (CAS) PDF. Existing CAS holdings will be automatically replaced.
+
+            {/* What is eCAS */}
+            <View style={{ backgroundColor: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: isDark ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.12)' }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#6366F1', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>What is eCAS?</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 18 }}>
+                Your Consolidated Account Statement (CAS) from CAMS or NSDL lists all mutual fund holdings across all fund houses in one PDF.
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.primary, marginTop: 6, fontWeight: '600' }}>
+                Download at: camsonline.com or mfcentral.com
+              </Text>
+            </View>
+
+            {/* Password field */}
+            <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>PDF Password</Text>
+            <TextInput
+              data-testid="cas-password-input"
+              style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary, marginBottom: 6 }]}
+              value={casPassword}
+              onChangeText={setCasPassword}
+              placeholder="Enter your PAN or Date of Birth"
+              placeholderTextColor={colors.textSecondary}
+              secureTextEntry
+              autoCapitalize="characters"
+            />
+            <Text style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 16, lineHeight: 16 }}>
+              <Text style={{ fontWeight: '600' }}>CAMS:</Text> Usually your PAN number (e.g. ABCDE1234F){'\n'}
+              <Text style={{ fontWeight: '600' }}>NSDL/MF Central:</Text> Usually DOB in DDMMYYYY format (e.g. 15081985)
             </Text>
-            <TextInput data-testid="cas-password-input" style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, color: colors.textPrimary }]}
-              value={casPassword} onChangeText={setCasPassword} placeholder="PDF Password (if any)" placeholderTextColor={colors.textSecondary} secureTextEntry />
-            
+
             <TouchableOpacity data-testid="cas-upload-btn" style={styles.saveBtn} onPress={handleCasUpload} disabled={saving}>
               <LinearGradient colors={['#EA580C', Accent.ruby]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.saveBtnGradient}>
                 {saving ? <ActivityIndicator color="#fff" /> : (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <MaterialCommunityIcons name="file-upload-outline" size={20} color="#fff" />
-                    <Text style={styles.saveBtnText}>Choose PDF & Upload</Text>
+                    <Text style={styles.saveBtnText}>Choose PDF & Import</Text>
                   </View>
                 )}
               </LinearGradient>
             </TouchableOpacity>
-            
+
             {/* Clear Holdings Button */}
             <TouchableOpacity 
               data-testid="clear-holdings-btn" 
