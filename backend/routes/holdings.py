@@ -315,7 +315,7 @@ def _parse_cas_text(text: str) -> tuple:
                     sn = re.sub(r"\s*Scheme Code\s*:\s*\S+\s*$", "", sn).strip()
                     # Remove trailing plan codes like "- Direct Plan" duplication
                     scheme_name = sn if sn else None
-                elif "ISIN :" in lines[j] and "UCC" in lines[j]:
+                elif "ISIN :" in lines[j]:
                     m = re.search(r"(INF[A-Z0-9]{9,10})", lines[j])
                     if m:
                         isin = m.group(1)
