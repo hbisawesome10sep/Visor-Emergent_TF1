@@ -336,7 +336,7 @@ def _parse_cas_text(text: str) -> tuple:
         "purchase - systematic", "sip instalment", "sip - purchase",
         "sip purchase-bse", "sip purchase-nse",
     ]
-    DATE_RE = re.compile(r"^(\d{2}-\d{2}-\d{4})\s+([\d.]+)\s+([\d.]+)")
+    DATE_RE = re.compile(r"^\d{2}-\d{2}-\d{4}\s")
 
     i = 0
     while i < len(lines):
