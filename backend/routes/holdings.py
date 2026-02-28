@@ -358,15 +358,33 @@ def _parse_cas_text(text: str) -> tuple:
             if any(kw in line_lower for kw in SIP_KEYWORDS):
                 pending_sip = True
 
-            # Transaction date line: DD-MM-YYYY amount nav nav units ...
-            dm = DATE_RE.match(line)
-            if dm:
-                try:
-                    nav_val = float(dm.group(3))  # 3rd column = NAV
-                    if nav_val > 0:
-                        last_nav = nav_val
-                except (ValueError, IndexError):
-                    pass
+            # Transaction date line: DD-MM-YYYY [optional description] amount NAV NAV units ...
+            # NAV appears TWICE consecutively in growth funds (income NAV = capital NAV)
+            # This unique pattern lets us find NAV regardless of description position
+            if DATE_RE.match(line):
+                # Extract all numbers from the line (after the date)
+                after_date = line[10:]
+                nums = re.findall(r"[\d]+(?:\.[\d]+)?", after_date)
+                # Find two consecutive equal values (NAV repeated) - robust across formats
+                found_nav = False
+                for k in range(len(nums) - 1):
+                    try:
+                        v1, v2 = float(nums[k]), float(nums[k + 1])
+                        if v1 == v2 and v1 > 0.5:  # NAV is always > 0.5, appears twice
+                            last_nav = v1
+                            found_nav = True
+                            break
+                    except ValueError:
+                        continue
+                # Fallback: use 3rd number if repeated-NAV not found
+                if not found_nav and len(nums) >= 3:
+                    try:
+                        fallback = float(nums[2])
+                        if fallback > 0.5:
+                            last_nav = fallback
+                    except ValueError:
+                        pass
+
                 if pending_sip:
                     sip_isins.add(current_isin)
                     holdings_data[current_isin]["is_sip"] = True
