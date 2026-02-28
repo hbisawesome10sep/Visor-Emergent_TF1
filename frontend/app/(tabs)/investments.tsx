@@ -155,6 +155,7 @@ export default function InvestmentsScreen() {
   const [showEMITracker, setShowEMITracker] = useState(false);
   const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
   const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
+  const [sipSuggestions, setSipSuggestions] = useState<Array<{ id: string; fund_name: string; isin: string }>>([]);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
