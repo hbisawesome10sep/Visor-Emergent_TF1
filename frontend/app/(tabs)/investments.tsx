@@ -513,8 +513,17 @@ export default function InvestmentsScreen() {
           body: formData,
         });
         
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(data.detail || 'Upload failed');
+        let data: any = {};
+        try {
+          const text = await resp.text();
+          data = JSON.parse(text);
+        } catch {
+          throw new Error('Server returned an unexpected response. Please try again.');
+        }
+        
+        if (!resp.ok) {
+          throw new Error(data.detail || data.message || `Upload failed (${resp.status})`);
+        }
         
         const sipMsg = data.sip_count > 0 ? `\n\nDetected ${data.sip_count} SIP${data.sip_count > 1 ? 's' : ''} — see suggestions below in the SIP section.` : '';
         Alert.alert('Success', `${data.message || `Imported ${data.imported || 0} holdings`}${sipMsg}`);
