@@ -1042,6 +1042,80 @@ export default function InvestmentsScreen() {
         />
 
         {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.6b: SIP SUGGESTIONS FROM eCAS
+           ═══════════════════════════════════════════════════════════ */}
+        {sipSuggestions.length > 0 && (
+          <View style={{ marginBottom: 8 }}>
+            <View style={[styles.sectionHeader, { marginBottom: 10 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ backgroundColor: 'rgba(99,102,241,0.15)', borderRadius: 8, padding: 6 }}>
+                  <MaterialCommunityIcons name="file-document-check-outline" size={16} color="#6366F1" />
+                </View>
+                <View>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0, fontSize: 14 }]}>
+                    SIPs Detected from eCAS
+                  </Text>
+                  <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                    {sipSuggestions.length} fund{sipSuggestions.length > 1 ? 's' : ''} identified as active SIPs
+                  </Text>
+                </View>
+              </View>
+            </View>
+            {sipSuggestions.map(sug => (
+              <View key={sug.id} style={[{
+                backgroundColor: isDark ? '#161616' : '#FFFFFF',
+                borderRadius: 14,
+                padding: 14,
+                marginBottom: 10,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.15)',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+              }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary, marginBottom: 2 }} numberOfLines={2}>
+                    {sug.fund_name}
+                  </Text>
+                  {sug.isin ? (
+                    <Text style={{ fontSize: 11, color: colors.textSecondary }}>ISIN: {sug.isin}</Text>
+                  ) : null}
+                </View>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity
+                    data-testid={`sip-suggest-approve-${sug.id}`}
+                    style={{ backgroundColor: '#6366F1', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 }}
+                    onPress={async () => {
+                      try {
+                        await apiRequest(`/sip-suggestions/${sug.id}/approve`, { method: 'POST', token });
+                        setSipSuggestions(prev => prev.filter(s => s.id !== sug.id));
+                        setSipForm(f => ({ ...f, name: sug.fund_name, category: 'SIP' }));
+                        setEditSip(null);
+                        setShowSipModal(true);
+                      } catch {}
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Approve</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    data-testid={`sip-suggest-decline-${sug.id}`}
+                    style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.08)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' }}
+                    onPress={async () => {
+                      try {
+                        await apiRequest(`/sip-suggestions/${sug.id}`, { method: 'DELETE', token });
+                        setSipSuggestions(prev => prev.filter(s => s.id !== sug.id));
+                      } catch {}
+                    }}
+                  >
+                    <Text style={{ color: '#EF4444', fontSize: 12, fontWeight: '600' }}>Decline</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
              SECTION 5.7: RECURRING INVESTMENTS (SIPs)
            ═══════════════════════════════════════════════════════════ */}
         <View style={styles.sectionHeader}>
