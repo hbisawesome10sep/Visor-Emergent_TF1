@@ -36,7 +36,13 @@ def _fetch_live_prices(tickers: list) -> dict:
     return result
 
 
-@router.post("/holdings")
+@router.delete("/holdings/clear-all")
+async def clear_all_holdings(user=Depends(get_current_user)):
+    """Delete all holdings for the current user."""
+    result = await db.holdings.delete_many({"user_id": user["id"]})
+    return {"message": f"Deleted {result.deleted_count} holding(s)", "deleted": result.deleted_count}
+
+
 async def add_holding(holding: HoldingCreate, user=Depends(get_current_user)):
     doc = {
         "user_id": user["id"],
