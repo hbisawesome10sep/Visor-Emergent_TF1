@@ -18,7 +18,6 @@ _yf_executor = ThreadPoolExecutor(max_workers=2)
 
 
 def _fetch_live_prices(tickers: list) -> dict:
-    """Fetch live prices for a list of tickers via yfinance."""
     result = {}
     if not tickers:
         return result
@@ -35,19 +34,6 @@ def _fetch_live_prices(tickers: list) -> dict:
     except Exception as e:
         logger.error(f"Batch price fetch error: {e}")
     return result
-
-
-def _search_ticker(name: str, category: str) -> str:
-    """Try to find a Yahoo Finance ticker for a given name."""
-    try:
-        suffix = ".NS"
-        clean = re.sub(r'[^a-zA-Z0-9 ]', '', name).strip()
-        search = yf.Ticker(clean.split()[0].upper() + suffix)
-        if search.fast_info.last_price:
-            return clean.split()[0].upper() + suffix
-    except Exception:
-        pass
-    return ""
 
 
 @router.post("/holdings")
@@ -118,9 +104,7 @@ async def get_holdings(user=Depends(get_current_user)):
 
 @router.get("/holdings/live")
 async def get_holdings_live(user=Depends(get_current_user)):
-    """Alias for GET /holdings - returns holdings with live prices."""
     return await get_holdings(user=user)
-
 
 
 @router.put("/holdings/{holding_id}")
@@ -128,15 +112,10 @@ async def update_holding(holding_id: str, holding: HoldingCreate, user=Depends(g
     existing = await db.holdings.find_one({"_id": ObjectId(holding_id), "user_id": user["id"]})
     if not existing:
         raise HTTPException(404, "Holding not found")
-
     update_data = {
-        "name": holding.name,
-        "ticker": holding.ticker,
-        "isin": holding.isin,
-        "category": holding.category,
-        "quantity": holding.quantity,
-        "buy_price": holding.buy_price,
-        "buy_date": holding.buy_date,
+        "name": holding.name, "ticker": holding.ticker, "isin": holding.isin,
+        "category": holding.category, "quantity": holding.quantity,
+        "buy_price": holding.buy_price, "buy_date": holding.buy_date,
     }
     await db.holdings.update_one({"_id": ObjectId(holding_id)}, {"$set": update_data})
     updated = await db.holdings.find_one({"_id": ObjectId(holding_id)})
@@ -158,7 +137,7 @@ async def upload_cas(
     password: str = Form(default=""),
     user=Depends(get_current_user),
 ):
-    """Parse CAMS/Karvy eCAS PDF and import holdings."""
+    """Parse CAMS/NSDL eCAS PDF and import MF holdings. Also detects SIP funds."""
     content = await file.read()
     pdf_stream = io.BytesIO(content)
 
@@ -166,27 +145,29 @@ async def upload_cas(
         with pdfplumber.open(pdf_stream, password=password if password else None) as pdf:
             text = ""
             for page in pdf.pages:
-                text += page.extract_text() or ""
+                text += (page.extract_text() or "") + "\n"
     except Exception as e:
         logger.error(f"PDF parse error: {e}")
-        raise HTTPException(400, "Could not parse PDF. Check password if encrypted.")
+        raise HTTPException(400, "Could not open PDF. Please check the password and try again.")
 
-    holdings = _parse_cas_text(text)
+    holdings, detected_sip_names = _parse_cas_text(text)
+
     if not holdings:
-        return {"imported": 0, "message": "No holdings found in PDF"}
+        raise HTTPException(422, "No mutual fund holdings found in this PDF. Please ensure it is a valid CAMS/NSDL eCAS statement.")
 
     imported_count = 0
     for h in holdings:
         existing = await db.holdings.find_one({
             "user_id": user["id"],
             "isin": h["isin"],
-            "name": h["name"],
         })
         if existing:
             await db.holdings.update_one(
                 {"_id": existing["_id"]},
                 {"$set": {
+                    "name": h["name"],
                     "quantity": h["quantity"],
+                    "buy_price": h.get("nav", existing.get("buy_price", 0)),
                     "invested_value": h.get("invested_value", 0),
                     "current_value": h.get("current_value", 0),
                     "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -197,11 +178,11 @@ async def upload_cas(
                 "user_id": user["id"],
                 "name": h["name"],
                 "isin": h["isin"],
-                "ticker": h.get("ticker", ""),
-                "category": h.get("category", "Mutual Fund"),
+                "ticker": "",
+                "category": "Mutual Fund",
                 "quantity": h["quantity"],
                 "buy_price": h.get("nav", 0),
-                "buy_date": h.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d")),
+                "buy_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                 "invested_value": h.get("invested_value", 0),
                 "current_value": h.get("current_value", 0),
                 "source": "eCAS",
@@ -209,58 +190,219 @@ async def upload_cas(
             })
         imported_count += 1
 
-    return {"imported": imported_count, "message": f"Imported {imported_count} holdings from eCAS"}
+    # Save SIP suggestions (upsert by user+name)
+    saved_sip_suggestions = []
+    for name in detected_sip_names:
+        isin = next((h["isin"] for h in holdings if h["name"] == name), "")
+        existing_sug = await db.sip_suggestions.find_one({
+            "user_id": user["id"],
+            "fund_name": name,
+            "status": "pending",
+        })
+        if not existing_sug:
+            result = await db.sip_suggestions.insert_one({
+                "user_id": user["id"],
+                "fund_name": name,
+                "isin": isin,
+                "status": "pending",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+            saved_sip_suggestions.append({
+                "id": str(result.inserted_id),
+                "fund_name": name,
+                "isin": isin,
+                "status": "pending",
+            })
+        else:
+            saved_sip_suggestions.append({
+                "id": str(existing_sug["_id"]),
+                "fund_name": existing_sug["fund_name"],
+                "isin": existing_sug.get("isin", ""),
+                "status": "pending",
+            })
+
+    return {
+        "imported": imported_count,
+        "message": f"Successfully imported {imported_count} mutual fund holding{'s' if imported_count != 1 else ''} from your eCAS statement.",
+        "detected_sips": saved_sip_suggestions,
+        "sip_count": len(saved_sip_suggestions),
+    }
 
 
-def _parse_cas_text(text: str) -> list:
-    """Parse eCAS PDF text to extract mutual fund holdings."""
-    holdings = []
-    lines = text.split("\n")
+# ── SIP Suggestions endpoints ──────────────────────────────────────────────
 
-    current_fund = None
-    isin_pattern = re.compile(r"INF[A-Z0-9]{9}")
-    units_pattern = re.compile(r"(\d+[\d,]*\.?\d*)\s*Units")
-    nav_pattern = re.compile(r"NAV[:\s]*₹?\s*([\d,]+\.?\d*)")
-    value_pattern = re.compile(r"(?:Market\s*)?Value[:\s]*₹?\s*([\d,]+\.?\d*)")
-    cost_pattern = re.compile(r"(?:Cost|Invested)[:\s]*₹?\s*([\d,]+\.?\d*)")
+@router.get("/sip-suggestions")
+async def get_sip_suggestions(user=Depends(get_current_user)):
+    """Get all pending SIP suggestions detected from eCAS uploads."""
+    suggestions = []
+    cursor = db.sip_suggestions.find({"user_id": user["id"], "status": "pending"})
+    async for doc in cursor:
+        suggestions.append({
+            "id": str(doc.pop("_id")),
+            "fund_name": doc["fund_name"],
+            "isin": doc.get("isin", ""),
+            "status": doc["status"],
+            "created_at": doc.get("created_at", ""),
+        })
+    return {"suggestions": suggestions}
 
-    for i, line in enumerate(lines):
-        line = line.strip()
-        if not line:
+
+@router.delete("/sip-suggestions/{suggestion_id}")
+async def dismiss_sip_suggestion(suggestion_id: str, user=Depends(get_current_user)):
+    """Decline/dismiss a SIP suggestion."""
+    result = await db.sip_suggestions.delete_one({
+        "_id": ObjectId(suggestion_id),
+        "user_id": user["id"],
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Suggestion not found")
+    return {"message": "Suggestion dismissed"}
+
+
+@router.post("/sip-suggestions/{suggestion_id}/approve")
+async def approve_sip_suggestion(suggestion_id: str, user=Depends(get_current_user)):
+    """Mark a SIP suggestion as approved (frontend opens Add SIP modal)."""
+    await db.sip_suggestions.update_one(
+        {"_id": ObjectId(suggestion_id), "user_id": user["id"]},
+        {"$set": {"status": "approved", "approved_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    return {"message": "Suggestion approved"}
+
+
+def _parse_cas_text(text: str) -> tuple:
+    """
+    Parse CAMS/NSDL eCAS PDF text.
+    Returns (holdings_list, sip_fund_names_list)
+
+    eCAS format:
+    Account Details section:
+      AMC Name : HDFC Mutual Fund
+      Scheme Name : HDFC Flexi Cap Fund - Direct Plan - Growth Option Scheme Code : 02T
+      ISIN : INF179K01UT0 UCC : MFHDFC0019 RTA : CAMS
+
+    Transaction section (per fund):
+      HDFC Mutual Fund
+      02T - HDFC Flexi Cap Fund - Direct Plan - Growth Option
+      ISIN : INF179K01UT0 UCC : MFHDFC0019
+      Opening Balance 7.166
+      29-12-2025 999.95 2251.607 2251.607 .444 .05 0 0    <- Date Amount NAV NAV Units Stamp 0 0
+      Closing Balance 7.61
+
+      SIP entry example:
+      SIP Purchase-BSE -
+      Instalment No - 3/999 -
+      29-12-2025 1699.92 126.2 126.2 13.47 .08 0 0
+    """
+    # Clean: strip non-ASCII chars that come from mixed-encoding Devanagari PDFs
+    raw_lines = text.split("\n")
+    lines = []
+    for raw in raw_lines:
+        clean = re.sub(r"[^\x20-\x7E]", "", raw).strip()
+        if clean:
+            lines.append(clean)
+
+    # ── Phase 1: Build fund name map from AMC Name / Scheme Name / ISIN blocks ──
+    funds_by_isin = {}  # isin -> cleaned scheme name
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith("AMC Name :"):
+            scheme_name = None
+            isin = None
+            for j in range(i + 1, min(i + 12, len(lines))):
+                if lines[j].startswith("Scheme Name :"):
+                    sn = lines[j].replace("Scheme Name :", "").strip()
+                    # Remove "Scheme Code : XXXX" suffix
+                    sn = re.sub(r"\s*Scheme Code\s*:\s*\S+\s*$", "", sn).strip()
+                    # Remove trailing plan codes like "- Direct Plan" duplication
+                    scheme_name = sn if sn else None
+                elif "ISIN :" in lines[j] and "UCC" in lines[j]:
+                    m = re.search(r"(INF[A-Z0-9]{9,10})", lines[j])
+                    if m:
+                        isin = m.group(1)
+                        break
+            if scheme_name and isin and isin not in funds_by_isin:
+                funds_by_isin[isin] = scheme_name
+        i += 1
+
+    # ── Phase 2: Extract transactions — closing balances, NAV, SIP detection ──
+    holdings_data = {}   # isin -> {quantity, nav, is_sip}
+    sip_isins = set()
+    current_isin = None
+    last_nav = 0.0
+    pending_sip = False   # True when we've seen a SIP keyword before the date line
+
+    SIP_KEYWORDS = [
+        "sip purchase", "systematic investment", "sys. investment",
+        "purchase - systematic", "sip instalment", "sip - purchase",
+        "sip purchase-bse", "sip purchase-nse",
+    ]
+    DATE_RE = re.compile(r"^(\d{2}-\d{2}-\d{4})\s+([\d.]+)\s+([\d.]+)")
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        line_lower = line.lower()
+
+        # ISIN line in transaction section: "ISIN : INF... UCC : ..."
+        if "ISIN :" in line and "UCC" in line:
+            m = re.search(r"(INF[A-Z0-9]{9,10})", line)
+            if m:
+                current_isin = m.group(1)
+                last_nav = 0.0
+                pending_sip = False
+                if current_isin not in holdings_data:
+                    holdings_data[current_isin] = {"quantity": 0.0, "nav": 0.0, "is_sip": False}
+
+        if current_isin:
+            # Detect SIP transaction type keywords (may appear 1-2 lines before the date line)
+            if any(kw in line_lower for kw in SIP_KEYWORDS):
+                pending_sip = True
+
+            # Transaction date line: DD-MM-YYYY amount nav nav units ...
+            dm = DATE_RE.match(line)
+            if dm:
+                try:
+                    nav_val = float(dm.group(3))  # 3rd column = NAV
+                    if nav_val > 0:
+                        last_nav = nav_val
+                except (ValueError, IndexError):
+                    pass
+                if pending_sip:
+                    sip_isins.add(current_isin)
+                    holdings_data[current_isin]["is_sip"] = True
+                    pending_sip = False
+
+            # Closing Balance line
+            cb_m = re.match(r"^Closing Balance\s+([\d.]+)", line)
+            if cb_m:
+                qty = float(cb_m.group(1))
+                holdings_data[current_isin]["quantity"] = qty
+                if last_nav > 0:
+                    holdings_data[current_isin]["nav"] = last_nav
+                current_isin = None  # reset after capturing
+
+        i += 1
+
+    # ── Merge Phase 1 (names) + Phase 2 (quantities) ──
+    result_holdings = []
+    for isin, data in holdings_data.items():
+        if data["quantity"] <= 0:
             continue
+        name = funds_by_isin.get(isin, f"Mutual Fund ({isin})")
+        nav = data["nav"]
+        qty = data["quantity"]
+        result_holdings.append({
+            "name": name,
+            "isin": isin,
+            "quantity": qty,
+            "nav": nav,
+            "current_value": round(qty * nav, 2) if nav > 0 else 0.0,
+            "invested_value": 0.0,
+            "category": "Mutual Fund",
+            "is_sip": data["is_sip"],
+        })
 
-        isin_match = isin_pattern.search(line)
-        if isin_match:
-            if current_fund and current_fund.get("quantity", 0) > 0:
-                holdings.append(current_fund)
-            current_fund = {
-                "isin": isin_match.group(),
-                "name": line[:line.find(isin_match.group())].strip() or f"Fund {isin_match.group()}",
-                "quantity": 0,
-                "nav": 0,
-                "invested_value": 0,
-                "current_value": 0,
-                "category": "Mutual Fund",
-            }
+    detected_sip_names = [h["name"] for h in result_holdings if h["is_sip"]]
 
-        if current_fund:
-            units_match = units_pattern.search(line)
-            if units_match:
-                current_fund["quantity"] = float(units_match.group(1).replace(",", ""))
-
-            nav_match = nav_pattern.search(line)
-            if nav_match:
-                current_fund["nav"] = float(nav_match.group(1).replace(",", ""))
-
-            value_match = value_pattern.search(line)
-            if value_match:
-                current_fund["current_value"] = float(value_match.group(1).replace(",", ""))
-
-            cost_match = cost_pattern.search(line)
-            if cost_match:
-                current_fund["invested_value"] = float(cost_match.group(1).replace(",", ""))
-
-    if current_fund and current_fund.get("quantity", 0) > 0:
-        holdings.append(current_fund)
-
-    return holdings
+    logger.info(f"eCAS parse: {len(result_holdings)} holdings, {len(detected_sip_names)} SIPs detected")
+    return result_holdings, detected_sip_names
