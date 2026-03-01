@@ -39,6 +39,9 @@
 | EMI Tracker Dashboard | ✅ Complete | v1.3 |
 | SIP Auto-Detection from CC/Bank Statements | ✅ Complete | v1.3 |
 | Manual CC Transaction Entry | ✅ Complete | v2.0 |
+| eCAS Upload & Parsing (CAMS/NSDL) | ✅ Complete | v2.0 |
+| SIP Auto-Detection from eCAS | ✅ Complete | v2.0 |
+| eCAS Invested Value Calculation Fix | ✅ Complete (Mar 1 2026) | v2.0.1 |
 | Dashboard CC Summary Card | ✅ Complete | v2.0 |
 
 ---
