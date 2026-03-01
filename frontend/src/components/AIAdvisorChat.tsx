@@ -371,7 +371,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                     ]}>
                       {msg.role === 'assistant' && (
                         <View style={styles.aiHeader}>
-                          <View style={[styles.aiDot, { backgroundColor: ACCENT }]} />
+                          <Image source={{ uri: VISOR_LOGO }} style={styles.aiAvatar} resizeMode="cover" />
                           <Text style={[styles.aiName, { color: ACCENT }]}>Visor</Text>
                         </View>
                       )}
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
   userBubble: { alignSelf: 'flex-end', borderBottomRightRadius: 6 },
   aiBubble: { alignSelf: 'flex-start', borderBottomLeftRadius: 6 },
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
-  aiDot: { width: 6, height: 6, borderRadius: 3 },
+  aiAvatar: { width: 18, height: 18, borderRadius: 9 },
   aiName: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   messageText: { fontSize: 14, lineHeight: 21 },
 
