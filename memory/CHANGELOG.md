@@ -1,5 +1,25 @@
 # Visor Finance — CHANGELOG
 
+## v2.2.0 — March 1, 2026 — Tax Auto-Detect Bulk Scan
+### New Features
+- `POST /api/tax-planning/scan` — Bulk scan ALL user data to auto-detect tax deductions
+- Scans: transactions (keyword matching), ELSS holdings (80C), SIPs (80C, 80CCD1B, 80D), home loans (80C principal + 24b interest)
+- Idempotent — re-scanning doesn't create duplicates
+- "Scan All Data" button in Tax screen's Auto-Deductions section
+- Scan result banner showing count and amount of new deductions found
+- Full CRUD on auto-detected deductions (edit amount, dismiss/delete)
+
+### Files Modified
+- `/app/backend/routes/tax.py` (added bulk_scan_tax_deductions endpoint)
+- `/app/frontend/src/components/tax/AutoDeductionsSection.tsx` (scan button + result UI)
+- `/app/frontend/app/(tabs)/tax.tsx` (scan state + handler)
+
+### Testing
+- 16/16 backend tests pass (100%)
+- Verified: scan, idempotency, CRUD, 404 handling, auth, + Visor AI regression
+
+---
+
 ## v2.1.0 — March 1, 2026 — Visor AI Agent
 ### New Features
 - Unified Visor AI Agent (`/api/visor-ai/chat`) — India-first financial companion powered by GPT-5.2
