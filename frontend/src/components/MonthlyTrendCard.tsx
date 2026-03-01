@@ -23,7 +23,12 @@ export const MonthlyTrendCard = ({ data, isDark, colors }: Props) => {
   if (!data || data.length === 0) return null;
 
   const maxValue = Math.max(...data.flatMap(d => [d.income, d.expenses])) || 1;
-  const avgSavingsRate = data.reduce((sum, d) => sum + (d.income > 0 ? ((d.savings / d.income) * 100) : 0), 0) / data.length;
+  const avgSavingsRate = (() => {
+    const rates = data.filter(d => d.income > 0).map(d => (d.savings / d.income) * 100);
+    if (rates.length === 0) return 0;
+    const raw = rates.reduce((s, r) => s + r, 0) / rates.length;
+    return Math.max(-100, Math.min(raw, 100)); // Clamp between -100% and 100%
+  })();
   
   // Calculate trend
   const recentSavings = data.slice(-3).reduce((s, d) => s + d.savings, 0);
@@ -92,7 +97,7 @@ export const MonthlyTrendCard = ({ data, isDark, colors }: Props) => {
         {data.map((item, index) => {
           const incomeHeight = (item.income / maxValue) * 100;
           const expenseHeight = (item.expenses / maxValue) * 100;
-          const savingsRate = item.income > 0 ? (item.savings / item.income) * 100 : 0;
+          const savingsRate = item.income > 0 ? Math.max(-100, Math.min((item.savings / item.income) * 100, 100)) : 0;
           
           return (
             <View key={index} style={styles.barGroup}>
