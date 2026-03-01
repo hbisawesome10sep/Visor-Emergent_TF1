@@ -100,16 +100,30 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
     card: isDark ? '#1F2937' : '#F9FAFB',
   };
 
-  // Gentle breathing animation for FAB
+  // Breathing + Floating + Glow Ring animation for FAB
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.06, duration: 1800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1800, useNativeDriver: true }),
+      ])
+    );
+    const float = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, { toValue: -4, duration: 2000, useNativeDriver: true }),
+        Animated.timing(floatAnim, { toValue: 4, duration: 2000, useNativeDriver: true }),
+      ])
+    );
+    const glowRing = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowRingAnim, { toValue: 1, duration: 2200, useNativeDriver: false }),
+        Animated.timing(glowRingAnim, { toValue: 0, duration: 2200, useNativeDriver: false }),
       ])
     );
     pulse.start();
-    return () => pulse.stop();
+    float.start();
+    glowRing.start();
+    return () => { pulse.stop(); float.stop(); glowRing.stop(); };
   }, []);
 
   // Glow animation when loading
