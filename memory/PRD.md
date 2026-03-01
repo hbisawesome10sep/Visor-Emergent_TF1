@@ -45,6 +45,7 @@
 | Visor AI Agent (Unified, India-first) | ✅ Complete (Mar 1 2026) | v2.1.0 |
 | Tax Auto-Detect Bulk Scan | ✅ Complete (Mar 1 2026) | v2.2.0 |
 | Dashboard CC Summary Card | ✅ Complete | v2.0 |
+| Light Theme Global UI Fix (Input Visibility, Modals, CC Card) | ✅ Complete (Mar 1 2026) | v2.2.2 |
 
 ---
 
