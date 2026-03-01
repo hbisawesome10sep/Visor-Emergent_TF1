@@ -1411,6 +1411,36 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
+  // Period Filter Bar
+  periodFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  periodFilterLabel: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    fontWeight: '500' as any,
+  },
+  periodPillsGroup: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    padding: 2,
+    gap: 2,
+  },
+  periodPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  periodPillText: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+  },
+
   // Flagged Transactions Bar
   flaggedBar: {
     flexDirection: 'row',
