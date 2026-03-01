@@ -281,7 +281,7 @@ export default function TaxDeductionsModal({
 
               {/* Search Bar */}
               <View style={[styles.searchContainer, {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6',
               }]}>
                 <MaterialCommunityIcons name="magnify" size={20} color={colors.textSecondary} />
                 <TextInput

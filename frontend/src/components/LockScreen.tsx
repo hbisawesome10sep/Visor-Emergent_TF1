@@ -150,7 +150,7 @@ export function LockScreen() {
                 return (
                   <TouchableOpacity
                     key={ki}
-                    style={[styles.dialBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}
+                    style={[styles.dialBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6' }]}
                     onPress={() => handleDigit(key)}
                     data-testid={`pin-digit-${key}`}
                   >
