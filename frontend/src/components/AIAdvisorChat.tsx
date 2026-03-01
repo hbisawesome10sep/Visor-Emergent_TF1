@@ -262,7 +262,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
               </LinearGradient>
               <View>
                 <Text style={[styles.headerTitle, { color: c.textPrimary }]} data-testid="visor-ai-title">Visor</Text>
-                <Text style={[styles.headerSub, { color: c.textSecondary }]}>Tera Finance Buddy</Text>
+                <Text style={[styles.headerSub, { color: c.textSecondary }]}>Your Finance Companion</Text>
               </View>
             </View>
             <View style={styles.headerRight}>
