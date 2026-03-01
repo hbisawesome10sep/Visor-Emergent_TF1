@@ -15,7 +15,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://emi-tracker-preview.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://portfolio-tracker-211.preview.emergentagent.com')
 TEST_EMAIL = "rajesh@visor.demo"
 TEST_PASSWORD = "Demo@123"
 
