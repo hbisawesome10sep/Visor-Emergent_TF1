@@ -571,8 +571,7 @@ export default function SettingsScreen() {
           <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Billing Period (optional, e.g. Jan 2026)</Text>
           <TextInput
             testID="billing-period-input"
-            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)', color: colors.textPrimary, borderColor: colors.border }]}
-            placeholder="e.g. Jan 2026"
+            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : '#F3F4F6', color: colors.textPrimary, borderColor: isDark ? colors.border : '#D1D5DB' }]}
             placeholderTextColor={colors.textSecondary}
             value={billingPeriod}
             onChangeText={setBillingPeriod}

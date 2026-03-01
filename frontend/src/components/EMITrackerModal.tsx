@@ -739,11 +739,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   // Detail Modal
-  detailOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'flex-end',
-  },
+    detailOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.85)',
+    },
   detailContainer: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
