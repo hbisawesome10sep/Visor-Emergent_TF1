@@ -1,5 +1,30 @@
 # Visor Finance — CHANGELOG
 
+## v2.2.1 — March 1, 2026 — UI/UX Polish & Bug Fixes
+### Bug Fixes
+- **Absurd percentages in Insights**: Clamped savings rate to [-100%, 100%] range across backend (`dashboard.py`) and frontend (`insights.tsx`, `MonthlyTrendCard.tsx`)
+- **Emergency fund negative months**: Capped at 0 minimum (was showing -45.8 months)
+- **Smart Alerts**: Backend now returns sensible values instead of extreme negatives
+
+### UI/UX Improvements
+- **Visor AI icon**: Changed from hand-coin to premium "shield-star" icon
+- **"Tera Finance Buddy" → "Your Finance Companion"**: Professional subtitle
+- **AI tone**: Rewritten system prompt — polished, warm but professional Hinglish. No more street slang
+- **Chat bubbles**: iOS glassmorphism style with subtle borders and rounded corners
+- **Welcome text**: Professional English/Hinglish mix
+- **Disclaimer**: Professional English
+- **Input placeholder**: "Ask anything about finance..."
+- **Thinking indicator**: "Visor is thinking..."
+
+### Files Modified
+- `/app/backend/routes/visor_ai.py` (system prompt rewrite)
+- `/app/backend/routes/dashboard.py` (savings rate & emergency fund clamping)
+- `/app/frontend/src/components/AIAdvisorChat.tsx` (icon, text, bubble styles)
+- `/app/frontend/src/components/MonthlyTrendCard.tsx` (savings rate clamping)
+- `/app/frontend/app/(tabs)/insights.tsx` (savings rate & runway clamping)
+
+---
+
 ## v2.2.0 — March 1, 2026 — Tax Auto-Detect Bulk Scan
 ### New Features
 - `POST /api/tax-planning/scan` — Bulk scan ALL user data to auto-detect tax deductions
