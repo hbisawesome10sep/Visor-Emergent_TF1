@@ -321,7 +321,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                   <View style={[styles.disclaimer, { backgroundColor: isDark ? 'rgba(251,191,36,0.08)' : 'rgba(251,191,36,0.06)', borderColor: isDark ? 'rgba(251,191,36,0.15)' : 'rgba(251,191,36,0.1)' }]}>
                     <MaterialCommunityIcons name="information-outline" size={14} color="#F59E0B" />
                     <Text style={[styles.disclaimerText, { color: c.textSecondary }]}>
-                      Visor educational guidance deta hai. Final financial decisions apne CA/advisor se consult karke lena.
+                      Visor provides educational guidance. Please consult your CA or financial advisor before making final financial decisions.
                     </Text>
                   </View>
                 </View>
@@ -394,7 +394,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                       backgroundColor: ACCENT,
                       opacity: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0.3] }),
                     }]} />
-                    <Text style={[styles.thinkText, { color: c.textSecondary }]}>Visor soch raha hai...</Text>
+                    <Text style={[styles.thinkText, { color: c.textSecondary }]}>Visor is thinking...</Text>
                   </View>
                 </View>
               )}
@@ -412,7 +412,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 }]}
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder="Kuch bhi pooch finance ke baare mein..."
+                placeholder="Ask anything about finance..."
                 placeholderTextColor={c.textSecondary}
                 multiline
                 maxLength={1200}
