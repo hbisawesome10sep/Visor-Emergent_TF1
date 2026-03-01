@@ -316,6 +316,9 @@ export default function TaxScreen() {
           hasUserDeductions={userTaxDeductions.length > 0}
           onEditTransaction={handleEditAutoDeduction}
           onDismissTransaction={handleDismissAutoDeduction}
+          onScanAll={handleScanAll}
+          isScanning={isScanning}
+          scanResult={scanResult}
         />
 
         {/* ═══ SECTION 2: CAPITAL GAINS / LOSS ═══ */}
