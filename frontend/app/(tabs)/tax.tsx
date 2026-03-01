@@ -332,7 +332,7 @@ export default function TaxScreen() {
         <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 24 }]}>Income Tax Calculator</Text>
 
         {/* Regime Toggle */}
-        <View data-testid="regime-toggle" style={[styles.regimeToggle, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+        <View data-testid="regime-toggle" style={[styles.regimeToggle, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6' }]}>
           <TouchableOpacity
             data-testid="old-regime-btn"
             style={[styles.regimeBtn, activeRegime === 'old' && { backgroundColor: isDark ? '#B45309' : '#F59E0B' }]}
