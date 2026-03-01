@@ -264,6 +264,8 @@ _STOP_WORDS = {
     "kya", "hai", "ye", "yeh", "ka", "ki", "ke", "mein", "se", "par",
     "ko", "aur", "bhi", "nahi", "hain", "ho", "kaise", "kitna", "kitni",
     "kaisa", "batao", "bata", "samjhao", "dikhao", "dekho",
+    "sip", "emi", "hra", "ppf", "nps", "elss", "cagr", "fire",
+    "fd", "rd", "nsc", "ulip", "epf", "vpf",
 }
 
 
@@ -350,11 +352,11 @@ def _needs_web_search(message: str) -> bool:
 
 async def _web_search_financial(query: str) -> str:
     try:
-        from duckduckgo_search import DDGS
+        from ddgs import DDGS
         loop = asyncio.get_running_loop()
         def _search():
             with DDGS() as ddgs:
-                results = list(ddgs.text(f"{query} India finance", max_results=5))
+                results = list(ddgs.text(f"{query} India finance market", max_results=5))
             return results
         results = await loop.run_in_executor(None, _search)
         if not results:
