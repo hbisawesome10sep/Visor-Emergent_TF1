@@ -11,6 +11,9 @@ interface AutoDeductionsSectionProps {
   hasUserDeductions: boolean;
   onEditTransaction: (txn: any) => void;
   onDismissTransaction: (txn: any) => void;
+  onScanAll?: () => void;
+  isScanning?: boolean;
+  scanResult?: any;
 }
 
 export const AutoDeductionsSection: React.FC<AutoDeductionsSectionProps> = ({
@@ -20,6 +23,9 @@ export const AutoDeductionsSection: React.FC<AutoDeductionsSectionProps> = ({
   hasUserDeductions,
   onEditTransaction,
   onDismissTransaction,
+  onScanAll,
+  isScanning,
+  scanResult,
 }) => {
   if (!autoDeductions || !autoDeductions.sections?.length) return null;
 
