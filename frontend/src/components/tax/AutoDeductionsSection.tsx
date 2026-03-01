@@ -318,4 +318,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  scanBtnTitle: {
+    fontSize: 13,
+    fontFamily: 'DM Sans',
+    fontWeight: '700',
+  },
+  scanBtnSub: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    marginTop: 2,
+  },
+  scanResult: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  scanResultText: {
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    fontWeight: '500',
+    flex: 1,
+  },
 });
