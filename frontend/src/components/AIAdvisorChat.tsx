@@ -242,28 +242,37 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
 
   return (
     <>
-      {/* Floating Action Button — Friendly coin icon */}
-      <Animated.View style={[styles.floatingBtn, { transform: [{ scale: pulseAnim }] }]}
+      {/* Floating Action Button — Custom Visor Logo with glow ring */}
+      <Animated.View style={[styles.floatingBtn, {
+        transform: [{ scale: pulseAnim }, { translateY: floatAnim }],
+      }]}
         data-testid="visor-ai-fab"
       >
+        {/* Animated glow ring */}
+        <Animated.View style={[styles.glowRing, {
+          borderColor: glowRingAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['rgba(16,185,129,0.15)', 'rgba(16,185,129,0.5)'],
+          }),
+          transform: [{
+            scale: glowRingAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, 1.3],
+            }),
+          }],
+          opacity: glowRingAnim.interpolate({
+            inputRange: [0, 0.5, 1],
+            outputRange: [0.6, 1, 0.6],
+          }),
+        }]} />
         <TouchableOpacity
           style={styles.aiButton}
           onPress={() => setIsOpen(true)}
           activeOpacity={0.85}
           data-testid="visor-ai-open-btn"
         >
-          <LinearGradient
-            colors={['#10B981', '#059669']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.aiButtonGradient}
-          >
-            <MaterialCommunityIcons name="shield-star" size={26} color="#fff" />
-          </LinearGradient>
+          <Image source={{ uri: VISOR_LOGO }} style={styles.fabLogo} resizeMode="cover" />
         </TouchableOpacity>
-        <View style={styles.aiBadge}>
-          <Text style={styles.aiBadgeText}>V</Text>
-        </View>
       </Animated.View>
 
       {/* Chat Modal */}
