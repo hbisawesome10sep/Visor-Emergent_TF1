@@ -383,7 +383,10 @@ export default function InsightsScreen() {
   const income = stats?.total_income || 0;
   const expenses = stats?.total_expenses || 0;
   const investments = stats?.total_investments || 0;
-  const savingsRate = stats?.savings_rate || 0;
+  const savingsRate = (() => {
+    const raw = stats?.savings_rate || 0;
+    return Math.max(-100, Math.min(raw, 100)); // Clamp between -100% and 100%
+  })();
   const goalProgress = stats?.goal_progress || 0;
   
   // Check if we have sufficient data for meaningful calculations
@@ -408,7 +411,7 @@ export default function InsightsScreen() {
   
   const monthlySavings = Math.max(0, income - expenses);
   const runwayMonths = expenses > 0 && monthlySavings > 0 
-    ? Math.max(0, (monthlySavings * 6) / expenses) 
+    ? Math.min((monthlySavings * 6) / expenses, 99) // Cap at 99 months
     : 0;
   const foirRatio = hasIncomeData 
     ? Math.min(((actualEMI + (expenses * 0.15)) / income) * 100, 200) // Cap at 200%
