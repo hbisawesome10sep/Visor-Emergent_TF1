@@ -524,7 +524,7 @@ export default function SettingsScreen() {
                     onPress={() => setSelectedCardId(c.id)}
                     style={{
                       paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, marginRight: 8,
-                      backgroundColor: selectedCardId === c.id ? '#6366F1' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                      backgroundColor: selectedCardId === c.id ? '#6366F1' : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                       borderWidth: 1, borderColor: selectedCardId === c.id ? '#6366F1' : colors.border,
                     }}
                   >
@@ -556,7 +556,7 @@ export default function SettingsScreen() {
                 onPress={() => setSelectedIssuer(iss)}
                 style={{
                   paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, marginRight: 8,
-                  backgroundColor: selectedIssuer === iss ? '#10B981' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                  backgroundColor: selectedIssuer === iss ? '#10B981' : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                   borderWidth: 1, borderColor: selectedIssuer === iss ? '#10B981' : colors.border,
                 }}
               >
