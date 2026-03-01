@@ -413,7 +413,7 @@ async def get_smart_alerts(user=Depends(get_current_user)):
     
     # Alert 2: Low savings rate
     if total_income > 0:
-        savings_rate = ((total_income - total_expenses) / total_income) * 100
+        savings_rate = max(-100, min(((total_income - total_expenses) / total_income) * 100, 100))
         if savings_rate < 10:
             alerts.append({
                 "id": f"alert_{alert_id}",
@@ -510,7 +510,7 @@ async def get_smart_alerts(user=Depends(get_current_user)):
     
     # Alert 6: Emergency fund check
     avg_monthly_expense = total_expenses / max(1, len(set(t.get("date", "")[:7] for t in txns if t["type"] == "expense")))
-    emergency_fund_months = (total_income - total_expenses) / avg_monthly_expense if avg_monthly_expense > 0 else 0
+    emergency_fund_months = max(0, (total_income - total_expenses) / avg_monthly_expense) if avg_monthly_expense > 0 else 0
     
     if emergency_fund_months < 3 and total_income > 0:
         alerts.append({
