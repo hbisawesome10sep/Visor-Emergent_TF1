@@ -373,8 +373,12 @@ export default function EMITrackerModal({ visible, onClose }: Props) {
 
           {/* EMI Detail Modal */}
           <Modal visible={!!selectedEMI} animationType="slide" transparent>
-            <View style={styles.detailOverlay}>
-              <View style={[styles.detailContainer, { backgroundColor: colors.card }]}>
+            <View style={[styles.detailOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.55)' }]}>
+              <View style={[styles.detailContainer, {
+                backgroundColor: isDark ? colors.card : '#FAFAFE',
+                borderTopWidth: 1,
+                borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.12)',
+              }]}>
                 {selectedEMI && (
                   <>
                     <View style={styles.detailHeader}>
