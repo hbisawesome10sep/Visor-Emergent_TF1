@@ -112,7 +112,7 @@ export default function DashboardScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   
   // Calculate header height dynamically based on safe area
-  const HEADER_HEIGHT = 70 + insets.top;
+  const HEADER_HEIGHT = 58 + insets.top;
   const [showScoreBack, setShowScoreBack] = useState(false);
   const [showTrendBack, setShowTrendBack] = useState(false);
   const [userCreatedAt, setUserCreatedAt] = useState<string>('');
@@ -1154,7 +1154,8 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingTop: 6,
+    paddingBottom: 7,
     borderBottomWidth: 1,
   },
   headerTopRow: {
@@ -1166,42 +1167,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 6,
+    marginTop: 4,
   },
   greetingRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   greetingText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   greetingName: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   monthYear: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'DM Sans', fontWeight: '500' as any,
   },
   frequencyPills: {
     flexDirection: 'row',
-    borderRadius: 8,
+    borderRadius: 7,
     padding: 2,
   },
   freqPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    borderRadius: 5,
   },
   freqText: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   themeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
