@@ -182,6 +182,23 @@ export default function TaxScreen() {
     ]);
   };
 
+  const handleScanAll = async () => {
+    if (!token || isScanning) return;
+    setIsScanning(true);
+    setScanResult(null);
+    try {
+      const result = await apiRequest(`/tax-planning/scan?fy=${selectedFY.fy}`, { method: 'POST', token });
+      setScanResult(result);
+      if (result.new_deductions_found > 0) {
+        fetchData(); // Refresh all data to show new deductions
+      }
+    } catch (e: any) {
+      Alert.alert('Scan Error', e.message || 'Failed to scan data');
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   const taxSections = taxData?.sections || [];
   const regimeData = taxCalcData ? (activeRegime === 'old' ? taxCalcData.old_regime : taxCalcData.new_regime) : null;
 
