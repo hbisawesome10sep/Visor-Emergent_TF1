@@ -31,6 +31,59 @@ export const AutoDeductionsSection: React.FC<AutoDeductionsSectionProps> = ({
 
   return (
     <View style={{ marginBottom: 16 }}>
+      {/* Scan All Data Button */}
+      {onScanAll && (
+        <TouchableOpacity
+          data-testid="scan-all-data-btn"
+          style={[styles.scanBtn, {
+            backgroundColor: isDark ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.08)',
+            borderColor: isDark ? 'rgba(139,92,246,0.25)' : 'rgba(139,92,246,0.15)',
+          }]}
+          onPress={onScanAll}
+          disabled={isScanning}
+        >
+          {isScanning ? (
+            <ActivityIndicator size="small" color="#8B5CF6" />
+          ) : (
+            <MaterialCommunityIcons name="radar" size={18} color="#8B5CF6" />
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.scanBtnTitle, { color: colors.textPrimary }]}>
+              {isScanning ? 'Scanning all data...' : 'Scan All Data'}
+            </Text>
+            <Text style={[styles.scanBtnSub, { color: colors.textSecondary }]}>
+              Auto-detect deductions from transactions, holdings, SIPs & loans
+            </Text>
+          </View>
+          {!isScanning && (
+            <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
+          )}
+        </TouchableOpacity>
+      )}
+
+      {/* Scan Result Banner */}
+      {scanResult && (
+        <View style={[styles.scanResult, {
+          backgroundColor: scanResult.new_deductions_found > 0 
+            ? (isDark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.06)')
+            : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+          borderColor: scanResult.new_deductions_found > 0
+            ? (isDark ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.12)')
+            : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+        }]}>
+          <MaterialCommunityIcons 
+            name={scanResult.new_deductions_found > 0 ? "check-circle" : "information"} 
+            size={16} 
+            color={scanResult.new_deductions_found > 0 ? Accent.emerald : colors.textSecondary} 
+          />
+          <Text style={[styles.scanResultText, { color: colors.textPrimary }]}>
+            {scanResult.new_deductions_found > 0
+              ? `Found ${scanResult.new_deductions_found} new deduction${scanResult.new_deductions_found > 1 ? 's' : ''} worth ${formatINRShort(scanResult.total_new_amount)}`
+              : 'No new deductions found. All data already scanned.'}
+          </Text>
+        </View>
+      )}
+
       <View style={[styles.header, { marginTop: hasUserDeductions ? 4 : 0 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <MaterialCommunityIcons name="lightning-bolt" size={14} color="#8B5CF6" />
