@@ -468,11 +468,11 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
 
   // FAB
-  floatingBtn: { position: 'absolute', right: 20, bottom: Platform.OS === 'ios' ? 100 : 85, zIndex: 999 },
-  aiButton: { width: 58, height: 58, borderRadius: 29, overflow: 'hidden', elevation: 10, shadowColor: '#10B981', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10 },
+  floatingBtn: { position: 'absolute', right: 20, bottom: Platform.OS === 'ios' ? 100 : 85, zIndex: 999, width: 62, height: 62, justifyContent: 'center', alignItems: 'center' },
+  glowRing: { position: 'absolute', width: 62, height: 62, borderRadius: 31, borderWidth: 2.5 },
+  aiButton: { width: 54, height: 54, borderRadius: 27, overflow: 'hidden', elevation: 12, shadowColor: '#10B981', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12 },
   aiButtonGradient: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
-  aiBadge: { position: 'absolute', top: -2, right: -2, backgroundColor: '#F59E0B', width: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
-  aiBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  fabLogo: { width: 54, height: 54, borderRadius: 27 },
 
   // Header
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 60 : 16, paddingBottom: 12, borderBottomWidth: 1 },
