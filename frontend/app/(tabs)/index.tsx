@@ -525,12 +525,12 @@ export default function DashboardScreen() {
             {/* Section header row */}
             <View style={styles.ccSectionHeader}>
               <View style={styles.ccSectionLeft}>
-                <MaterialCommunityIcons name="credit-card-multiple-outline" size={20} color="rgba(255,255,255,0.9)" />
-                <Text style={[styles.ccSectionTitle, { color: '#fff', marginLeft: 8 }]}>Credit Cards</Text>
+                <MaterialCommunityIcons name="credit-card-multiple-outline" size={20} color={isDark ? 'rgba(255,255,255,0.9)' : '#4C1D95'} />
+                <Text style={[styles.ccSectionTitle, { color: isDark ? '#fff' : '#3730A3', marginLeft: 8 }]}>Credit Cards</Text>
               </View>
               <View style={styles.ccManageRow}>
-                <Text style={[styles.ccManageText, { color: 'rgba(255,255,255,0.75)' }]}>Manage</Text>
-                <MaterialCommunityIcons name="chevron-right" size={16} color="rgba(255,255,255,0.75)" />
+                <Text style={[styles.ccManageText, { color: isDark ? 'rgba(255,255,255,0.75)' : '#6D28D9' }]}>Manage</Text>
+                <MaterialCommunityIcons name="chevron-right" size={16} color={isDark ? 'rgba(255,255,255,0.75)' : '#6D28D9'} />
               </View>
             </View>
 
@@ -538,47 +538,51 @@ export default function DashboardScreen() {
               <>
                 <View style={styles.ccStatsRow}>
                   <View style={styles.ccStatItem}>
-                    <Text style={[styles.ccStatLabel, { color: 'rgba(255,255,255,0.65)' }]}>OUTSTANDING</Text>
-                    <Text style={[styles.ccStatAmount, { color: '#FCA5A5' }]}>
+                    <Text style={[styles.ccStatLabel, { color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(55,48,163,0.7)' }]}>OUTSTANDING</Text>
+                    <Text style={[styles.ccStatAmount, { color: isDark ? '#FCA5A5' : '#DC2626' }]}>
                       {formatINRShort(stats.credit_card_summary.total_outstanding)}
                     </Text>
                   </View>
-                  <View style={[styles.ccStatDivider, { backgroundColor: 'rgba(255,255,255,0.15)' }]} />
+                  <View style={[styles.ccStatDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(55,48,163,0.2)' }]} />
                   <View style={styles.ccStatItem}>
-                    <Text style={[styles.ccStatLabel, { color: 'rgba(255,255,255,0.65)' }]}>CREDIT LIMIT</Text>
-                    <Text style={[styles.ccStatAmount, { color: '#fff' }]}>
+                    <Text style={[styles.ccStatLabel, { color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(55,48,163,0.7)' }]}>CREDIT LIMIT</Text>
+                    <Text style={[styles.ccStatAmount, { color: isDark ? '#fff' : '#1E1B4B' }]}>
                       {formatINRShort(stats.credit_card_summary.total_limit)}
                     </Text>
                   </View>
-                  <View style={[styles.ccStatDivider, { backgroundColor: 'rgba(255,255,255,0.15)' }]} />
+                  <View style={[styles.ccStatDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(55,48,163,0.2)' }]} />
                   <View style={styles.ccStatItem}>
-                    <Text style={[styles.ccStatLabel, { color: 'rgba(255,255,255,0.65)' }]}>UTILIZATION</Text>
+                    <Text style={[styles.ccStatLabel, { color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(55,48,163,0.7)' }]}>UTILIZATION</Text>
                     <Text style={[styles.ccStatAmount, {
-                      color: stats.credit_card_summary.utilization >= 80 ? '#FCA5A5'
-                        : stats.credit_card_summary.utilization >= 50 ? '#FCD34D'
-                        : '#6EE7B7',
+                      color: stats.credit_card_summary.utilization >= 80
+                        ? (isDark ? '#FCA5A5' : '#DC2626')
+                        : stats.credit_card_summary.utilization >= 50
+                          ? (isDark ? '#FCD34D' : '#D97706')
+                          : (isDark ? '#6EE7B7' : '#059669'),
                     }]}>
                       {stats.credit_card_summary.utilization.toFixed(1)}%
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.ccUtilBar, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                <View style={[styles.ccUtilBar, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(55,48,163,0.15)' }]}>
                   <View style={[styles.ccUtilFill, {
                     width: `${Math.min(stats.credit_card_summary.utilization, 100)}%` as any,
-                    backgroundColor: stats.credit_card_summary.utilization >= 80 ? '#FCA5A5'
-                      : stats.credit_card_summary.utilization >= 50 ? '#FCD34D'
-                      : '#6EE7B7',
+                    backgroundColor: stats.credit_card_summary.utilization >= 80
+                      ? (isDark ? '#FCA5A5' : '#DC2626')
+                      : stats.credit_card_summary.utilization >= 50
+                        ? (isDark ? '#FCD34D' : '#D97706')
+                        : (isDark ? '#6EE7B7' : '#059669'),
                   }]} />
                 </View>
-                <Text style={[styles.ccCardCount, { color: 'rgba(255,255,255,0.6)' }]}>
+                <Text style={[styles.ccCardCount, { color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(55,48,163,0.6)' }]}>
                   {stats.credit_card_summary.cards_count} card{stats.credit_card_summary.cards_count > 1 ? 's' : ''} linked
                 </Text>
               </>
             ) : (
               <View style={styles.ccEmptyState}>
-                <MaterialCommunityIcons name="credit-card-plus-outline" size={28} color="rgba(255,255,255,0.7)" style={{ marginBottom: 8 }} />
-                <Text style={[styles.ccEmptyTitle, { color: '#fff' }]}>No Credit Cards Linked</Text>
-                <Text style={[styles.ccEmptySubtitle, { color: 'rgba(255,255,255,0.6)' }]}>
+                <MaterialCommunityIcons name="credit-card-plus-outline" size={28} color={isDark ? 'rgba(255,255,255,0.7)' : '#6D28D9'} style={{ marginBottom: 8 }} />
+                <Text style={[styles.ccEmptyTitle, { color: isDark ? '#fff' : '#3730A3' }]}>No Credit Cards Linked</Text>
+                <Text style={[styles.ccEmptySubtitle, { color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(55,48,163,0.65)' }]}>
                   Add your cards to track spending & utilization
                 </Text>
               </View>
