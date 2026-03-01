@@ -1149,39 +1149,36 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
-  headerLeft: {
-    flexShrink: 1,
-    marginRight: 10,
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
   },
   greetingRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    flexWrap: 'nowrap',
   },
   greetingText: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   greetingName: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   monthYear: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'DM Sans', fontWeight: '500' as any,
-    marginTop: 2,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   frequencyPills: {
     flexDirection: 'row',
