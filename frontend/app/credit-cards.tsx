@@ -466,7 +466,7 @@ export default function CreditCardsScreen() {
                 style={[styles.input, { 
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                 }]}
                 placeholder="e.g., HDFC Regalia"
                 placeholderTextColor={colors.textSecondary}
@@ -485,7 +485,7 @@ export default function CreditCardsScreen() {
                         : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                       borderColor: formData.issuer === issuer 
                         ? colors.primary 
-                        : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
+                        : (isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB'),
                     }]}
                     onPress={() => setFormData({ ...formData, issuer })}
                   >
@@ -501,7 +501,7 @@ export default function CreditCardsScreen() {
                 style={[styles.input, { 
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                 }]}
                 placeholder="Last 4 digits will be shown"
                 placeholderTextColor={colors.textSecondary}
@@ -516,7 +516,7 @@ export default function CreditCardsScreen() {
                 style={[styles.input, { 
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                 }]}
                 placeholder="₹3,00,000"
                 placeholderTextColor={colors.textSecondary}
@@ -532,7 +532,7 @@ export default function CreditCardsScreen() {
                     style={[styles.input, { 
                       backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                       color: colors.textPrimary,
-                      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                      borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                     }]}
                     placeholder="5"
                     placeholderTextColor={colors.textSecondary}
@@ -548,7 +548,7 @@ export default function CreditCardsScreen() {
                     style={[styles.input, { 
                       backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                       color: colors.textPrimary,
-                      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                      borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                     }]}
                     placeholder="20"
                     placeholderTextColor={colors.textSecondary}
@@ -635,7 +635,7 @@ export default function CreditCardsScreen() {
                         : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                       borderColor: txnForm.card_id === card.id
                         ? '#6366F1'
-                        : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
+                        : (isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB'),
                     }]}
                     onPress={() => setTxnForm({ ...txnForm, card_id: card.id })}
                   >
@@ -653,7 +653,7 @@ export default function CreditCardsScreen() {
                 style={[styles.input, {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                 }]}
                 placeholder="0.00"
                 placeholderTextColor={colors.textSecondary}
@@ -669,7 +669,7 @@ export default function CreditCardsScreen() {
                 style={[styles.input, {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                 }]}
                 placeholder="e.g., Dinner at Zomato"
                 placeholderTextColor={colors.textSecondary}
@@ -683,7 +683,7 @@ export default function CreditCardsScreen() {
                 style={[styles.input, {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                 }]}
                 placeholder="e.g., Zomato"
                 placeholderTextColor={colors.textSecondary}
@@ -706,7 +706,7 @@ export default function CreditCardsScreen() {
                             : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                           borderColor: txnForm.category === cat
                             ? '#6366F1'
-                            : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
+                            : (isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB'),
                         }]}
                         onPress={() => setTxnForm({ ...txnForm, category: cat })}
                       >
@@ -724,7 +724,7 @@ export default function CreditCardsScreen() {
                 style={[styles.input, {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#D1D5DB',
                 }]}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={colors.textSecondary}
