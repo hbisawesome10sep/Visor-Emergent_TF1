@@ -250,6 +250,8 @@ export default function TransactionsScreen() {
       if (activeType !== 'all') params.append('type', activeType);
       if (activeCategory) params.append('category', activeCategory);
       if (searchQuery.trim()) params.append('search', searchQuery.trim());
+      if (periodDates.start) params.append('start_date', periodDates.start);
+      if (periodDates.end) params.append('end_date', periodDates.end);
       const qs = params.toString() ? `?${params.toString()}` : '';
       
       // Fetch both bank transactions and credit card transactions in parallel
@@ -266,7 +268,7 @@ export default function TransactionsScreen() {
       setFlaggedCount(flaggedData?.length || 0);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
-  }, [token, activeType, activeCategory, searchQuery]);
+  }, [token, activeType, activeCategory, searchQuery, periodDates]);
 
   useEffect(() => { fetchTxns(); }, [fetchTxns]);
   const onRefresh = () => { setRefreshing(true); fetchTxns(); };
