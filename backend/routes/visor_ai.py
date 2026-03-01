@@ -354,9 +354,27 @@ async def _web_search_financial(query: str) -> str:
     try:
         from ddgs import DDGS
         loop = asyncio.get_running_loop()
+        # Extract English financial keywords for better search quality
+        words = query.lower().split()
+        # Map common Hindi/Hinglish terms to English for better search
+        hindi_map = {
+            "aaj": "today", "kal": "yesterday", "khabar": "news", "naya": "new",
+            "taza": "latest", "samachaar": "news", "bazaar": "market",
+            "kya": "", "hai": "", "kaise": "how", "kitna": "how much",
+            "mein": "in", "ka": "of", "ki": "of", "ke": "of",
+            "batao": "", "dikhao": "", "bata": "", "scene": "update",
+        }
+        translated = []
+        for w in words:
+            if w in hindi_map:
+                if hindi_map[w]: translated.append(hindi_map[w])
+            else:
+                translated.append(w)
+        search_q = " ".join(translated[:10]) + " India finance"
+
         def _search():
             with DDGS() as ddgs:
-                results = list(ddgs.text(f"{query} India finance market", max_results=5))
+                results = list(ddgs.text(search_q, max_results=5))
             return results
         results = await loop.run_in_executor(None, _search)
         if not results:
