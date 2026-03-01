@@ -330,17 +330,25 @@ def _parse_cas_text(text: str) -> tuple:
                 funds_by_isin[isin] = scheme_name
         i += 1
 
-    # ── Phase 2: Extract transactions — closing balances, NAV, SIP detection ──
-    holdings_data = {}   # isin -> {quantity, nav, is_sip}
+    # ── Phase 2: Extract transactions — closing balances, NAV, SIP detection, invested amounts ──
+    holdings_data = {}   # isin -> {quantity, nav, is_sip, opening_units, total_purchase_amount, first_nav}
     sip_isins = set()
     current_isin = None
     last_nav = 0.0
     pending_sip = False   # True when we've seen a SIP keyword before the date line
+    pending_purchase = False  # True when we've seen a purchase keyword before the date line
 
     SIP_KEYWORDS = [
         "sip purchase", "systematic investment", "sys. investment",
         "purchase - systematic", "sip instalment", "sip - purchase",
         "sip purchase-bse", "sip purchase-nse",
+    ]
+    PURCHASE_KEYWORDS = [
+        "purchase", "systematic investment", "sys. investment",
+        "switch in", "fresh purchase", "new purchase", "additional purchase",
+    ]
+    REDEMPTION_KEYWORDS = [
+        "redemption", "switch out", "switch-out", "withdrawal",
     ]
     DATE_RE = re.compile(r"^\d{2}-\d{2}-\d{4}\s")
 
@@ -356,19 +364,34 @@ def _parse_cas_text(text: str) -> tuple:
                 current_isin = m.group(1)
                 last_nav = 0.0
                 pending_sip = False
+                pending_purchase = False
                 if current_isin not in holdings_data:
-                    holdings_data[current_isin] = {"quantity": 0.0, "nav": 0.0, "is_sip": False}
+                    holdings_data[current_isin] = {
+                        "quantity": 0.0, "nav": 0.0, "is_sip": False,
+                        "opening_units": 0.0, "total_purchase_amount": 0.0, "first_nav": 0.0,
+                    }
 
         if current_isin:
             # Detect SIP transaction type keywords (may appear 1-2 lines before the date line)
             if any(kw in line_lower for kw in SIP_KEYWORDS):
                 pending_sip = True
+                pending_purchase = True  # SIP is a type of purchase
 
-            # Transaction date line: DD-MM-YYYY [optional description] amount NAV NAV units ...
-            # NAV appears TWICE consecutively in growth funds (income NAV = capital NAV)
-            # This unique pattern lets us find NAV regardless of description position
+            # Detect general purchase keywords (broader than SIP)
+            elif any(kw in line_lower for kw in PURCHASE_KEYWORDS):
+                pending_purchase = True
+
+            # Detect redemption keywords — cancel any pending purchase flag
+            if any(kw in line_lower for kw in REDEMPTION_KEYWORDS):
+                pending_purchase = False
+
+            # Opening Balance line: "Opening Balance X.XXX"
+            ob_m = re.match(r"^Opening Balance\s+([\d.]+)", line)
+            if ob_m:
+                holdings_data[current_isin]["opening_units"] = float(ob_m.group(1))
+
+            # Transaction date line: DD-MM-YYYY amount NAV NAV units stamp 0 0
             if DATE_RE.match(line):
-                # Extract all numbers from the line (after the date)
                 after_date = line[10:]
                 nums = re.findall(r"[\d]+(?:\.[\d]+)?", after_date)
                 # Find two consecutive equal values (NAV repeated) - robust across formats
@@ -391,10 +414,24 @@ def _parse_cas_text(text: str) -> tuple:
                     except ValueError:
                         pass
 
+                # Record first NAV for this fund (used to estimate opening balance cost)
+                if last_nav > 0 and holdings_data[current_isin]["first_nav"] == 0:
+                    holdings_data[current_isin]["first_nav"] = last_nav
+
+                # Sum purchase amounts: first number after date is the transaction amount
+                if pending_purchase and nums:
+                    try:
+                        txn_amount = float(nums[0])
+                        if txn_amount > 0:
+                            holdings_data[current_isin]["total_purchase_amount"] += txn_amount
+                    except ValueError:
+                        pass
+
                 if pending_sip:
                     sip_isins.add(current_isin)
                     holdings_data[current_isin]["is_sip"] = True
                     pending_sip = False
+                pending_purchase = False
 
             # Closing Balance line
             cb_m = re.match(r"^Closing Balance\s+([\d.]+)", line)
