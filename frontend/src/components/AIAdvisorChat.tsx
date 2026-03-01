@@ -88,6 +88,9 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
   const scrollViewRef = useRef<ScrollView>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const glowRingAnim = useRef(new Animated.Value(0)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const c = colors || {
     background: isDark ? '#0A0A0B' : '#FFFFFF',
