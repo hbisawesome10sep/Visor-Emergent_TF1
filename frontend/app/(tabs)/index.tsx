@@ -352,20 +352,35 @@ export default function DashboardScreen() {
             },
           ]}
         >
-          <View style={styles.headerLeft}>
+          {/* Row 1: Greeting + Settings */}
+          <View style={styles.headerTopRow}>
             <View style={styles.greetingRow}>
               <Text style={[styles.greetingText, { color: colors.primary }]}>{getGreeting()}</Text>
               <Text style={[styles.greetingName, { color: colors.textPrimary }]}>
                 , {user?.full_name?.split(' ')[0] || 'User'}
               </Text>
             </View>
+            <TouchableOpacity
+              data-testid="settings-btn"
+              style={[
+                styles.themeBtn,
+                { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' },
+              ]}
+              onPress={() => router.push('/(tabs)/settings')}
+            >
+              <MaterialCommunityIcons
+                name="cog-outline"
+                size={18}
+                color={isDark ? '#9CA3AF' : '#6B7280'}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Row 2: Date range + Frequency pills */}
+          <View style={styles.headerBottomRow}>
             <Text style={[styles.monthYear, { color: colors.textSecondary }]}>
               {rangeDisplay}
             </Text>
-          </View>
-
-          <View style={styles.headerRight}>
-            {/* Frequency Selector */}
             <View
               style={[
                 styles.frequencyPills,
@@ -392,22 +407,6 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-
-            {/* Settings */}
-            <TouchableOpacity
-              data-testid="settings-btn"
-              style={[
-                styles.themeBtn,
-                { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' },
-              ]}
-              onPress={() => router.push('/(tabs)/settings')}
-            >
-              <MaterialCommunityIcons
-                name="cog-outline"
-                size={18}
-                color={isDark ? '#9CA3AF' : '#6B7280'}
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
