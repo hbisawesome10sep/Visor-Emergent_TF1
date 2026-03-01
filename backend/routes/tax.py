@@ -325,6 +325,221 @@ async def update_auto_tax_deduction_amount(deduction_id: str, data: UserTaxDeduc
 
 
 # ══════════════════════════════════════
+#  BULK SCAN — Auto-Detect from All Data
+# ══════════════════════════════════════
+
+@router.post("/tax-planning/scan")
+async def bulk_scan_tax_deductions(user=Depends(get_current_user), fy: str = "2025-26"):
+    """Scan ALL user data sources to auto-detect tax deductions for the given FY."""
+    user_id = user["id"]
+    fy_parts = fy.split("-")
+    fy_start_year = int(fy_parts[0])
+    fy_start = f"{fy_start_year}-04-01"
+    fy_end = f"{fy_start_year + 1}-03-31"
+
+    # Get existing auto-deduction transaction_ids to avoid duplicates
+    existing = await db.auto_tax_deductions.find(
+        {"user_id": user_id, "fy": fy}, {"_id": 0, "transaction_id": 1}
+    ).to_list(1000)
+    existing_txn_ids = {d["transaction_id"] for d in existing}
+
+    new_deductions = []
+
+    # ── 1. Scan ALL transactions ──────────────────────────────
+    all_txns = await db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(5000)
+    fy_txns = [t for t in all_txns if t.get("date", "") and fy_start <= t["date"] <= fy_end]
+
+    for t in fy_txns:
+        txn_id = t.get("id", "")
+        if txn_id in existing_txn_ids:
+            continue
+        detection = detect_tax_deduction(
+            t.get("category", ""), t.get("description", ""),
+            t.get("notes", ""), t.get("type", ""),
+        )
+        if detection:
+            section = detection["section"]
+            limit = TAX_SECTION_LIMITS.get(section, 0)
+            doc = {
+                "id": str(uuid4()), "user_id": user_id, "transaction_id": txn_id,
+                "section": section, "section_label": TAX_SECTION_NAMES.get(section, section),
+                "name": detection["name"], "amount": round(t.get("amount", 0), 2),
+                "limit": limit, "fy": fy,
+                "detected_from": detection["detected_from"],
+                "source_category": t.get("category", ""),
+                "source_description": t.get("description", ""),
+                "source_date": t.get("date", ""),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            new_deductions.append(doc)
+            existing_txn_ids.add(txn_id)
+
+    # ── 2. Scan ELSS Mutual Fund Holdings → 80C ──────────────
+    holdings = await db.holdings.find({"user_id": user_id}, {"_id": 0}).to_list(200)
+    for h in holdings:
+        ref_id = f"holding_{h.get('id', h.get('isin', ''))}"
+        if ref_id in existing_txn_ids:
+            continue
+        name = (h.get("name", "") or "").lower()
+        category = (h.get("category", "") or "").lower()
+        is_elss = any(kw in name for kw in ["elss", "tax saver", "tax saving"])
+        if is_elss or category == "elss":
+            inv_value = h.get("invested_value", 0) or (h.get("buy_price", 0) * h.get("quantity", 0))
+            if inv_value > 0:
+                doc = {
+                    "id": str(uuid4()), "user_id": user_id, "transaction_id": ref_id,
+                    "section": "80C", "section_label": "Section 80C",
+                    "name": f"ELSS: {h.get('name', 'Mutual Fund')[:40]}",
+                    "amount": round(inv_value, 2), "limit": 150000, "fy": fy,
+                    "detected_from": "holdings", "source_category": "ELSS",
+                    "source_description": h.get("name", ""), "source_date": "",
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                }
+                new_deductions.append(doc)
+                existing_txn_ids.add(ref_id)
+
+    # ── 3. Scan SIPs / Recurring Transactions → 80C, 80D ─────
+    sips = await db.recurring_transactions.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    for s in sips:
+        ref_id = f"sip_{s.get('id', '')}"
+        if ref_id in existing_txn_ids:
+            continue
+        desc = (s.get("description", "") or s.get("name", "")).lower()
+        cat = (s.get("category", "") or "").lower()
+        amount = s.get("amount", 0)
+        freq = (s.get("frequency", "") or "monthly").lower()
+        # Estimate annual from frequency
+        multiplier = {"monthly": 12, "quarterly": 4, "half-yearly": 2, "yearly": 1, "weekly": 52}.get(freq, 12)
+        annual_amount = amount * multiplier
+
+        detection = None
+        if any(kw in desc for kw in ["elss", "tax saver", "tax saving"]):
+            detection = {"section": "80C", "name": f"SIP: {desc[:40].title()}", "detected_from": "sip"}
+        elif any(kw in desc for kw in ["ppf", "provident fund"]):
+            detection = {"section": "80C", "name": "PPF Contribution (SIP)", "detected_from": "sip"}
+        elif any(kw in desc for kw in ["nps", "national pension"]):
+            detection = {"section": "80CCD1B", "name": "NPS Contribution (SIP)", "detected_from": "sip"}
+        elif any(kw in desc for kw in ["health insurance", "medical", "mediclaim"]):
+            detection = {"section": "80D", "name": "Health Insurance (SIP)", "detected_from": "sip"}
+        elif cat in ("elss", "tax saver"):
+            detection = {"section": "80C", "name": f"SIP: {s.get('name', 'Tax Saving Fund')[:40]}", "detected_from": "sip"}
+
+        if detection and annual_amount > 0:
+            section = detection["section"]
+            doc = {
+                "id": str(uuid4()), "user_id": user_id, "transaction_id": ref_id,
+                "section": section, "section_label": TAX_SECTION_NAMES.get(section, section),
+                "name": detection["name"],
+                "amount": round(annual_amount, 2), "limit": TAX_SECTION_LIMITS.get(section, 0), "fy": fy,
+                "detected_from": detection["detected_from"],
+                "source_category": s.get("category", ""),
+                "source_description": s.get("description", s.get("name", "")),
+                "source_date": f"Annual estimate ({freq})",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            new_deductions.append(doc)
+            existing_txn_ids.add(ref_id)
+
+    # ── 4. Scan Loans → 80C (principal) + 24b (interest) ─────
+    loans = await db.loans.find({"user_id": user_id}, {"_id": 0}).to_list(50)
+    for loan in loans:
+        loan_name = (loan.get("name", "") or "").lower()
+        loan_type = (loan.get("loan_type", "") or loan.get("type", "") or "").lower()
+        is_home_loan = any(kw in loan_name or kw in loan_type for kw in ["home", "housing", "mortgage", "property"])
+
+        if is_home_loan:
+            emi = loan.get("emi_amount", loan.get("emi", 0))
+            rate = loan.get("interest_rate", 0)
+            principal = loan.get("principal_amount", loan.get("principal", 0))
+
+            if emi > 0 and rate > 0:
+                # Rough split: interest component vs principal component
+                monthly_rate = rate / 12 / 100
+                monthly_interest = principal * monthly_rate if principal > 0 else emi * 0.6
+                monthly_principal = max(emi - monthly_interest, 0)
+                annual_principal = monthly_principal * 12
+                annual_interest = monthly_interest * 12
+
+                # 80C — Home Loan Principal
+                ref_principal = f"loan_principal_{loan.get('id', '')}"
+                if ref_principal not in existing_txn_ids and annual_principal > 0:
+                    doc = {
+                        "id": str(uuid4()), "user_id": user_id, "transaction_id": ref_principal,
+                        "section": "80C", "section_label": "Section 80C",
+                        "name": f"Home Loan Principal: {loan.get('name', 'Housing Loan')[:30]}",
+                        "amount": round(min(annual_principal, 150000), 2),
+                        "limit": 150000, "fy": fy,
+                        "detected_from": "loan", "source_category": "Home Loan",
+                        "source_description": loan.get("name", "Home Loan"),
+                        "source_date": f"Annual estimate (EMI {emi:,.0f})",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                    new_deductions.append(doc)
+                    existing_txn_ids.add(ref_principal)
+
+                # 24(b) — Home Loan Interest
+                ref_interest = f"loan_interest_{loan.get('id', '')}"
+                if ref_interest not in existing_txn_ids and annual_interest > 0:
+                    doc = {
+                        "id": str(uuid4()), "user_id": user_id, "transaction_id": ref_interest,
+                        "section": "24b", "section_label": "Section 24(b)",
+                        "name": f"Home Loan Interest: {loan.get('name', 'Housing Loan')[:30]}",
+                        "amount": round(min(annual_interest, 200000), 2),
+                        "limit": 200000, "fy": fy,
+                        "detected_from": "loan", "source_category": "Home Loan Interest",
+                        "source_description": loan.get("name", "Home Loan"),
+                        "source_date": f"Annual estimate @ {rate}%",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                    new_deductions.append(doc)
+                    existing_txn_ids.add(ref_interest)
+
+            elif emi > 0:
+                # No rate info — just estimate 60% interest, 40% principal
+                ref_id = f"loan_mixed_{loan.get('id', '')}"
+                if ref_id not in existing_txn_ids:
+                    annual_emi = emi * 12
+                    doc = {
+                        "id": str(uuid4()), "user_id": user_id, "transaction_id": ref_id,
+                        "section": "24b", "section_label": "Section 24(b)",
+                        "name": f"Home Loan EMI: {loan.get('name', 'Housing Loan')[:30]}",
+                        "amount": round(min(annual_emi * 0.6, 200000), 2),
+                        "limit": 200000, "fy": fy,
+                        "detected_from": "loan", "source_category": "Home Loan",
+                        "source_description": loan.get("name", "Home Loan"),
+                        "source_date": f"Annual estimate (EMI {emi:,.0f})",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                    new_deductions.append(doc)
+                    existing_txn_ids.add(ref_id)
+
+    # ── Insert all new deductions ─────────────────────────────
+    if new_deductions:
+        await db.auto_tax_deductions.insert_many(new_deductions)
+        # Remove _id from response
+        for d in new_deductions:
+            d.pop("_id", None)
+
+    # ── Summary by section ────────────────────────────────────
+    section_summary = {}
+    for d in new_deductions:
+        sid = d["section"]
+        if sid not in section_summary:
+            section_summary[sid] = {"section": sid, "label": d["section_label"], "count": 0, "amount": 0}
+        section_summary[sid]["count"] += 1
+        section_summary[sid]["amount"] = round(section_summary[sid]["amount"] + d["amount"], 2)
+
+    return {
+        "status": "scan_complete",
+        "fy": fy,
+        "new_deductions_found": len(new_deductions),
+        "total_new_amount": round(sum(d["amount"] for d in new_deductions), 2),
+        "by_section": list(section_summary.values()),
+        "sources_scanned": ["transactions", "holdings", "sips", "loans"],
+    }
+
+
+# ══════════════════════════════════════
 #  TAX CALCULATOR
 # ══════════════════════════════════════
 
