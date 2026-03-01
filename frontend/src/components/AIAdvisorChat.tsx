@@ -285,7 +285,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
           }]}>
             <View style={styles.headerLeft}>
               <LinearGradient colors={['#10B981', '#059669']} style={styles.headerIcon}>
-                <MaterialCommunityIcons name="shield-star" size={20} color="#fff" />
+                <Image source={{ uri: VISOR_LOGO }} style={styles.headerLogoImg} resizeMode="cover" />
               </LinearGradient>
               <View>
                 <Text style={[styles.headerTitle, { color: c.textPrimary }]} data-testid="visor-ai-title">Visor</Text>
@@ -314,9 +314,9 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
               ) : messages.length === 0 ? (
                 <View style={styles.emptyState}>
                   {/* Welcome */}
-                  <LinearGradient colors={['#10B981', '#059669']} style={styles.welcomeIcon}>
-                    <MaterialCommunityIcons name="shield-star" size={44} color="#fff" />
-                  </LinearGradient>
+                  <View style={styles.welcomeIconWrap}>
+                    <Image source={{ uri: VISOR_LOGO }} style={styles.welcomeLogoImg} resizeMode="cover" />
+                  </View>
                   <Text style={[styles.welcomeTitle, { color: c.textPrimary }]} data-testid="visor-ai-welcome">
                     Namaste! I'm Visor
                   </Text>
