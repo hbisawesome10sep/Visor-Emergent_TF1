@@ -1,0 +1,53 @@
+{
+  "summary": "Backend testing of Tax Planning Bulk Scan & Auto-Deductions CRUD. All 16 tests passed (100% success rate). Verified: POST /api/tax-planning/scan idempotency, GET/PUT/DELETE auto-deductions CRUD, and 3 Visor AI regression tests.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tax_planning_scan.py",
+    "/app/test_reports/pytest/pytest_tax_planning_scan.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All Tax Planning Scan and Auto-Deductions CRUD endpoints working correctly",
+    "Bulk scan detected 4 deductions from transactions: 80C (PPF, ELSS, Tax Saver) and 80D (Health Insurance)",
+    "Idempotency working perfectly - second scan returns 0 new deductions",
+    "PUT /api/auto-tax-deductions/{id} correctly updates 'amount' field (uses invested_amount from body → maps to amount in DB)",
+    "DELETE /api/auto-tax-deductions/{id} returns {status: 'dismissed'} and removes record",
+    "404 handling correct for non-existent deduction IDs",
+    "Visor AI regression: Basic chat, SIP calculator auto-detection, and finance guardrail all working"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_tax_planning_scan.py"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16 tests pass)",
+    "frontend": "Not tested (backend-only testing as requested)"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "seed_data_creation": "None - used existing demo account data with actual transactions",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Tax Planning Scan backend fully tested. Key endpoints: POST /api/tax-planning/scan?fy=2025-26 (bulk scan from transactions, holdings, SIPs, loans - idempotent), GET /api/auto-tax-deductions?fy=2025-26 (returns {fy, sections, total_detected, count}), PUT /api/auto-tax-deductions/{id} (body: {invested_amount: number}), DELETE /api/auto-tax-deductions/{id} (returns {status: 'dismissed'}). Demo account has 4 auto-detected deductions in FY 2025-26 after scan: PPF, ELSS contributions, and health insurance. Visor AI regression verified - SIP calculator, basic chat, finance guardrail all working.",
+  "features_verified": {
+    "POST /api/tax-planning/scan?fy=2025-26 - first run": "PASS - Found 4 deductions (80C: 3 @ ₹22,999, 80D: 1 @ ₹1,530)",
+    "POST /api/tax-planning/scan?fy=2025-26 - idempotent": "PASS - Second scan returned 0 new deductions",
+    "GET /api/auto-tax-deductions?fy=2025-26": "PASS - Returns sections with transactions array, each deduction has id, name, amount, detected_from",
+    "PUT /api/auto-tax-deductions/{id}": "PASS - Updated PPF deduction ₹5,000 → ₹6,000, persisted correctly",
+    "DELETE /api/auto-tax-deductions/{id}": "PASS - Deduction dismissed, count decreased from 4 → 3",
+    "PUT/DELETE with non-existent ID": "PASS - Returns 404 as expected",
+    "Auth required on all endpoints": "PASS - Returns 401/403 without token",
+    "Visor AI basic chat regression": "PASS - Responds in Hinglish with personalized portfolio advice",
+    "Visor AI SIP calculator regression": "PASS - Auto-detects SIP query, returns calculator_result with future_value",
+    "Visor AI finance guardrail regression": "PASS - Non-finance queries redirected to finance topics"
+  }
+}
