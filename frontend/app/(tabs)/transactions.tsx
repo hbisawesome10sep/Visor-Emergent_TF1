@@ -130,6 +130,39 @@ export default function TransactionsScreen() {
   const [showSearch, setShowSearch] = useState(false);
   const [datePreset, setDatePreset] = useState('All Time');
 
+  // Period filter: Q=Quarter, M=Month, Y=Year, C=Custom(All)
+  const [selectedPeriod, setSelectedPeriod] = useState<'Q' | 'M' | 'Y' | 'C'>('M');
+
+  // Compute start_date/end_date from selected period
+  const periodDates = useMemo(() => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    if (selectedPeriod === 'M') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      return { start: fmt(start), end: fmt(end) };
+    } else if (selectedPeriod === 'Q') {
+      const q = Math.floor(now.getMonth() / 3);
+      const start = new Date(now.getFullYear(), q * 3, 1);
+      const end = new Date(now.getFullYear(), q * 3 + 3, 0);
+      return { start: fmt(start), end: fmt(end) };
+    } else if (selectedPeriod === 'Y') {
+      return { start: `${now.getFullYear()}-01-01`, end: `${now.getFullYear()}-12-31` };
+    }
+    return { start: null, end: null };
+  }, [selectedPeriod]);
+
+  // Human-readable period label
+  const periodLabel = useMemo(() => {
+    const now = new Date();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (selectedPeriod === 'M') return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+    if (selectedPeriod === 'Q') return `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`;
+    if (selectedPeriod === 'Y') return `${now.getFullYear()}`;
+    return 'All Time';
+  }, [selectedPeriod]);
+
   // Form
   const [form, setForm] = useState({
     type: 'expense', amount: '', category: '', description: '',
