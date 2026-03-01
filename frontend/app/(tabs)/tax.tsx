@@ -58,6 +58,8 @@ export default function TaxScreen() {
   const [editingAutoDeduction, setEditingAutoDeduction] = useState<any | null>(null);
   const [showEditAutoModal, setShowEditAutoModal] = useState(false);
   const [autoDeductionAmount, setAutoDeductionAmount] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<any>(null);
 
   // Capital Gains state
   const [capitalGainsData, setCapitalGainsData] = useState<any>(null);
