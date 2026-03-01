@@ -608,7 +608,7 @@ export default function CreditCardsScreen() {
                     style={[styles.typeToggleBtn, {
                       backgroundColor: txnForm.type === t.key
                         ? t.color + '20'
-                        : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                        : (isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6'),
                       borderColor: txnForm.type === t.key ? t.color : 'transparent',
                       borderWidth: 1.5,
                     }]}
