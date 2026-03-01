@@ -476,10 +476,10 @@ const styles = StyleSheet.create({
   disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 16, padding: 12, borderRadius: 12, borderWidth: 1 },
   disclaimerText: { fontSize: 11, lineHeight: 16, flex: 1 },
 
-  // Message Bubbles
-  bubble: { maxWidth: '88%', borderRadius: 18, padding: 14, marginBottom: 10 },
-  userBubble: { alignSelf: 'flex-end', borderBottomRightRadius: 4 },
-  aiBubble: { alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
+  // Message Bubbles — iOS Glass Morphism
+  bubble: { maxWidth: '88%', borderRadius: 20, padding: 14, marginBottom: 10 },
+  userBubble: { alignSelf: 'flex-end', borderBottomRightRadius: 6 },
+  aiBubble: { alignSelf: 'flex-start', borderBottomLeftRadius: 6 },
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3 },
   aiName: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
