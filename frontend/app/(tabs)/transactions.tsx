@@ -544,6 +544,37 @@ export default function TransactionsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* ═══ PERIOD FILTER ═══ */}
+        <View style={[styles.periodFilterRow, {
+          backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+          borderBottomWidth: 1,
+          borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+        }]}>
+          <Text style={[styles.periodFilterLabel, { color: colors.textSecondary }]}>{periodLabel}</Text>
+          <View style={[styles.periodPillsGroup, {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+          }]}>
+            {(['Q', 'M', 'Y', 'C'] as const).map(p => (
+              <TouchableOpacity
+                key={p}
+                data-testid={`txn-period-${p}`}
+                style={[
+                  styles.periodPill,
+                  selectedPeriod === p && { backgroundColor: colors.primary },
+                ]}
+                onPress={() => setSelectedPeriod(p)}
+              >
+                <Text style={[
+                  styles.periodPillText,
+                  { color: selectedPeriod === p ? '#fff' : colors.textSecondary },
+                ]}>
+                  {p === 'C' ? 'All' : p}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* ═══ FLAGGED TRANSACTIONS ALERT BAR ═══ */}
         {flaggedCount > 0 && (
           <TouchableOpacity
