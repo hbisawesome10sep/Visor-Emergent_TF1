@@ -580,7 +580,7 @@ export default function SettingsScreen() {
           {/* PDF password */}
           <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>PDF Password (if encrypted)</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)', color: colors.textPrimary, borderColor: colors.border }]}
+            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : '#F3F4F6', color: colors.textPrimary, borderColor: isDark ? colors.border : '#D1D5DB' }]}
             placeholder="Leave blank if not encrypted"
             placeholderTextColor={colors.textSecondary}
             value={ccPassword}
