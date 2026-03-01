@@ -1,5 +1,5 @@
 # VISOR FINANCE — Product Requirements Document
-**Version**: 2.2.0 | **Last Updated**: March 1, 2026 | **Platform**: iOS · Android · Web
+**Version**: 2.2.1 | **Last Updated**: March 1, 2026 | **Platform**: iOS · Android · Web
 
 ---
 
