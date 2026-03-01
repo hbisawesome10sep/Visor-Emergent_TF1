@@ -371,9 +371,9 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                       msg.role === 'user'
                         ? { backgroundColor: ACCENT }
                         : {
-                            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                             borderWidth: 1,
-                            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+                            borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
                           },
                     ]}>
                       {msg.role === 'assistant' && (
@@ -441,7 +441,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
             }]}>
               <TextInput
                 style={[styles.input, {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6',
                   color: c.textPrimary,
                 }]}
                 value={inputText}
