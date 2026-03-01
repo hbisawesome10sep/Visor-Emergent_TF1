@@ -240,7 +240,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
             end={{ x: 1, y: 1 }}
             style={styles.aiButtonGradient}
           >
-            <MaterialCommunityIcons name="hand-coin-outline" size={26} color="#fff" />
+            <MaterialCommunityIcons name="shield-star" size={26} color="#fff" />
           </LinearGradient>
         </TouchableOpacity>
         <View style={styles.aiBadge}>
@@ -258,7 +258,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
           }]}>
             <View style={styles.headerLeft}>
               <LinearGradient colors={['#10B981', '#059669']} style={styles.headerIcon}>
-                <MaterialCommunityIcons name="hand-coin-outline" size={20} color="#fff" />
+                <MaterialCommunityIcons name="shield-star" size={20} color="#fff" />
               </LinearGradient>
               <View>
                 <Text style={[styles.headerTitle, { color: c.textPrimary }]} data-testid="visor-ai-title">Visor</Text>
@@ -288,13 +288,13 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 <View style={styles.emptyState}>
                   {/* Welcome */}
                   <LinearGradient colors={['#10B981', '#059669']} style={styles.welcomeIcon}>
-                    <MaterialCommunityIcons name="hand-coin-outline" size={44} color="#fff" />
+                    <MaterialCommunityIcons name="shield-star" size={44} color="#fff" />
                   </LinearGradient>
                   <Text style={[styles.welcomeTitle, { color: c.textPrimary }]} data-testid="visor-ai-welcome">
-                    Namaste! Main Visor hoon
+                    Namaste! I'm Visor
                   </Text>
                   <Text style={[styles.welcomeSub, { color: c.textSecondary }]}>
-                    Tera personal finance buddy. Investments, tax, loans, market updates — sab pooch! Hindi, English, Hinglish ya apni language mein baat kar.
+                    Your personal finance companion. Ask me about investments, tax planning, loans, market updates, or anything finance — in Hindi, English, Hinglish or your regional language.
                   </Text>
 
                   {/* Quick Prompts by Category */}
