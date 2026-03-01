@@ -1,5 +1,5 @@
 # VISOR FINANCE — Product Requirements Document
-**Version**: 2.1.0 | **Last Updated**: March 1, 2026 | **Platform**: iOS · Android · Web
+**Version**: 2.2.0 | **Last Updated**: March 1, 2026 | **Platform**: iOS · Android · Web
 
 ---
 
@@ -43,6 +43,7 @@
 | SIP Auto-Detection from eCAS | ✅ Complete | v2.0 |
 | eCAS Invested Value Calculation Fix | ✅ Complete (Mar 1 2026) | v2.0.1 |
 | Visor AI Agent (Unified, India-first) | ✅ Complete (Mar 1 2026) | v2.1.0 |
+| Tax Auto-Detect Bulk Scan | ✅ Complete (Mar 1 2026) | v2.2.0 |
 | Dashboard CC Summary Card | ✅ Complete | v2.0 |
 
 ---
