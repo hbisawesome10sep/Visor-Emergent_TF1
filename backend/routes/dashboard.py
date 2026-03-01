@@ -67,7 +67,7 @@ async def get_dashboard_stats(
     # Include credit card expenses in total spending for accurate metrics
     combined_expenses = total_expenses + cc_total_expenses
     savings = total_income - combined_expenses - total_investments
-    savings_rate = (savings / total_income * 100) if total_income > 0 else 0
+    savings_rate = max(-100, min((savings / total_income * 100) if total_income > 0 else 0, 100))
     expense_ratio = (combined_expenses / total_income * 100) if total_income > 0 else 0
     investment_ratio = (total_investments / total_income * 100) if total_income > 0 else 0
     monthly_savings = monthly_income - monthly_expenses - monthly_cc_expenses - monthly_investments
