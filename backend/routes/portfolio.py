@@ -13,10 +13,16 @@ router = APIRouter(prefix="/api")
 _yf_executor = ThreadPoolExecutor(max_workers=2)
 
 CATEGORY_RETURNS = {
-    "Stocks": "nifty", "SIP": "nifty", "Mutual Funds": "nifty", "ETFs": "nifty", "ELSS": "nifty",
+    # Equity-linked (Nifty-tracked estimate)
+    "Stocks": "nifty", "Stock": "nifty",
+    "SIP": "nifty", "Mutual Funds": "nifty", "Mutual Fund": "nifty",
+    "ETFs": "nifty", "ETF": "nifty", "ELSS": "nifty",
+    # Gold / Silver
     "Gold": "gold", "Sovereign Gold Bond": "gold",
     "Silver": "silver",
-    "PPF": 0.071, "EPF": 0.0815, "NPS": 0.10, "FD": 0.07, "Fixed Deposit": 0.07,
+    # Fixed-return instruments
+    "PPF": 0.071, "EPF": 0.0815, "NPS": 0.10,
+    "FD": 0.07, "Fixed Deposit": 0.07,
     "Bonds": 0.075, "ULIP": 0.08, "Real Estate": 0.08, "Crypto": 0.0,
 }
 

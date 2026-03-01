@@ -66,10 +66,10 @@ async def get_recurring_transactions(user=Depends(get_current_user)):
 
     active = [r for r in recurring_list if r.get("is_active", True)]
     monthly_commitment = sum(
-        r["amount"] * (12 if r["frequency"] == "yearly" else
+        r["amount"] * (1 if r["frequency"] == "yearly" else
                        4 if r["frequency"] == "quarterly" else
-                       1 if r["frequency"] == "monthly" else
-                       4.33 if r["frequency"] == "weekly" else 30)
+                       12 if r["frequency"] == "monthly" else
+                       52 if r["frequency"] == "weekly" else 365)
         for r in active
     ) / 12
 
