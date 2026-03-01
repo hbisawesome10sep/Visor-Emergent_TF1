@@ -647,7 +647,7 @@ export default function DashboardScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity 
-                  style={[styles.trendFlipBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
+                  style={[styles.trendFlipBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}
                   onPress={() => setShowTrendBack(true)}
                 >
                   <MaterialCommunityIcons name="lightbulb-outline" size={16} color={Accent.amber} />
@@ -736,7 +736,7 @@ export default function DashboardScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity 
-                  style={[styles.trendFlipBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
+                  style={[styles.trendFlipBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}
                   onPress={() => setShowTrendBack(false)}
                 >
                   <MaterialCommunityIcons name="chart-bar" size={16} color={Accent.sapphire} />

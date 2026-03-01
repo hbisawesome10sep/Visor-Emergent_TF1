@@ -304,7 +304,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 <MaterialCommunityIcons name="trash-can-outline" size={14} color="#EF4444" />
                 <Text style={styles.clearBtnText}>Clear</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.hBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
+              <TouchableOpacity style={[styles.hBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}
                 onPress={() => setIsOpen(false)} data-testid="visor-ai-close-btn">
                 <MaterialCommunityIcons name="close" size={20} color={c.textSecondary} />
               </TouchableOpacity>
