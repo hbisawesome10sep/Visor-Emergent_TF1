@@ -129,8 +129,13 @@ export default function FlaggedTransactionsModal({ visible, onClose, onApproved 
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: colors.card }]}>
+      <View style={[styles.overlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.82)' : 'rgba(0,0,0,0.5)' }]}>
+        <View style={[styles.container, {
+          backgroundColor: isDark ? colors.card : '#FAFAFE',
+          borderTopWidth: 1,
+          borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.12)',
+        }]}>
+          <View style={[styles.dragHandle, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)' }]} />
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
