@@ -490,6 +490,8 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 11, marginTop: 1 },
   headerRight: { flexDirection: 'row', gap: 8 },
   hBtn: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  clearBtn: { flexDirection: 'row', width: 'auto', paddingHorizontal: 10, gap: 4, borderWidth: 1, borderRadius: 8 },
+  clearBtnText: { fontSize: 12, fontWeight: '600', color: '#EF4444' },
 
   // Scroll
   scrollContent: { padding: 16, paddingBottom: 100 },
