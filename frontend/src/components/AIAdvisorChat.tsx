@@ -477,7 +477,8 @@ const styles = StyleSheet.create({
   // Header
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 60 : 16, paddingBottom: 12, borderBottomWidth: 1 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerIcon: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  headerIcon: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  headerLogoImg: { width: 38, height: 38, borderRadius: 12 },
   headerTitle: { fontSize: 18, fontWeight: '700' },
   headerSub: { fontSize: 11, marginTop: 1 },
   headerRight: { flexDirection: 'row', gap: 8 },
@@ -490,7 +491,8 @@ const styles = StyleSheet.create({
 
   // Empty / Welcome
   emptyState: { alignItems: 'center', paddingTop: 30, paddingHorizontal: 16 },
-  welcomeIcon: { width: 72, height: 72, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  welcomeIconWrap: { width: 80, height: 80, borderRadius: 24, overflow: 'hidden', marginBottom: 16, elevation: 8, shadowColor: '#10B981', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  welcomeLogoImg: { width: 80, height: 80, borderRadius: 24 },
   welcomeTitle: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   welcomeSub: { fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: 24, paddingHorizontal: 8 },
 
