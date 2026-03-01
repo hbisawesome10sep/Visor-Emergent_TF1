@@ -80,7 +80,7 @@ type Holding = {
 };
 type HoldingsData = {
   holdings: Holding[];
-  summary: { total_invested: number; total_current: number; total_gain_loss: number; total_gain_loss_pct: number; count: number };
+  summary: { total_invested: number; total_current_value: number; total_gain_loss: number; total_gain_loss_pct: number; holding_count: number };
 };
 
 const HOLDING_CATS = ['Stock', 'Mutual Fund', 'ETF', 'Gold', 'Silver', 'Bond', 'Other'];
@@ -807,7 +807,7 @@ export default function InvestmentsScreen() {
             <View style={styles.holdingsSummaryRow}>
               <View>
                 <Text style={[styles.portfolioSmallLabel, { color: colors.textSecondary }]}>Holdings Value</Text>
-                <Text style={[styles.holdingsSummaryNum, { color: colors.textPrimary }]}>{formatINR(holdingsData.summary.total_current)}</Text>
+                <Text style={[styles.holdingsSummaryNum, { color: colors.textPrimary }]}>{formatINR(holdingsData.summary.total_current_value)}</Text>
               </View>
               <View style={[styles.gainLossBadge, {
                 backgroundColor: holdingsData.summary.total_gain_loss >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
