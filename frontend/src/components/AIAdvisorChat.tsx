@@ -214,15 +214,21 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
 
   const clearChat = async () => {
     if (!token) return;
-    Alert.alert('Clear Chat', 'Poora chat history delete ho jayega. Sure ho?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try {
-          await apiRequest('/visor-ai/history', { method: 'DELETE', token });
-          setMessages([]);
-        } catch { /* ignore */ }
-      }},
-    ]);
+    Alert.alert(
+      'Clear Chat History',
+      'Are you sure you want to delete all chat messages?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Clear All', style: 'destructive', onPress: async () => {
+          try {
+            await apiRequest('/visor-ai/history', { method: 'DELETE', token });
+            setMessages([]);
+          } catch (e: any) {
+            Alert.alert('Error', 'Could not clear chat. Please try again.');
+          }
+        }},
+      ]
+    );
   };
 
   const deleteMessage = (msgId: string) => {
