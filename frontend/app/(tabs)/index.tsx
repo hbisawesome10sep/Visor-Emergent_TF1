@@ -513,7 +513,7 @@ export default function DashboardScreen() {
           style={[styles.ccSection, { overflow: 'hidden', borderRadius: 18 }]}
         >
           <LinearGradient
-            colors={['#3730A3', '#5B21B6', '#7C3AED']}
+            colors={isDark ? ['#3730A3', '#5B21B6', '#7C3AED'] : ['#EDE9FE', '#DDD6FE', '#C4B5FD']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.ccGradient}
