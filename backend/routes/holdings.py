@@ -444,7 +444,7 @@ def _parse_cas_text(text: str) -> tuple:
 
         i += 1
 
-    # ── Merge Phase 1 (names) + Phase 2 (quantities) ──
+    # ── Merge Phase 1 (names) + Phase 2 (quantities + invested amounts) ──
     result_holdings = []
     for isin, data in holdings_data.items():
         if data["quantity"] <= 0:
@@ -452,13 +452,28 @@ def _parse_cas_text(text: str) -> tuple:
         name = funds_by_isin.get(isin, f"Mutual Fund ({isin})")
         nav = data["nav"]
         qty = data["quantity"]
+        current_value = round(qty * nav, 2) if nav > 0 else 0.0
+
+        # Calculate invested_value from parsed transaction amounts
+        total_purchase = data["total_purchase_amount"]
+        opening_units = data["opening_units"]
+        first_nav = data["first_nav"] or nav
+
+        # Estimate cost of opening balance units using earliest available NAV
+        opening_cost = round(opening_units * first_nav, 2) if opening_units > 0 and first_nav > 0 else 0.0
+        invested_value = round(total_purchase + opening_cost, 2)
+
+        # Fallback: if no transactions were detected but we have units, use NAV as estimate
+        if invested_value <= 0 and qty > 0 and nav > 0:
+            invested_value = current_value
+
         result_holdings.append({
             "name": name,
             "isin": isin,
             "quantity": qty,
             "nav": nav,
-            "current_value": round(qty * nav, 2) if nav > 0 else 0.0,
-            "invested_value": 0.0,
+            "current_value": current_value,
+            "invested_value": invested_value,
             "category": "Mutual Fund",
             "is_sip": data["is_sip"],
         })
