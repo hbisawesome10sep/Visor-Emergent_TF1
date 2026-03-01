@@ -17,6 +17,8 @@ async def get_transactions(
     type: Optional[str] = None,
     category: Optional[str] = None,
     search: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     user=Depends(get_current_user)
 ):
     query = {"user_id": user["id"]}
@@ -31,6 +33,13 @@ async def get_transactions(
             {"notes": {"$regex": search, "$options": "i"}},
             {"payment_account_name": {"$regex": search, "$options": "i"}},
         ]
+    if start_date or end_date:
+        date_filter = {}
+        if start_date:
+            date_filter["$gte"] = start_date
+        if end_date:
+            date_filter["$lte"] = end_date
+        query["date"] = date_filter
 
     txns = await db.transactions.find(query, {"_id": 0}).sort("date", -1).to_list(500)
     return txns
