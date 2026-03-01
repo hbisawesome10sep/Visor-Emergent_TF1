@@ -10,7 +10,7 @@ import { apiRequest } from '../utils/api';
 import { useScreenContext } from '../context/ScreenContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const VISOR_LOGO = 'https://customer-assets.emergentagent.com/job_0291c132-91c5-44b1-a250-416cde0e6a45/artifacts/tyfnf80k_ChatGPT%20Image%20Mar%201%2C%202026%2C%2003_30_12%20PM.png';
+const VISOR_LOGO = 'https://customer-assets.emergentagent.com/job_0291c132-91c5-44b1-a250-416cde0e6a45/artifacts/3efx3wda_ChatGPT%20Image%20Mar%201%2C%202026%2C%2003_36_12%20PM.png';
 
 type Message = {
   id: string;
@@ -468,11 +468,11 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
 
   // FAB
-  floatingBtn: { position: 'absolute', right: 20, bottom: Platform.OS === 'ios' ? 100 : 85, zIndex: 999, width: 62, height: 62, justifyContent: 'center', alignItems: 'center' },
-  glowRing: { position: 'absolute', width: 62, height: 62, borderRadius: 31, borderWidth: 2.5 },
-  aiButton: { width: 54, height: 54, borderRadius: 27, overflow: 'hidden', elevation: 12, shadowColor: '#10B981', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12 },
+  floatingBtn: { position: 'absolute', right: 20, bottom: Platform.OS === 'ios' ? 100 : 85, zIndex: 999, width: 68, height: 68, justifyContent: 'center', alignItems: 'center' },
+  glowRing: { position: 'absolute', width: 68, height: 68, borderRadius: 34, borderWidth: 2.5 },
+  aiButton: { width: 60, height: 60, borderRadius: 30, overflow: 'hidden', elevation: 12, shadowColor: '#10B981', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12 },
   aiButtonGradient: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
-  fabLogo: { width: 54, height: 54, borderRadius: 27 },
+  fabLogo: { width: 60, height: 60, borderRadius: 30 },
 
   // Header
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 60 : 16, paddingBottom: 12, borderBottomWidth: 1 },
