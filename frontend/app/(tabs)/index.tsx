@@ -1158,42 +1158,44 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerLeft: {
-    flex: 1,
+    flexShrink: 1,
+    marginRight: 10,
   },
   greetingRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
   },
   greetingText: {
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   greetingName: {
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   monthYear: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'DM Sans', fontWeight: '500' as any,
     marginTop: 2,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   frequencyPills: {
     flexDirection: 'row',
-    borderRadius: 10,
-    padding: 3,
+    borderRadius: 8,
+    padding: 2,
   },
   freqPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
   },
   freqText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'DM Sans', fontWeight: '700' as any,
   },
   themeBtn: {
