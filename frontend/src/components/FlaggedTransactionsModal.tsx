@@ -301,7 +301,6 @@ export default function FlaggedTransactionsModal({ visible, onClose, onApproved 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.82)',
     justifyContent: 'flex-end',
   },
   container: {
@@ -309,6 +308,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     maxHeight: '90%',
     minHeight: '60%',
+  },
+  dragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 2,
   },
   header: {
     flexDirection: 'row',
