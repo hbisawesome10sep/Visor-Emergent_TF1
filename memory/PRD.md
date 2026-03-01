@@ -46,6 +46,11 @@
 | Tax Auto-Detect Bulk Scan | ✅ Complete (Mar 1 2026) | v2.2.0 |
 | Dashboard CC Summary Card | ✅ Complete | v2.0 |
 | Light Theme Global UI Fix (Input Visibility, Modals, CC Card) | ✅ Complete (Mar 1 2026) | v2.2.2 |
+| Dashboard Header Compact Resize | ✅ Complete (Mar 1 2026) | v2.2.3 |
+| Transactions Q/M/Y/C Period Filter | ✅ Complete (Mar 1 2026) | v2.2.3 |
+| SIP Monthly Commitment Calc Fix (yearly/monthly multiplier swap) | ✅ Complete (Mar 1 2026) | v2.2.3 |
+| Holdings NaN.undefined Fix (total_current → total_current_value) | ✅ Complete (Mar 1 2026) | v2.2.3 |
+| Portfolio CATEGORY_RETURNS: Added "Mutual Fund" singular | ✅ Complete (Mar 1 2026) | v2.2.3 |
 
 ---
 
