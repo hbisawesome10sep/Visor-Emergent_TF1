@@ -464,7 +464,7 @@ export default function CreditCardsScreen() {
               <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Card Name *</Text>
               <TextInput
                 style={[styles.input, { 
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
                   borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 }]}
@@ -482,7 +482,7 @@ export default function CreditCardsScreen() {
                     style={[styles.issuerChip, {
                       backgroundColor: formData.issuer === issuer 
                         ? colors.primary 
-                        : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                        : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                       borderColor: formData.issuer === issuer 
                         ? colors.primary 
                         : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
@@ -499,7 +499,7 @@ export default function CreditCardsScreen() {
               <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Card Number (Optional)</Text>
               <TextInput
                 style={[styles.input, { 
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
                   borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 }]}
@@ -514,7 +514,7 @@ export default function CreditCardsScreen() {
               <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Credit Limit</Text>
               <TextInput
                 style={[styles.input, { 
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
                   borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 }]}
@@ -530,7 +530,7 @@ export default function CreditCardsScreen() {
                   <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Bill Day</Text>
                   <TextInput
                     style={[styles.input, { 
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                       color: colors.textPrimary,
                       borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                     }]}
@@ -546,7 +546,7 @@ export default function CreditCardsScreen() {
                   <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Due Day</Text>
                   <TextInput
                     style={[styles.input, { 
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                       color: colors.textPrimary,
                       borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                     }]}
@@ -632,7 +632,7 @@ export default function CreditCardsScreen() {
                     style={[styles.issuerChip, {
                       backgroundColor: txnForm.card_id === card.id
                         ? '#6366F1'
-                        : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                        : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                       borderColor: txnForm.card_id === card.id
                         ? '#6366F1'
                         : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
@@ -651,7 +651,7 @@ export default function CreditCardsScreen() {
               <TextInput
                 testID="txn-amount-input"
                 style={[styles.input, {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
                   borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 }]}
@@ -667,7 +667,7 @@ export default function CreditCardsScreen() {
               <TextInput
                 testID="txn-description-input"
                 style={[styles.input, {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
                   borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 }]}
@@ -681,7 +681,7 @@ export default function CreditCardsScreen() {
               <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Merchant (Optional)</Text>
               <TextInput
                 style={[styles.input, {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
                   borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 }]}
@@ -703,7 +703,7 @@ export default function CreditCardsScreen() {
                         style={[styles.issuerChip, {
                           backgroundColor: txnForm.category === cat
                             ? '#6366F1'
-                            : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'),
+                            : (isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6'),
                           borderColor: txnForm.category === cat
                             ? '#6366F1'
                             : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
@@ -722,7 +722,7 @@ export default function CreditCardsScreen() {
               <TextInput
                 testID="txn-date-input"
                 style={[styles.input, {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6',
                   color: colors.textPrimary,
                   borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 }]}
