@@ -9,91 +9,110 @@
 -   **Assets & Liabilities**: Automatically create journal entries upon creation.
 -   **Gmail Integration**: Automate transaction import from Gmail.
 -   **Insights & Dashboard**: Provide visually appealing, accurate, and meaningful insights into financial health.
--   **Tax Planning**: Develop a robust system for tracking income tax deduction eligibility.
+-   **Tax Planning**: Develop a robust system for tracking income tax deduction eligibility, including auto-detection from app data and full CRUD for deductions.
 -   **Credit Card Management**: Add/Edit/Delete cards, upload/parse statements, and view transactions separately.
 -   **EMI & SIP Detection**: Automatically detect EMIs/SIPs from statements and provide a UI for user approval/rejection.
 -   **eCAS Statement Upload**: Allow users to upload their Consolidated Account Statement (eCAS) from CAMS/NSDL, parse it to populate their mutual fund holdings, and automatically detect potential SIPs for user confirmation.
+-   **Visor AI Agent**: A sophisticated, context-aware financial AI companion for Indian users. It must:
+    -   Be an expert on Indian finance, money, and investing.
+    -   Access and analyze user data within the app to provide personalized advice.
+    -   Integrate live web search for current events and stock prices.
+    -   Include built-in financial calculators.
+    -   Support 22 Indian languages (transliterated) with regional context.
+    -   Provide disclaimers for financial advice.
+    -   Have a premium, animated, and user-friendly interface.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack Expo (React Native) and FastAPI application. In this session, the agent dedicated significant effort to resolving a recurring and frustrating Expo Go connectivity issue by creating a permanent, self-healing solution. This involved setting up  as a  service, creating a script to auto-update environment variables, and building a server-rendered, auto-refreshing QR code page that always shows the live tunnel URL.
+The application is a full-stack Expo (React Native) + FastAPI application. The session began by successfully fixing a critical bug in the eCAS parser's  calculation, including writing comprehensive ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app/frontend
+plugins: anyio-4.12.1
+collected 0 items
 
-With the environment stabilized, the agent addressed major UI bugs reported by the user, including transparent modals (caused by an undefined theme color) and an out-of-place dashboard card, which was fully redesigned.
+============================ no tests ran in 0.01s ============================= regression tests.
 
-The main feature implemented was the **eCAS (Consolidated Account Statement) upload and parsing**. A new backend parser was written from scratch to handle both CAMS and NSDL eCAS PDFs, extract all mutual fund holdings, and auto-detect SIPs from transaction history. The frontend was updated to include a SIP Suggestions section where users can approve or decline these detected SIPs. The session ended with the user reporting a critical bug in this new feature.
+The main achievement was the creation of the **Visor AI Agent**, a new financial assistant powered by . This involved building a new backend with web search () for live data, intent detection for calculators and stock tickers, and multilingual support. The frontend was significantly overhauled to include a new chat interface with an animated, custom logo, an iOS-style glassmorphism design, and a floating action button (FAB).
+
+Additionally, the **Tax Planning** module was enhanced with a Scan All Data feature that automatically finds and suggests tax deductions by scanning all of the user's existing transactions and investments.
+
+Finally, several UI/UX issues reported by the user were resolved, including fixing absurd percentage calculations on the dashboard, redesigning a broken mobile header, and improving the Clear Chat functionality. The agent is now waiting for the user to upload credit card statements to begin the next major feature.
 
 **Last working item**:
--   Last item agent was working: Fixing a bug where the Invested Value and Current Value of mutual funds are identical after parsing an eCAS statement. The agent correctly identified the root cause in the backend parser logic.
--   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? backend testing agent. The agent should fix the calculation logic in , then write a small test or use  to re-run the parsing logic on the provided eCAS PDF and verify that  is calculated correctly by summing purchase transactions.
--   User Testing Done: N (User reported the bug, pending verification of the fix).
+-   Last item agent was working: The agent was preparing to implement the **Credit Card Statement Parsing** feature. The user was in the process of uploading the first of four sample statements, but the file was not successfully received. The agent is currently blocked waiting for the user to provide the first file.
+-   Status: BLOCKED
+-   Agent Testing Done: N/A
+-   Which testing method agent to use? backend testing agent. After receiving the PDF, the agent should use usage: pdfplumber [-h] [--structure | --structure-text]
+                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
+                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
+                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
+                  [--laparams LAPARAMS] [--precision PRECISION]
+                  [--pages PAGES [PAGES ...]] [--indent INDENT]
+                  [infile]
+
+positional arguments:
+  infile
+
+options:
+  -h, --help            show this help message and exit
+  --structure           Write the structure tree as JSON. All other arguments
+                        except --pages, --laparams, and --indent will be
+                        ignored
+  --structure-text      Write the structure tree as JSON including text
+                        contents. All other arguments except --pages,
+                        --laparams, and --indent will be ignored
+  --format {csv,json,text}
+  --types TYPES [TYPES ...]
+  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
+                        Include *only* these object attributes in output.
+  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
+                        Exclude these object attributes from output.
+  --laparams LAPARAMS
+  --precision PRECISION
+  --pages PAGES [PAGES ...]
+  --indent INDENT       Indent level for JSON pretty-printing. and a  script or a new ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app/frontend
+plugins: anyio-4.12.1
+collected 0 items
+
+============================ no tests ran in 0.01s ============================= file to analyze the PDF structure and develop the parsing logic.
+-   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Incorrect Invested Value in eCAS Parser (P0)
--   Issue 2: Incomplete Credit Card Statement Parsing Logic (P1)
--   Issue 3: Credit Card Transactions Not Shown on Transactions Screen (P1)
-
-**Issues Detail**:
--   **Issue 1: Incorrect Invested Value in eCAS Parser**
-    -   **Attempted fixes**: The agent correctly diagnosed the root cause: the parser initializes  to  and the endpoint falls back to using the current NAV () for the calculation, making  equal to .
-    -   **Next debug checklist**:
-        1.  Modify the eCAS parser in .
-        2.  Inside the transaction loop for each fund, identify Purchase transactions.
-        3.  Sum the  of all purchase transactions to calculate the total .
-        4.  Handle the opening balance valuation by using the first available NAV for units present at the start of the statement period.
-        5.  Ensure the final  is passed correctly in the holding's data structure.
-        6.  Test by re-uploading the eCAS statement and verifying the values are different and correct.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical bug that makes the core portfolio tracking feature inaccurate and unusable. Fixing it will provide correct ROI and portfolio performance data.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on other issue**: none
-
--   **Issue 2: Incomplete Credit Card Statement Parsing Logic**
-    -   **Attempted fixes**: A backend file  exists but the parsing logic is not implemented.
-    -   **Next debug checklist**: Implement PDF/CSV parsing logic for major Indian credit card issuers (HDFC, ICICI, etc.) within .
-    -   **Why fix this issue and what will be achieved with the fix?**: Core feature for credit card management.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on other issue**: none
-
--   **Issue 3: Credit Card Transactions Not Shown on Transactions Screen**
-    -   **Attempted fixes**: A UI toggle exists on the Transactions screen.
-    -   **Next debug checklist**: Implement the data fetching logic in  to call a new endpoint (e.g., ) when the Credit Card toggle is active.
-    -   **Why fix this issue and what will be achieved with the fix?**: Completes the credit card management feature loop.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue**: Issue 2
+-   There are no pending bugs. The agent is waiting to start a new feature.
 
 **In progress Task List**:
--   **Task 1: Fix Invested Value Calculation (P0)**
-    -   **Where to resume**: The agent has identified the file () and the exact logic that needs to be implemented.
-    -   **What will be achieved with this?**: The user's portfolio will reflect the correct invested vs. current value.
-    -   **Status**: IN PROGRESS
+-   **Task 1: Implement Credit Card Statement Parsing Logic (P0)**
+    -   **Where to resume**: The user is attempting to upload the first sample credit card statement. The agent needs to successfully receive the file to proceed.
+    -   **What will be achieved with this?**: This will be the first step in building the credit card management module, a core feature request.
+    -   **Status**: BLOCKED
     -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on something**: None
+    -   **Blocked on something**: Waiting for the user to successfully upload the sample PDF file.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P0) CC Statement Preview**: Show a preview of parsed credit card data before final import.
-    -   **(P1) Test Real CC Statements**: Test the parser with actual PDF/CSV files from HDFC, ICICI, etc.
+    -   **(P0) Parse All 4 Sample CC Statements**: Analyze and build robust parsers for all statement formats provided by the user.
+    -   **(P1) CC Statement Preview UI**: Create a screen to show users the parsed transactions before they confirm the import.
+    -   **(P1) Integrate CC Transactions**: Add a toggle/filter on the main Transactions screen to display imported credit card transactions.
 -   **Future Tasks**:
-    -   **(P2) Tax Planning Module**: Develop the tax planning features.
     -   **(P2) Gmail Integration**: Automate transaction import from Gmail.
-    -   **(P3) Refactoring**: Address tech debt noted in .
+    -   **(P3) Refactoring**: Split the complex parsing logic in  and  into smaller, more manageable utility modules.
 
 **Completed work in this session**
--   **Permanent Expo Go QR Code Solution (DONE)**: Built a self-healing system using , , and a server-rendered QR page () that survives session restarts.
--   **Mobile UI Rendering Bugs (DONE)**: Fixed all transparent modal issues by correcting the theme file () and improved modal overlays.
--   **Dashboard Credit Card UI (DONE)**: Redesigned the credit card summary card on the main dashboard () with a premium gradient style.
--   **Expo Metro Cache Issues (DONE)**: Resolved chronic stale-bundle issues by reconfiguring the Expo start command to always clear the cache ().
--   **eCAS Parser (Backend) (DONE)**: Wrote a new parser from scratch in  to handle CAMS/NSDL eCAS PDFs, extract holdings, and detect SIPs.
--   **SIP Suggestions (Backend & Frontend) (DONE)**: Created API endpoints and a new UI section in  for users to approve/decline SIPs detected from the eCAS statement.
--   **eCAS Upload UX (DONE)**: Improved the upload modal with clear instructions and links for the user.
+-   **eCAS Parser Bug Fix (DONE)**: Fixed the critical  calculation bug and added ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app/frontend
+plugins: anyio-4.12.1
+collected 0 items
+
+============================ no tests ran in 0.01s ============================= regression tests ().
+-   **Visor AI Agent (DONE)**: Implemented a new AI financial assistant with , web search, calculator detection, multilingual support, and chat history ().
+-   **Visor AI UI/UX Overhaul (DONE)**: Designed a new chat interface with a custom animated logo, glassmorphism UI, and improved professional tone ().
+-   **Tax Deduction Bulk Scan (DONE)**: Added a Scan All Data feature to auto-populate tax deductions from existing app data ().
+-   **Dashboard UI Fixes (DONE)**: Fixed absurd percentage calculations () and redesigned the mobile header for proper scaling ().
+-   **Clear Chat Functionality Fix (DONE)**: Made the clear chat button more prominent and fixed its functionality in the Visor AI interface.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -101,130 +120,125 @@ The main feature implemented was the **eCAS (Consolidated Account Statement) upl
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork**: Fragile Expo Go Connectivity.
 -   **Recurrence count**: High.
--   **Status**: RESOLVED (Workaround automated). The agent built a robust, self-healing system to manage the  tunnel, effectively resolving the recurring friction point for the user, although the underlying platform limitation persists.
+-   **Status**: RESOLVED (Workaround automated). The automated  tunnel solution has remained stable throughout this session.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Supervisor for Service Management**: Using  to create a persistent, auto-starting service () that survives container restarts.
--   **Persistent vs. Ephemeral Storage**: Understanding that  is persistent while  is not, and moving critical scripts and binaries accordingly.
--   **Expo Metro Bundler Configuration**: Deeply debugging and configuring the Expo bundler, particularly the interaction between , , and  flags to ensure fresh code delivery without crashing the file watcher.
--   **PDF Parsing with usage: pdfplumber [-h] [--structure | --structure-text]
-                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
-                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
-                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
-                  [--laparams LAPARAMS] [--precision PRECISION]
-                  [--pages PAGES [PAGES ...]] [--indent INDENT]
-                  [infile]
+-   **LLM Integration ()**: Used the OpenAI API to build a powerful, context-aware conversational agent.
+-   **Retrieval-Augmented Generation (RAG)**: Leveraged  to provide the LLM with live web data for news and stock prices, enhancing its responses.
+-   **Intent Recognition & Tool Use**: The backend simulates tool use by parsing user intent from chat messages to trigger internal functions like financial calculators or web searches.
+-   **Backend Testing (============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app/frontend
+plugins: anyio-4.12.1
+collected 0 items
 
-positional arguments:
-  infile
-
-options:
-  -h, --help            show this help message and exit
-  --structure           Write the structure tree as JSON. All other arguments
-                        except --pages, --laparams, and --indent will be
-                        ignored
-  --structure-text      Write the structure tree as JSON including text
-                        contents. All other arguments except --pages,
-                        --laparams, and --indent will be ignored
-  --format {csv,json,text}
-  --types TYPES [TYPES ...]
-  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
-                        Include *only* these object attributes in output.
-  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
-                        Exclude these object attributes from output.
-  --laparams LAPARAMS
-  --precision PRECISION
-  --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing.**: Using usage: pdfplumber [-h] [--structure | --structure-text]
-                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
-                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
-                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
-                  [--laparams LAPARAMS] [--precision PRECISION]
-                  [--pages PAGES [PAGES ...]] [--indent INDENT]
-                  [infile]
-
-positional arguments:
-  infile
-
-options:
-  -h, --help            show this help message and exit
-  --structure           Write the structure tree as JSON. All other arguments
-                        except --pages, --laparams, and --indent will be
-                        ignored
-  --structure-text      Write the structure tree as JSON including text
-                        contents. All other arguments except --pages,
-                        --laparams, and --indent will be ignored
-  --format {csv,json,text}
-  --types TYPES [TYPES ...]
-  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
-                        Include *only* these object attributes in output.
-  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
-                        Exclude these object attributes from output.
-  --laparams LAPARAMS
-  --precision PRECISION
-  --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing. and advanced Regex to extract structured data from the complex layout of an eCAS PDF.
--   **Server-Side Rendering (SSR) for Utility Pages**: Creating a dynamic, server-rendered HTML page with FastAPI to serve the live QR code, avoiding client-side JavaScript library issues.
--   **Theme-based Styling**: Debugging UI issues originating from an incomplete theme definition () and understanding its global impact on components.
+============================ no tests ran in 0.01s =============================)**: Established a testing framework for backend logic, starting with the complex eCAS parser.
+-   **Idempotent API Design**: The tax scanning endpoint () was designed to prevent duplicate entries on multiple runs.
+-   **Advanced Frontend Animation**: Used Expo's  library to create complex animations (pulsing glow, floating) for the Visor AI logo.
+-   **Expo Image Caching**: Diagnosed and resolved issues with image updates by using frontend: ERROR (no such process)
+frontend: ERROR (no such process) to force a cache clear.
 
 **key DB schema**
 -   : 
--   : 
+-   :  (New)
+
+**changes in tech stack**
+-   Added  (as ) for live web search functionality.
+-   Added ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app/frontend
+plugins: anyio-4.12.1
+collected 0 items
+
+============================ no tests ran in 0.01s ============================= for backend testing.
 
 **All files of reference**
--    (New parser and API logic)
--    (New UI for SIP suggestions and eCAS upload)
--    (New supervisor service config)
--    (Modified to fix caching)
--    (New script to automate tunnel creation and Expo restart)
--    (Modified for dashboard card redesign)
--    (Modified to fix transparent modal bug)
--    (Modified to add new routes for holdings and QR page)
+-    (Core logic for the new AI agent)
+-    (Complete UI for the AI chat)
+-    (Example of backend testing)
+-    (Contains the new bulk-scan logic)
+-    (Example of responsive UI fix)
+-    (Current custom logo for the AI)
 
 **Areas that need refactoring**:
--   The  file contains a lot of complex parsing logic. It could be beneficial to split the CAMS/NSDL parsing logic into separate utility modules for better maintainability.
+-   The  file is becoming large. The system prompt, tool-use logic, and API route could be separated into different modules for better organization.
+-   The  parser logic could still be split into separate CAMS/NSDL utility files.
 
 **key api endpoints**
 -    (New)
 -    (New)
 -    (New)
 -    (New)
--    (New)
--    (New)
--    (New)
 
 **Critical Info for New Agent**
--   **The immediate priority is the  calculation bug.** The user's main feature is currently broken. The fix involves modifying the backend parser in  to correctly sum purchase transactions.
--   **The QR code system is automated.** You do not need to manually manage the  tunnel. The permanent bookmark for the user is the  endpoint. If you make frontend changes, you may need to restart the frontend service (frontend: ERROR (no such process)
-frontend: ERROR (no such process)) to ensure the  flag gives the user a fresh bundle.
--   **The eCAS parser is complex.** The logic in  uses regex and iterates through PDF lines. Be careful when modifying it. The sample PDF is at  with password .
--   The user is very attentive to both functionality and UI polish. Ensure features are accurate and visually cohesive.
+-   **The immediate priority is to start the Credit Card Statement Parsing feature.** You are currently blocked waiting for the user to upload the first sample PDF. Be prepared to analyze the file's structure with usage: pdfplumber [-h] [--structure | --structure-text]
+                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
+                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
+                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
+                  [--laparams LAPARAMS] [--precision PRECISION]
+                  [--pages PAGES [PAGES ...]] [--indent INDENT]
+                  [infile]
+
+positional arguments:
+  infile
+
+options:
+  -h, --help            show this help message and exit
+  --structure           Write the structure tree as JSON. All other arguments
+                        except --pages, --laparams, and --indent will be
+                        ignored
+  --structure-text      Write the structure tree as JSON including text
+                        contents. All other arguments except --pages,
+                        --laparams, and --indent will be ignored
+  --format {csv,json,text}
+  --types TYPES [TYPES ...]
+  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
+                        Include *only* these object attributes in output.
+  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
+                        Exclude these object attributes from output.
+  --laparams LAPARAMS
+  --precision PRECISION
+  --pages PAGES [PAGES ...]
+  --indent INDENT       Indent level for JSON pretty-printing..
+-   **Create tests for new parsing logic.** A ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app/frontend
+plugins: anyio-4.12.1
+collected 0 items
+
+============================ no tests ran in 0.01s ============================= framework is now in place at . Any new, complex backend logic (like the CC parser) should be accompanied by tests.
+-   **Frontend image updates require a service restart.** Due to Expo's bundler caching in the environment, if you change an image asset (), you must run frontend: ERROR (no such process)
+frontend: ERROR (no such process) to make it appear in the app.
+-   The user is highly engaged with UI/UX. Pay close attention to visual details, animations, and professional tone in all user-facing components.
 
 **documents and test reports created in this job**
 -   
 -   
 -   
+-    (Updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. User reports the transparent modal and UI issues. (Fixed)
-9.  Agent identifies root cause ( is undefined) and fixes it. (Done)
-8.  User reports the fixes aren't visible. (Issue: Caching)
-7.  Agent diagnoses Metro bundler caching issues (). (In Progress)
-6.  Agent resolves caching issues by reconfiguring supervisor to use . (Done)
-5.  User reports a new error after a session restart. (Issue: Ephemeral storage)
-4.  Agent diagnoses that the  binary/script were in an ephemeral location and moves them to  for persistence. (Done)
-3.  User provides a new feature request: Upload and parse eCAS statements to populate mutual funds and detect SIPs. (Feature Request)
-2.  Agent implements the full eCAS feature (backend parser, new APIs, frontend UI for SIP suggestions). (Done)
-1.  User reports the Invested Value and Current Value are the same, which is incorrect. (Current Bug)
+10. User reports the mobile dashboard header is poorly scaled. (Fixed)
+9.  User provides a screenshot of the broken header. (Acknowledged)
+8.  Agent implements a two-row header structure to fix the layout. (Done)
+7.  User reports being unable to clear chats in the Visor AI. Requests to start CC statement parsing next. (Acknowledged)
+6.  Agent fixes the clear chat button, making it more prominent and fixing the logic. Asks user to upload CC statements. (Done)
+5.  User says First one!. (Attempting to upload)
+4.  Agent notes the file was not attached and asks the user to try again. (In Progress)
+3.  User says Here you go. (Attempting to upload again)
+2.  The last message from the user was another attempt to upload the file, which was not captured by the agent. The agent needs to prompt the user again.
+1.  **Pending Human Input**: The user needs to successfully upload the first credit card statement PDF.
 
 **Project Health Check:**
--   **Broken**: The default [06:12:38] Starting project at /app/frontend (ngrok) workflow is still broken.
--   **Mocked**: A robust, automated workaround using  as a supervisor service is now in place, making the development environment stable and self-healing between sessions.
+-   **Broken**: Nothing is currently broken.
+-   **Mocked**: The development environment still relies on the automated  tunnel as a workaround for the platform's default Expo tunnel.
 
 **3rd Party Integrations**
+-   **OpenAI GPT-4o**: For the Visor AI Agent — uses Emergent LLM Key.
+-   **duckduckgo-search ()**: For live web search within the AI Agent.
 -   usage: pdfplumber [-h] [--structure | --structure-text]
                   [--format {csv,json,text}] [--types TYPES [TYPES ...]]
                   [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
@@ -253,19 +267,18 @@ options:
   --laparams LAPARAMS
   --precision PRECISION
   --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing., , : For statement parsing.
--   , : For PDF and QR code generation on the backend.
--   : A critical dependency for the development environment tunneling, now managed as a service.
+  --indent INDENT       Indent level for JSON pretty-printing., : For PDF and data manipulation.
+-   : For development environment tunneling.
 
 **Testing status**
--   Testing agent used after significant changes: NO
--   Troubleshoot agent used after agent stuck in loop: NO (Agent self-resolved complex environment issues).
--   Test files created: None.
--   Known regressions: The newly implemented eCAS parsing feature has a critical calculation bug for .
+-   Testing agent used after significant changes: YES (Used twice, with 100% pass rates for Visor AI and Tax Scan features).
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: []
+-   Known regressions: None.
 
 **Credentials to test flow:**
 -   **Demo Account**:  / 
--   **eCAS PDF Password**:  (for )
+-   **eCAS PDF Password**: 
 
 **What agent forgot to execute**
--   The agent correctly diagnosed the  bug in the eCAS parser but did not have time to implement the fix. The final thought from the agent outlines the required steps to correct the calculation logic.</analysis>
+-   The agent did not forget to execute any tasks. It is currently waiting on the user to provide the necessary file to proceed with the next feature.</analysis>
