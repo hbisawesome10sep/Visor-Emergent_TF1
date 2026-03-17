@@ -316,10 +316,11 @@ export default function InsightsScreen() {
 
   const fetchData = useCallback(async () => {
     if (!token) {
+      // No token = not logged in, show empty state
       setStats({
-        total_income: 150000, total_expenses: 95000, total_investments: 25000,
-        savings_rate: 36.7,
-        category_breakdown: { 'Housing': 25000, 'Food': 15000, 'Transport': 10000, 'Utilities': 5000, 'Shopping': 12000, 'Entertainment': 8000 },
+        total_income: 0, total_expenses: 0, total_investments: 0,
+        savings_rate: 0,
+        category_breakdown: {},
       });
       setLoading(false);
       return;
@@ -342,9 +343,10 @@ export default function InsightsScreen() {
       setSmartAlerts(alertsData.alerts || []);
     } catch (e) {
       console.error(e);
+      // On error (including token expiry), show empty state — NOT fake data
       setStats({
-        total_income: 150000, total_expenses: 95000, total_investments: 25000,
-        savings_rate: 36.7, category_breakdown: {},
+        total_income: 0, total_expenses: 0, total_investments: 0,
+        savings_rate: 0, category_breakdown: {},
       });
     } finally {
       setLoading(false);
@@ -361,12 +363,13 @@ export default function InsightsScreen() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading) {
+        // Timeout — show empty state, not fake data
         setStats({
-          total_income: 150000,
-          total_expenses: 95000,
-          total_investments: 25000,
-          savings_rate: 36.7,
-          category_breakdown: { 'Housing': 25000, 'Food': 15000, 'Transport': 10000 },
+          total_income: 0,
+          total_expenses: 0,
+          total_investments: 0,
+          savings_rate: 0,
+          category_breakdown: {},
         });
         setLoading(false);
       }

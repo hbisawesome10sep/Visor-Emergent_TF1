@@ -231,6 +231,11 @@ export default function SettingsScreen() {
       
       if (!response.ok) {
         const error = await response.json();
+        // Auto-logout on token expiry
+        if (response.status === 401) {
+          logout();
+          throw new Error('Session expired. Please log in again.');
+        }
         throw new Error(error.detail || 'Upload failed');
       }
       
@@ -416,7 +421,13 @@ export default function SettingsScreen() {
           body: formData,
         });
         const data = await resp.json();
-        if (!resp.ok) throw new Error(data.detail || 'Upload failed');
+        if (!resp.ok) {
+          if (resp.status === 401) {
+            logout();
+            throw new Error('Session expired. Please log in again.');
+          }
+          throw new Error(data.detail || 'Upload failed');
+        }
         setCcUploadPhase('done');
         setCcImportResult(data);
         setSelectedCCFile(null);

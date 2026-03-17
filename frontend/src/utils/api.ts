@@ -6,6 +6,12 @@ type RequestOptions = {
   token?: string;
 };
 
+// Global logout callback — set by AuthContext so apiRequest can trigger auto-logout
+let _onTokenExpired: (() => void) | null = null;
+export function setTokenExpiredHandler(handler: () => void) {
+  _onTokenExpired = handler;
+}
+
 export async function apiRequest(endpoint: string, options: RequestOptions = {}) {
   const { method = 'GET', body, token } = options;
   const headers: Record<string, string> = {
@@ -25,6 +31,10 @@ export async function apiRequest(endpoint: string, options: RequestOptions = {})
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Request failed' }));
+    // Auto-logout on token expiration
+    if (response.status === 401 && _onTokenExpired) {
+      _onTokenExpired();
+    }
     throw new Error(error.detail || `HTTP ${response.status}`);
   }
 

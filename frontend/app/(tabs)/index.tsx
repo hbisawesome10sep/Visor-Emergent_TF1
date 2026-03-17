@@ -461,7 +461,6 @@ export default function DashboardScreen() {
             <LiquidFillCard
               title="Total Income"
               amount={formatINRShort(stats?.total_income || 0)}
-              percentChange={12.5}
               fillPercent={100 - expensePercent}
               gradient={[Accent.emerald, '#047857']}
               icon="arrow-down-circle"
@@ -472,7 +471,6 @@ export default function DashboardScreen() {
             <LiquidFillCard
               title="Total Expenses"
               amount={formatINRShort(stats?.total_expenses || 0)}
-              percentChange={-8.2}
               fillPercent={expensePercent}
               gradient={[Accent.ruby, Accent.rose]}
               icon="arrow-up-circle"

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apiRequest } from '../utils/api';
+import { apiRequest, setTokenExpiredHandler } from '../utils/api';
 
 type User = {
   id: string;
@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const logoutCalledRef = useRef(false);
 
   useEffect(() => {
     loadStoredAuth();
@@ -84,6 +85,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
   };
+
+  // Register token-expired handler for auto-logout (prevents stale token crashes)
+  useEffect(() => {
+    setTokenExpiredHandler(() => {
+      // Prevent multiple logout calls from parallel requests
+      if (logoutCalledRef.current) return;
+      logoutCalledRef.current = true;
+      console.warn('[Auth] Token expired — logging out automatically');
+      logout().finally(() => {
+        logoutCalledRef.current = false;
+      });
+    });
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
