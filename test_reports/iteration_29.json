@@ -1,0 +1,59 @@
+{
+  "summary": "Refactoring Regression Tests - All 23 tests PASSED (100%). Verified all 16 API endpoints work correctly after the major code refactoring: visor_ai.py (835→277 lines) now imports from services/visor_calculators.py, services/visor_helpers.py, services/visor_prompt.py; bank_statements.py (2808→294 lines) now imports from parsers/utils.py, parsers/csv_excel.py, parsers/pdf_parsers.py.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "notes": "Frontend testing skipped as this is a React Native/Expo app - cannot be tested via browser/Playwright"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_refactoring_regression.py",
+    "/app/test_reports/pytest/pytest_refactoring_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Refactoring successful - visor_ai.py reduced from 835 to 277 lines with clean separation into services/",
+    "bank_statements.py reduced from 2808 to 294 lines with parsers/ module extraction",
+    "All imports working correctly - services/visor_calculators.py, services/visor_helpers.py, services/visor_prompt.py",
+    "All imports working correctly - parsers/utils.py, parsers/csv_excel.py, parsers/pdf_parsers.py",
+    "Visor AI chat with LLM (gpt-5.2) working correctly via emergentintegrations",
+    "Calculator auto-detection (SIP, EMI, etc.) working in Visor AI chat"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_refactoring_regression.py"
+  ],
+  "success_rate": {
+    "backend": "100% (23/23 tests pass)",
+    "frontend": "Not tested (React Native/Expo app - backend-only testing)"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "seed_data_creation": "None - used existing demo account data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 16 endpoints from refactoring review request verified working. Key refactored modules (visor_ai.py and bank_statements.py) functioning correctly with their new service/parser imports. Visor AI chat confirmed working with LLM responses. Token validation returns proper 401 (not 500) for invalid/expired tokens.",
+  "features_verified": {
+    "POST /api/auth/login": "PASS - Returns token with 30-day expiry",
+    "GET /api/dashboard/stats": "PASS - Returns income, expenses, health_score",
+    "GET /api/dashboard/monthly-trends": "PASS - Returns trends array",
+    "GET /api/dashboard/smart-alerts": "PASS - Returns alerts array",
+    "GET /api/visor-ai/history": "PASS - Returns chat history (refactored module)",
+    "POST /api/visor-ai/chat": "PASS - AI response received using services/visor_calculators.py, services/visor_helpers.py",
+    "GET /api/bank-statements/history": "PASS - Returns import history (refactored parsers module)",
+    "POST /api/bank-statements/recategorize": "PASS - Uses refactored categorize_transaction from parsers/utils.py",
+    "GET /api/goals": "PASS - Returns goals list",
+    "GET /api/holdings": "PASS - Returns holdings data with summary",
+    "GET /api/recurring": "PASS - Returns SIP/recurring data",
+    "GET /api/transactions": "PASS - Returns transactions list",
+    "GET /api/market-data": "PASS - Returns live market data (no auth)",
+    "GET /api/tax-summary": "PASS - Returns tax summary",
+    "GET /api/credit-cards": "PASS - Returns credit cards list",
+    "Token validation (invalid/expired)": "PASS - Returns 401 (not 500)"
+  }
+}
