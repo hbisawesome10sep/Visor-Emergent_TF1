@@ -19,7 +19,14 @@ import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort, getCategoryColor, getCategoryIcon } from '../../src/utils/formatters';
 import PieChart from '../../src/components/PieChart';
 import { WhatIfSimulator } from '../../src/components/WhatIfSimulator';
-import { MarketTickerBar, GoalsSection } from '../../src/components/investments';
+import { 
+  MarketTickerBar, 
+  GoalsSection, 
+  PortfolioOverviewCard, 
+  HoldingsSection, 
+  RiskProfileCard, 
+  RecurringInvestmentsSection 
+} from '../../src/components/investments';
 import EMITrackerModal from '../../src/components/EMITrackerModal';
 import {
   type MarketItem, type Goal, type DashboardStats, type PortfolioData,
@@ -587,148 +594,24 @@ export default function InvestmentsScreen() {
            ═══════════════════════════════════════════════════════════ */}
         <Text data-testid="portfolio-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 28 }]}>Portfolio Overview</Text>
 
-        {portfolio && portfolio.total_invested > 0 && (
-          <View data-testid="portfolio-card" style={[styles.portfolioCard, {
-            backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF',
-            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-          }]}>
-            <View style={styles.portfolioSummaryRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.portfolioSmallLabel, { color: colors.textSecondary }]}>Invested</Text>
-                <Text data-testid="portfolio-invested-value" style={[styles.portfolioMainNum, { color: colors.textPrimary }]}>
-                  {formatINR(portfolio.total_invested)}
-                </Text>
-              </View>
-              <View style={[styles.portfolioDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]} />
-              <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                <Text style={[styles.portfolioSmallLabel, { color: colors.textSecondary }]}>Current Value</Text>
-                <Text data-testid="portfolio-current-value" style={[styles.portfolioMainNum, { color: colors.textPrimary }]}>
-                  {formatINR(portfolio.total_current_value)}
-                </Text>
-              </View>
-            </View>
-            <View style={[styles.gainLossBadge, {
-              backgroundColor: portfolio.total_gain_loss >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-            }]}>
-              <MaterialCommunityIcons
-                name={portfolio.total_gain_loss >= 0 ? 'trending-up' : 'trending-down'}
-                size={16}
-                color={portfolio.total_gain_loss >= 0 ? Accent.emerald : Accent.ruby}
-              />
-              <Text data-testid="portfolio-gain-loss" style={[styles.gainLossText, {
-                color: portfolio.total_gain_loss >= 0 ? Accent.emerald : Accent.ruby,
-              }]}>
-                {portfolio.total_gain_loss >= 0 ? '+' : ''}{formatINR(portfolio.total_gain_loss)} ({portfolio.total_gain_loss >= 0 ? '+' : ''}{portfolio.total_gain_loss_pct.toFixed(2)}%)
-              </Text>
-            </View>
-            <View style={[styles.categoryBreakdownHeader, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
-              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, flex: 1 }]}>Category</Text>
-              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 80, textAlign: 'right' as any }]}>Invested</Text>
-              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 80, textAlign: 'right' as any }]}>Current</Text>
-              <Text style={[styles.breakdownHeaderText, { color: colors.textSecondary, width: 70, textAlign: 'right' as any }]}>Return</Text>
-            </View>
-            {portfolio.categories.map((cat, idx) => (
-              <View key={cat.category} data-testid={`portfolio-cat-${cat.category}`} style={[styles.categoryRow, idx < portfolio.categories.length - 1 && { borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
-                <View style={{ flex: 1, flexDirection: 'row' as any, alignItems: 'center' as any, gap: 8 }}>
-                  <View style={[styles.catDot, { backgroundColor: ASSET_CATEGORIES[cat.category]?.color || '#94A3B8' }]} />
-                  <View>
-                    <Text style={[styles.catName, { color: colors.textPrimary }]}>{cat.category}</Text>
-                    <Text style={[styles.catTxnCount, { color: colors.textSecondary }]}>{cat.transactions} txn{cat.transactions > 1 ? 's' : ''}</Text>
-                  </View>
-                </View>
-                <Text style={[styles.catNum, { color: colors.textSecondary, width: 80 }]}>{formatINRShort(cat.invested)}</Text>
-                <Text style={[styles.catNum, { color: colors.textPrimary, width: 80 }]}>{formatINRShort(cat.current_value)}</Text>
-                <Text style={[styles.catReturn, { color: cat.gain_loss >= 0 ? Accent.emerald : Accent.ruby, width: 70 }]}>
-                  {cat.gain_loss >= 0 ? '+' : ''}{cat.gain_loss_pct.toFixed(1)}%
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {(!portfolio || portfolio.total_invested === 0) && (
-          <View style={[styles.emptyPortfolio, { backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
-            <MaterialCommunityIcons name="wallet-outline" size={36} color={colors.textSecondary} />
-            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No investments yet</Text>
-            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Add investment transactions to track your portfolio</Text>
-          </View>
-        )}
+        <PortfolioOverviewCard
+          portfolio={portfolio}
+          colors={colors}
+          isDark={isDark}
+        />
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 2.5: MY HOLDINGS (Manual + CAS)
            ═══════════════════════════════════════════════════════════ */}
-        <View style={styles.sectionHeader}>
-          <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>My Holdings</Text>
-          <View style={{ flexDirection: 'row' as any, gap: 8 }}>
-            <TouchableOpacity data-testid="clear-holdings-quick-btn" style={[styles.casBtn, { borderColor: Accent.ruby }]} onPress={handleClearHoldings}>
-              <MaterialCommunityIcons name="delete-outline" size={14} color={Accent.ruby} />
-              <Text style={[styles.casBtnText, { color: Accent.ruby }]}>Clear</Text>
-            </TouchableOpacity>
-            <TouchableOpacity data-testid="upload-cas-btn" style={[styles.casBtn, { borderColor: '#F97316' }]} onPress={() => setShowCasModal(true)}>
-              <MaterialCommunityIcons name="file-upload-outline" size={14} color="#F97316" />
-              <Text style={[styles.casBtnText, { color: '#F97316' }]}>CAS</Text>
-            </TouchableOpacity>
-            <TouchableOpacity data-testid="add-holding-btn" style={[styles.addGoalBtn, { backgroundColor: '#F97316' }]} onPress={openAddHolding}>
-              <MaterialCommunityIcons name="plus" size={14} color="#fff" />
-              <Text style={styles.addGoalText}>Add</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {holdingsData && holdingsData.holdings.length > 0 ? (
-          <View data-testid="holdings-card" style={[styles.holdingsCard, {
-            backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF',
-            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-          }]}>
-            {/* Holdings summary */}
-            <View style={styles.holdingsSummaryRow}>
-              <View>
-                <Text style={[styles.portfolioSmallLabel, { color: colors.textSecondary }]}>Holdings Value</Text>
-                <Text style={[styles.holdingsSummaryNum, { color: colors.textPrimary }]}>{formatINR(holdingsData.summary.total_current_value)}</Text>
-              </View>
-              <View style={[styles.gainLossBadge, {
-                backgroundColor: holdingsData.summary.total_gain_loss >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                marginHorizontal: 0, marginBottom: 0,
-              }]}>
-                <Text style={[styles.gainLossText, {
-                  color: holdingsData.summary.total_gain_loss >= 0 ? Accent.emerald : Accent.ruby,
-                }]}>
-                  {holdingsData.summary.total_gain_loss >= 0 ? '+' : ''}{holdingsData.summary.total_gain_loss_pct.toFixed(2)}%
-                </Text>
-              </View>
-            </View>
-
-            {/* Holdings list */}
-            {holdingsData.holdings.map((h, idx) => {
-              const isGain = h.gain_loss >= 0;
-              const isLast = idx === holdingsData.holdings.length - 1;
-              return (
-                <TouchableOpacity key={h.id} data-testid={`holding-row-${h.id}`}
-                  style={[styles.holdingRow, !isLast && { borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}
-                  onLongPress={() => handleDeleteHolding(h.id, h.name)}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.holdingName, { color: colors.textPrimary }]} numberOfLines={1}>{h.name}</Text>
-                    <Text style={[styles.holdingSub, { color: colors.textSecondary }]}>
-                      {h.quantity} {h.category === 'Mutual Fund' ? 'units' : 'shares'} @ {fmtPrice(Math.round(h.buy_price))}
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' as any }}>
-                    <Text style={[styles.holdingValue, { color: colors.textPrimary }]}>{formatINRShort(h.current_value)}</Text>
-                    <Text style={[styles.holdingGain, { color: isGain ? Accent.emerald : Accent.ruby }]}>
-                      {isGain ? '+' : ''}{h.gain_loss_pct.toFixed(1)}%
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ) : (
-          <View style={[styles.emptyPortfolio, { backgroundColor: isDark ? 'rgba(10,10,11,0.9)' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]}>
-            <MaterialCommunityIcons name="briefcase-outline" size={36} color={colors.textSecondary} />
-            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No holdings added</Text>
-            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Add stocks and mutual funds manually or upload your CAS statement</Text>
-          </View>
-        )}
+        <HoldingsSection
+          holdingsData={holdingsData}
+          colors={colors}
+          isDark={isDark}
+          onAddHolding={openAddHolding}
+          onClearHoldings={handleClearHoldings}
+          onUploadCAS={() => setShowCasModal(true)}
+          onDeleteHolding={handleDeleteHolding}
+        />
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 3: ASSET ALLOCATION (Pie Chart)
@@ -769,69 +652,15 @@ export default function InvestmentsScreen() {
              SECTION 4: RISK PROFILE & STRATEGY
            ═══════════════════════════════════════════════════════════ */}
         <Text data-testid="risk-section-title" style={[styles.sectionTitle, { color: colors.textPrimary }]}>Risk Profile & Strategy</Text>
-        <View data-testid="risk-card" style={[styles.riskCard, {
-          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-        }]}>
-          <View style={styles.riskHeader}>
-            <View style={[styles.riskBadge, {
-              backgroundColor: riskProfile === 'Conservative' ? 'rgba(59,130,246,0.15)' : riskProfile === 'Moderate' ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)',
-            }]}>
-              <MaterialCommunityIcons
-                name={riskProfile === 'Conservative' ? 'shield-check' : riskProfile === 'Moderate' ? 'scale-balance' : 'rocket-launch'}
-                size={20}
-                color={riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby}
-              />
-              <Text data-testid="risk-profile-label" style={[styles.riskBadgeText, { color: riskProfile === 'Conservative' ? Accent.sapphire : riskProfile === 'Moderate' ? Accent.amber : Accent.ruby }]}>
-                {riskProfile}
-              </Text>
-              {riskSaved && riskScore > 0 && (
-                <Text style={[styles.riskScoreText, { color: colors.textSecondary }]}>
-                  {riskScore.toFixed(1)}/5
-                </Text>
-              )}
-            </View>
-            <TouchableOpacity data-testid="risk-retake-btn" style={[styles.retakeBtn, { borderColor: colors.border }]} onPress={() => { setShowRiskModal(true); setRiskStep(0); setRiskAnswers([]); setShowRiskResult(false); }}>
-              <Text style={[styles.retakeBtnText, { color: colors.textSecondary }]}>{riskSaved ? 'Retake' : 'Take Assessment'}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Score breakdown bars */}
-          {riskSaved && Object.keys(riskBreakdown).length > 0 && (
-            <View style={styles.breakdownSection}>
-              {Object.entries(riskBreakdown).map(([cat, val]) => {
-                const pct = (val / 5) * 100;
-                const barColor = val <= 2 ? Accent.sapphire : val <= 3.5 ? Accent.amber : Accent.ruby;
-                return (
-                  <View key={cat} data-testid={`risk-breakdown-${cat}`} style={styles.breakdownRow}>
-                    <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>{RISK_CATEGORY_LABELS[cat] || cat}</Text>
-                    <View style={[styles.breakdownBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
-                      <View style={[styles.breakdownBarFill, { width: `${pct}%`, backgroundColor: barColor }]} />
-                    </View>
-                    <Text style={[styles.breakdownVal, { color: colors.textPrimary }]}>{val.toFixed(1)}</Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-
-          <Text style={[styles.strategyName, { color: colors.textPrimary }]}>{currentStrategy.name} Strategy</Text>
-          <View style={styles.strategyBar}>
-            {currentStrategy.allocation.map((item, i) => (
-              <View key={i} style={[styles.strategySegment, { width: `${item.p}%`, backgroundColor: item.c }]}>
-                {item.p >= 15 && <Text style={styles.strategySegmentText}>{item.p}%</Text>}
-              </View>
-            ))}
-          </View>
-          <View style={styles.strategyLegend}>
-            {currentStrategy.allocation.map((item, i) => (
-              <View key={i} style={styles.strategyLegendItem}>
-                <View style={[styles.strategyLegendDot, { backgroundColor: item.c }]} />
-                <Text style={[styles.strategyLegendText, { color: colors.textSecondary }]}>{item.name} ({item.p}%)</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+        <RiskProfileCard
+          riskProfile={riskProfile}
+          riskScore={riskScore}
+          riskBreakdown={riskBreakdown}
+          riskSaved={riskSaved}
+          colors={colors}
+          isDark={isDark}
+          onRetake={() => { setShowRiskModal(true); setRiskStep(0); setRiskAnswers([]); setShowRiskResult(false); }}
+        />
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 5: PORTFOLIO REBALANCING
@@ -998,140 +827,16 @@ export default function InvestmentsScreen() {
         {/* ═══════════════════════════════════════════════════════════
              SECTION 5.7: RECURRING INVESTMENTS (SIPs)
            ═══════════════════════════════════════════════════════════ */}
-        <View style={styles.sectionHeader}>
-          <Text data-testid="sip-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>Recurring Investments</Text>
-          <TouchableOpacity data-testid="add-sip-btn" style={[styles.addGoalBtn, { backgroundColor: '#6366F1' }]} onPress={openAddSip}>
-            <MaterialCommunityIcons name="plus" size={16} color="#fff" />
-            <Text style={styles.addGoalText}>Add SIP</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* SIP Summary Card */}
-        {recurringData && recurringData.recurring.length > 0 && (
-          <View data-testid="sip-summary-card" style={[styles.sipSummaryCard, {
-            backgroundColor: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)',
-            borderColor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.15)',
-          }]}>
-            <View style={styles.sipSummaryRow}>
-              <View>
-                <Text style={[styles.sipSummaryLabel, { color: colors.textSecondary }]}>Monthly Commitment</Text>
-                <Text data-testid="sip-monthly-commitment" style={[styles.sipSummaryAmount, { color: '#6366F1' }]}>
-                  {formatINR(recurringData.summary.monthly_commitment)}/mo
-                </Text>
-              </View>
-              <View style={styles.sipCountBadge}>
-                <Text style={styles.sipCountText}>{recurringData.summary.active_count} Active</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Empty State */}
-        {(!recurringData || recurringData.recurring.length === 0) && (
-          <View style={[styles.emptyGoals, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: colors.border }]}>
-            <MaterialCommunityIcons name="calendar-sync-outline" size={36} color={colors.textSecondary} />
-            <Text style={[styles.emptyGoalsTitle, { color: colors.textPrimary }]}>No recurring investments</Text>
-            <Text style={[styles.emptyGoalsSubtitle, { color: colors.textSecondary }]}>Set up SIPs to automate your investments</Text>
-          </View>
-        )}
-
-        {/* SIP Cards */}
-        {recurringData && recurringData.recurring.length > 0 && (
-          <View style={styles.sipList}>
-            {recurringData.recurring.map(sip => {
-              const catColor = ASSET_CATEGORIES[sip.category]?.color || '#6366F1';
-              const freqLabel = sip.frequency.charAt(0).toUpperCase() + sip.frequency.slice(1);
-              const nextDate = sip.next_execution ? new Date(sip.next_execution).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '-';
-              return (
-                <View key={sip.id} data-testid={`sip-card-${sip.id}`} style={[styles.sipCard, {
-                  backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : '#FFFFFF',
-                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                  opacity: sip.is_active ? 1 : 0.6,
-                }]}>
-                  {/* SIP Header */}
-                  <View style={styles.sipCardHeader}>
-                    <View style={[styles.sipIconWrap, { backgroundColor: catColor + '20' }]}>
-                      <MaterialCommunityIcons name="calendar-sync" size={18} color={catColor} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <View style={styles.sipNameRow}>
-                        <Text style={[styles.sipName, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>{sip.name}</Text>
-                        {(sip as any).auto_detected && (
-                          <View style={[styles.autoDetectedBadge, { backgroundColor: '#6366F120' }]}>
-                            <MaterialCommunityIcons name="magic-staff" size={10} color="#6366F1" />
-                            <Text style={[styles.autoDetectedText, { color: '#6366F1' }]}>Auto</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={[styles.sipCategory, { color: colors.textSecondary }]}>{sip.category} • {freqLabel}</Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={[styles.sipAmount, { color: colors.textPrimary }]}>{formatINR(sip.amount)}</Text>
-                      {!sip.is_active && (
-                        <View style={[styles.sipPausedBadge, { backgroundColor: '#F59E0B20' }]}>
-                          <Text style={[styles.sipPausedText, { color: '#F59E0B' }]}>Paused</Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-
-                  {/* Next Execution & Stats */}
-                  <View style={[styles.sipStatsRow, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
-                    <View style={styles.sipStat}>
-                      <Text style={[styles.sipStatLabel, { color: colors.textSecondary }]}>Next</Text>
-                      <Text style={[styles.sipStatValue, { color: colors.textPrimary }]}>{nextDate}</Text>
-                    </View>
-                    <View style={styles.sipStatDivider} />
-                    <View style={styles.sipStat}>
-                      <Text style={[styles.sipStatLabel, { color: colors.textSecondary }]}>Invested</Text>
-                      <Text style={[styles.sipStatValue, { color: Accent.emerald }]}>{formatINRShort(sip.total_invested)}</Text>
-                    </View>
-                    <View style={styles.sipStatDivider} />
-                    <View style={styles.sipStat}>
-                      <Text style={[styles.sipStatLabel, { color: colors.textSecondary }]}>Count</Text>
-                      <Text style={[styles.sipStatValue, { color: colors.textPrimary }]}>{sip.execution_count}</Text>
-                    </View>
-                  </View>
-
-                  {/* Action Buttons */}
-                  <View style={styles.sipActions}>
-                    <TouchableOpacity
-                      data-testid={`sip-execute-${sip.id}`}
-                      style={[styles.sipActionBtn, { backgroundColor: Accent.emerald + '15', borderColor: Accent.emerald + '30' }]}
-                      onPress={() => handleExecuteSip(sip)}
-                      disabled={!sip.is_active}
-                    >
-                      <MaterialCommunityIcons name="check-circle-outline" size={16} color={Accent.emerald} />
-                      <Text style={[styles.sipActionText, { color: Accent.emerald }]}>Execute</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      data-testid={`sip-pause-${sip.id}`}
-                      style={[styles.sipActionBtn, { backgroundColor: '#F59E0B15', borderColor: '#F59E0B30' }]}
-                      onPress={() => handlePauseSip(sip)}
-                    >
-                      <MaterialCommunityIcons name={sip.is_active ? 'pause-circle-outline' : 'play-circle-outline'} size={16} color="#F59E0B" />
-                      <Text style={[styles.sipActionText, { color: '#F59E0B' }]}>{sip.is_active ? 'Pause' : 'Resume'}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      data-testid={`sip-edit-${sip.id}`}
-                      style={[styles.sipActionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: colors.border }]}
-                      onPress={() => openEditSip(sip)}
-                    >
-                      <MaterialCommunityIcons name="pencil-outline" size={16} color={colors.textSecondary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      data-testid={`sip-delete-${sip.id}`}
-                      style={[styles.sipActionBtn, { backgroundColor: Accent.ruby + '10', borderColor: Accent.ruby + '20' }]}
-                      onPress={() => handleDeleteSip(sip.id, sip.name)}
-                    >
-                      <MaterialCommunityIcons name="delete-outline" size={16} color={Accent.ruby} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
+        <RecurringInvestmentsSection
+          recurringData={recurringData}
+          colors={colors}
+          isDark={isDark}
+          onAddSip={openAddSip}
+          onEditSip={openEditSip}
+          onDeleteSip={handleDeleteSip}
+          onPauseSip={handlePauseSip}
+          onExecuteSip={handleExecuteSip}
+        />
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 5.9: EMI TRACKER

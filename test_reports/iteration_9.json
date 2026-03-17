@@ -75,7 +75,7 @@
     "market_data": ["Nifty 50 (25,740)", "SENSEX (83,514)", "Nifty Bank (61,141)", "Gold 10g (₹1,55,580)", "Silver 1kg (₹2,62,646)"]
   },
   "test_environment": {
-    "url": "https://visor-app-debug.preview.emergentagent.com",
+    "url": "https://visor-india-app.preview.emergentagent.com",
     "backend_status": "Running",
     "frontend_status": "Running"
   }
