@@ -8,7 +8,7 @@ import requests
 import os
 from datetime import datetime, timedelta
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://visor-accounts.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://visor-app-debug.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "rajesh@visor.demo"
