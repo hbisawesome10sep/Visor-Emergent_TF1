@@ -53,9 +53,15 @@ async def expo_qr_page(request: Request):
     tunnel_url = get_cloudflared_url()
     is_active = check_tunnel_status(tunnel_url) if tunnel_url else False
     
-    # For Expo Go, use exp+https:// format for cloudflared (HTTPS tunnels)
-    exp_url = f"exp+https://{tunnel_url}" if tunnel_url else "Tunnel not available"
+    # Multiple URL formats for different platforms
+    exp_url = f"exp://{tunnel_url}" if tunnel_url else "Tunnel not available"
+    exps_url = f"exps://{tunnel_url}" if tunnel_url else ""  # HTTPS variant
     https_url = f"https://{tunnel_url}" if tunnel_url else ""
+    
+    # Deep link URLs that directly open Expo Go app
+    expo_go_ios = f"exp://{tunnel_url}" if tunnel_url else ""
+    expo_go_android = f"exp://{tunnel_url}" if tunnel_url else ""
+    
     status_color = "#10B981" if is_active else "#EF4444"
     status_text = "Tunnel Active" if is_active else "Tunnel Inactive"
     
@@ -240,7 +246,14 @@ async def expo_qr_page(request: Request):
         </div>
         
         <p class="scan-text">Scan with Expo Go</p>
-        <p class="scan-hint">Open <span>Expo Go</span> → Scan QR Code</p>
+        <p class="scan-hint">Or tap button below to open directly</p>
+        
+        <!-- Direct Open Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 16px;">
+            <a href="{exp_url}" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                🍎 Open in Expo Go
+            </a>
+        </div>
         
         <div class="url-box">
             <p class="url-text" id="expUrl">{exp_url}</p>
@@ -259,11 +272,11 @@ async def expo_qr_page(request: Request):
             </div>
             <div class="step">
                 <span class="step-num">2</span>
-                <span class="step-text">Open Expo Go → tap <strong>Scan QR Code</strong></span>
+                <span class="step-text">Tap <strong>"Open in Expo Go"</strong> button above OR scan QR</span>
             </div>
             <div class="step">
                 <span class="step-num">3</span>
-                <span class="step-text">Scan the QR above — Visor loads on your phone</span>
+                <span class="step-text">Visor loads on your phone</span>
             </div>
             <div class="step">
                 <span class="step-num">4</span>

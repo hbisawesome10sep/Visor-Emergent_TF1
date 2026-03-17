@@ -251,8 +251,11 @@ export default function SettingsScreen() {
       setBankAccounts(updated);
       
     } catch (e: any) {
-      Alert.alert('Upload Failed', e.message);
-      setUploadResult({ error: e.message });
+      const errorMessage = typeof e === 'object' && e !== null 
+        ? (e.message || e.detail || JSON.stringify(e)) 
+        : String(e);
+      Alert.alert('Upload Failed', errorMessage);
+      setUploadResult({ error: errorMessage });
       setUploadPhase('idle');
     } finally {
       setUploadingStatement(false);
