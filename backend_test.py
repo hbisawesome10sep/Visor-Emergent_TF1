@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://fin-insights-app.preview.emergentagent.com"
+BACKEND_URL = "https://visor-accounts.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials
