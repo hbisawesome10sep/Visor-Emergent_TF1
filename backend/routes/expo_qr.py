@@ -53,7 +53,9 @@ async def expo_qr_page(request: Request):
     tunnel_url = get_cloudflared_url()
     is_active = check_tunnel_status(tunnel_url) if tunnel_url else False
     
-    exp_url = f"exp://{tunnel_url}" if tunnel_url else "Tunnel not available"
+    # For Expo Go, use exp+https:// format for cloudflared (HTTPS tunnels)
+    exp_url = f"exp+https://{tunnel_url}" if tunnel_url else "Tunnel not available"
+    https_url = f"https://{tunnel_url}" if tunnel_url else ""
     status_color = "#10B981" if is_active else "#EF4444"
     status_text = "Tunnel Active" if is_active else "Tunnel Inactive"
     
