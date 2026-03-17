@@ -58,6 +58,11 @@
 | Refactor: visor_ai.py split into services/ (835→277 lines) | ✅ Complete (Mar 17 2026) | v2.3.0 |
 | Refactor: bank_statements.py split into parsers/ (2808→294 lines) | ✅ Complete (Mar 17 2026) | v2.3.0 |
 | Refactor: investments.tsx types extracted to shared module | ✅ Complete (Mar 17 2026) | v2.3.0 |
+| Refactor: investments.tsx component extraction (1982→1686 lines) | ✅ Complete (Mar 17 2026) | v2.3.1 |
+| Component: PortfolioOverviewCard extracted | ✅ Complete (Mar 17 2026) | v2.3.1 |
+| Component: HoldingsSection extracted | ✅ Complete (Mar 17 2026) | v2.3.1 |
+| Component: RiskProfileCard extracted | ✅ Complete (Mar 17 2026) | v2.3.1 |
+| Component: RecurringInvestmentsSection extracted | ✅ Complete (Mar 17 2026) | v2.3.1 |
 
 ---
 
