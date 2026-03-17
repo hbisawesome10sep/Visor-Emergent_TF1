@@ -55,6 +55,9 @@
 | Dashboard: Removed Hardcoded Fake Percentages (12.5%, 8.2%) | ✅ Complete (Mar 17 2026) | v2.2.4 |
 | Insights: Removed Fake Fallback Data (shows zeros instead of 150K/95K) | ✅ Complete (Mar 17 2026) | v2.2.4 |
 | Upload: Added 401 Token Expired Handling for Bank/CC Uploads | ✅ Complete (Mar 17 2026) | v2.2.4 |
+| Refactor: visor_ai.py split into services/ (835→277 lines) | ✅ Complete (Mar 17 2026) | v2.3.0 |
+| Refactor: bank_statements.py split into parsers/ (2808→294 lines) | ✅ Complete (Mar 17 2026) | v2.3.0 |
+| Refactor: investments.tsx types extracted to shared module | ✅ Complete (Mar 17 2026) | v2.3.0 |
 
 ---
 

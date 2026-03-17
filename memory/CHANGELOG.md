@@ -1,5 +1,23 @@
 # Visor Finance — CHANGELOG
 
+## v2.3.0 — March 17, 2026 — Major Refactoring (Code Architecture)
+### Refactoring
+- **visor_ai.py** (835→277 lines, -67%): Extracted calculators → `services/visor_calculators.py`, helpers → `services/visor_helpers.py`, system prompt → `services/visor_prompt.py`
+- **bank_statements.py** (2808→294 lines, -90%): Extracted utils → `parsers/utils.py`, CSV/Excel → `parsers/csv_excel.py`, PDF parsers → `parsers/pdf_parsers.py`
+- **investments.tsx** (2116→1981 lines): Extracted types, constants, risk questions → `components/investments/types.ts`
+
+### New Modules Created
+- `/app/backend/services/` — Visor AI business logic (calculators, helpers, prompt)
+- `/app/backend/parsers/` — Bank statement parsing (utils, CSV/Excel, PDF parsers)
+- `/app/frontend/src/components/investments/types.ts` — Shared investment types & constants
+
+### Testing
+- 23/23 regression tests passed (100%)
+- All 16 API endpoints verified working post-refactoring
+
+---
+
+
 ## v2.2.4 — March 17, 2026 — Token Expiry & Empty State Fixes
 ### Bug Fixes
 - **Token Expired Crash**: Extended JWT token validity from 7 days to 30 days (`auth.py`)
