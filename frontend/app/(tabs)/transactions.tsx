@@ -855,8 +855,12 @@ export default function TransactionsScreen() {
 
       {/* ═══ FLOATING ACTION BUTTON ═══ */}
       <TouchableOpacity
+        data-testid="add-transaction-fab"
         style={styles.fab}
-        onPress={() => openAdd()}
+        onPress={() => {
+          console.log('FAB pressed - opening add modal');
+          openAdd();
+        }}
         activeOpacity={0.9}
       >
         <LinearGradient
@@ -1794,7 +1798,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 90,
+    bottom: Platform.OS === 'ios' ? 110 : 90,
     zIndex: 99999,
     borderRadius: 28,
     shadowColor: Accent.amethyst,
