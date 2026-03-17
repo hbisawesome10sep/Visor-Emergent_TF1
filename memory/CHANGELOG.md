@@ -1,5 +1,27 @@
 # Visor Finance — CHANGELOG
 
+## v2.2.4 — March 17, 2026 — Token Expiry & Empty State Fixes
+### Bug Fixes
+- **Token Expired Crash**: Extended JWT token validity from 7 days to 30 days (`auth.py`)
+- **Auto-Logout on 401**: App now automatically logs out and redirects to login when token expires, instead of crashing (`api.ts`, `AuthContext.tsx`)
+- **Fake Dashboard Percentages**: Removed hardcoded `12.5%` and `8.2%` from dashboard overview cards — no longer shows misleading numbers when data is empty (`index.tsx`)
+- **Insights Fake Fallback Data**: Removed fake ₹1.5L/₹95K fallback data from insights page — shows zeros and empty states instead of fake numbers when there's no real data (`insights.tsx`)
+- **Upload 401 Handling**: Bank statement and CC statement uploads now detect expired tokens and show "Session expired" instead of generic error (`settings.tsx`)
+
+### Files Modified
+- `/app/backend/auth.py` (token expiry 7d → 30d)
+- `/app/frontend/src/utils/api.ts` (auto-logout on 401)
+- `/app/frontend/src/context/AuthContext.tsx` (token-expired handler registration)
+- `/app/frontend/app/(tabs)/index.tsx` (removed hardcoded percentChange)
+- `/app/frontend/app/(tabs)/insights.tsx` (removed fake data fallbacks)
+- `/app/frontend/app/(tabs)/settings.tsx` (401 handling for uploads)
+
+### Testing
+- 19/19 backend tests pass (100%)
+
+---
+
+
 ## v2.2.1 — March 1, 2026 — UI/UX Polish & Bug Fixes
 ### Bug Fixes
 - **Absurd percentages in Insights**: Clamped savings rate to [-100%, 100%] range across backend (`dashboard.py`) and frontend (`insights.tsx`, `MonthlyTrendCard.tsx`)

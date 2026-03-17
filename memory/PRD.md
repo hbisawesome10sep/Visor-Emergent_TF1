@@ -51,6 +51,10 @@
 | SIP Monthly Commitment Calc Fix (yearly/monthly multiplier swap) | ✅ Complete (Mar 1 2026) | v2.2.3 |
 | Holdings NaN.undefined Fix (total_current → total_current_value) | ✅ Complete (Mar 1 2026) | v2.2.3 |
 | Portfolio CATEGORY_RETURNS: Added "Mutual Fund" singular | ✅ Complete (Mar 1 2026) | v2.2.3 |
+| Token Expiry Extension (7d → 30d) + Auto-Logout on 401 | ✅ Complete (Mar 17 2026) | v2.2.4 |
+| Dashboard: Removed Hardcoded Fake Percentages (12.5%, 8.2%) | ✅ Complete (Mar 17 2026) | v2.2.4 |
+| Insights: Removed Fake Fallback Data (shows zeros instead of 150K/95K) | ✅ Complete (Mar 17 2026) | v2.2.4 |
+| Upload: Added 401 Token Expired Handling for Bank/CC Uploads | ✅ Complete (Mar 17 2026) | v2.2.4 |
 
 ---
 
