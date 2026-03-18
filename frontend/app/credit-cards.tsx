@@ -476,7 +476,7 @@ export default function CreditCardsScreen() {
               </TouchableOpacity>
             );
           })
-        )}
+        ))}
 
         {/* Analytics Sections */}
         {activeTab === 'dues' && token && (

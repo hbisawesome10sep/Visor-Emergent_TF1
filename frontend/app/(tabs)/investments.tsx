@@ -28,12 +28,10 @@ import {
   RecurringInvestmentsSection 
 } from '../../src/components/investments';
 import EMITrackerModal from '../../src/components/EMITrackerModal';
-import {
-  PrincipalInterestSplit,
-  PrepaymentCalculator,
-  WealthProjector,
-  GoalMapper,
-} from '../../src/components/emi-sip';
+import { PrincipalInterestSplit } from '../../src/components/emi-sip/PrincipalInterestSplit';
+import { PrepaymentCalculator } from '../../src/components/emi-sip/PrepaymentCalculator';
+import { WealthProjector } from '../../src/components/emi-sip/WealthProjector';
+import { GoalMapper } from '../../src/components/emi-sip/GoalMapper';
 import {
   type MarketItem, type Goal, type DashboardStats, type PortfolioData,
   type Holding, type HoldingsData, type RecurringTransaction, type RecurringData,
