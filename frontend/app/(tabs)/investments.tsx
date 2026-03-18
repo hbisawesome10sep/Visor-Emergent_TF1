@@ -29,6 +29,12 @@ import {
 } from '../../src/components/investments';
 import EMITrackerModal from '../../src/components/EMITrackerModal';
 import {
+  PrincipalInterestSplit,
+  PrepaymentCalculator,
+  WealthProjector,
+  GoalMapper,
+} from '../../src/components/emi-sip';
+import {
   type MarketItem, type Goal, type DashboardStats, type PortfolioData,
   type Holding, type HoldingsData, type RecurringTransaction, type RecurringData,
   ASSET_CATEGORIES, GOAL_CATS, HOLDING_CATS, SIP_CATS, SIP_FREQUENCIES,
@@ -861,6 +867,50 @@ export default function InvestmentsScreen() {
           </View>
           <MaterialCommunityIcons name="chevron-right" size={22} color={Accent.amber} />
         </TouchableOpacity>
+
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.9a: PRINCIPAL VS INTEREST SPLIT
+           ═══════════════════════════════════════════════════════════ */}
+        <Text data-testid="emi-analytics-title" style={[styles.sectionTitle, { color: colors.textPrimary }]}>EMI Analytics</Text>
+        <View style={[styles.glassCard, {
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        }]}>
+          <PrincipalInterestSplit token={token || ''} isDark={isDark} colors={colors} />
+        </View>
+
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.9b: PREPAYMENT CALCULATOR
+           ═══════════════════════════════════════════════════════════ */}
+        <View style={[styles.glassCard, {
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+          marginTop: 6,
+        }]}>
+          <PrepaymentCalculator token={token || ''} isDark={isDark} colors={colors} />
+        </View>
+
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.9c: WEALTH PROJECTOR
+           ═══════════════════════════════════════════════════════════ */}
+        <Text data-testid="sip-analytics-title" style={[styles.sectionTitle, { color: colors.textPrimary }]}>SIP Analytics</Text>
+        <View style={[styles.glassCard, {
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        }]}>
+          <WealthProjector token={token || ''} isDark={isDark} colors={colors} />
+        </View>
+
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 5.9d: GOAL MAPPING
+           ═══════════════════════════════════════════════════════════ */}
+        <View style={[styles.glassCard, {
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+          marginTop: 6,
+        }]}>
+          <GoalMapper token={token || ''} isDark={isDark} colors={colors} />
+        </View>
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
