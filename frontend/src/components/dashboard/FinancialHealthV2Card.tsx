@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, ActivityIndicator, Modal, Platform, Alert } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop, G } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import ViewShot, { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import { apiRequest } from '../../utils/api';
 import { Accent } from '../../utils/theme';
+import { ShareScoreCard } from './ShareScoreCard';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -78,6 +81,9 @@ export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
   const [data, setData] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [flipped, setFlipped] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const shareRef = useRef<View>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -91,6 +97,28 @@ export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
   }, [token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleShare = async () => {
+    if (!data || !shareRef.current) return;
+    setSharing(true);
+    try {
+      const uri = await captureRef(shareRef, { format: 'png', quality: 0.95 });
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'image/png',
+          dialogTitle: 'Share your Financial Health Score',
+        });
+      } else {
+        Alert.alert('Sharing not available', 'Sharing is not supported on this device.');
+      }
+    } catch (e: any) {
+      console.warn('Share error:', e);
+      Alert.alert('Share Failed', e?.message || 'Could not share the score card.');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -197,6 +225,17 @@ export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
                 </View>
               </View>
             </View>
+
+            {/* Share My Score Button */}
+            <TouchableOpacity
+              testID="share-score-btn"
+              style={[s.shareBtn, { backgroundColor: isDark ? `${cfg.gradient[0]}18` : `${cfg.gradient[0]}10` }]}
+              onPress={(e) => { e.stopPropagation(); setShowShareModal(true); }}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="share-variant-outline" size={15} color={cfg.gradient[0]} />
+              <Text style={[s.shareBtnText, { color: cfg.gradient[0] }]}>Share My Score</Text>
+            </TouchableOpacity>
           </>
         ) : (
           <>
@@ -227,6 +266,54 @@ export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
           </>
         )}
       </LinearGradient>
+
+      {/* Share Modal */}
+      {showShareModal && data && (
+        <Modal
+          visible={showShareModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowShareModal(false)}
+        >
+          <View style={s.modalOverlay}>
+            <View style={[s.modalContent, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF' }]}>
+              <View style={s.modalHeader}>
+                <Text style={[s.modalTitle, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>Share Your Score</Text>
+                <TouchableOpacity onPress={() => setShowShareModal(false)}>
+                  <MaterialCommunityIcons name="close" size={22} color={isDark ? '#94A3B8' : '#64748B'} />
+                </TouchableOpacity>
+              </View>
+
+              {/* The capturable share card */}
+              <View style={s.shareCardWrapper}>
+                <ShareScoreCard
+                  ref={shareRef}
+                  composite_score={data.composite_score}
+                  dimensions={data.dimensions}
+                  score_change={data.score_change}
+                />
+              </View>
+
+              <TouchableOpacity
+                testID="share-score-action-btn"
+                style={[s.shareActionBtn, { backgroundColor: cfg.gradient[0] }]}
+                onPress={handleShare}
+                activeOpacity={0.85}
+                disabled={sharing}
+              >
+                {sharing ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons name="share-variant" size={18} color="#fff" />
+                    <Text style={s.shareActionText}>Share to WhatsApp / Instagram</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </TouchableOpacity>
   );
 };
@@ -259,4 +346,13 @@ const s = StyleSheet.create({
   emptyIcon: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   emptyTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
   emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 20 },
+  shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12, marginTop: 14 },
+  shareBtnText: { fontSize: 13, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { borderRadius: 24, padding: 20, width: '100%', maxWidth: 400, maxHeight: '90%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  modalTitle: { fontSize: 18, fontWeight: '700' },
+  shareCardWrapper: { alignItems: 'center', marginBottom: 16 },
+  shareActionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14 },
+  shareActionText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

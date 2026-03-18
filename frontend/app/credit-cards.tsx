@@ -9,6 +9,10 @@ import { useTheme } from '../src/context/ThemeContext';
 import { apiRequest } from '../src/utils/api';
 import { useAuth } from '../src/context/AuthContext';
 import { formatINR, formatINRShort } from '../src/utils/formatters';
+import { DueCalendarSection } from '../src/components/credit-cards/DueCalendarSection';
+import { InterestCalculator } from '../src/components/credit-cards/InterestCalculator';
+import { RewardsTracker } from '../src/components/credit-cards/RewardsTracker';
+import { CardRecommender } from '../src/components/credit-cards/CardRecommender';
 
 const CC_CATEGORIES = ['Food & Dining', 'Shopping', 'Travel', 'Entertainment', 'Utilities', 'Healthcare', 'Fuel', 'Education', 'EMI', 'Subscriptions', 'Other'];
 const TXN_TYPES = [
@@ -66,6 +70,9 @@ export default function CreditCardsScreen() {
     due_day: '20',
     is_default: false,
   });
+
+  // Tab state for analytics sections
+  const [activeTab, setActiveTab] = useState<'cards' | 'dues' | 'rewards' | 'interest' | 'recommend'>('cards');
 
   const fetchCards = useCallback(async () => {
     if (!token) return;
@@ -277,6 +284,44 @@ export default function CreditCardsScreen() {
           </View>
         </View>
 
+        {/* Analytics Tab Bar */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14, flexGrow: 0 }}>
+          {[
+            { key: 'cards', label: 'My Cards', icon: 'credit-card' },
+            { key: 'dues', label: 'Dues', icon: 'calendar-clock' },
+            { key: 'rewards', label: 'Rewards', icon: 'star-circle' },
+            { key: 'interest', label: 'Interest', icon: 'calculator-variant' },
+            { key: 'recommend', label: 'Best Card', icon: 'brain' },
+          ].map((tab) => (
+            <TouchableOpacity
+              key={tab.key}
+              testID={`cc-tab-${tab.key}`}
+              style={[
+                styles.analyticsTab,
+                {
+                  backgroundColor: activeTab === tab.key
+                    ? (isDark ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)')
+                    : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                  borderColor: activeTab === tab.key ? '#6366F1' : 'transparent',
+                },
+              ]}
+              onPress={() => setActiveTab(tab.key as any)}
+            >
+              <MaterialCommunityIcons
+                name={tab.icon as any}
+                size={16}
+                color={activeTab === tab.key ? '#6366F1' : colors.textSecondary}
+              />
+              <Text style={[
+                styles.analyticsTabText,
+                { color: activeTab === tab.key ? '#6366F1' : colors.textSecondary },
+              ]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         {/* Summary Card */}
         {cards.length > 0 && (
           <View style={[styles.summaryCard, { 
@@ -307,7 +352,7 @@ export default function CreditCardsScreen() {
         )}
 
         {/* Quick Add Transaction Banner */}
-        {cards.length > 0 && (
+        {cards.length > 0 && activeTab === 'cards' && (
           <TouchableOpacity
             testID="add-txn-banner"
             activeOpacity={0.85}
@@ -328,8 +373,8 @@ export default function CreditCardsScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Cards List */}
-        {cards.length === 0 ? (
+        {/* Cards List - only show on cards tab */}
+        {activeTab === 'cards' && (cards.length === 0 ? (
           <View style={[styles.emptyState, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }]}>
             <MaterialCommunityIcons name="credit-card-off-outline" size={48} color={colors.textSecondary} />
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No credit cards added</Text>
@@ -431,6 +476,20 @@ export default function CreditCardsScreen() {
               </TouchableOpacity>
             );
           })
+        )}
+
+        {/* Analytics Sections */}
+        {activeTab === 'dues' && token && (
+          <DueCalendarSection token={token} isDark={isDark} colors={colors} />
+        )}
+        {activeTab === 'rewards' && token && (
+          <RewardsTracker token={token} isDark={isDark} colors={colors} />
+        )}
+        {activeTab === 'interest' && token && (
+          <InterestCalculator token={token} isDark={isDark} colors={colors} cards={cards} />
+        )}
+        {activeTab === 'recommend' && token && (
+          <CardRecommender token={token} isDark={isDark} colors={colors} />
         )}
 
         <View style={{ height: 100 }} />
@@ -933,4 +992,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   submitBtnText: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '600', color: '#fff' },
+  analyticsTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    marginRight: 8,
+  },
+  analyticsTabText: { fontSize: 12, fontWeight: '600' },
 });

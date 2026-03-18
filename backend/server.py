@@ -46,6 +46,7 @@ from routes.cc_statements import router as cc_statements_router
 from routes.visor_ai import router as visor_ai_router
 from routes.expo_qr import router as expo_qr_router
 from routes.dashboard_v2 import router as dashboard_v2_router
+from routes.cc_analytics import router as cc_analytics_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -80,6 +81,7 @@ app.include_router(cc_statements_router)
 app.include_router(visor_ai_router)
 app.include_router(expo_qr_router)
 app.include_router(dashboard_v2_router)
+app.include_router(cc_analytics_router)
 
 # Add CORS middleware
 app.add_middleware(
