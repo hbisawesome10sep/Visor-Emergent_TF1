@@ -11,7 +11,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { apiRequest } from '../../src/utils/api';
 import { formatINRShort } from '../../src/utils/formatters';
-import { FinancialHealthCard } from '../../src/components/FinancialHealthCard';
+import { FinancialHealthV2Card } from '../../src/components/dashboard/FinancialHealthV2Card';
 import { SpendingBreakdownCard } from '../../src/components/SpendingBreakdownCard';
 import { CompareCard } from '../../src/components/CompareCard';
 import { AIRecommendations } from '../../src/components/AIRecommendations';
@@ -19,6 +19,7 @@ import { MonthlyTrendCard } from '../../src/components/MonthlyTrendCard';
 import { SmartAlertsCard } from '../../src/components/SmartAlertsCard';
 import { Accent } from '../../src/utils/theme';
 import AIAdvisorChat from '../../src/components/AIAdvisorChat';
+import { useRouter } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // Full width minus padding
@@ -280,6 +281,7 @@ export default function InsightsScreen() {
   const { user, token, loading: authLoading } = useAuth();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   
   // Calculate header height dynamically (includes date range pills)
   const HEADER_HEIGHT = 100 + insets.top;
@@ -591,18 +593,9 @@ export default function InsightsScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Accent.emerald} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* ═══ FINANCIAL HEALTH SCORE (New Redesigned) ═══ */}
-        <FinancialHealthCard
-          data={{
-            overall_score: healthScore,
-            grade: healthScore >= 80 ? 'Excellent' : healthScore >= 65 ? 'Good' : healthScore >= 50 ? 'Fair' : healthScore >= 35 ? 'Needs Work' : 'Critical',
-            has_sufficient_data: hasSufficientData,
-            savings_rate: savingsRate,
-            investment_rate: investmentRate,
-            expense_ratio: spendingRate,
-            goal_progress: goalProgress,
-            breakdown: breakdown,
-          }}
+        {/* ═══ FINANCIAL HEALTH SCORE — V2 (consistent with Dashboard) ═══ */}
+        <FinancialHealthV2Card
+          token={token || ''}
           isDark={isDark}
           colors={colors}
         />
@@ -613,6 +606,15 @@ export default function InsightsScreen() {
             alerts={smartAlerts}
             isDark={isDark}
             colors={colors}
+            onAlertPress={(alert) => {
+              // Navigate to relevant screen based on alert action
+              const action = alert.action || '';
+              if (action === 'Plan' || action === 'Boost' || action === 'Adjust') {
+                router.push('/(tabs)/investments');
+              } else if (action === 'Review' || action === 'Add') {
+                router.push('/(tabs)/transactions');
+              }
+            }}
           />
         )}
 

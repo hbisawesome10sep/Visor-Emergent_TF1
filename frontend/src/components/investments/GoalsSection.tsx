@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Accent } from '../../utils/theme';
-import { formatINR, formatINRShort } from '../../utils/formatters';
+import { formatINRShort } from '../../utils/formatters';
+import { JarProgressView } from '../JarProgressView';
 
 interface Goal {
   id: string;
@@ -65,7 +66,7 @@ export const GoalsSection: React.FC<GoalsSectionProps> = ({
     if (days === 1) return '1 day left';
     if (days <= 30) return `${days} days left`;
     if (days <= 365) return `${Math.ceil(days / 30)} months left`;
-    return `${(days / 365).toFixed(1)} years`;
+    return `${(days / 365).toFixed(1)} yrs left`;
   };
 
   return (
@@ -100,74 +101,90 @@ export const GoalsSection: React.FC<GoalsSectionProps> = ({
       ) : (
         <View style={{ gap: 10 }}>
           {goals.map((goal) => {
-            const pct = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
+            const pct = goal.target_amount > 0
+              ? Math.min((goal.current_amount / goal.target_amount) * 100, 100)
+              : 0;
             const catColor = getCategoryColor(goal.category);
-            const remaining = goal.target_amount - goal.current_amount;
+            const remaining = Math.max(0, goal.target_amount - goal.current_amount);
+            const isComplete = pct >= 100;
 
             return (
               <View
                 key={goal.id}
                 data-testid={`goal-card-${goal.id}`}
                 style={[styles.goalCard, {
-                  backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.85)',
-                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                  backgroundColor: isDark ? 'rgba(10,10,11,0.85)' : 'rgba(255,255,255,0.90)',
+                  borderColor: isDark ? `${catColor}28` : `${catColor}22`,
                 }]}
               >
-                <View style={styles.goalHeader}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                    <View style={[styles.goalIconWrap, { backgroundColor: `${catColor}20` }]}>
-                      <MaterialCommunityIcons name={getCategoryIcon(goal.category)} size={18} color={catColor} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.goalTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                <View style={styles.goalCardInner}>
+                  {/* ── Jar on the Left ── */}
+                  <View style={styles.jarWrap}>
+                    <JarProgressView
+                      percentage={pct}
+                      color={catColor}
+                      uid={goal.id}
+                      width={62}
+                      bgColor={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}
+                    />
+                  </View>
+
+                  {/* ── Info on the Right ── */}
+                  <View style={styles.goalInfo}>
+                    {/* Title row with actions */}
+                    <View style={styles.goalTitleRow}>
+                      <View style={[styles.goalIconWrap, { backgroundColor: `${catColor}20` }]}>
+                        <MaterialCommunityIcons name={getCategoryIcon(goal.category)} size={13} color={catColor} />
+                      </View>
+                      <Text style={[styles.goalTitle, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>
                         {goal.title}
                       </Text>
-                      <Text style={[styles.goalDeadline, { color: colors.textSecondary }]}>
-                        {getDaysRemaining(goal.deadline)}
-                      </Text>
+                      <View style={styles.actionBtns}>
+                        <TouchableOpacity
+                          data-testid={`edit-goal-${goal.id}`}
+                          style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+                          onPress={() => onEditGoal(goal)}
+                        >
+                          <MaterialCommunityIcons name="pencil" size={13} color={colors.textSecondary} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          data-testid={`delete-goal-${goal.id}`}
+                          style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.1)' }]}
+                          onPress={() => onDeleteGoal(goal.id, goal.title)}
+                        >
+                          <MaterialCommunityIcons name="trash-can-outline" size={13} color={Accent.ruby} />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                  <View style={{ flexDirection: 'row', gap: 6 }}>
-                    <TouchableOpacity
-                      data-testid={`edit-goal-${goal.id}`}
-                      style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
-                      onPress={() => onEditGoal(goal)}
-                    >
-                      <MaterialCommunityIcons name="pencil" size={14} color={colors.textSecondary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      data-testid={`delete-goal-${goal.id}`}
-                      style={[styles.actionBtn, { backgroundColor: 'rgba(239,68,68,0.1)' }]}
-                      onPress={() => onDeleteGoal(goal.id, goal.title)}
-                    >
-                      <MaterialCommunityIcons name="trash-can-outline" size={14} color={Accent.ruby} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
 
-                {/* Progress bar */}
-                <View style={[styles.progressBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
-                  <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: catColor }]} />
-                </View>
+                    {/* Deadline */}
+                    <Text style={[styles.goalDeadline, { color: catColor }]}>
+                      {getDaysRemaining(goal.deadline)}
+                    </Text>
 
-                <View style={styles.goalFooter}>
-                  <View>
-                    <Text style={[styles.goalAmount, { color: catColor }]}>
-                      {formatINRShort(goal.current_amount)}
-                    </Text>
-                    <Text style={[styles.goalLabel, { color: colors.textSecondary }]}>saved</Text>
-                  </View>
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={[styles.goalPercent, { color: pct >= 100 ? Accent.emerald : colors.textPrimary }]}>
-                      {pct.toFixed(0)}%
-                    </Text>
-                    <Text style={[styles.goalLabel, { color: colors.textSecondary }]}>complete</Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={[styles.goalAmount, { color: colors.textPrimary }]}>
-                      {formatINRShort(goal.target_amount)}
-                    </Text>
-                    <Text style={[styles.goalLabel, { color: colors.textSecondary }]}>target</Text>
+                    {/* Amounts */}
+                    <View style={styles.amountsRow}>
+                      <View>
+                        <Text style={[styles.amountVal, { color: catColor }]}>{formatINRShort(goal.current_amount)}</Text>
+                        <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>saved</Text>
+                      </View>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={[styles.amountVal, { color: colors.textPrimary }]}>{formatINRShort(goal.target_amount)}</Text>
+                        <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>target</Text>
+                      </View>
+                    </View>
+
+                    {/* Remaining or complete badge */}
+                    {isComplete ? (
+                      <View style={[styles.completeBadge, { backgroundColor: `${Accent.emerald}22` }]}>
+                        <MaterialCommunityIcons name="check-circle" size={11} color={Accent.emerald} />
+                        <Text style={[styles.completeBadgeText, { color: Accent.emerald }]}>Goal Achieved!</Text>
+                      </View>
+                    ) : (
+                      <Text style={[styles.remaining, { color: colors.textSecondary }]}>
+                        {formatINRShort(remaining)} remaining
+                      </Text>
+                    )}
                   </View>
                 </View>
               </View>
@@ -234,63 +251,85 @@ const styles = StyleSheet.create({
     padding: 14,
     borderWidth: 1,
   },
-  goalHeader: {
+  goalCardInner: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    gap: 12,
+  },
+  jarWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goalInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  goalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   goalIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
   },
   goalTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'DM Sans',
     fontWeight: '700',
   },
-  goalDeadline: {
-    fontSize: 11,
-    fontFamily: 'DM Sans',
-    marginTop: 2,
+  actionBtns: {
+    flexDirection: 'row',
+    gap: 4,
   },
   actionBtn: {
-    width: 28,
-    height: 28,
+    width: 26,
+    height: 26,
     borderRadius: 7,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  progressBg: {
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 10,
+  goalDeadline: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    fontWeight: '600',
+    marginLeft: 2,
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  goalFooter: {
+  amountsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    marginTop: 2,
   },
-  goalAmount: {
+  amountVal: {
     fontSize: 14,
-    fontFamily: 'DM Sans',
-    fontWeight: '700',
-  },
-  goalPercent: {
-    fontSize: 16,
     fontFamily: 'DM Sans',
     fontWeight: '800',
   },
-  goalLabel: {
+  amountLabel: {
     fontSize: 10,
+    fontFamily: 'DM Sans',
+    marginTop: 1,
+  },
+  completeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginTop: 3,
+  },
+  completeBadgeText: {
+    fontSize: 10,
+    fontFamily: 'DM Sans',
+    fontWeight: '700',
+  },
+  remaining: {
+    fontSize: 11,
     fontFamily: 'DM Sans',
     marginTop: 2,
   },

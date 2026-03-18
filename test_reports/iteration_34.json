@@ -1,0 +1,66 @@
+{
+  "summary": "Iteration 34 - New Features Testing: Jar visualization, SIP link/unlink, FinancialHealthV2Card on Insights, Plan button navigation, Share Score modal scrollability. Fixed a critical backend bug in link-sip/unlink-sip endpoints.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/sip-analytics/link-sip",
+        "issue": "Returned 404 for valid SIP IDs because recurring_transactions documents use MongoDB ObjectId (_id) as identifier, but endpoint queried by 'id' field which doesn't exist in those documents. FIXED: Added $or query matching both 'id' field and '_id' ObjectId.",
+        "priority": "CRITICAL",
+        "status": "FIXED"
+      },
+      {
+        "endpoint": "POST /api/sip-analytics/unlink-sip",
+        "issue": "Same issue as link-sip. FIXED with same $or query approach.",
+        "priority": "CRITICAL",
+        "status": "FIXED"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "GoalMapper - deadline display",
+        "issues": ["Minor inconsistency: GoalMapper shows '1 months left' for Goa Trip while GoalsSection shows '28 days left'. Different calculation methods (months_left from backend vs getDaysRemaining in frontend)."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration_34_features.py",
+    "/app/test_reports/pytest/pytest_iteration34.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "FIXED: emi_sip_analytics.py link-sip and unlink-sip endpoints now use $or query: [{user_id: uid, id: sip_id}, {user_id: uid, _id: ObjectId(sip_id)}]. This handles both recurring transactions with 'id' field (new) and without 'id' field (existing seed data only has MongoDB _id).",
+    "Minor: GoalMapper shows 'X months left' while GoalsSection shows 'X days left' for near-term goals. GoalMapper calculates months_left on backend (integer division by 30), while GoalsSection calculates days remaining on frontend with smart formatting. Not a bug but a minor UX inconsistency."
+  ],
+  "updated_files": [
+    "/app/backend/routes/emi_sip_analytics.py",
+    "/app/backend/tests/test_iteration_34_features.py"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed after bug fix)",
+    "frontend": "100% (all 6 features verified working)"
+  },
+  "features_verified": {
+    "jar_visualization_goals_section": "PASS - Financial Goals section shows SVG jar-shaped fills for each goal card (Emergency Fund 62%, Goa Trip 64%, New Laptop 54%)",
+    "goal_mapper_jars_and_link": "PASS - GoalMapper shows jar visualizations for 3 goals, Unmapped SIPs section shows 2 SIPs with Link buttons, modal opens with jar-visualized goal options",
+    "insights_financial_health_v2": "PASS - Insights tab shows FinancialHealthV2Card with 313/1000 score, same as dashboard (consistent)",
+    "smart_alerts_plan_button": "PASS - 4 Plan buttons found on insights, clicking navigates to /investments",
+    "share_score_modal_scrollable": "PASS - Share modal opens, 'Share to WhatsApp / Instagram' button visible at y=885 (viewport=1080), not cut off",
+    "backend_link_sip": "PASS (after fix) - link-sip and unlink-sip endpoints work with ObjectId lookup",
+    "backend_unlink_sip": "PASS (after fix) - full link→unlink flow verified with persistence check"
+  },
+  "seed_data_creation": "No new seed data created. Existing demo user (rajesh@visor.demo) data used for testing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 6 features from this iteration are working. Backend link-sip/unlink-sip was fixed by adding ObjectId fallback. The 19 backend tests in test_iteration_34_features.py cover all new endpoints. Frontend jar visualizations render as SVG elements. Link buttons open modals with goal selection. Financial Health V2 card is consistently shown on both Dashboard and Insights tabs.",
+  "rca_of_the_issue": {
+    "bug": "link-sip and unlink-sip return 404 for valid SIPs",
+    "root_cause": "The goal-map endpoint returns SIP IDs using r.get('id', r_id) where r_id = str(r.pop('_id', '')). For recurring_transactions without an 'id' field (all existing seed data), the id returned to the frontend is the stringified MongoDB ObjectId. But link-sip/unlink-sip queried by {'user_id': uid, 'id': sip_id} which fails because the document has no 'id' field - only '_id' (ObjectId type).",
+    "fix": "Added $or query that tries both {'id': sip_id} and {'_id': ObjectId(sip_id)} with try/except for invalid ObjectId strings.",
+    "reproduction": "1. Login as rajesh@visor.demo. 2. Call POST /api/sip-analytics/goal-map to get unmapped SIP IDs. 3. Use the returned SIP ID in POST /api/sip-analytics/link-sip. Before fix: returns 404. After fix: returns 200."
+  }
+}

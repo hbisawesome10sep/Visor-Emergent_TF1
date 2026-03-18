@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, ActivityIndicator, Modal, Platform, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, ActivityIndicator, Modal, Platform, Alert, ScrollView } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop, G } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -284,32 +284,35 @@ export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
                 </TouchableOpacity>
               </View>
 
-              {/* The capturable share card */}
-              <View style={s.shareCardWrapper}>
-                <ShareScoreCard
-                  ref={shareRef}
-                  composite_score={data.composite_score}
-                  dimensions={data.dimensions}
-                  score_change={data.score_change}
-                />
-              </View>
+              {/* Scrollable content so share button is never cut off */}
+              <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+                {/* The capturable share card */}
+                <View style={s.shareCardWrapper}>
+                  <ShareScoreCard
+                    ref={shareRef}
+                    composite_score={data.composite_score}
+                    dimensions={data.dimensions}
+                    score_change={data.score_change}
+                  />
+                </View>
 
-              <TouchableOpacity
-                testID="share-score-action-btn"
-                style={[s.shareActionBtn, { backgroundColor: cfg.gradient[0] }]}
-                onPress={handleShare}
-                activeOpacity={0.85}
-                disabled={sharing}
-              >
-                {sharing ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons name="share-variant" size={18} color="#fff" />
-                    <Text style={s.shareActionText}>Share to WhatsApp / Instagram</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+                <TouchableOpacity
+                  testID="share-score-action-btn"
+                  style={[s.shareActionBtn, { backgroundColor: cfg.gradient[0] }]}
+                  onPress={handleShare}
+                  activeOpacity={0.85}
+                  disabled={sharing}
+                >
+                  {sharing ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons name="share-variant" size={18} color="#fff" />
+                      <Text style={s.shareActionText}>Share to WhatsApp / Instagram</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>

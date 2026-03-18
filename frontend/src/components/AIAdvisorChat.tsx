@@ -10,7 +10,7 @@ import { apiRequest } from '../utils/api';
 import { useScreenContext } from '../context/ScreenContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const VISOR_LOGO = 'https://customer-assets.emergentagent.com/job_0291c132-91c5-44b1-a250-416cde0e6a45/artifacts/3efx3wda_ChatGPT%20Image%20Mar%201%2C%202026%2C%2003_36_12%20PM.png';
+const VISOR_LOGO = 'https://static.prod-images.emergentagent.com/jobs/836c637c-f117-4581-8231-855f26206e7a/images/5983f88ad4969a684b06b0a0dd796d83ba8874553336482eaa693cc302d538be.png';
 
 type Message = {
   id: string;

@@ -13,6 +13,7 @@ from dateutil.relativedelta import relativedelta
 from database import db
 from auth import get_current_user
 from routes.loans import calculate_emi, generate_emi_schedule
+from bson import ObjectId
 import math
 import logging
 
@@ -460,6 +461,7 @@ async def sip_goal_mapping(body=Body(...), user=Depends(get_current_user)):
             "shortfall": round(shortfall, 2),
             "on_track": shortfall <= 0,
             "mapped_sips": [s["name"] for s in mapped_sips],
+            "mapped_sip_details": [{"id": s["id"], "name": s["name"]} for s in mapped_sips],
         })
 
     # Unmapped SIPs
@@ -473,3 +475,58 @@ async def sip_goal_mapping(body=Body(...), user=Depends(get_current_user)):
         "unmapped_sips": unmapped_sips,
         "active_sips": active_sips,
     }
+
+
+# ─── SIP: Link to Goal ─────────────────────────────────────────
+@router.post("/sip-analytics/link-sip")
+async def link_sip_to_goal(body=Body(...), user=Depends(get_current_user)):
+    """Link a SIP (recurring transaction) to a financial goal."""
+    user_id = user["id"]
+    sip_id = body.get("sip_id", "")
+    goal_id = body.get("goal_id", "")
+
+    if not sip_id or not goal_id:
+        raise HTTPException(status_code=422, detail="sip_id and goal_id are required")
+
+    # Match by either 'id' field or MongoDB '_id' (ObjectId) since goal-map uses _id as fallback
+    id_conditions = [{"user_id": user_id, "id": sip_id}]
+    try:
+        id_conditions.append({"user_id": user_id, "_id": ObjectId(sip_id)})
+    except Exception:
+        pass
+
+    result = await db.recurring_transactions.update_one(
+        {"$or": id_conditions},
+        {"$set": {"mapped_goal_id": goal_id}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="SIP not found")
+
+    return {"success": True, "message": "SIP linked to goal"}
+
+
+# ─── SIP: Unlink from Goal ─────────────────────────────────────
+@router.post("/sip-analytics/unlink-sip")
+async def unlink_sip_from_goal(body=Body(...), user=Depends(get_current_user)):
+    """Remove the goal mapping from a SIP."""
+    user_id = user["id"]
+    sip_id = body.get("sip_id", "")
+
+    if not sip_id:
+        raise HTTPException(status_code=422, detail="sip_id is required")
+
+    # Match by either 'id' field or MongoDB '_id' (ObjectId)
+    id_conditions = [{"user_id": user_id, "id": sip_id}]
+    try:
+        id_conditions.append({"user_id": user_id, "_id": ObjectId(sip_id)})
+    except Exception:
+        pass
+
+    result = await db.recurring_transactions.update_one(
+        {"$or": id_conditions},
+        {"$set": {"mapped_goal_id": None}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="SIP not found")
+
+    return {"success": True, "message": "SIP unlinked from goal"}
