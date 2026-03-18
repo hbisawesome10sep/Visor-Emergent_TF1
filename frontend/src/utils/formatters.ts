@@ -99,6 +99,9 @@ export const getCategoryColor = (category: string, isDark: boolean): string => {
     'Silver': '#94A3B8', 'Copper': '#D97706', 'Bonds': '#0284C7',
     'Real Estate': '#78716C', 'Crypto': '#F59E0B', 'ULIP': '#7C3AED',
     'Sovereign Gold Bond': '#CA8A04', 'Government Securities': '#0369A1',
+    // Goal categories (must match GoalsSection.tsx)
+    'Safety': '#10B981', 'Purchase': '#F59E0B', 'Property': '#78716C',
+    'Retirement': '#14B8A6', 'Wedding': '#EC4899',
     // Fallback
     'Food': '#F97316', 'Other': isDark ? '#94A3B8' : '#64748B',
   };

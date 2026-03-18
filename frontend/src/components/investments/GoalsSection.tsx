@@ -39,16 +39,16 @@ const getCategoryIcon = (category: string): any => {
 
 const getCategoryColor = (category: string): string => {
   const colors: Record<string, string> = {
-    'Safety': Accent.emerald,
-    'Travel': Accent.sapphire,
-    'Purchase': Accent.amber,
+    'Safety': '#10B981',
+    'Travel': '#0EA5E9',
+    'Purchase': '#F59E0B',
     'Property': '#78716C',
-    'Education': Accent.amethyst,
+    'Education': '#3B82F6',
     'Retirement': '#14B8A6',
     'Wedding': '#EC4899',
-    'Other': '#6B7280',
+    'Other': '#64748B',
   };
-  return colors[category] || Accent.sapphire;
+  return colors[category] || '#3B82F6';
 };
 
 export const GoalsSection: React.FC<GoalsSectionProps> = ({

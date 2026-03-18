@@ -59,6 +59,11 @@ Build a comprehensive personal finance management application named Visor, tailo
 - [x] Investment card: Current Value pushed to far right (space-between layout)
 - [x] Enhanced Visor AI system prompt for data-driven, numbers-based responses
 
+### Color & QR Fixes - DONE (Mar 18, 2026)
+- [x] Unified goal category colors across Dashboard and Invest screen (formatters.ts + GoalsSection.tsx)
+- [x] Rebuilt Expo Go QR code page with JS-based QR generation, auto-refresh, correct tunnel detection
+- [x] Fixed tunnel URL detection (reads from cloudflared.out.log instead of err.log)
+
 ### Landing Page Redesign - DONE (Mar 18, 2026)
 - [x] New comprehensive landing page at `/app/frontend/app/index.tsx`
 - Sections: NavBar, Hero, Stats Bar, Health Score Showcase, 12-Feature Grid,
