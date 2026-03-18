@@ -70,6 +70,12 @@
 | Dashboard: AI Insight Card (GPT-4o personalized financial advice) | ✅ Complete (Mar 18 2026) | v3.0.0 |
 | Insurance CRUD (Create/Read/Update/Delete policies) | ✅ Complete (Mar 18 2026) | v3.0.0 |
 | FAB Button Fix (Transactions screen - TouchableOpacity to Pressable) | ✅ Complete (Mar 18 2026) | v3.0.0 |
+| Share My Score Feature (capture + share via WhatsApp/Instagram) | ✅ Complete (Mar 18 2026) | v3.1.0 |
+| CC Due Date Calendar with smart reminders (7/3/1 day) | ✅ Complete (Mar 18 2026) | v3.1.0 |
+| CC Interest Calculator (minimum payment trap scenario) | ✅ Complete (Mar 18 2026) | v3.1.0 |
+| CC Rewards Tracker (points, cashback, rupee value, trends) | ✅ Complete (Mar 18 2026) | v3.1.0 |
+| CC Best Card Recommender (AI-powered via GPT-4o) | ✅ Complete (Mar 18 2026) | v3.1.0 |
+| CC Analytics Tab Navigation (5 tabs: Cards, Dues, Rewards, Interest, Best Card) | ✅ Complete (Mar 18 2026) | v3.1.0 |
 
 ---
 
