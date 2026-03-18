@@ -41,9 +41,21 @@ Build a comprehensive personal finance management application named Visor, tailo
 - [x] Prepayment Calculator (tenure/EMI reduction, savings comparison)
 - [x] Wealth Projector (3 scenarios: conservative 8%, moderate 12%, aggressive 15%)
 - [x] Goal Mapper (SIP-to-goal mapping, gap analysis, shortfall detection)
-- Backend: 5 new endpoints in `/app/backend/routes/emi_sip_analytics.py`
-- Frontend: 4 new components in `/app/frontend/src/components/emi-sip/`
-- Testing: 34/34 backend tests passed (100%)
+- [x] SIP-Goal Link/Unlink feature (link/unlink SIPs to specific goals via API)
+- Backend: 7 endpoints in `/app/backend/routes/emi_sip_analytics.py` (incl. link-sip, unlink-sip)
+- Frontend: 4 components in `/app/frontend/src/components/emi-sip/`
+- Testing: 53/53 backend tests passed (100%)
+
+### UI/UX Enhancements - DONE (Mar 18, 2026)
+- [x] Jar-shaped goal progress visualization (SVG JarProgressView component)
+  - Replaced progress bars in GoalsSection.tsx with old-school money jar fills
+  - Integrated in GoalMapper.tsx for all goal cards
+  - File: `/app/frontend/src/components/JarProgressView.tsx`
+- [x] Fixed Share Score modal - added ScrollView so share button is not cut off
+- [x] Smart Alerts "Plan/Review" buttons now navigate to relevant tabs
+- [x] Financial Health Score now consistent on both Dashboard and Insights (V2 card)
+- [x] Visor AI icon changed to stylized eye/lens (not robot)
+- [x] Enhanced Visor AI system prompt for data-driven, numbers-based responses
 
 ### Phase 4: Tax Screen & Bookkeeping - NOT STARTED
 - [ ] Tax-loss Harvesting alerts
