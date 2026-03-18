@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Modal,
   RefreshControl, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
-  Switch, Animated, Dimensions, StatusBar,
+  Switch, Animated, Dimensions, StatusBar, Pressable,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -854,24 +854,29 @@ export default function TransactionsScreen() {
       </ScrollView>
 
       {/* ═══ FLOATING ACTION BUTTON ═══ */}
-      <TouchableOpacity
-        data-testid="add-transaction-fab"
-        style={styles.fab}
-        onPress={() => {
-          console.log('FAB pressed - opening add modal');
-          openAdd();
-        }}
-        activeOpacity={0.9}
-      >
-        <LinearGradient
-          colors={[Accent.amethyst, '#EC4899']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fabGradient}
+      <View style={styles.fabContainer} pointerEvents="box-none">
+        <Pressable
+          testID="add-transaction-fab"
+          style={({ pressed }) => [
+            styles.fab,
+            pressed && { opacity: 0.85, transform: [{ scale: 0.95 }] },
+          ]}
+          onPress={() => {
+            console.log('FAB pressed - opening add modal');
+            openAdd();
+          }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <MaterialCommunityIcons name="plus" size={28} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
+          <LinearGradient
+            colors={[Accent.amethyst, '#EC4899']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.fabGradient}
+          >
+            <MaterialCommunityIcons name="plus" size={28} color="#fff" />
+          </LinearGradient>
+        </Pressable>
+      </View>
 
       {/* ═══ ADD/EDIT TRANSACTION MODAL ═══ */}
       <Modal visible={showModal} animationType="slide" transparent>
@@ -1795,11 +1800,18 @@ const styles = StyleSheet.create({
   },
 
   // FAB
+  fabContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    zIndex: 99999,
+  },
   fab: {
     position: 'absolute',
     right: 20,
     bottom: Platform.OS === 'ios' ? 110 : 90,
-    zIndex: 99999,
     borderRadius: 28,
     shadowColor: Accent.amethyst,
     shadowOffset: { width: 0, height: 4 },

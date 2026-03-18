@@ -30,6 +30,11 @@ import PieChart from '../../src/components/PieChart';
 import TrendChart from '../../src/components/TrendChart';
 import FAB from '../../src/components/FAB';
 import { FinancialHealthCard } from '../../src/components/FinancialHealthCard';
+import { FinancialHealthV2Card } from '../../src/components/dashboard/FinancialHealthV2Card';
+import { NetWorthCard } from '../../src/components/dashboard/NetWorthCard';
+import { InvestmentSummaryCard } from '../../src/components/dashboard/InvestmentSummaryCard';
+import { UpcomingDuesCard } from '../../src/components/dashboard/UpcomingDuesCard';
+import { AIInsightCard } from '../../src/components/dashboard/AIInsightCard';
 import { Accent } from '../../src/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -434,21 +439,15 @@ export default function DashboardScreen() {
           </Text>
         </View>
 
-        {/* ═══ FINANCIAL HEALTH SCORE CARD (New Redesigned) ═══ */}
-        <FinancialHealthCard
-          data={{
-            overall_score: healthScore,
-            grade: scoreInfo.label,
-            has_sufficient_data: stats?.health_score?.has_sufficient_data ?? (stats?.total_income > 0),
-            savings_rate: stats?.savings_rate || 0,
-            investment_rate: stats?.investment_ratio || 0,
-            expense_ratio: stats?.expense_ratio || 0,
-            goal_progress: stats?.goal_progress || 0,
-            breakdown: breakdown,
-          }}
-          isDark={isDark}
-          colors={colors}
-        />
+        {/* ═══ FINANCIAL HEALTH SCORE V2 (8 Dimensions, 0-1000) ═══ */}
+        {token && (
+          <FinancialHealthV2Card token={token} isDark={isDark} colors={colors} />
+        )}
+
+        {/* ═══ UPCOMING DUES (CC + Loans) ═══ */}
+        {token && (
+          <UpcomingDuesCard token={token} isDark={isDark} colors={colors} />
+        )}
 
         {/* ═══ OVERVIEW CARDS (Liquid Fill) ═══ */}
         <View style={styles.section}>
@@ -587,6 +586,26 @@ export default function DashboardScreen() {
             )}
           </LinearGradient>
         </TouchableOpacity>
+
+        {/* ═══ NET WORTH CARD ═══ */}
+        {token && (
+          <NetWorthCard token={token} isDark={isDark} colors={colors} />
+        )}
+
+        {/* ═══ INVESTMENT SUMMARY CARD ═══ */}
+        {token && (
+          <InvestmentSummaryCard 
+            token={token} 
+            isDark={isDark} 
+            colors={colors} 
+            onPress={() => router.push('/(tabs)/investments')}
+          />
+        )}
+
+        {/* ═══ AI INSIGHT CARD ═══ */}
+        {token && (
+          <AIInsightCard token={token} isDark={isDark} colors={colors} />
+        )}
 
         {/* ═══ EXPENSE BREAKDOWN (Pie Chart) ═══ */}
         {pieData.length > 0 && (
