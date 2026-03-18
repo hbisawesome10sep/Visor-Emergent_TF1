@@ -24,7 +24,7 @@ import os
 from datetime import datetime, timedelta
 
 # Use the public URL from environment
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://investment-tracker-29.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://finance-goals-jarvis.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "rajesh@visor.demo"
