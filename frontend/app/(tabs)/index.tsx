@@ -36,6 +36,7 @@ import { InvestmentSummaryCard } from '../../src/components/dashboard/Investment
 import { UpcomingDuesCard } from '../../src/components/dashboard/UpcomingDuesCard';
 import { AIInsightCard } from '../../src/components/dashboard/AIInsightCard';
 import { Accent } from '../../src/utils/theme';
+import { JarProgressView } from '../../src/components/JarProgressView';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -587,11 +588,6 @@ export default function DashboardScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* ═══ NET WORTH CARD ═══ */}
-        {token && (
-          <NetWorthCard token={token} isDark={isDark} colors={colors} />
-        )}
-
         {/* ═══ INVESTMENT SUMMARY CARD ═══ */}
         {token && (
           <InvestmentSummaryCard 
@@ -809,6 +805,95 @@ export default function DashboardScreen() {
           )}
         </TouchableOpacity>
 
+        {/* ═══ NET WORTH CARD (below Trend Analysis) ═══ */}
+        {token && (
+          <NetWorthCard token={token} isDark={isDark} colors={colors} />
+        )}
+
+        {/* ═══ FINANCIAL GOALS (above Recent Transactions) ═══ */}
+        <View
+          style={[
+            styles.glassCard,
+            {
+              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+              borderColor: isDark ? '#1F2937' : '#E5E7EB',
+            },
+          ]}
+        >
+          <View style={styles.cardHeader}>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Financial Goals</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/investments')}>
+              <Text style={[styles.viewAllLink, { color: colors.primary }]}>+ Add Goal</Text>
+            </TouchableOpacity>
+          </View>
+
+          {goals.length === 0 ? (
+            <View style={styles.emptyGoals}>
+              <MaterialCommunityIcons
+                name="flag-variant-outline"
+                size={48}
+                color={colors.textSecondary}
+              />
+              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                No financial goals yet
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                Set goals to track your savings progress
+              </Text>
+              <TouchableOpacity
+                style={[styles.emptyBtn, { backgroundColor: colors.primary }]}
+                onPress={() => router.push('/(tabs)/investments')}
+              >
+                <Text style={styles.emptyBtnText}>Create Your First Goal</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            goals.map((goal) => {
+              const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
+              const catColor = getCategoryColor(goal.category, isDark);
+              return (
+                <View
+                  key={goal.id}
+                  style={[
+                    styles.goalCard,
+                    {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                      borderColor: catColor + '28',
+                    },
+                  ]}
+                >
+                  <View style={styles.goalCardInner}>
+                    {/* Jar visualization */}
+                    <JarProgressView percentage={progress} color={catColor} uid={goal.id} width={58} />
+                    {/* Goal info */}
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <View style={[styles.goalIconWrap, { backgroundColor: catColor + '20' }]}>
+                          <MaterialCommunityIcons name={getCategoryIcon(goal.category)} size={14} color={catColor} />
+                        </View>
+                        <Text style={[styles.goalTitle, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>
+                          {goal.title}
+                        </Text>
+                      </View>
+                      <Text style={[styles.goalCategory, { color: catColor, fontWeight: '600' }]}>{goal.category}</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                        <View>
+                          <Text style={{ fontSize: 14, fontWeight: '800', fontFamily: 'DM Sans', color: catColor }}>{formatINRShort(goal.current_amount)}</Text>
+                          <Text style={{ fontSize: 10, color: colors.textSecondary }}>saved</Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '800', fontFamily: 'DM Sans', color: colors.textPrimary }}>{formatINRShort(goal.target_amount)}</Text>
+                          <Text style={{ fontSize: 10, color: colors.textSecondary }}>target</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              );
+            })
+          )}
+        </View>
+
         {/* ═══ RECENT TRANSACTIONS ═══ */}
         {stats && stats.recent_transactions.length > 0 && (
           <View
@@ -898,109 +983,6 @@ export default function DashboardScreen() {
             ))}
           </View>
         )}
-
-        {/* ═══ FINANCIAL GOALS ═══ */}
-        <View
-          style={[
-            styles.glassCard,
-            {
-              backgroundColor: isDark ? 'rgba(10, 10, 11, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-              borderColor: isDark ? '#1F2937' : '#E5E7EB',
-            },
-          ]}
-        >
-          <View style={styles.cardHeader}>
-            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Financial Goals</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/investments')}>
-              <Text style={[styles.viewAllLink, { color: colors.primary }]}>+ Add Goal</Text>
-            </TouchableOpacity>
-          </View>
-
-          {goals.length === 0 ? (
-            <View style={styles.emptyGoals}>
-              <MaterialCommunityIcons
-                name="flag-variant-outline"
-                size={48}
-                color={colors.textSecondary}
-              />
-              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-                No financial goals yet
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                Set goals to track your savings progress
-              </Text>
-              <TouchableOpacity
-                style={[styles.emptyBtn, { backgroundColor: colors.primary }]}
-                onPress={() => router.push('/(tabs)/investments')}
-              >
-                <Text style={styles.emptyBtnText}>Create Your First Goal</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            goals.map((goal) => {
-              const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
-              const remaining = goal.target_amount - goal.current_amount;
-              return (
-                <View
-                  key={goal.id}
-                  style={[
-                    styles.goalCard,
-                    {
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-                    },
-                  ]}
-                >
-                  <View style={styles.goalTop}>
-                    <View
-                      style={[
-                        styles.goalIconWrap,
-                        { backgroundColor: getCategoryColor(goal.category, isDark) + '20' },
-                      ]}
-                    >
-                      <MaterialCommunityIcons
-                        name={getCategoryIcon(goal.category)}
-                        size={18}
-                        color={getCategoryColor(goal.category, isDark)}
-                      />
-                    </View>
-                    <View style={styles.goalInfo}>
-                      <Text style={[styles.goalTitle, { color: colors.textPrimary }]}>
-                        {goal.title}
-                      </Text>
-                      <Text style={[styles.goalCategory, { color: colors.textSecondary }]}>
-                        {goal.category}
-                      </Text>
-                    </View>
-                    <Text style={[styles.goalPercent, { color: colors.primary }]}>
-                      {progress.toFixed(0)}%
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.goalBarTrack,
-                      { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.goalBarFill,
-                        { width: `${progress}%`, backgroundColor: colors.primary },
-                      ]}
-                    />
-                  </View>
-                  <View style={styles.goalBottom}>
-                    <Text style={[styles.goalAmounts, { color: colors.textSecondary }]}>
-                      {formatINRShort(goal.current_amount)} / {formatINRShort(goal.target_amount)}
-                    </Text>
-                    <Text style={[styles.goalRemaining, { color: colors.textSecondary }]}>
-                      {formatINRShort(remaining)} remaining
-                    </Text>
-                  </View>
-                </View>
-              );
-            })
-          )}
-        </View>
 
         <View style={{ height: 140 }} />
       </ScrollView>
@@ -1484,7 +1466,13 @@ const styles = StyleSheet.create({
   goalCard: {
     padding: 14,
     borderRadius: 14,
+    borderWidth: 1,
     marginBottom: 10,
+  },
+  goalCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   goalTop: {
     flexDirection: 'row',

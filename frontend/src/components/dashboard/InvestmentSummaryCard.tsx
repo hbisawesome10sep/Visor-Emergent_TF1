@@ -85,12 +85,11 @@ export const InvestmentSummaryCard = ({ token, isDark, colors, onPress }: Props)
             <Text style={[s.label, { color: colors.textSecondary }]}>Invested</Text>
             <Text style={[s.value, { color: colors.textPrimary }]}>Rs {fmtINR(data.total_invested)}</Text>
           </View>
-          <View style={s.arrowCol}>
-            <MaterialCommunityIcons name="arrow-right" size={20} color={colors.textSecondary} />
-          </View>
-          <View>
-            <Text style={[s.label, { color: colors.textSecondary }]}>Current</Text>
-            <Text style={[s.value, { color: isGain ? Accent.emerald : Accent.ruby }]}>Rs {fmtINR(data.current_value)}</Text>
+          <MaterialCommunityIcons name="arrow-right-thin" size={22} color={colors.textSecondary} style={{ marginHorizontal: 4, alignSelf: 'center' }} />
+          <View style={{ flex: 1 }} />
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={[s.label, { color: colors.textSecondary }]}>Current Value</Text>
+            <Text style={[s.valueLarge, { color: isGain ? Accent.emerald : Accent.ruby }]}>Rs {fmtINR(data.current_value)}</Text>
           </View>
         </View>
 
@@ -135,6 +134,7 @@ const s = StyleSheet.create({
   arrowCol: { paddingHorizontal: 12 },
   label: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
   value: { fontSize: 20, fontWeight: '800' },
+  valueLarge: { fontSize: 22, fontWeight: '800' },
   returnRow: { flexDirection: 'row', borderRadius: 12, padding: 12, gap: 4 },
   returnItem: { flex: 1, alignItems: 'center' },
   returnLabel: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
