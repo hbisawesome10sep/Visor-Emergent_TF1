@@ -63,6 +63,13 @@
 | Component: HoldingsSection extracted | ✅ Complete (Mar 17 2026) | v2.3.1 |
 | Component: RiskProfileCard extracted | ✅ Complete (Mar 17 2026) | v2.3.1 |
 | Component: RecurringInvestmentsSection extracted | ✅ Complete (Mar 17 2026) | v2.3.1 |
+| Dashboard: Financial Health Score V2 (8 dimensions, 0-1000 scale, flip card) | ✅ Complete (Mar 18 2026) | v3.0.0 |
+| Dashboard: Net Worth Card (Assets vs Liabilities breakdown) | ✅ Complete (Mar 18 2026) | v3.0.0 |
+| Dashboard: Investment Summary Card (XIRR, P&L, Holdings count) | ✅ Complete (Mar 18 2026) | v3.0.0 |
+| Dashboard: Upcoming Dues Card (CC + Loan due dates with urgency) | ✅ Complete (Mar 18 2026) | v3.0.0 |
+| Dashboard: AI Insight Card (GPT-4o personalized financial advice) | ✅ Complete (Mar 18 2026) | v3.0.0 |
+| Insurance CRUD (Create/Read/Update/Delete policies) | ✅ Complete (Mar 18 2026) | v3.0.0 |
+| FAB Button Fix (Transactions screen - TouchableOpacity to Pressable) | ✅ Complete (Mar 18 2026) | v3.0.0 |
 
 ---
 
