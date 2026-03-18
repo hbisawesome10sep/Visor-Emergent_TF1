@@ -34,11 +34,6 @@ EXPO_UPDATED=0
       else
         echo "EXPO_PACKAGER_PROXY_URL=$URL" >> $ENV_FILE
       fi
-      if grep -q "REACT_NATIVE_PACKAGER_HOSTNAME" $ENV_FILE; then
-        sed -i "s|REACT_NATIVE_PACKAGER_HOSTNAME=.*|REACT_NATIVE_PACKAGER_HOSTNAME=$HOSTNAME|" $ENV_FILE
-      else
-        echo "REACT_NATIVE_PACKAGER_HOSTNAME=$HOSTNAME" >> $ENV_FILE
-      fi
 
       echo "[tunnel] Active URL: $URL"
       echo "[tunnel] Expo Go QR URL: exp://$HOSTNAME"

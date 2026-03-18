@@ -25,68 +25,102 @@
 **User's preferred language**: English
 
 **what currently exists?**
-The application backend was recently refactored into a more modular service-oriented architecture. The frontend also underwent partial refactoring, with types extracted from the large  file. However, this refactoring introduced a critical regression that broke the frontend build. The Expo Go application currently fails to load, presenting a Something went wrong error, which blocks all user interaction and further development. The root cause has been identified as an incorrect module import path in the  file.
+The application is in a partially broken state. A critical P0 issue preventing the Expo Go app from loading was fixed, and the  file was partially refactored. However, the user is now blocked by several new issues: the + icon for adding transactions is unresponsive, bank statement uploads are failing from the UI, and connecting to the app via Expo Go remains difficult, especially on iOS. To mitigate the connection problems, the agent created a custom, auto-refreshing QR code page that includes a button to directly open the app in Expo Go. The development tunnel has been switched from 
+PYNGROK VERSION:
+   7.5.0 (which was hitting account limits) to .
 
 **Last working item**:
--   Last item agent was working: The agent successfully diagnosed the critical P0 issue preventing the Expo Go application from loading. By analyzing the frontend error logs, it confirmed that the Metro bundler is failing due to an incorrect relative import path in . The agent was preparing a plan to fix this when the user's repeated error reports came in.
--   Status: BLOCKED
+-   Last item agent was working: Investigating two critical user-reported bugs: the unresponsive + button on the Transactions screen and the failing bank statement upload function. The agent identified a backend  for the upload issue, which was resolved by a service restart, but the frontend interaction remains unverified. The agent investigated the code for the unresponsive button () but did not find a root cause or apply a fix.
+-   Status: IN PROGRESS
 -   Agent Testing Done: N
--   Which testing method agent to use? The next agent should first fix the code, then use the screenshot tool to quickly verify the app loads. After confirmation, a full frontend test using  is recommended to catch any other regressions from the recent refactoring.
+-   Which testing method agent to use? The agent should use the screenshot tool with  to debug the unresponsive button. For the bank statement upload, a full end-to-end test from the UI is required, followed by backend log analysis.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Expo Go Preview Fails to Load (P0 - CRITICAL)**
-    -   **Description**: The application is inaccessible to the user via the Expo Go QR code, showing a generic error screen. This is a critical regression blocking all progress. The agent has confirmed the cause is a Metro bundler error.
-    -   **Attempted fixes**: The issue has been successfully diagnosed by analyzing supervisor logs.
+-   **Issue 1: '+' Icon on Transactions Screen is Unresponsive (P0 - CRITICAL)**
+-   **Issue 2: Bank Statement Upload Fails from UI (P1 - HIGH)**
+-   **Issue 3: Expo Go Deep Link Fails to Open App Directly on iOS (P2 - MEDIUM)**
+
+Issues Detail:
+-   **Issue 1: '+' Icon on Transactions Screen is Unresponsive (P0 - CRITICAL)**
+    -   **Attempted fixes**: The agent reviewed the code in . It confirmed the  handler () correctly calls the state setter (). The component's styling and positioning were also checked, but no obvious cause (like incorrect  or a blocking overlay) was found. No code changes were applied.
     -   **Next debug checklist**:
-        1.  Edit the file .
-        2.  Locate the line importing from .
-        3.  Correct the invalid relative path from  to .
-        4.  Restart the frontend service to ensure a clean build: frontend: ERROR (no such process)
-frontend: ERROR (no such process).
-        5.  Verify the frontend logs () show a successful compilation.
-        6.  Provide the user with the fresh QR code page link.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is an absolute blocker. Fixing it will restore user access to the application, allowing development and testing to resume.
+        1.  Examine  again.
+        2.  Check for any parent container that might be blocking touch events ().
+        3.  Investigate potential overlaps with the tab bar, especially on iOS.
+        4.  Use the screenshot tool with  on the FAB button to confirm it is interactive and visible to the testing tool.
+        5.  Add console logs inside the  function and check the device logs to ensure the function is being triggered on press.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a core functionality blocker, preventing users from manually adding transactions.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on other issue**: No
+
+-   **Issue 2: Bank Statement Upload Fails from UI (P1 - HIGH)**
+    -   **Attempted fixes**: The user reported an  error. The agent found a  in the backend logs. This was attributed to a cached module and resolved by restarting the backend service. The agent then successfully tested the  endpoint using . However, the fix has not been verified through the frontend UI, which is how the user originally experienced the bug.
+    -   **Next debug checklist**:
+        1.  Attempt to upload a bank statement via the app's UI.
+        2.  If it fails, inspect the frontend error handling in  to see why a proper error message isn't displayed.
+        3.  Simultaneously, tail the backend logs () during the upload attempt to capture the precise error.
+    -   **Why fix this issue and what will be achieved with the fix?**: This feature is essential for automating transaction entry, a key product requirement.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on other issue**: No
+
+-   **Issue 3: Expo Go Deep Link Fails to Open App Directly on iOS (P2 - MEDIUM)**
+    -   **Attempted fixes**: The agent created a custom QR code page () with an Open in Expo Go button. This button generates a deep link (). The user reported this still does not work on iOS. The agent has already configured the Expo manifest with the correct  and  pointing to the cloudflared tunnel.
+    -   **Next debug checklist**:
+        1.  Verify the exact deep link URL format required for the latest version of Expo Go on iOS.
+        2.  Check the  for any iOS-specific configurations that might interfere with deep linking.
+        3.  Instruct the user to clear the Expo Go app cache or reinstall the app, as stale configurations can cause such issues.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a major developer experience and usability issue that is causing significant user frustration.
     -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: frontend
     -   **Blocked on other issue**: No
 
 **In progress Task List**:
--   **Task 1: Implement Credit Card Statement Parsing Logic (P1)**
-    -   **Where to resume**: This is the next major feature but is blocked by the critical loading issue. Once the app is working, the agent should ask the user to upload the sample credit card statements to begin work.
-    -   **What will be achieved with this?**: This will initiate the development of the credit card management module, a core product requirement.
-    -   **Status**: BLOCKED
-    -   **Should Test frontend/backend/both after fix?**: backend
-    -   **Blocked on something**: Issue 1: Expo Go Preview Fails to Load
+-   None. The agent was focused on bug fixing.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P1) Continue  Refactoring**: The file is still nearly 2000 lines long. The main JSX body needs to be broken down into smaller components under .
-    -   **(P1) Parse All 4 Sample CC Statements**: Analyze and build robust parsers for all statement formats provided by the user.
-    -   **(P1) CC Statement Preview UI**: Create a screen to show users the parsed transactions before they confirm the import.
+    -   **(P1) Implement Credit Card Statement Parsing**: Awaiting sample statements from the user.
+    -   **(P1) Continue  Refactoring**: The file is still ~1686 lines. The main JSX body needs to be broken down into smaller components under .
+    -   **(P1) CC Statement Preview UI**: Create a screen to show users parsed transactions before import confirmation.
 -   **Future Tasks**:
     -   **(P2) Gmail Integration**: Automate transaction import from Gmail.
-    -   **(P3) Consolidate Parser Utilities**: Refactor  and other modules to use the centralized utility functions in .
+    -   **(P3) Consolidate Parser Utilities**: Refactor duplicate code from  into .
+    -   **(P3) Implement Visor AI Agent**: Build the core AI feature.
 
 **Completed work in this session**
--   **Expo Go Loading Failure Diagnosis (DONE)**: Successfully investigated and identified the root cause of the application crash by analyzing the frontend supervisor logs (). The issue was pinpointed to an incorrect import path in .
+-   **P0 Expo Go Loading Failure (FIXED)**: Resolved a critical Metro bundler error caused by an incorrect import path in .
+-   ** Refactoring (Partially DONE)**: Extracted ~300 lines into four new React components: , , , and . Verified with the testing agent.
+-   **Expo Go QR Code Page (DONE)**: Created a custom, auto-refreshing HTML page at  that displays the active tunnel status, QR code, and a direct Open in Expo Go button to simplify device connection.
+-   **Tunneling Switched to Cloudflared (DONE)**: Moved from Expo's default 
+PYNGROK VERSION:
+   7.5.0 tunnel to a more stable  setup to bypass 
+PYNGROK VERSION:
+   7.5.0's session limits.
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+-   None. All current issues have been captured in the pending list.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork**: Fragile Expo Go Connectivity / Stale Bundles.
 -   **Recurrence count**: High
--   **Status**: IN PROGRESS. The current P0 blocker is a severe instance of this recurring problem.
+-   **Status**: IN PROGRESS. This remains a persistent problem, though the custom QR page is a significant workaround.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Log Analysis for Debugging**: Successfully used  on supervisor logs to diagnose a critical frontend build failure.
--   **Large-Scale Refactoring**: The project recently underwent a major refactoring of backend files into a service and parser-based architecture.
--   **API Interceptors for Auth**: A global request handler exists in  to manage  errors and auto-logout.
+-   **Expo Go Tunneling (ngrok vs. cloudflared)**: Debugged extensive connectivity issues, ultimately abandoning 
+PYNGROK VERSION:
+   7.5.0 due to account session limits and switching to the more reliable  tunnel.
+-   **Expo Go Deep Linking**: Implemented a custom solution to provide a direct  deep link via an HTML button to improve the user connection experience on mobile.
+-   **React Component Refactoring**: Decomposed a large, ~2000-line React component () into smaller, more manageable child components.
+-   **Dynamic QR Code Generation**: Created a backend endpoint that serves an HTML page with a dynamically generated QR code and auto-refreshing status for the current development tunnel.
 
 **key DB schema**
 -   No changes made to the database schema in this session.
@@ -95,35 +129,44 @@ frontend: ERROR (no such process).
 -   No changes made to the tech stack in this session.
 
 **All files of reference**
--   : The file containing the error that needs to be fixed.
--   : The file that is failing to be imported.
--   : The log file where the error was identified.
+-   : File with the unresponsive + FAB button.
+-   : File handling the bank statement upload UI.
+-   : New file created to serve the custom QR code page.
+-   : Modified to add the  route.
+-   : Modified multiple times to manage Expo's tunneling configuration.
+-   : File that was fixed and refactored.
+-   : Directory containing the newly created components.
 
 **Areas that need refactoring**:
--   ****: This file is still extremely large (~1980 lines). After the P0 bug is fixed, it needs to be broken down into smaller components.
--   **Parser Utilities**: Duplicate utility functions across different parser modules should be consolidated into .
+-   ****: Still over 1600 lines long. The remaining JSX and logic should be broken down into smaller components.
+-   **Tunnel Management**: The process of managing the  tunnel and ensuring Expo uses the correct URL is manual and brittle. A more robust, automated script could improve stability.
 
 **key api endpoints**
--   No changes made to API endpoints in this session.
+-   : (GET) Serves the custom HTML page for the Expo Go QR code.
+-   : (POST) Endpoint for uploading bank statements, which was debugged.
 
 **Critical Info for New Agent**
--   **Your immediate and only priority is to fix the Expo Go loading error.** The user is frustrated and completely blocked.
--   The diagnosis is complete. You do not need to investigate further. Proceed directly to the fix.
--   **The fix is to edit  and change the import path from  to .**
--   After applying the fix, restart the frontend service (frontend: ERROR (no such process)
-frontend: ERROR (no such process)) and immediately provide the user with the working QR code page link.
+-   **Your immediate priority is fixing the user-reported UI bugs.** The user is completely blocked by the unresponsive + button and the failing bank statement upload. Address the + button first as it's a P0.
+-   **Do not trust the  test for the bank statement upload.** The issue was reported from the app. You must perform an end-to-end test from the UI to confirm the fix.
+-   **The Expo Go connection is a recurring pain point.** Guide the user to use the custom QR page: . The Open in Expo Go button is the most reliable method. Be prepared to debug iOS-specific deep linking issues.
+-   **The demo user ( / ) is confirmed to exist and should be used for testing.**
 
 **documents and test reports created in this job**
 -   
 -   
 -   
 -   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-The last several user messages are repeated, urgent requests to fix a loading error in the Expo Go app. The user has provided screenshots of the error and is asking for a fresh and working auto refreshing QR code. The user is clearly blocked and frustrated.
+-   **User Message 10:** Reports that opening Expo Go directly on iOS is not working, the bank statement upload shows an  error, and existing registered users seem to be gone.
+-   **User Message 9:** States the bank statement upload function and the transaction adding (+) functionality are not working.
+-   **User Message 8:** Reports an error on iPhone when trying to connect via the QR code page, with a screenshot showing a connection error to .
+-   **User Message 7:** States the previous QR code solution has the literally the same error and requests a webpage link with an auto-refreshing QR code that works on both iOS and Android.
+-   **User Message 6:** Reports the QR code on Expo Go is not working on either Android or iOS.
 
 **Project Health Check:**
--   **Broken**: The frontend application is non-functional and fails to build, making it completely inaccessible.
+-   **Broken**: The frontend has critical UI bugs preventing core functionality (adding transactions, uploading statements). The development workflow is hampered by persistent mobile connectivity issues.
 
 **3rd Party Integrations**
 -   **OpenAI GPT-4o**: For the Visor AI Agent — uses Emergent LLM Key.
@@ -160,14 +203,17 @@ options:
 -   : For development environment tunneling.
 
 **Testing status**
--   Testing agent used after significant changes: NO (not in this session).
+-   Testing agent used after significant changes: YES (after the  refactoring).
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: A critical regression has occurred where the app no longer loads in Expo Go.
+-   Known regressions:
+    1.  The + button on the transaction screen is unresponsive.
+    2.  Bank statement upload is failing from the UI.
 
 **Credentials to test flow:**
 -   **Demo Account**:  / 
 -   **eCAS PDF Password**: 
 
 **What agent forgot to execute**
--   The agent did not get a chance to act on its plan to fix the bug. It was preempted by a series of urgent messages from the blocked user. The immediate next step is to execute the diagnosed fix.</analysis>
+-   The agent did not apply a definitive fix for the unresponsive '+' button on the transactions screen after its initial investigation.
+-   The agent did not perform an end-to-end UI test to verify the bank statement upload fix, relying solely on a backend  test.</analysis>
