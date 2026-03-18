@@ -445,11 +445,6 @@ export default function DashboardScreen() {
           <FinancialHealthV2Card token={token} isDark={isDark} colors={colors} />
         )}
 
-        {/* ═══ UPCOMING DUES (CC + Loans) ═══ */}
-        {token && (
-          <UpcomingDuesCard token={token} isDark={isDark} colors={colors} />
-        )}
-
         {/* ═══ OVERVIEW CARDS (Liquid Fill) ═══ */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Overview</Text>
@@ -587,6 +582,11 @@ export default function DashboardScreen() {
             )}
           </LinearGradient>
         </TouchableOpacity>
+
+        {/* ═══ UPCOMING DUES (CC + Loans) — below Overview & Credit Cards ═══ */}
+        {token && (
+          <UpcomingDuesCard token={token} isDark={isDark} colors={colors} />
+        )}
 
         {/* ═══ INVESTMENT SUMMARY CARD ═══ */}
         {token && (

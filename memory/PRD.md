@@ -47,15 +47,25 @@ Build a comprehensive personal finance management application named Visor, tailo
 - Testing: 53/53 backend tests passed (100%)
 
 ### UI/UX Enhancements - DONE (Mar 18, 2026)
-- [x] Jar-shaped goal progress visualization (SVG JarProgressView component)
-  - Replaced progress bars in GoalsSection.tsx with old-school money jar fills
-  - Integrated in GoalMapper.tsx for all goal cards
-  - File: `/app/frontend/src/components/JarProgressView.tsx`
+- [x] Jar-shaped goal progress visualization (SVG JarProgressView component) - GoalsSection + GoalMapper
+- [x] Dashboard Financial Goals section: jar-style fills (matches Invest screen)
+- [x] Dashboard Financial Goals: moved ABOVE Recent Transactions
+- [x] Dashboard Net Worth: moved BELOW Trend Analysis card
+- [x] Dashboard Upcoming Dues: moved BELOW Overview + Credit Cards section
 - [x] Fixed Share Score modal - added ScrollView so share button is not cut off
-- [x] Smart Alerts "Plan/Review" buttons now navigate to relevant tabs
-- [x] Financial Health Score now consistent on both Dashboard and Insights (V2 card)
-- [x] Visor AI icon changed to stylized eye/lens (not robot)
+- [x] Smart Alerts action buttons navigate to relevant tabs
+- [x] Financial Health Score consistent on Dashboard and Insights (V2 card)
+- [x] Visor AI icon: cute emoji-style robot (replaces dark cyber eye)
+- [x] Investment card: Current Value pushed to far right (space-between layout)
 - [x] Enhanced Visor AI system prompt for data-driven, numbers-based responses
+
+### Landing Page Redesign - DONE (Mar 18, 2026)
+- [x] New comprehensive landing page at `/app/frontend/app/index.tsx`
+- Sections: NavBar, Hero, Stats Bar, Health Score Showcase, 12-Feature Grid,
+  Visor AI section (with example outputs), Jar Goals Showcase, 
+  Screenshot Carousel, Security Section, Final CTA
+- Uses real app screenshots from customer-assets bucket
+- Dark/Light mode support, smooth animations, emerald/navy theme
 
 ### Phase 4: Tax Screen & Bookkeeping - NOT STARTED
 - [ ] Tax-loss Harvesting alerts
