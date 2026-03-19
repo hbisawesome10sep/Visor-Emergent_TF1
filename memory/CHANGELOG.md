@@ -1,47 +1,60 @@
-# CHANGELOG
+# VISOR FINANCE — Changelog
 
-## March 18, 2026 - Phase 3: EMI & SIP Tracking (COMPLETE)
+## March 18, 2026 (Session 7)
+### Color & QR Fixes
+- Unified goal category colors across Dashboard (`formatters.ts`) and Invest screen (`GoalsSection.tsx`)
+- Added goal categories (Safety, Purchase, Property, Retirement, Wedding) to shared color map
+- Rebuilt Expo Go QR code page (`/api/expo/qr`) with JS-based QR generation, auto-refresh, correct tunnel detection
 
-### Backend
-- Created `/app/backend/routes/emi_sip_analytics.py` with 5 new endpoints:
-  - `GET /api/emi-analytics/overview` - Aggregated P vs I split across all loans, per-loan breakdown, monthly amortization timeline
-  - `POST /api/emi-analytics/prepayment` - Prepayment calculator supporting both "reduce tenure" and "reduce EMI" modes with savings comparison
-  - `GET /api/sip-analytics/dashboard` - SIP performance analytics with discipline score, category allocation
-  - `POST /api/sip-analytics/wealth-projection` - Future wealth projection with conservative (8%), moderate (12%), aggressive (15%) scenarios + custom rate
-  - `POST /api/sip-analytics/goal-map` - Maps SIPs to financial goals with gap analysis and shortfall detection
-- Registered `emi_sip_analytics_router` in `server.py`
-- Created demo Home Loan (50L, 8.5%, 240 months) for testing
+### UI/UX Overhaul
+- Created `JarProgressView.tsx` — SVG jar visualization for goal progress
+- Dashboard layout rework: Goals above Transactions, Net Worth below Trends, Dues below Credit Cards
+- Fixed Share Score modal scroll issue
+- Smart Alerts navigation to relevant tabs
+- Consistent Financial Health V2 Card across Dashboard and Insights
+- New cute robot icon for Visor AI agent
+- Investment card layout fix (Current Value alignment)
 
-### Frontend
-- Created 4 new components under `/app/frontend/src/components/emi-sip/`:
-  - `PrincipalInterestSplit.tsx` - Visual P vs I breakdown with stacked bar, per-loan expandable cards
-  - `PrepaymentCalculator.tsx` - Interactive calculator with loan selector, tenure/EMI toggle, savings comparison table
-  - `WealthProjector.tsx` - Year selector, custom SIP/return inputs, scenario tabs with visual comparison bars, year-by-year milestones
-  - `GoalMapper.tsx` - Goal cards with progress bars, shortfall warnings, unmapped SIP section
-- Integrated all 4 components into `investments.tsx` under "EMI Analytics" and "SIP Analytics" sections
+### Feature Enhancements
+- SIP-Goal Link/Unlink endpoints (`link-sip`, `unlink-sip`)
+- Redesigned GoalMapper with linking UI
+- Enhanced Visor AI system prompt for data-driven responses
+
+### Landing Page
+- New comprehensive landing page at `/app/frontend/app/index.tsx`
+- Sections: Hero, Stats, Health Score, 12-Feature Grid, AI Section, Jar Goals, Security, CTA
 
 ### Testing
-- 34/34 backend tests passed (100%) - iteration_33.json
-- Edge cases tested: zero prepayment, full prepayment, invalid loan_id, unauthenticated requests
-- Data consistency verified across all endpoints
+- 53/53 backend tests passed (iteration_34)
 
----
+## March 17, 2026 (Session 6)
+### Phase 3: EMI & SIP Analytics — COMPLETE
+- Principal vs Interest Split (overview + per-loan)
+- Prepayment Calculator (tenure vs EMI reduction)
+- Wealth Projector (3 scenarios: 8%/12%/15%)
+- Goal Mapper (SIP-to-goal mapping with gap analysis)
+- 7 new API endpoints in emi_sip_analytics.py
 
-## Previous Sessions
+## March 16, 2026 (Session 5)
+### Phase 2: Credit Card Enhancements — COMPLETE
+- Due Date Calendar with smart reminders
+- Interest Calculator (minimum payment trap)
+- Rewards Tracker (points, cashback, miles)
+- Best Card Recommender (AI-powered via GPT-4o)
 
-### Phase 0 - Bug Fixes
-- Fixed "+" FAB button (TouchableOpacity -> Pressable)
-- Fixed bank statement upload backend NameError
-
-### Phase 1 - Dashboard Overhaul
-- Financial Health V2, Upcoming Dues, Net Worth, Investment Summary, AI Insight cards
+## March 15, 2026 (Session 4)
+### Phase 1: Dashboard V2 — COMPLETE
+- Financial Health Score V2 (gamified 0-1000, 8 dimensions)
+- Upcoming Dues card
+- Investment Summary with XIRR
+- Net Worth calculation
+- AI Insight (GPT-4o powered)
 - Share My Score feature
 
-### Phase 2 - Credit Card Enhancements
-- Due Calendar, Interest Calculator, Rewards Tracker, Best Card Recommender
-- Tabbed interface on credit-cards screen
-
-### Infrastructure
-- Metro bundler cache resolution
-- EMI Tracker Modal (831 lines)
-- Market data integration, portfolio analytics
+## Earlier Sessions
+- Phase 0: Bug fixes (FAB button, bank statement upload)
+- Core CRUD: Transactions, Goals, Holdings, Loans, Credit Cards
+- Bookkeeping: Double-entry journal, ledger, P&L, balance sheet
+- Tax Planning: Old/New regime, deductions, capital gains
+- Security: AES-256-GCM encryption, PIN lock
+- Bank statement parsing (SBI, HDFC, ICICI, Axis, Kotak)
