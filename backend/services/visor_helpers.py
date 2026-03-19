@@ -60,6 +60,39 @@ TICKER_MAP = {
     "crude oil": "CL=F", "crude": "CL=F", "natural gas": "NG=F",
     "gold etf": "GOLDBEES.NS", "goldbees": "GOLDBEES.NS",
     "nifty bees": "NIFTYBEES.NS", "bankbees": "BANKBEES.NS",
+    "tvs": "TVSMOTOR.NS", "tvs motor": "TVSMOTOR.NS",
+    "eicher": "EICHERMOT.NS", "eicher motors": "EICHERMOT.NS",
+    "sbi card": "SBICARD.NS", "icici lombard": "ICICIGI.NS",
+    # ── Hindi Devanagari ticker keywords (for voice STT) ──────────────
+    "गोल्ड": "INDIAN_MARKET:Gold", "सोना": "INDIAN_MARKET:Gold", "सोने": "INDIAN_MARKET:Gold",
+    "सिल्वर": "INDIAN_MARKET:Silver", "चांदी": "INDIAN_MARKET:Silver", "चाँदी": "INDIAN_MARKET:Silver",
+    "रिलायंस": "RELIANCE.NS", "टीसीएस": "TCS.NS", "इंफोसिस": "INFY.NS",
+    "एचडीएफसी": "HDFCBANK.NS", "आईसीआईसीआई": "ICICIBANK.NS",
+    "एसबीआई": "SBIN.NS", "कोटक": "KOTAKBANK.NS", "एक्सिस": "AXISBANK.NS",
+    "बजाज": "BAJFINANCE.NS", "विप्रो": "WIPRO.NS", "एयरटेल": "BHARTIARTL.NS",
+    "आईटीसी": "ITC.NS", "मारुति": "MARUTI.NS", "टाइटन": "TITAN.NS",
+    "टाटा मोटर्स": "TATAMOTORS.NS", "टाटा स्टील": "TATASTEEL.NS",
+    "टाटा पावर": "TATAPOWER.NS", "टाटा": "TCS.NS",
+    "अदानी": "ADANIENT.NS", "महिंद्रा": "M&M.NS",
+    "हीरो": "HEROMOTOCO.NS", "इंडिगो": "INDIGO.NS",
+    "आईआरसीटीसी": "IRCTC.NS", "एचएएल": "HAL.NS",
+    "निफ्टी": "^NSEI", "सेंसेक्स": "^BSESN", "बैंक निफ्टी": "^NSEBANK",
+    "एलआईसी": "LICI.NS", "ज़ोमैटो": "ZOMATO.NS", "पेटीएम": "PAYTM.NS",
+    "कोल इंडिया": "COALINDIA.NS", "ओएनजीसी": "ONGC.NS",
+    "क्रूड ऑयल": "CL=F", "कच्चा तेल": "CL=F", "नेचुरल गैस": "NG=F",
+    "गोल्ड ईटीएफ": "GOLDBEES.NS",
+    "टीवीएस": "TVSMOTOR.NS", "टीवीएस मोटर": "TVSMOTOR.NS",
+    "आइशर": "EICHERMOT.NS",
+    # ── Tamil ticker keywords ─────────────────────────────────────────
+    "தங்கம்": "INDIAN_MARKET:Gold", "வெள்ளி": "INDIAN_MARKET:Silver",
+    # ── Telugu ticker keywords ────────────────────────────────────────
+    "బంగారం": "INDIAN_MARKET:Gold", "వెండి": "INDIAN_MARKET:Silver",
+    # ── Bengali ticker keywords ───────────────────────────────────────
+    "সোনা": "INDIAN_MARKET:Gold", "রুপা": "INDIAN_MARKET:Silver",
+    # ── Marathi ticker keywords ───────────────────────────────────────
+    "सोनं": "INDIAN_MARKET:Gold", "चांदी ": "INDIAN_MARKET:Silver",
+    # ── Gujarati ticker keywords ──────────────────────────────────────
+    "સોનું": "INDIAN_MARKET:Gold", "ચાંદી": "INDIAN_MARKET:Silver",
 }
 
 _STOP_WORDS = {
@@ -88,9 +121,44 @@ _STOP_WORDS = {
     "fd", "rd", "nsc", "ulip", "epf", "vpf",
 }
 
+# ── Hindi Devanagari to English transliteration for ticker detection ──────────
+_HINDI_TRANSLITERATION = {
+    "गोल्ड": "gold", "सोना": "gold", "सोने": "gold",
+    "सिल्वर": "silver", "चांदी": "silver", "चाँदी": "silver",
+    "रिलायंस": "reliance", "इंफोसिस": "infosys", "टीसीएस": "tcs",
+    "एचडीएफसी": "hdfc", "आईसीआईसीआई": "icici",
+    "एसबीआई": "sbi", "कोटक": "kotak", "एक्सिस": "axis bank",
+    "बजाज": "bajaj finance", "विप्रो": "wipro", "एयरटेल": "airtel",
+    "आईटीसी": "itc", "मारुति": "maruti", "टाइटन": "titan",
+    "टाटा मोटर्स": "tata motors", "टाटा स्टील": "tata steel",
+    "टाटा पावर": "tata power", "टाटा": "tcs",
+    "अदानी": "adani enterprises", "महिंद्रा": "mahindra",
+    "हीरो": "hero", "इंडिगो": "indigo",
+    "निफ्टी": "nifty", "सेंसेक्स": "sensex", "बैंक निफ्टी": "bank nifty",
+    "एलआईसी": "lic", "ज़ोमैटो": "zomato", "पेटीएम": "paytm",
+    "क्रूड ऑयल": "crude oil", "कच्चा तेल": "crude oil",
+    "स्टॉक": "stock", "शेयर": "share", "प्राइस": "price",
+    "मार्केट": "market", "बाजार": "market", "बाज़ार": "market",
+    "करंट": "current", "लाइव": "live", "आज": "today",
+    "कीमत": "price", "दाम": "price", "भाव": "price", "रेट": "rate",
+    "थंगम": "gold", "வெள்ளி": "silver",
+    "బంగారం": "gold", "వెండి": "silver",
+    "टीवीएस": "tvs", "आइशर": "eicher",
+}
+
+
+def _transliterate_hindi(text: str) -> str:
+    """Transliterate Hindi/Devanagari financial terms to English for ticker detection."""
+    result = text
+    for hindi, eng in sorted(_HINDI_TRANSLITERATION.items(), key=lambda x: len(x[0]), reverse=True):
+        result = result.replace(hindi, eng)
+    return result
+
 
 def detect_tickers(query: str) -> list:
-    q = query.lower()
+    # Transliterate Hindi to English for matching, then search both original and transliterated
+    transliterated = _transliterate_hindi(query)
+    q = (query.lower() + " " + transliterated.lower()).strip()
     found = []
     for name in sorted(TICKER_MAP.keys(), key=len, reverse=True):
         if name in q:
@@ -161,13 +229,18 @@ def fetch_yf_prices(tickers: list) -> str:
 _NEWS_TRIGGERS = re.compile(
     r'(news|khabar|latest|recent|aaj|today|current|update|happening|budget|rbi|sebi|'
     r'policy|regulation|announcement|ipo|listing|quarterly|results|earnings|'
-    r'naya|abhi|haal|taza|samachaar)',
+    r'naya|abhi|haal|taza|samachaar|'
+    # Hindi Devanagari news triggers
+    r'खबर|समाचार|ताजा|नया|आज|बजट|नीति|अपडेट|घोषणा|नतीजे|आईपीओ|लिस्टिंग|'
+    r'ताज़ा|हाल|अभी|तिमाही)',
     re.IGNORECASE
 )
 
 
 def needs_web_search(message: str) -> bool:
-    return bool(_NEWS_TRIGGERS.search(message))
+    # Also check transliterated version
+    transliterated = _transliterate_hindi(message)
+    return bool(_NEWS_TRIGGERS.search(message)) or bool(_NEWS_TRIGGERS.search(transliterated))
 
 
 async def web_search_financial(query: str) -> str:
@@ -185,7 +258,8 @@ async def web_search_financial(query: str) -> str:
         translated = []
         for w in words:
             if w in hindi_map:
-                if hindi_map[w]: translated.append(hindi_map[w])
+                if hindi_map[w]:
+                    translated.append(hindi_map[w])
             else:
                 translated.append(w)
         search_q = " ".join(translated[:10]) + " India finance"

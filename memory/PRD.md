@@ -616,6 +616,7 @@ User Speaks → [ElevenLabs STT] → Text → [Existing Visor AI Pipeline] → A
 - Provider: ElevenLabs Scribe v1 (`scribe_v1`)
 - Supports Hindi, English, Tamil, Telugu, Bengali, Marathi, Gujarati, and other Indian languages
 - Handles Hinglish code-mixing
+- **Multilingual ticker detection**: When STT outputs Devanagari/regional scripts, the `_transliterate_hindi()` function converts Hindi financial terms to English equivalents before ticker detection. The `TICKER_MAP` also includes direct Devanagari keyword entries for 50+ terms (stocks, commodities, indices) plus Tamil, Telugu, Bengali, Marathi, and Gujarati commodity keywords.
 
 **Text-to-Speech (TTS)**:
 - Provider: ElevenLabs Multilingual v2 (`eleven_multilingual_v2`)

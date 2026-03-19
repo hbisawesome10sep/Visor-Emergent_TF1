@@ -1,5 +1,11 @@
 # VISOR FINANCE — Changelog
 
+## March 19, 2026 — Voice AI Hindi/Multilingual Ticker Detection Fix
+- **Root cause**: ElevenLabs STT transcribes Hindi voice input into Devanagari script (e.g., `गोल्ड` instead of `gold`), but `detect_tickers()` only matched English/Latin keywords
+- **Fix**: Added 50+ Hindi Devanagari keywords to `TICKER_MAP` (gold/silver/stocks/indices), created `_transliterate_hindi()` function, and updated `detect_tickers()` to search both original and transliterated text
+- **Also added**: Hindi Devanagari news triggers for `needs_web_search()`, Tamil/Telugu/Bengali/Marathi/Gujarati commodity keywords, TVS Motor/Eicher Motors tickers
+- **Files modified**: `/app/backend/services/visor_helpers.py`
+
 ## March 19, 2026 — Visor AI Voice Conversation
 - **Voice Chat Endpoint**: New `POST /api/visor-ai/voice-chat` — accepts audio, transcribes via ElevenLabs STT (Scribe v1), processes through same GPT-5.2 pipeline, returns text + TTS audio (ElevenLabs Multilingual v2)
 - **Shared AI Engine**: Extracted core Visor AI pipeline into `/app/backend/services/visor_engine.py` — shared by text and voice endpoints for identical intelligence
