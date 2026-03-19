@@ -1,5 +1,12 @@
 # VISOR FINANCE — Changelog
 
+## March 19, 2026 — Visor AI Voice Conversation
+- **Voice Chat Endpoint**: New `POST /api/visor-ai/voice-chat` — accepts audio, transcribes via ElevenLabs STT (Scribe v1), processes through same GPT-5.2 pipeline, returns text + TTS audio (ElevenLabs Multilingual v2)
+- **Shared AI Engine**: Extracted core Visor AI pipeline into `/app/backend/services/visor_engine.py` — shared by text and voice endpoints for identical intelligence
+- **Frontend Voice UI**: Mic button, recording overlay with timer, audio playback button on AI voice responses, voice badge on user messages
+- **Unified History**: Voice and text messages stored in same `visor_chat` collection with `input_type` metadata
+- **Dependencies**: Added `elevenlabs` (backend), `expo-av` (frontend)
+
 ## March 18, 2026 (Session 7)
 ### Color & QR Fixes
 - Unified goal category colors across Dashboard (`formatters.ts`) and Invest screen (`GoalsSection.tsx`)

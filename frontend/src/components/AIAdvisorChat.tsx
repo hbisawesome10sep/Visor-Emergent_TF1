@@ -8,9 +8,11 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { apiRequest } from '../utils/api';
 import { useScreenContext } from '../context/ScreenContext';
+import { Audio } from 'expo-av';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const VISOR_LOGO = 'https://static.prod-images.emergentagent.com/jobs/836c637c-f117-4581-8231-855f26206e7a/images/b9c7e3bd26e51a5211f53ab156545de425a4e8a37426032aeb734b7589d04ccf.png';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 type Message = {
   id: string;
@@ -18,6 +20,8 @@ type Message = {
   content: string;
   calculator_result?: Record<string, any>;
   created_at: string;
+  input_type?: 'text' | 'voice';
+  audio_base64?: string;
 };
 
 type Props = {
@@ -92,6 +96,14 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
   const floatAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
+  // Voice state
+  const [isRecording, setIsRecording] = useState(false);
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const c = colors || {
     background: isDark ? '#0A0A0B' : '#FFFFFF',
     textPrimary: isDark ? '#FFFFFF' : '#111827',
@@ -153,6 +165,7 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
       const history = await apiRequest('/visor-ai/history', { token });
       setMessages(history.map((h: any) => ({
         id: h.id, role: h.role, content: h.content, created_at: h.created_at,
+        input_type: h.input_type || 'text', has_audio: h.has_audio,
       })));
     } catch {
       // Try legacy endpoint as fallback
@@ -211,6 +224,85 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
       setIsLoading(false);
     }
   }, [token, isLoading, getScreenContext]);
+
+  // ── Voice Recording ───────────────────────────────────────────────
+  const startRecording = async () => {
+    try {
+      const { granted } = await Audio.requestPermissionsAsync();
+      if (!granted) { Alert.alert('Permission Required', 'Microphone access is needed.'); return; }
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      recordingRef.current = recording;
+      setIsRecording(true);
+      setRecordingDuration(0);
+      recordTimerRef.current = setInterval(() => setRecordingDuration(p => p + 1), 1000);
+    } catch (err) { Alert.alert('Error', 'Could not start recording.'); }
+  };
+
+  const stopAndSendRecording = async () => {
+    if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
+    setIsRecording(false);
+    if (!recordingRef.current) return;
+    try {
+      await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+      recordingRef.current = null;
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+      if (uri) sendVoiceMessage(uri);
+    } catch { recordingRef.current = null; }
+  };
+
+  const cancelRecording = async () => {
+    if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
+    setIsRecording(false);
+    if (recordingRef.current) { try { await recordingRef.current.stopAndUnloadAsync(); } catch {} recordingRef.current = null; }
+    await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+  };
+
+  const sendVoiceMessage = async (audioUri: string) => {
+    if (!token || isLoading) return;
+    const pid = Date.now().toString();
+    setMessages(prev => [...prev, { id: pid, role: 'user', content: 'Voice message...', created_at: new Date().toISOString(), input_type: 'voice' }]);
+    setIsLoading(true);
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+    try {
+      const formData = new FormData();
+      formData.append('audio_file', { uri: audioUri, type: 'audio/m4a', name: 'recording.m4a' } as any);
+      const ctx = getScreenContext();
+      if (ctx) formData.append('screen_context', ctx);
+      const res = await fetch(`${BACKEND_URL}/api/visor-ai/voice-chat`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${res.status}`); }
+      const data = await res.json();
+      setMessages(prev => prev.map(m => m.id === pid ? { ...m, id: data.user_msg_id || pid, content: data.transcribed_text || 'Voice message' } : m));
+      const aiMsg: Message = { id: data.id || (Date.now()+1).toString(), role: 'assistant', content: data.content, calculator_result: data.calculator_result, created_at: new Date().toISOString(), input_type: 'voice', audio_base64: data.audio_base64 };
+      setMessages(prev => [...prev, aiMsg]);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+      if (data.audio_base64) playAudio(data.audio_base64, aiMsg.id);
+    } catch (e: any) {
+      setMessages(prev => prev.map(m => m.id === pid ? { ...m, content: 'Voice failed to send' } : m));
+      setMessages(prev => [...prev, { id: (Date.now()+1).toString(), role: 'assistant', content: `Voice processing mein issue. Text try karo. (${e.message})`, created_at: new Date().toISOString() }]);
+    } finally { setIsLoading(false); }
+  };
+
+  const playAudio = async (base64: string, msgId: string) => {
+    try {
+      if (soundRef.current) { await soundRef.current.stopAsync(); await soundRef.current.unloadAsync(); soundRef.current = null; }
+      setPlayingAudioId(msgId);
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
+      const { sound } = await Audio.Sound.createAsync({ uri: `data:audio/mpeg;base64,${base64}` }, { shouldPlay: true }, (s) => {
+        if (s.isLoaded && s.didJustFinish) { setPlayingAudioId(null); sound.unloadAsync(); soundRef.current = null; }
+      });
+      soundRef.current = sound;
+    } catch { setPlayingAudioId(null); }
+  };
+
+  const stopAudio = async () => {
+    if (soundRef.current) { await soundRef.current.stopAsync(); await soundRef.current.unloadAsync(); soundRef.current = null; }
+    setPlayingAudioId(null);
+  };
+
+  const toggleMic = () => { if (isLoading) return; isRecording ? stopAndSendRecording() : startRecording(); };
+  const fmtDur = (s: number) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
 
   const clearChat = async () => {
     if (!token) return;
@@ -384,6 +476,26 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                       )}
                       <RichText content={msg.content} color={msg.role === 'user' ? '#fff' : c.textPrimary} />
 
+                      {/* Audio playback for voice responses */}
+                      {msg.role === 'assistant' && msg.audio_base64 && (
+                        <TouchableOpacity
+                          style={[styles.audioBtn, { backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)', borderColor: isDark ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.15)' }]}
+                          onPress={() => playingAudioId === msg.id ? stopAudio() : playAudio(msg.audio_base64!, msg.id)}
+                          data-testid={`audio-play-${msg.id}`}
+                        >
+                          <MaterialCommunityIcons name={playingAudioId === msg.id ? 'stop-circle' : 'play-circle'} size={20} color={ACCENT} />
+                          <Text style={{ color: ACCENT, fontSize: 12, fontWeight: '600' }}>{playingAudioId === msg.id ? 'Stop' : 'Listen'}</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Voice badge for user messages */}
+                      {msg.role === 'user' && msg.input_type === 'voice' && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4, opacity: 0.7 }}>
+                          <MaterialCommunityIcons name="microphone" size={10} color="rgba(255,255,255,0.7)" />
+                          <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>VOICE</Text>
+                        </View>
+                      )}
+
                       {/* Calculator Result Card */}
                       {msg.calculator_result && (
                         <View style={[styles.calcCard, { backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)', borderColor: isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.1)' }]}>
@@ -434,6 +546,21 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
               )}
             </ScrollView>
 
+            {/* Recording Overlay */}
+            {isRecording && (
+              <View style={[styles.recordOverlay, { backgroundColor: isDark ? 'rgba(10,10,11,0.95)' : 'rgba(255,255,255,0.95)' }]}>
+                <View style={styles.recordPulseOuter}>
+                  <View style={[styles.recordDot, { backgroundColor: '#EF4444' }]} />
+                </View>
+                <Text style={[styles.recordTime, { color: c.textPrimary }]}>{fmtDur(recordingDuration)}</Text>
+                <Text style={{ color: c.textSecondary, fontSize: 13 }}>Tap mic to stop & send</Text>
+                <TouchableOpacity style={styles.cancelRecBtn} onPress={cancelRecording} data-testid="cancel-recording-btn">
+                  <MaterialCommunityIcons name="close-circle" size={18} color="#EF4444" />
+                  <Text style={{ color: '#EF4444', fontSize: 13, fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Input */}
             <View style={[styles.inputWrap, {
               backgroundColor: isDark ? 'rgba(10,10,11,0.98)' : 'rgba(255,255,255,0.98)',
@@ -454,6 +581,14 @@ export default function AIAdvisorChat({ token, colors, isDark }: Props) {
                 onSubmitEditing={() => sendMessage(inputText)}
                 data-testid="visor-ai-input"
               />
+              <TouchableOpacity
+                style={[styles.micBtn, { backgroundColor: isRecording ? '#EF4444' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}
+                onPress={toggleMic}
+                disabled={isLoading}
+                data-testid="visor-ai-mic-btn"
+              >
+                <MaterialCommunityIcons name={isRecording ? 'microphone-off' : 'microphone'} size={20} color={isRecording ? '#fff' : ACCENT} />
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.sendBtn, { backgroundColor: inputText.trim() ? ACCENT : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}
                 onPress={() => sendMessage(inputText)}
@@ -539,7 +674,16 @@ const styles = StyleSheet.create({
   thinkText: { fontSize: 12, marginLeft: 6 },
 
   // Input
-  inputWrap: { flexDirection: 'row', alignItems: 'flex-end', padding: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 12, borderTopWidth: 1, gap: 10 },
+  inputWrap: { flexDirection: 'row', alignItems: 'flex-end', padding: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 12, borderTopWidth: 1, gap: 8 },
   input: { flex: 1, minHeight: 42, maxHeight: 100, borderRadius: 21, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14 },
+  micBtn: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
   sendBtn: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
+
+  // Voice
+  audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, alignSelf: 'flex-start' },
+  recordOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: Platform.OS === 'ios' ? 34 : 16, paddingTop: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24, alignItems: 'center', gap: 12, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+  recordPulseOuter: { width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(239,68,68,0.1)' },
+  recordDot: { width: 24, height: 24, borderRadius: 12 },
+  recordTime: { fontSize: 28, fontWeight: '700', fontVariant: ['tabular-nums'] as any },
+  cancelRecBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginTop: 4 },
 });

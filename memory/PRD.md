@@ -598,6 +598,53 @@ If the LLM call fails (network error, rate limit, etc.), Visor returns a pre-def
 
 ---
 
+### 8.8 Voice Conversation Capability (NEW — March 19, 2026)
+
+**Architecture**: Voice Skin over Existing Pipeline (Approach A)
+
+```
+User Speaks → [ElevenLabs STT] → Text → [Existing Visor AI Pipeline] → AI Text → [ElevenLabs TTS] → User Hears
+```
+
+**Key Design Decisions**:
+- Voice uses the **exact same** GPT-5.2 pipeline as text — same context, same guardrails, same calculators
+- Unified chat history: voice and text messages stored in the same `visor_chat` collection with `input_type` field
+- AI speaks back ONLY when user sends a voice message; text input → text response only
+- Both push-to-hold and tap-to-toggle mic input supported
+
+**Speech-to-Text (STT)**:
+- Provider: ElevenLabs Scribe v1 (`scribe_v1`)
+- Supports Hindi, English, Tamil, Telugu, Bengali, Marathi, Gujarati, and other Indian languages
+- Handles Hinglish code-mixing
+
+**Text-to-Speech (TTS)**:
+- Provider: ElevenLabs Multilingual v2 (`eleven_multilingual_v2`)
+- Voice: Daniel — Steady Broadcaster (`onwK4e9ZLuTAKqWW03F9`) — calm, professional
+- Voice Settings: stability=0.6, similarity_boost=0.75, style=0.3, speaker_boost=true
+
+**New Backend Files**:
+- `/app/backend/services/visor_engine.py` — Extracted shared AI processing pipeline (used by both text + voice endpoints)
+- `/app/backend/routes/visor_voice.py` — Voice chat endpoint (STT → engine → TTS)
+- Refactored `/app/backend/routes/visor_ai.py` to use shared engine
+
+**New API Endpoint**:
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/visor-ai/voice-chat` | Multipart: audio_file + screen_context → returns text + base64 audio |
+
+**Frontend Changes** (AIAdvisorChat.tsx):
+- Mic button next to send button (tap-to-toggle + hold-to-send)
+- Recording overlay with timer and cancel option
+- Audio playback button on AI voice responses
+- Voice badge indicator on user voice messages
+- Uses `expo-av` for audio recording and playback
+
+**3rd Party Integration**:
+- ElevenLabs API (Starter plan, API key in backend .env)
+- `pip install elevenlabs` + `yarn add expo-av`
+
+
+
 ## 9. Complete API Endpoint Reference
 
 ### Authentication (2 endpoints)
