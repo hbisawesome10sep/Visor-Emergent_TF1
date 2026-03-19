@@ -292,30 +292,64 @@ async def get_net_worth(user=Depends(get_current_user)):
 async def get_investment_summary(user=Depends(get_current_user)):
     user_id = user["id"]
 
-    holdings = await db.holdings.find({"user_id": user_id}, {"_id": 0}).to_list(500)
-    inv_txns = await db.transactions.find(
-        {"user_id": user_id, "type": "investment"}, {"_id": 0}
-    ).to_list(5000)
+    holdings = []
+    async for doc in db.holdings.find({"user_id": user_id}):
+        doc["id"] = str(doc.pop("_id"))
+        holdings.append(doc)
 
-    total_invested = sum(h.get("invested_value", 0) for h in holdings)
-    total_current = sum(h.get("total_current_value", h.get("current_value", h.get("invested_value", 0))) for h in holdings)
+    if not holdings:
+        return {
+            "total_invested": 0,
+            "current_value": 0,
+            "absolute_gain": 0,
+            "absolute_return_pct": 0,
+            "xirr": None,
+            "holdings_count": 0,
+        }
+
+    # Fetch live prices for holdings with tickers
+    tickers = list(set(h["ticker"] for h in holdings if h.get("ticker")))
+    prices = {}
+    if tickers:
+        from routes.holdings import _fetch_live_prices
+        from concurrent.futures import ThreadPoolExecutor
+        import asyncio
+        loop = asyncio.get_running_loop()
+        _executor = ThreadPoolExecutor(max_workers=2)
+        prices = await loop.run_in_executor(_executor, _fetch_live_prices, tickers)
+
+    total_invested = 0
+    total_current = 0
+    cashflows = []
+
+    for h in holdings:
+        invested = h.get("invested_value", 0) or (h["quantity"] * h["buy_price"])
+        stored_current = h.get("current_value", 0)
+
+        if h.get("ticker") and h["ticker"] in prices and prices[h["ticker"]]["price"] > 0:
+            current_value = h["quantity"] * prices[h["ticker"]]["price"]
+        elif stored_current > 0:
+            current_value = stored_current
+        else:
+            current_value = invested
+
+        total_invested += invested
+        total_current += current_value
+
+        # XIRR cashflow
+        buy_date = h.get("buy_date", "")
+        if buy_date:
+            try:
+                dt = datetime.strptime(buy_date, "%Y-%m-%d")
+                cashflows.append((dt, -abs(invested)))
+            except Exception:
+                pass
+
     abs_gain = total_current - total_invested
     abs_return_pct = (abs_gain / total_invested * 100) if total_invested > 0 else 0
 
-    # XIRR calculation from investment transactions
-    cashflows = []
-    for t in sorted(inv_txns, key=lambda x: x.get("date", "")):
-        date_str = t.get("date", "")
-        if not date_str:
-            continue
-        try:
-            dt = datetime.strptime(date_str, "%Y-%m-%d")
-            cashflows.append((dt, -abs(t["amount"])))  # Outflow
-        except Exception:
-            continue
-
     if total_current > 0 and cashflows:
-        cashflows.append((datetime.now(), total_current))  # Current value as inflow
+        cashflows.append((datetime.now(), total_current))
         xirr_val = xirr(cashflows)
     else:
         xirr_val = None

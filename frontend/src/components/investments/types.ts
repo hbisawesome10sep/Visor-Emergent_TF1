@@ -63,7 +63,9 @@ export type RecurringData = {
 
 // ── Constants ──
 export const ASSET_CATEGORIES: Record<string, { label: string; color: string }> = {
+  'Stock': { label: 'Stocks', color: Accent.sapphire },
   'Stocks': { label: 'Stocks', color: Accent.sapphire },
+  'Mutual Fund': { label: 'Mutual Funds', color: Accent.amethyst },
   'Mutual Funds': { label: 'Mutual Funds', color: Accent.amethyst },
   'SIP': { label: 'SIP', color: '#6366F1' },
   'FD': { label: 'Fixed Deposits', color: '#0891B2' },

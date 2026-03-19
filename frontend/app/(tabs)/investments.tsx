@@ -25,7 +25,10 @@ import {
   PortfolioOverviewCard, 
   HoldingsSection, 
   RiskProfileCard, 
-  RecurringInvestmentsSection 
+  RecurringInvestmentsSection,
+  StockHoldingsCard,
+  MutualFundHoldingsCard,
+  UploadDropdown,
 } from '../../src/components/investments';
 import EMITrackerModal from '../../src/components/EMITrackerModal';
 import { PrincipalInterestSplit } from '../../src/components/emi-sip/PrincipalInterestSplit';
@@ -465,18 +468,16 @@ export default function InvestmentsScreen() {
   const totalInvested = portfolio?.total_invested || stats?.total_investments || 0;
   const allocation = stats?.invest_breakdown || {};
 
-  // Build allocation data for pie chart - prefer portfolio categories if available
+  // Build allocation data for pie chart - use current_value from portfolio categories (holdings-based)
   const pieData = portfolio?.categories?.length
     ? portfolio.categories.map(cat => ({
         category: ASSET_CATEGORIES[cat.category]?.label || cat.category,
-        amount: cat.invested,
+        amount: cat.current_value,
         color: ASSET_CATEGORIES[cat.category]?.color || '#94A3B8',
       }))
-    : Object.entries(allocation).filter(([_, amt]) => amt > 0).map(([cat, amt]) => ({
-        category: ASSET_CATEGORIES[cat]?.label || cat,
-        amount: amt,
-        color: ASSET_CATEGORIES[cat]?.color || '#94A3B8',
-      }));
+    : [];
+
+  const totalAllocValue = pieData.reduce((s, d) => s + d.amount, 0);
 
   // Strategy based on risk
   const strategies = {
@@ -605,17 +606,85 @@ export default function InvestmentsScreen() {
         />
 
         {/* ═══════════════════════════════════════════════════════════
-             SECTION 2.5: MY HOLDINGS (Manual + CAS)
+             SECTION 2.5: MY HOLDINGS (Stock + MF Cards + Upload)
            ═══════════════════════════════════════════════════════════ */}
-        <HoldingsSection
-          holdingsData={holdingsData}
-          colors={colors}
-          isDark={isDark}
-          onAddHolding={openAddHolding}
-          onClearHoldings={handleClearHoldings}
-          onUploadCAS={() => setShowCasModal(true)}
-          onDeleteHolding={handleDeleteHolding}
-        />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 14 }}>
+          <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0, marginTop: 0 }]}>My Holdings</Text>
+          <UploadDropdown
+            colors={colors}
+            isDark={isDark}
+            onSelect={(type) => {
+              if (type === 'ecas') setShowCasModal(true);
+              else Alert.alert('Coming Soon', `${type === 'stock_statement' ? 'Stock' : 'Mutual Fund'} statement upload will be available soon.`);
+            }}
+          />
+        </View>
+
+        {/* Stock Holdings */}
+        {holdingsData?.holdings && holdingsData.holdings.filter(h => h.category === 'Stock').length > 0 && (
+          <StockHoldingsCard
+            holdings={holdingsData.holdings
+              .filter(h => h.category === 'Stock')
+              .map(h => ({
+                id: h.id,
+                name: h.name,
+                ticker: h.ticker,
+                quantity: h.quantity,
+                buy_price: h.buy_price,
+                current_value: h.current_value,
+                invested_value: h.invested_value,
+                gain_loss: h.gain_loss,
+                gain_loss_pct: h.gain_loss_pct,
+              }))}
+            colors={colors}
+            isDark={isDark}
+          />
+        )}
+
+        {/* Mutual Fund Holdings */}
+        {holdingsData?.holdings && holdingsData.holdings.filter(h => h.category === 'Mutual Fund').length > 0 && (
+          <MutualFundHoldingsCard
+            holdings={holdingsData.holdings
+              .filter(h => h.category === 'Mutual Fund')
+              .map(h => ({
+                id: h.id,
+                name: h.name,
+                isin: h.isin,
+                quantity: h.quantity,
+                buy_price: h.buy_price,
+                current_value: h.current_value,
+                invested_value: h.invested_value,
+                gain_loss: h.gain_loss,
+                gain_loss_pct: h.gain_loss_pct,
+              }))}
+            xirr={portfolio?.total_gain_loss_pct ? portfolio.total_gain_loss_pct : null}
+            colors={colors}
+            isDark={isDark}
+          />
+        )}
+
+        {/* Empty state when no holdings */}
+        {(!holdingsData?.holdings || holdingsData.holdings.length === 0) && (
+          <View data-testid="empty-holdings" style={[styles.glassCard, {
+            backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            alignItems: 'center', paddingVertical: 40,
+          }]}>
+            <MaterialCommunityIcons name="chart-timeline-variant-shimmer" size={40} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
+            <Text style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700', color: colors.textPrimary, marginBottom: 6 }}>No Holdings Yet</Text>
+            <Text style={{ fontSize: 12, fontFamily: 'DM Sans', color: colors.textSecondary, textAlign: 'center', paddingHorizontal: 30, lineHeight: 18 }}>
+              Upload your eCAS, stock, or mutual fund statement to see your real portfolio.
+            </Text>
+            <TouchableOpacity
+              data-testid="add-holding-empty-btn"
+              style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 10, backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.08)' }}
+              onPress={() => setShowHoldingModal(true)}
+            >
+              <MaterialCommunityIcons name="plus" size={16} color="#F97316" />
+              <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700', color: '#F97316' }}>Add Manually</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 3: ASSET ALLOCATION (Pie Chart)
@@ -632,7 +701,7 @@ export default function InvestmentsScreen() {
               </View>
               <View style={styles.legendGrid}>
                 {pieData.map((item, idx) => {
-                  const pct = totalInvested > 0 ? ((item.amount / totalInvested) * 100).toFixed(1) : '0';
+                  const pct = totalAllocValue > 0 ? ((item.amount / totalAllocValue) * 100).toFixed(1) : '0';
                   return (
                     <View key={idx} data-testid={`allocation-legend-${item.category}`} style={styles.legendItem}>
                       <View style={[styles.legendDot, { backgroundColor: item.color }]} />

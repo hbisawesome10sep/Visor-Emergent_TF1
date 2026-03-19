@@ -1,0 +1,87 @@
+{
+  "summary": "Iteration 35 - Portfolio Holdings Fix Testing: All 10 backend tests passed (2 skipped). Verified portfolio-overview and investment-summary APIs now use ONLY real holdings data instead of transaction estimates. No negative current_values, no fake categories (SIP, FD, Stock).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "notes": "Frontend testing skipped per request (backend only)"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_portfolio_holdings_fix.py",
+    "/app/test_reports/pytest/pytest_portfolio_holdings_fix.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "portfolio-overview (portfolio.py:92) correctly reads ONLY from holdings collection, not transactions",
+    "investment-summary (dashboard_v2.py:291) correctly reads ONLY from holdings collection with XIRR calculation",
+    "Both APIs return 0 values when user has no holdings (verified via code review)",
+    "No negative current_values - all values are from real holdings with proper fallback logic",
+    "Categories contain ONLY 'Mutual Fund' from actual holdings (no SIP, FD, Stock from transaction aggregation)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_portfolio_holdings_fix.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed, 2 skipped due to registration validation)"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "api_verification_results": {
+    "/api/portfolio-overview GET": {
+      "status": "PASS",
+      "verified_data": {
+        "total_invested": 27134.97,
+        "total_current_value": 27305.12,
+        "total_gain_loss": 170.15,
+        "total_gain_loss_pct": 0.63,
+        "categories": ["Mutual Fund only - no SIP, FD, Stock"]
+      },
+      "note": "All values positive, no negative current_values, uses holdings only"
+    },
+    "/api/dashboard/investment-summary GET": {
+      "status": "PASS",
+      "verified_data": {
+        "total_invested": 27134.97,
+        "current_value": 27305.12,
+        "absolute_gain": 170.15,
+        "absolute_return_pct": 0.63,
+        "xirr": 13.52,
+        "holdings_count": 2
+      },
+      "note": "XIRR is reasonable (13.52%), holdings_count=2, total_invested ~27K as expected"
+    },
+    "/api/holdings/live GET": {
+      "status": "PASS",
+      "verified_data": {
+        "holdings_count": 2,
+        "holdings": [
+          "HDFC Flexi Cap Fund - Direct Plan (category: Mutual Fund)",
+          "SBI Small Cap Fund - Direct Plan (category: Mutual Fund)"
+        ]
+      },
+      "note": "Both holdings are Mutual Fund category from eCAS import"
+    },
+    "Empty Holdings Scenario": {
+      "status": "VERIFIED VIA CODE REVIEW",
+      "note": "Code correctly returns 0 values when holdings_list is empty (portfolio.py:101-109, dashboard_v2.py:300-308)"
+    },
+    "Authentication": {
+      "status": "PASS",
+      "note": "All 3 endpoints return 401 for unauthenticated requests"
+    }
+  },
+  "seed_data_creation": "No new seed data created. Existing demo user (rajesh@visor.demo) with 2 MF holdings used.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Portfolio holdings fix verified. Both portfolio-overview and investment-summary APIs now correctly use ONLY holdings collection data. The demo user has 2 Mutual Fund holdings (HDFC Flexi Cap ~17K, SBI Small Cap ~10K) imported from eCAS. No negative values, no fake transaction-based categories. XIRR calculation working (13.52%).",
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}

@@ -4,4 +4,7 @@ export { PortfolioOverviewCard } from './PortfolioOverviewCard';
 export { HoldingsSection } from './HoldingsSection';
 export { RiskProfileCard } from './RiskProfileCard';
 export { RecurringInvestmentsSection } from './RecurringInvestmentsSection';
+export { StockHoldingsCard } from './StockHoldingsCard';
+export { MutualFundHoldingsCard } from './MutualFundHoldingsCard';
+export { UploadDropdown } from './UploadDropdown';
 export * from './types';

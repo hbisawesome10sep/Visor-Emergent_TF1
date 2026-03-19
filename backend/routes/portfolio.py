@@ -91,62 +91,51 @@ def _compute_portfolio_values(transactions: list, market_data: dict) -> dict:
 
 @router.get("/portfolio-overview")
 async def get_portfolio_overview(user=Depends(get_current_user)):
-    transactions = await db.transactions.find(
-        {"user_id": user["id"], "type": "investment"}, {"_id": 0}
-    ).to_list(1000)
-    mkt_list = await db.market_data.find({}, {"_id": 0}).to_list(10)
-    market_data = {m["key"]: m for m in mkt_list}
-    loop = asyncio.get_running_loop()
-    categories = await loop.run_in_executor(
-        _yf_executor, _compute_portfolio_values, transactions, market_data
-    )
-
-    CATEGORY_NORMALIZE = {"Stocks": "Stock", "Fixed Deposit": "FD", "Mutual Funds": "Mutual Fund"}
-    normalized_categories = {}
-    for cat_key, data in categories.items():
-        norm_key = CATEGORY_NORMALIZE.get(cat_key, cat_key)
-        if norm_key not in normalized_categories:
-            normalized_categories[norm_key] = {"invested": 0, "current_value": 0, "gain_loss": 0, "gain_loss_pct": 0, "transactions": 0}
-        normalized_categories[norm_key]["invested"] += data["invested"]
-        normalized_categories[norm_key]["current_value"] += data["current_value"]
-        normalized_categories[norm_key]["transactions"] += data["transactions"]
-    categories = normalized_categories
-
+    """Portfolio overview based ONLY on real holdings (not transaction estimates)."""
     holdings_cursor = db.holdings.find({"user_id": user["id"]})
     holdings_list = []
     async for doc in holdings_cursor:
         doc["id"] = str(doc.pop("_id"))
         holdings_list.append(doc)
-    if holdings_list:
-        tickers = list(set(h["ticker"] for h in holdings_list if h.get("ticker")))
-        prices = await loop.run_in_executor(_yf_executor, _fetch_live_prices, tickers)
-        for h in holdings_list:
-            cat = h.get("category", "Stock")
-            cat_key = cat
 
-            stored_invested = h.get("invested_value", 0)
-            stored_current = h.get("current_value", 0)
+    if not holdings_list:
+        return {
+            "total_invested": 0,
+            "total_current_value": 0,
+            "total_gain_loss": 0,
+            "total_gain_loss_pct": 0,
+            "categories": [],
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+        }
 
-            if stored_invested > 0 and stored_current > 0:
-                invested = stored_invested
-                current_value = stored_current
-            else:
-                invested = h["quantity"] * h["buy_price"]
-                current_price = h["buy_price"]
-                if h.get("ticker") and h["ticker"] in prices:
-                    current_price = prices[h["ticker"]]["price"]
-                current_value = h["quantity"] * current_price
+    loop = asyncio.get_running_loop()
+    tickers = list(set(h["ticker"] for h in holdings_list if h.get("ticker")))
+    prices = await loop.run_in_executor(_yf_executor, _fetch_live_prices, tickers) if tickers else {}
 
-            if cat_key not in categories:
-                categories[cat_key] = {"invested": 0, "current_value": 0, "gain_loss": 0, "gain_loss_pct": 0, "transactions": 0}
-            categories[cat_key]["invested"] = round(categories[cat_key]["invested"] + invested, 2)
-            categories[cat_key]["current_value"] = round(categories[cat_key]["current_value"] + current_value, 2)
-            categories[cat_key]["transactions"] += 1
-        for cat_key in categories:
-            inv = categories[cat_key]["invested"]
-            cur = categories[cat_key]["current_value"]
-            categories[cat_key]["gain_loss"] = round(cur - inv, 2)
-            categories[cat_key]["gain_loss_pct"] = round((cur - inv) / inv * 100, 2) if inv else 0
+    categories = {}
+    for h in holdings_list:
+        cat = h.get("category", "Stock")
+        invested = h.get("invested_value", 0) or (h["quantity"] * h["buy_price"])
+        stored_current = h.get("current_value", 0)
+
+        if h.get("ticker") and h["ticker"] in prices and prices[h["ticker"]]["price"] > 0:
+            current_value = h["quantity"] * prices[h["ticker"]]["price"]
+        elif stored_current > 0:
+            current_value = stored_current
+        else:
+            current_value = invested
+
+        if cat not in categories:
+            categories[cat] = {"invested": 0, "current_value": 0, "gain_loss": 0, "gain_loss_pct": 0, "transactions": 0}
+        categories[cat]["invested"] = round(categories[cat]["invested"] + invested, 2)
+        categories[cat]["current_value"] = round(categories[cat]["current_value"] + current_value, 2)
+        categories[cat]["transactions"] += 1
+
+    for cat_key in categories:
+        inv = categories[cat_key]["invested"]
+        cur = categories[cat_key]["current_value"]
+        categories[cat_key]["gain_loss"] = round(cur - inv, 2)
+        categories[cat_key]["gain_loss_pct"] = round((cur - inv) / inv * 100, 2) if inv else 0
 
     total_invested = sum(c["invested"] for c in categories.values())
     total_current = sum(c["current_value"] for c in categories.values())
