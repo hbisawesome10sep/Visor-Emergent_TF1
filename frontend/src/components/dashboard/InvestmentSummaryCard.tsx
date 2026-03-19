@@ -81,15 +81,14 @@ export const InvestmentSummaryCard = ({ token, isDark, colors, onPress }: Props)
         </View>
 
         <View style={s.valuesRow}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={[s.label, { color: colors.textSecondary }]}>Invested</Text>
-            <Text style={[s.value, { color: colors.textPrimary }]}>Rs {fmtINR(data.total_invested)}</Text>
+            <Text style={[s.value, { color: colors.textPrimary }]} numberOfLines={1}>Rs {fmtINR(data.total_invested)}</Text>
           </View>
-          <MaterialCommunityIcons name="arrow-right-thin" size={22} color={colors.textSecondary} style={{ marginHorizontal: 4, alignSelf: 'center' }} />
-          <View style={{ flex: 1 }} />
-          <View style={{ alignItems: 'flex-end' }}>
+          <MaterialCommunityIcons name="arrow-right-thin" size={18} color={colors.textSecondary} style={{ marginHorizontal: 6, marginTop: 10 }} />
+          <View style={{ flex: 1, alignItems: 'flex-end' }}>
             <Text style={[s.label, { color: colors.textSecondary }]}>Current Value</Text>
-            <Text style={[s.valueLarge, { color: isGain ? Accent.emerald : Accent.ruby }]}>Rs {fmtINR(data.current_value)}</Text>
+            <Text style={[s.value, { color: isGain ? Accent.emerald : Accent.ruby }]} numberOfLines={1}>Rs {fmtINR(data.current_value)}</Text>
           </View>
         </View>
 
@@ -133,12 +132,11 @@ const s = StyleSheet.create({
   valuesRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   arrowCol: { paddingHorizontal: 12 },
   label: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
-  value: { fontSize: 20, fontWeight: '800' },
-  valueLarge: { fontSize: 22, fontWeight: '800' },
+  value: { fontSize: 18, fontWeight: '700' },
   returnRow: { flexDirection: 'row', borderRadius: 12, padding: 12, gap: 4 },
   returnItem: { flex: 1, alignItems: 'center' },
   returnLabel: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
-  returnVal: { fontSize: 14, fontWeight: '700' },
+  returnVal: { fontSize: 13, fontWeight: '700' },
   emptyTitle: { fontSize: 15, fontWeight: '700', marginTop: 8, marginBottom: 4 },
   emptyDesc: { fontSize: 12, textAlign: 'center', paddingHorizontal: 20 },
 });
