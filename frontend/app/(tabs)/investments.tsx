@@ -687,6 +687,7 @@ export default function InvestmentsScreen() {
                 invested_value: h.invested_value,
                 gain_loss: h.gain_loss,
                 gain_loss_pct: h.gain_loss_pct,
+                xirr: (h as any).xirr ?? null,
               }))}
             xirr={portfolio?.total_gain_loss_pct ? portfolio.total_gain_loss_pct : null}
             colors={colors}

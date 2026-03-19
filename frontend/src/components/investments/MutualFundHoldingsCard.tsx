@@ -16,6 +16,7 @@ interface MFHolding {
   invested_value: number;
   gain_loss: number;
   gain_loss_pct: number;
+  xirr?: number | null;
 }
 
 interface Props {
@@ -103,9 +104,13 @@ export const MutualFundHoldingsCard: React.FC<Props> = ({ holdings, xirr, colors
                   <Text style={[s.statVal, { color: colors.textPrimary }]}>{formatINRShort(nav)}</Text>
                 </View>
                 <View style={s.statItem}>
-                  <Text style={[s.statLabel, { color: colors.textSecondary }]}>Returns</Text>
+                  <Text style={[s.statLabel, { color: colors.textSecondary }]}>
+                    {h.xirr != null ? 'XIRR' : 'Returns'}
+                  </Text>
                   <Text style={[s.statVal, { color: hGain ? Accent.emerald : Accent.ruby }]}>
-                    {hGain ? '+' : ''}{h.gain_loss_pct.toFixed(1)}%
+                    {h.xirr != null
+                      ? `${h.xirr >= 0 ? '+' : ''}${h.xirr.toFixed(1)}%`
+                      : `${hGain ? '+' : ''}${h.gain_loss_pct.toFixed(1)}%`}
                   </Text>
                 </View>
               </View>

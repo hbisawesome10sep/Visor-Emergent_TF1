@@ -1,0 +1,109 @@
+{
+  "summary": "Iteration 36 - Groww MF Statement Parser Testing: All 9 backend tests passed. Verified XLSX parser correctly extracts 6 MF holdings from real Groww statement with per-holding XIRR. Duplicate handling works (re-upload updates existing). All APIs (holdings/live, portfolio-overview, investment-summary) return correct data.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "notes": "Frontend testing skipped per request (backend only)"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_groww_statement_parser.py",
+    "/app/test_reports/pytest/pytest_groww_statement.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "statement_parser.py correctly detects header row at row 20 (0-indexed) for Groww format",
+    "Parser extracts all 11 columns: name, amc, category, sub_category, folio, source, quantity, invested_value, current_value, pnl, xirr",
+    "Source detection works: detects 'Groww' from Source column values in XLSX",
+    "Duplicate handling implemented: re-upload updates existing holdings by ISIN or name+category match",
+    "XIRR weighted average calculation in dashboard_v2.py correctly uses per-holding XIRRs from statement",
+    "portfolio-overview returns only 'Mutual Fund' category from real holdings (no transaction-based estimates)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_groww_statement_parser.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "api_verification_results": {
+    "/api/parse-statement-preview POST": {
+      "status": "PASS",
+      "verified_data": {
+        "holdings_count": 6,
+        "source_detected": "Groww",
+        "all_holdings_have_xirr": true,
+        "all_holdings_category": "Mutual Fund"
+      },
+      "note": "Preview returns parsed holdings without saving to DB"
+    },
+    "/api/upload-statement POST": {
+      "status": "PASS",
+      "verified_data": {
+        "total_parsed": 6,
+        "duplicate_handling": "Re-upload marks all 6 as duplicates (updated)"
+      },
+      "note": "Saves holdings to DB, handles duplicates by updating"
+    },
+    "/api/holdings/live GET": {
+      "status": "PASS",
+      "verified_data": {
+        "total_holdings": 7,
+        "groww_holdings": 6,
+        "ecas_holdings": 1,
+        "all_have_xirr": "6/7 (Groww holdings have XIRR from statement)",
+        "summary_total_invested": 120073.32,
+        "summary_total_current": 140055.7
+      },
+      "note": "Returns all 7 holdings (6 Groww + 1 eCAS) with per-holding XIRR"
+    },
+    "/api/portfolio-overview GET": {
+      "status": "PASS",
+      "verified_data": {
+        "total_invested": 120073.32,
+        "total_current_value": 140055.7,
+        "total_gain_loss": 19982.38,
+        "total_gain_loss_pct": 16.64,
+        "categories": ["Mutual Fund only - no SIP/FD/Stock from transactions"]
+      },
+      "note": "Uses only holdings collection data, correct category classification"
+    },
+    "/api/dashboard/investment-summary GET": {
+      "status": "PASS",
+      "verified_data": {
+        "total_invested": 120073.32,
+        "current_value": 140055.7,
+        "xirr": 17.78,
+        "holdings_count": 7
+      },
+      "note": "XIRR 17.78% is weighted average of per-holding XIRRs (expected range 15-22%)"
+    },
+    "Authentication": {
+      "status": "PASS",
+      "note": "Both upload endpoints return 401 without auth token"
+    }
+  },
+  "groww_holdings_verified": [
+    {"name": "Nippon India Small Cap Fund Direct Growth", "invested": 3999.62, "xirr": "23.44%"},
+    {"name": "Parag Parikh Flexi Cap Fund Direct Growth", "invested": 20746.4, "xirr": "19.36%"},
+    {"name": "DSP Small Cap Fund Growth", "invested": 30998.71, "xirr": "11.03%"},
+    {"name": "Motilal Oswal Midcap Fund Direct Growth", "invested": 22327.9, "xirr": "25.92%"},
+    {"name": "Quant Small Cap Fund Direct Plan Growth", "invested": 1000, "xirr": "22.16%"},
+    {"name": "Nippon India Growth Mid Cap Fund Growth", "invested": 31000.69, "xirr": "16.74%"}
+  ],
+  "seed_data_creation": "No new seed data created. Used existing demo user with uploaded Groww statement.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Groww MF statement parser fully verified. Parser handles headers at row 20, extracts per-holding XIRR, detects source as 'Groww'. Demo user now has 7 holdings: 6 from Groww statement (total ₹110K invested) + 1 eCAS (SBI Small Cap ₹10K). Weighted XIRR = 17.78%. All APIs return consistent data.",
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}

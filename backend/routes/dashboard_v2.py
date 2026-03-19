@@ -348,7 +348,21 @@ async def get_investment_summary(user=Depends(get_current_user)):
     abs_gain = total_current - total_invested
     abs_return_pct = (abs_gain / total_invested * 100) if total_invested > 0 else 0
 
-    if total_current > 0 and cashflows:
+    # Prefer per-holding XIRRs from statements (weighted by invested_value)
+    weighted_xirr_sum = 0.0
+    weighted_xirr_total = 0.0
+    has_statement_xirr = False
+    for h in holdings:
+        h_xirr = h.get("xirr")
+        h_inv = h.get("invested_value", 0) or (h["quantity"] * h["buy_price"])
+        if h_xirr is not None and h_inv > 0:
+            weighted_xirr_sum += h_xirr * h_inv
+            weighted_xirr_total += h_inv
+            has_statement_xirr = True
+
+    if has_statement_xirr and weighted_xirr_total > 0:
+        xirr_val = round(weighted_xirr_sum / weighted_xirr_total, 2)
+    elif total_current > 0 and cashflows:
         cashflows.append((datetime.now(), total_current))
         xirr_val = xirr(cashflows)
     else:
