@@ -718,6 +718,22 @@ export default function InvestmentsScreen() {
           </View>
         )}
 
+        {/* Clear All Holdings Button - visible when user has holdings */}
+        {holdingsData?.holdings && holdingsData.holdings.length > 0 && (
+          <TouchableOpacity 
+            data-testid="clear-holdings-main-btn" 
+            style={{
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: 14, borderRadius: 12, borderWidth: 1,
+              borderColor: Accent.ruby, marginBottom: 16, marginTop: 4,
+            }} 
+            onPress={handleClearHoldings}
+          >
+            <MaterialCommunityIcons name="delete-outline" size={18} color={Accent.ruby} />
+            <Text style={{ fontSize: 14, fontFamily: 'DM Sans', fontWeight: '600', color: Accent.ruby }}>Clear All Holdings</Text>
+          </TouchableOpacity>
+        )}
+
         {/* ═══════════════════════════════════════════════════════════
              SECTION 3: ASSET ALLOCATION (Pie Chart)
            ═══════════════════════════════════════════════════════════ */}

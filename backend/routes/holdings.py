@@ -43,6 +43,7 @@ async def clear_all_holdings(user=Depends(get_current_user)):
     return {"message": f"Deleted {result.deleted_count} holding(s)", "deleted": result.deleted_count}
 
 
+@router.post("/holdings")
 async def add_holding(holding: HoldingCreate, user=Depends(get_current_user)):
     doc = {
         "user_id": user["id"],
