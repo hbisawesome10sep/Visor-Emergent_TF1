@@ -1,5 +1,27 @@
 # VISOR FINANCE — Changelog
 
+## March 19, 2026 — Investment Screen Overhaul + Statement Parser
+### Portfolio Data Fix (Bug Fix)
+- **Root cause**: `portfolio-overview` and `dashboard/investment-summary` APIs computed current values from ALL investment-type transactions using a crude estimation formula, producing impossible negative values (e.g., SIP -₹50K)
+- **Fix**: Both APIs now use ONLY real holdings from the `holdings` collection — no more transaction-based guesswork
+- Asset Allocation pie chart now reflects actual current holdings
+
+### New Components: Stock & MF Holdings Cards
+- **StockHoldingsCard**: Scrollable half-screen card with frozen header (total invested/current), per-stock rows showing qty, avg cost, CMP, P&L%
+- **MutualFundHoldingsCard**: Similar card with NAV, units, XIRR badge, P&L strip
+- **UploadDropdown**: Bottom sheet with 3 options — Stock Statement, MF Statement, eCAS
+
+### XLSX Statement Parser (New Feature)
+- **Backend**: Intelligent XLSX parser (`statement_parser.py`) — auto-detects source (Groww/Zerodha) and column mapping via regex patterns
+- **Endpoint**: `POST /api/upload-statement` — accepts XLSX, parses holdings, saves to DB with duplicate detection
+- **Preview**: `POST /api/parse-statement-preview` — parse without saving
+- **Supported formats**: Stock holdings, Mutual Fund holdings from Groww, Zerodha Console, and generic XLSX
+- **Frontend**: Connected UploadDropdown → DocumentPicker → upload-statement API with FormData support
+
+### Other
+- `apiRequest` now supports FormData uploads (`isFormData` option)
+- `ASSET_CATEGORIES` updated with both singular/plural category keys
+
 ## March 19, 2026 — Voice AI Hindi/Multilingual Ticker Detection Fix
 - **Root cause**: ElevenLabs STT transcribes Hindi voice input into Devanagari script (e.g., `गोल्ड` instead of `gold`), but `detect_tickers()` only matched English/Latin keywords
 - **Fix**: Added 50+ Hindi Devanagari keywords to `TICKER_MAP` (gold/silver/stocks/indices), created `_transliterate_hindi()` function, and updated `detect_tickers()` to search both original and transliterated text

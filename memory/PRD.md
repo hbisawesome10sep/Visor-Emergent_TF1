@@ -1,6 +1,6 @@
 # VISOR FINANCE — Product Requirements Document (PRD)
-**Version**: 2.0  
-**Last Updated**: March 18, 2026  
+**Version**: 2.1  
+**Last Updated**: March 19, 2026  
 **Status**: Active Development  
 
 ---

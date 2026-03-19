@@ -4,6 +4,7 @@ type RequestOptions = {
   method?: string;
   body?: any;
   token?: string;
+  isFormData?: boolean;
 };
 
 // Global logout callback — set by AuthContext so apiRequest can trigger auto-logout
@@ -13,17 +14,18 @@ export function setTokenExpiredHandler(handler: () => void) {
 }
 
 export async function apiRequest(endpoint: string, options: RequestOptions = {}) {
-  const { method = 'GET', body, token } = options;
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const { method = 'GET', body, token, isFormData } = options;
+  const headers: Record<string, string> = {};
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
   const config: RequestInit = { method, headers };
   if (body) {
-    config.body = JSON.stringify(body);
+    config.body = isFormData ? body : JSON.stringify(body);
   }
 
   const url = `${BACKEND_URL}/api${endpoint}`;

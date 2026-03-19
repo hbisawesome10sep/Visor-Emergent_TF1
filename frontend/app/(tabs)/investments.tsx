@@ -87,6 +87,40 @@ export default function InvestmentsScreen() {
   const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
   const [sipSuggestions, setSipSuggestions] = useState<Array<{ id: string; fund_name: string; isin: string }>>([]);
 
+  const [uploadingStatement, setUploadingStatement] = useState(false);
+
+  const handleStatementUpload = async (type: 'stock_statement' | 'mf_statement' | 'ecas') => {
+    if (type === 'ecas') {
+      setShowCasModal(true);
+      return;
+    }
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.length) return;
+      const file = result.assets[0];
+      setUploadingStatement(true);
+      const formData = new FormData();
+      formData.append('file', { uri: file.uri, name: file.name, type: file.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } as any);
+      formData.append('statement_type', type);
+      const resp = await apiRequest('/upload-statement', { token, method: 'POST', body: formData, isFormData: true });
+      setUploadingStatement(false);
+      if (resp?.status === 'success') {
+        Alert.alert('Import Successful', `${resp.saved} holdings imported, ${resp.duplicates} updated.\nSource: ${resp.metadata?.source || 'Unknown'}`);
+        fetchData();
+      } else if (resp?.status === 'no_holdings') {
+        Alert.alert('No Holdings Found', resp.message || 'Please check the file format.');
+      } else {
+        Alert.alert('Import Failed', resp?.detail || resp?.message || 'Unknown error');
+      }
+    } catch (e: any) {
+      setUploadingStatement(false);
+      Alert.alert('Upload Error', e.message || 'Failed to upload statement');
+    }
+  };
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Set screen context for AI awareness
@@ -613,10 +647,7 @@ export default function InvestmentsScreen() {
           <UploadDropdown
             colors={colors}
             isDark={isDark}
-            onSelect={(type) => {
-              if (type === 'ecas') setShowCasModal(true);
-              else Alert.alert('Coming Soon', `${type === 'stock_statement' ? 'Stock' : 'Mutual Fund'} statement upload will be available soon.`);
-            }}
+            onSelect={handleStatementUpload}
           />
         </View>
 
