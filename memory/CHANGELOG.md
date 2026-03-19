@@ -1,5 +1,12 @@
 # VISOR FINANCE — Changelog
 
+## March 19, 2026 — Zerodha Stock Statement Parser
+- **Parsed real Zerodha statement** (holdings-TQG735.xlsx): 16 stock holdings extracted from Equity sheet
+- **Key fixes**: removed `read_only=True` from openpyxl (caused Zerodha files to only read 1 row), added `Previous Closing Price` to current_price patterns, ticker-as-name fallback (Zerodha has no Name column), sector column extraction, Combined sheet skip logic
+- **Stocks imported**: ADANIPOWER, BHEL, CARYSIL, FCL, GREENPOWER, HATHWAY, INDHOTEL, JSL, KALYANKJIL, NHPC, ONGC, RAILTEL, TATACONSUM, TATAPOWER, TMCV-BL, TMPV
+- **Total portfolio**: 23 holdings (7 MF + 16 Stock), ₹1,40,614 invested, ₹1,72,116 current, XIRR 17.78%
+- **Files modified**: `statement_parser.py`, `statement_upload.py`
+
 ## March 19, 2026 — Investment Screen Overhaul + Statement Parser
 ### Portfolio Data Fix (Bug Fix)
 - **Root cause**: `portfolio-overview` and `dashboard/investment-summary` APIs computed current values from ALL investment-type transactions using a crude estimation formula, producing impossible negative values (e.g., SIP -₹50K)
