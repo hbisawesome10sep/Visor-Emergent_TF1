@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 
 # Use public backend URL
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ai-voice-chat-24.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://statement-sync-6.preview.emergentagent.com').rstrip('/')
 
 @pytest.fixture
 def api_client():

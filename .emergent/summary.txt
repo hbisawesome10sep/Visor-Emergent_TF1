@@ -1,68 +1,67 @@
 <analysis>An analysis of the LLM message history is complete. Here is the handover summary for the next agent.
 
-**original_problem_statement**: The user wants to add conversational voice capabilities to the existing Visor AI agent.
-
-**PRODUCT REQUIREMENTS:**
--   The AI agent should be able to listen to user voice input and respond with voice output.
--   It must maintain the same intelligence, context-awareness, and knowledge base (app data, markets, user behavior) as the current text-based agent.
--   The interaction should feel calm, professional, and responsive.
--   It needs to support 22 regional Indian languages.
--   The chat history must be unified, showing both text and voice interactions.
--   The user suggested using ElevenLabs for the Text-to-Speech (TTS) and Speech-to-Text (STT) functionalities.
+**original_problem_statement**: The user wants to build a robust investment portfolio tracking system. The core requirements are:
+1.  Fix the hoax data on the Invest screen by sourcing data from actual user holdings, not miscellaneous transactions.
+2.  Implement a feature to parse uploaded XLSX investment statements from popular Indian brokers like Groww (for Mutual Funds) and Zerodha (for Stocks).
+3.  Display the parsed holdings in new, well-designed, scrollable UI cards for Stocks and Mutual Funds, showing key metrics like invested value, current value, quantity, and XIRR.
+4.  Ensure all portfolio summary cards and charts (on both the Dashboard and Invest screens) are updated with the real data from the parsed statements.
+5.  Provide an option for the user to clear all their holdings to allow for re-uploads in case of errors.
+6.  Fix any UI/UX bugs that arise during implementation.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The agent has successfully implemented the end-to-end voice conversation feature.
+The agent has successfully implemented the core infrastructure for parsing XLSX statements and overhauling the investment tracking features.
 
--   **Backend**: A new  endpoint was created. This endpoint receives an audio file, transcribes it using ElevenLabs STT, processes the text through a newly refactored shared AI engine (), and converts the AI's text response back to speech using ElevenLabs TTS. The core AI logic from the original text endpoint was moved into the shared engine to ensure consistent intelligence for both text and voice.
--   **Frontend**: The  component was significantly updated to support voice. It now includes a microphone button for push-to-record functionality, UI for recording state, and the ability to play back audio responses from the AI. The  library was installed to handle audio recording and playback.
--   **Configuration**: The user's ElevenLabs API key has been added to the backend environment variables.
+-   **Backend:**
+    -   A new intelligent parsing service, , has been created. It uses  to read and extract data from real Groww (Mutual Fund) and Zerodha (Stock) XLSX statements, handling their unique formats, header locations, and column names.
+    -   A new API endpoint, , handles the file uploads and orchestrates the parsing and saving of holdings to the database.
+    -   The  database collection has been enriched to store , , and  for each holding.
+    -   Critical portfolio APIs (, ) were fixed to use data exclusively from the  collection, ensuring accuracy. The summary API now calculates a weighted-average XIRR for the portfolio.
+    -   An existing  endpoint was identified and verified.
 
-The agent encountered and spent significant time on a frontend rendering issue specific to the web preview, which the user clarified is not a priority. The focus should be on the Expo Go mobile preview.
+-   **Frontend:**
+    -   The main Invest screen () has been significantly refactored.
+    -   New, premium-designed components were created and integrated: , , and .
+    -   The UI now features separate, scrollable cards for stocks and mutual funds, displaying real data fetched from the backend, including per-holding XIRR.
+    -   The  component allows users to pick a statement type and triggers the native file picker. The  utility was updated to handle  for the upload.
+    -   The Clear Holdings feature logic is implemented.
+
+-   **Bug Fixes Completed:**
+    -   **Voice AI:** Fixed a bug where the voice agent couldn't fetch market data for Hindi queries by updating .
+    -   **UI:** Fixed a scaling issue on the  and replaced the CC Statement Upload with a Coming Soon card in settings.
 
 **Last working item**:
--   Last item agent was working: Completing the implementation of the Visor AI voice conversation feature, including backend logic, frontend UI, and documentation updates.
--   Status: USER VERIFICATION PENDING
--   Agent Testing Done: Y (Backend endpoints were successfully tested via . Frontend code bundles without errors.)
--   Which testing method agent to use? screenshot tool. The agent needs to visually verify the frontend on the Expo Go QR code page, as this was not done in the previous session.
+-   Last item agent was working: The user reported that the Clear All Holdings button, which was recently added, is not visible on the Invest screen. The agent hypothesized this was a layout issue and moved the button's code to a new, more prominent location below the holdings cards.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N
+-   Which testing method agent to use? screenshot tool. The agent must take a screenshot of the Investments tab to confirm if the button is now visible and correctly placed.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Frontend UI/UX Verification for Voice Feature (P0)**
--   **Issue 2: User Review of Documentation (P1)**
--   **Issue 3: User Verification for Previous Fixes (P2)**
+-   Issue 1: Clear All Holdings button is not visible (P0)
+-   Issue 2: User Verification for older bug fixes (P2)
 
 Issues Detail:
--   **Issue 1: Frontend UI/UX Verification for Voice Feature (P0)**
-    -   **Attempted fixes**: The agent wrote the frontend code, but got stuck debugging rendering issues on the web preview, which is irrelevant. The final implementation bundles correctly but has not been visually confirmed on the target Expo Go environment.
+-   **Issue 1: Clear All Holdings button is not visible (P0)**
+    -   **Attempted fixes**: The agent moved the JSX for the button inside . The previous location in the section header likely caused it to be clipped or hidden. The new location is below the .
     -   **Next debug checklist**:
-        1.  Use the  targeting the Expo Go QR code page ().
-        2.  Log in with the demo credentials.
-        3.  Navigate to the Insights tab.
-        4.  Verify that the chat modal can be opened and that the new microphone icon is visible next to the text input field.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will confirm that the new voice feature is visually correct and accessible to the user before handing it off for functional testing.
-    -   **Status**: USER VERIFICATION PENDING
+        1.  Restart the Expo server if needed to ensure the latest bundle is active.
+        2.  Use the  to capture the Investments screen on the Expo Go QR page.
+        3.  Analyze the screenshot to confirm the Clear All Holdings button is now visible below the other cards.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a direct user-reported bug blocking a key feature. Fixing it will complete the Clear Holdings user story.
+    -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
     -   **Should Test frontend/backend/both after fix?**: frontend
     -   **Blocked on other issue**: No
 
--   **Issue 2: User Review of Documentation (P1)**
-    -   **Attempted fixes**: N/A. The  and  were updated.
-    -   **Next debug checklist**: Prompt the user to review the updated documentation in .
-    -   **Why fix this issue and what will be achieved with the fix?**: Ensures alignment on the new feature's architecture and keeps project documentation current.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: NA
-    -   **Blocked on other issue**: No
-
--   **Issue 3: User Verification for Previous Fixes (P2)**
-    -   **Attempted fixes**: N/A. These are from a previous session.
-    -   **Next debug checklist**: Guide the user to test the + button on the Transactions screen and the bank statement upload feature.
-    -   **Why fix this issue and what will be achieved with the fix?**: Officially closes out older bug fix tasks.
-    -   **Status**: USER VERIFICATION PENDING
+-   **Issue 2: User Verification for older bug fixes (P2)**
+    -   **Attempted fixes**: N/A.
+    -   **Next debug checklist**: After fixing the current issue, prompt the user to test the + button on the Transactions screen and the bank statement upload feature.
+    -   **Why fix this issue and what will be achieved with the fix?**: Closes out old tasks and ensures all features are confirmed working by the user.
+    -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Should Test frontend/backend/both after fix?**: NA
     -   **Blocked on other issue**: No
 
 **In progress Task List**:
@@ -70,88 +69,104 @@ Issues Detail:
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   (P0) Streaming TTS on the frontend for faster perceived response time.
+    -   (P0) Streaming TTS on the frontend for faster perceived voice response.
+    -   (P1) Refactor oversized files, especially  (>1800 lines).
     -   (P1) Advanced Tax Module (Phase 4).
-    -   (P1) Refactor oversized  and  screens.
 -   **Future Tasks**:
     -   (P2) Gmail Integration for transaction import.
-    -   (P2) Voice cloning with ElevenLabs for a custom Visor persona.
+    -   (P2) Voice Cloning with ElevenLabs for a custom Visor persona.
     -   (P3) Share with Friends referral feature.
 
 **Completed work in this session**
--   **Visor AI Voice Conversation Feature (DONE - Pending Verification)**:
-    -   **Backend**: Refactored the core AI logic into a shared  and created a new voice chat endpoint  that handles STT, AI processing, and TTS.
-    -   **Frontend**: Modified  to add UI for voice recording and playback, using .
-    -   **Documentation**: Updated  with the new voice architecture and  with the completed task.
+-   **Investment Data Overhaul (DONE)**: Fixed backend APIs (, ) to use real holdings data, resolving the hoax data issue.
+-   **XLSX Statement Parsing (DONE)**:
+    -   Built and tested  to handle real Groww MF and Zerodha Stock statements.
+    -   Created  endpoint and connected the frontend  to it.
+-   **Invest Screen UI Revamp (DONE)**: Replaced the old holdings view with new, scrollable  and  components that display real data, including XIRR.
+-   **Clear Holdings Feature (DONE - pending UI fix)**: Implemented the logic and button to allow users to clear all their investment holdings.
+-   **Voice AI Market Data Fix (DONE)**: Patched the backend to understand Hindi queries for stock/commodity prices.
+-   **Minor UI Bug Fixes (DONE)**: Corrected scaling on  and added a Coming Soon card for CC statement imports.
 
 **Earlier issues found/mentioned but not fixed**
--   **Web Preview Rendering**: The Visor AI FAB button does not render correctly on the web preview due to issues with  in React Native Web. This was a pre-existing issue. The user has directed that the web preview is not a priority, so this can be ignored.
+-   **Web Preview Rendering**: An issue with  in React Native Web causes the Visor AI FAB button to render incorrectly. The user has confirmed this is not a priority.
 
 **Known issue recurrence from previous fork**
--   None.
+-   The User Verification for Previous Fixes task is a recurring item.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **API Refactoring**: The core AI logic was extracted into a reusable  service to be shared between the text and new voice endpoints, adhering to the DRY principle.
--   **Third-Party API Integration**: Integrated with ElevenLabs for both Speech-to-Text (STT) and Text-to-Speech (TTS).
--   **React Native Audio**: Utilized the  library to implement audio recording () and playback () functionalities.
--   **Frontend State Management**: Handled complex UI state for recording status, playback status, and unified message history display.
+-   **XLSX Parsing**: Using  to read and parse complex Excel files with variable formats.
+-   **File Uploads**: End-to-end implementation of file uploads from a React Native app to a FastAPI backend using .
+-   **API Logic Correction**: Refactoring backend business logic to ensure data accuracy by switching the data source from transactions to holdings.
+-   **Frontend Componentization**: Breaking down a monolithic screen () into smaller, reusable, and more maintainable components.
 
 **key DB schema**
--   : The data model for this collection was updated to differentiate between input types and include audio data. The frontend  type now includes  and .
+-   ****: This is now the primary source of truth for investments. The schema was effectively expanded to include  (e.g., 'Groww_statement'),  (float), and  (string).
+
+**changes in tech stack**
+-    was installed and added to .
 
 **All files of reference**
--   **/app/backend/services/visor_engine.py**: (New) The shared, core AI processing logic.
--   **/app/backend/routes/visor_voice.py**: (New) The endpoint for voice conversations.
--   **/app/frontend/src/components/AIAdvisorChat.tsx**: (Modified) The primary frontend component for the AI chat, now with voice capabilities.
--   **/app/backend/routes/visor_ai.py**: (Modified) The text chat endpoint, now using the shared engine.
--   **/app/backend/server.py**: (Modified) Registered the new voice router.
--   **/app/memory/PRD.md**: (Modified) Updated with the voice feature architecture.
--   **/app/memory/CHANGELOG.md**: (Modified) Updated with the new feature completion.
+-   **/app/frontend/app/(tabs)/investments.tsx**: The main file for the current task. Contains the UI layout and logic for the Invest screen.
+-   **/app/backend/services/statement_parser.py**: The core logic for parsing Groww and Zerodha XLSX files.
+-   **/app/backend/routes/statement_upload.py**: The API endpoint that receives the uploaded statements.
+-   **/app/backend/routes/holdings.py**: Contains the  endpoint.
+-   **/app/frontend/src/components/investments/StockHoldingsCard.tsx**: The new UI card for stocks.
+-   **/app/frontend/src/components/investments/MutualFundHoldingsCard.tsx**: The new UI card for mutual funds.
 
 **Areas that need refactoring**:
--    has become very large (over 600 lines) and now manages complex state for animations, API calls, text chat, voice recording, and audio playback. It should be broken down into smaller, more manageable components and custom hooks (e.g., , ).
+-   ****: This file is now over 1800 lines long. It's becoming unmanageable and should be a high-priority candidate for refactoring. The state logic and data fetching could be extracted into custom hooks.
 
 **key api endpoints**
--   : **(New)** Accepts a multipart form with an audio file and returns a JSON response containing the AI's text and a base64-encoded audio string of the response.
--   : **(Modified)** The existing text chat endpoint, now streamlined to use the shared .
+-   : **(New)** Uploads a broker statement (XLSX) for parsing and ingestion.
+-   : **(Existing, Verified)** Deletes all holdings for the logged-in user.
+-   : **(Modified)** Provides an accurate portfolio breakdown by category based on real holdings.
+-   : **(Modified)** Provides an accurate dashboard summary, including a weighted-average XIRR.
 
 **Critical Info for New Agent**
--   **Your first task is to visually verify the frontend.** The backend is complete and tested, but the frontend UI for the new voice feature has not been confirmed on the target Expo Go environment. Do not spend any time on the web preview.
--   The user was frustrated by the amount of time previously spent on the irrelevant web preview. Be efficient and focus only on the Expo Go preview for all UI-related tasks.
--   The main frontend file is .
--   The main backend files are  and .
+-   Your immediate task is to fix the visibility of the Clear All Holdings button on the Invest screen. The previous agent moved the button's code in  to a location below the holdings cards, but did not verify the fix. You must use the  to confirm it is now visible.
+-   The  file is extremely large and fragile. Be cautious with edits. A full refactor of this file is a high-priority upcoming task.
+-   The backend parsing logic in  is now robust and has been tested with real user-provided files for both Groww and Zerodha.
 
 **documents and test reports created in this job**
+-   
+-   
+-   
 -    (Updated)
 -    (Updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Frustrated):** What have you been doing for so long you almost took 70 credits... I dont understand what is the problem if its not working in the web preview thats okay ! I want it to work on the ExpoGO preview... Please dont overcomplicate it so much and try and resolve it quickly. - **Status: Actioned.** The agent pivoted strategy based on this.
-2.  **User:** Provided an ElevenLabs API key. - **Status: Completed.**
-3.  **User:** Confirmed Approach A (Voice Skin) and provided preferences for voice input/output. - **Status: Completed.**
-4.  **User:** Initial request for voice capabilities. - **Status: Completed.**
+1.  **User:** Reports the Clear holdings button is not visible, provides a screenshot. (**Status: In Progress**)
+2.  **User:** Asks for an option to clear holdings to allow for re-uploads. (**Status: Completed, pending UI fix**)
+3.  **User:** Provides Zerodha stock statement and asks for a parser to be implemented. (**Status: Completed**)
+4.  **User:** Finishes the conversation about the Groww parser. (**Status: Completed**)
+5.  **User:** Provides a real Groww mutual fund statement and asks to implement the parser logic based on it. (**Status: Completed**)
+6.  **User:** Finishes the conversation about the investment screen overhaul. (**Status: Completed**)
+7.  **User:** Reports hoax data on the Invest screen and initiates the major feature request to parse statements from Groww/Zerodha to show real holdings. (**Status: Completed**)
+8.  **User:** Asks for specific UI changes: a dropdown for uploads and new scrollable cards for stocks and mutual funds with specific data points. (**Status: Completed**)
+9.  **User:** Reports that a previous UI fix isn't visible and asks to disable the credit card statement feature for now. (**Status: Completed**)
+10. **User:** Reports a UI scaling issue with the Investment card on the dashboard, provides a screenshot. (**Status: Completed**)
 
 **Project Health Check:**
--   **Backend**: **Good**. The new feature was implemented, tested via curl, and refactored for maintainability.
--   **Frontend**: **At Risk**. A major feature has been added, and the code now bundles correctly. However, it has not been visually verified on the required Expo Go platform due to earlier debugging issues on the wrong platform (web preview).
+-   **Backend**: **Good**. APIs are tested, accurate, and the new parsing functionality is robust.
+-   **Frontend**: **At Risk**. A critical UI bug (the invisible button) is blocking the completion of a feature. The main screen file () is excessively large, posing a maintenance risk.
 
 **3rd Party Integrations**
--   **ElevenLabs (New)**: Used for Speech-to-Text (Scribe v1) and Text-to-Speech (eleven_multilingual_v2). Requires a user-provided API Key.
--   **OpenAI GPT-5.2**: Used for the core AI brain via  (uses Emergent LLM Key).
+-   ****: A Python library used for reading and writing Excel 2010 xlsx/xlsm/xltx/xltm files. Added to the backend for statement parsing.
+-   **ElevenLabs**: Used for Speech-to-Text and Text-to-Speech.
+-   **OpenAI GPT-5.2**: Used for the core AI agent's intelligence.
 
 **Testing status**
--   Testing agent used after significant changes: NO
--   Troubleshoot agent used after agent stuck in loop: NO (but probably should have been to escape the web-preview loop).
--   Test files created: None.
+-   Testing agent used after significant changes: YES (Used successfully after fixing portfolio data, implementing the Groww parser, and implementing the Zerodha parser).
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: []. The agent created temporary XLSX files for testing but did not commit them as permanent test assets.
 -   Known regressions: None.
 
 **Credentials to test flow:**
--   **Demo Account**:  / 
--   **ElevenLabs API Key**: Stored in .
+-   Email: 
+-   Password: 
 
 **What agent forgot to execute**
--   The agent spent an excessive amount of credits and time attempting to debug a frontend rendering issue in an environment (web preview) that the user deemed unimportant. It failed to pivot its strategy until explicitly told to do so by a frustrated user.
--   The agent did not perform a final visual verification of the frontend implementation on the correct platform (Expo Go) before finishing the job.</analysis>
+-   The agent did not visually verify the final UI change for the Clear Holdings button placement before finishing the previous task. The code was moved, but its effect on the UI was not confirmed, leading directly to the current user-reported issue.</analysis>
