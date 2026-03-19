@@ -15,6 +15,7 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GMAIL_REDIRECT_URI = os.environ.get("GMAIL_REDIRECT_URI", "")
 ENCRYPTION_MASTER_KEY = os.environ.get("ENCRYPTION_MASTER_KEY", "")
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 
 # Sensitive fields that need encryption
 USER_SENSITIVE_FIELDS = ["pan", "aadhaar", "dob", "full_name"]
