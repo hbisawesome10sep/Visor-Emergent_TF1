@@ -24,15 +24,19 @@ _COL_PATTERNS = {
     "isin": [r"^isin", r"isin\s*(?:no|number|code)?"],
     "quantity": [
         r"^(?:qty|quantity|units|unit|balance|holding\s*qty|no\.?\s*of\s*shares)",
+        r"quantity\s*(?:available|held|total)",
         r"(?:current|free)\s*balance", r"^shares$", r"^units$",
     ],
     "buy_price": [
         r"(?:avg|average|weighted\s*avg)\.?\s*(?:cost|price|nav|buy\s*price|rate)",
         r"^buy\s*(?:avg|price|rate)$", r"^avg\.?\s*cost$", r"^purchase\s*price$",
         r"^cost\s*price$", r"^avg\.?\s*nav$", r"^invested\s*nav$",
+        r"^average\s*price$",
     ],
     "current_price": [
         r"(?:ltp|cmp|current|present|last|mkt|market)[\s_]*(?:price|nav|rate)",
+        r"(?:previous|prev)[\s_]*(?:closing|close)[\s_]*(?:price)?",
+        r"^closing\s*price$",
         r"^ltp$", r"^cmp$", r"^nav$", r"^current\s*nav$", r"^closing\s*price$",
     ],
     "invested_value": [
@@ -59,6 +63,7 @@ _COL_PATTERNS = {
     "category": [r"^category$", r"^type$", r"^asset\s*class$"],
     "source": [r"^source$", r"^platform$"],
     "exchange": [r"^exchange$", r"^exch$"],
+    "sector": [r"^sector$", r"^industry$", r"^segment$"],
 }
 
 
@@ -205,7 +210,7 @@ def parse_holdings_xlsx(file_bytes: bytes, statement_type: str = "auto", filenam
         dict with 'holdings' list, 'metadata', and 'summary'
     """
     import io
-    wb = load_workbook(io.BytesIO(file_bytes), read_only=True, data_only=True)
+    wb = load_workbook(io.BytesIO(file_bytes), data_only=True)
     
     all_holdings = []
     metadata = {
@@ -217,7 +222,14 @@ def parse_holdings_xlsx(file_bytes: bytes, statement_type: str = "auto", filenam
     portfolio_summary = {}
     personal_details = {}
     
+    parsed_sheet_types = set()
+    
     for sheet_name in wb.sheetnames:
+        # Skip "Combined" sheet if Equity/MF sheets already parsed (avoids duplicates)
+        sheet_lower = sheet_name.lower()
+        if "combined" in sheet_lower and parsed_sheet_types:
+            continue
+        
         ws = wb[sheet_name]
         rows = list(ws.iter_rows(values_only=True))
         if not rows:
@@ -247,8 +259,8 @@ def parse_holdings_xlsx(file_bytes: bytes, statement_type: str = "auto", filenam
                 if field and field not in temp_map:
                     temp_map[field] = j
             
-            # Need at least 'name' + one of quantity/invested_value
-            has_identifier = "name" in temp_map or "isin" in temp_map
+            # Need at least one identifier (name/isin/ticker) + one value
+            has_identifier = "name" in temp_map or "isin" in temp_map or "ticker" in temp_map
             has_value = "quantity" in temp_map or "invested_value" in temp_map or "current_value" in temp_map
             if has_identifier and has_value:
                 header_row_idx = i
@@ -262,6 +274,10 @@ def parse_holdings_xlsx(file_bytes: bytes, statement_type: str = "auto", filenam
             continue
         
         metadata["sheets_parsed"].append(sheet_name)
+        if "equity" in sheet_lower:
+            parsed_sheet_types.add("equity")
+        elif "mutual" in sheet_lower:
+            parsed_sheet_types.add("mf")
         logger.info(f"Sheet '{sheet_name}': header at row {header_row_idx}, columns mapped: {list(col_map.keys())}")
         
         # Parse data rows
@@ -289,7 +305,12 @@ def parse_holdings_xlsx(file_bytes: bytes, statement_type: str = "auto", filenam
             cat_cell = _to_str(get("category"))
             sub_cat = _to_str(get("sub_category"))
             source_cell = _to_str(get("source"))
+            sector = _to_str(get("sector"))
             buy_date_raw = get("buy_date")
+            
+            # Use ticker/symbol as name when name column is missing (Zerodha format)
+            if not name and ticker:
+                name = ticker
             
             # Skip empty/invalid rows
             if not name and not isin:
@@ -336,6 +357,7 @@ def parse_holdings_xlsx(file_bytes: bytes, statement_type: str = "auto", filenam
                 "isin": isin,
                 "category": category,
                 "sub_category": sub_cat,
+                "sector": sector,
                 "amc": amc,
                 "folio": folio,
                 "source_platform": source_cell,

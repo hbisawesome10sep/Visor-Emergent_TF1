@@ -1,0 +1,117 @@
+{
+  "summary": "Iteration 37 - Zerodha Stock Statement Parser Testing: All 10 backend tests passed. Parser correctly extracts 16 stock holdings from real Zerodha XLSX statement. All features verified: ticker format (.NS suffix), invested_value calculation (qty*avg_price), sector field, duplicate handling, Combined sheet skipping.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "notes": "Frontend testing skipped per request (backend only)"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_zerodha_statement_parser.py",
+    "/app/test_reports/pytest/pytest_zerodha_statement.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Parser correctly identifies Zerodha format: headers at row 22, data starts at row 23",
+    "Ticker column used as name when name column is missing (Zerodha uses Symbol instead of Name)",
+    "Invested value calculated correctly: quantity * average_price",
+    "Previous Closing Price column mapped as current_price",
+    "Sector field correctly extracted for all 16 stocks (ENERGY, FMCG, CHEMICALS, METALS, etc)",
+    "Combined sheet correctly skipped when Equity sheet already parsed (prevents duplicates)",
+    "Duplicate handling works: re-upload updates existing holdings via ISIN match"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_zerodha_statement_parser.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123"
+  },
+  "api_verification_results": {
+    "/api/parse-statement-preview POST": {
+      "status": "PASS",
+      "verified_data": {
+        "holdings_count": 16,
+        "source_detected": "Zerodha",
+        "sheets_parsed": ["Equity", "Mutual Funds"],
+        "combined_sheet_skipped": true,
+        "all_holdings_category": "Stock",
+        "all_tickers_have_ns_suffix": true
+      }
+    },
+    "/api/upload-statement POST": {
+      "status": "PASS",
+      "verified_data": {
+        "total_parsed": 16,
+        "duplicate_handling": "Re-upload marks all 16 as duplicates (updated)"
+      }
+    },
+    "/api/holdings/live GET": {
+      "status": "PASS",
+      "verified_data": {
+        "total_holdings": 23,
+        "mutual_fund_holdings": 7,
+        "stock_holdings": 16,
+        "zerodha_stocks_with_sector": 16
+      }
+    },
+    "/api/portfolio-overview GET": {
+      "status": "PASS",
+      "verified_data": {
+        "total_invested": 140613.62,
+        "total_current_value": 172116.45,
+        "categories": ["Stock (16)", "Mutual Fund (7)"]
+      }
+    },
+    "/api/dashboard/investment-summary GET": {
+      "status": "PASS",
+      "verified_data": {
+        "holdings_count": 23,
+        "xirr": 17.78,
+        "total_invested": 140613.62,
+        "current_value": 172116.45
+      }
+    }
+  },
+  "zerodha_stocks_verified": [
+    {"name": "ADANIPOWER", "ticker": "ADANIPOWER.NS", "sector": "ENERGY", "invested": 3884.95},
+    {"name": "BHEL", "ticker": "BHEL.NS", "sector": "ENGINEERING & CAPITAL GOODS", "invested": 435.5},
+    {"name": "CARYSIL", "ticker": "CARYSIL.NS", "sector": "FMCG", "invested": 1280.3},
+    {"name": "FCL", "ticker": "FCL.NS", "sector": "CHEMICALS", "invested": 1544},
+    {"name": "GREENPOWER", "ticker": "GREENPOWER.NS", "sector": "ENERGY", "invested": 242},
+    {"name": "HATHWAY", "ticker": "HATHWAY.NS", "sector": "TELECOM", "invested": 233.5},
+    {"name": "INDHOTEL", "ticker": "INDHOTEL.NS", "sector": "TOURISM & HOSPITALITY", "invested": 506.75},
+    {"name": "JSL", "ticker": "JSL.NS", "sector": "METALS", "invested": 596.8},
+    {"name": "KALYANKJIL", "ticker": "KALYANKJIL.NS", "sector": "RETAIL", "invested": 492.45},
+    {"name": "NHPC", "ticker": "NHPC.NS", "sector": "ENERGY", "invested": 875},
+    {"name": "ONGC", "ticker": "ONGC.NS", "sector": "ENERGY", "invested": 461.7},
+    {"name": "RAILTEL", "ticker": "RAILTEL.NS", "sector": "ENGINEERING & CAPITAL GOODS", "invested": 798.9},
+    {"name": "TATACONSUM", "ticker": "TATACONSUM.NS", "sector": "FMCG", "invested": 1662},
+    {"name": "TATAPOWER", "ticker": "TATAPOWER.NS", "sector": "ENERGY", "invested": 2330},
+    {"name": "TMCV-BL", "ticker": "TMCV-BL.NS", "sector": "AUTO ANCILLARY", "invested": 1618.69},
+    {"name": "TMPV", "ticker": "TMPV.NS", "sector": "AUTO ANCILLARY", "invested": 3577.76}
+  ],
+  "groww_mf_holdings_intact": [
+    {"name": "Nippon India Small Cap Fund Direct Growth", "invested": 3999.62, "xirr": 23.44},
+    {"name": "Parag Parikh Flexi Cap Fund Direct Growth", "invested": 20746.4, "xirr": 19.36},
+    {"name": "DSP Small Cap Fund Growth", "invested": 30998.71, "xirr": 11.03},
+    {"name": "Motilal Oswal Midcap Fund Direct Growth", "invested": 22327.9, "xirr": 25.92},
+    {"name": "Quant Small Cap Fund Direct Plan Growth", "invested": 1000, "xirr": 22.16},
+    {"name": "Nippon India Growth Mid Cap Fund Growth", "invested": 31000.69, "xirr": 16.74}
+  ],
+  "seed_data_creation": "No new seed data created. Used real Zerodha statement file at /tmp/zerodha_stocks_real.xlsx",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Zerodha stock statement parser fully verified. Parser handles Zerodha format (headers at row 22, Symbol column, no Name/Invested columns). Demo user now has 23 holdings: 7 MF (6 Groww + 1 eCAS) + 16 Zerodha Stocks. Total invested: ₹140,613. Combined sheet correctly skipped. All stocks have .NS ticker suffix and sector field populated.",
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}

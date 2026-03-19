@@ -98,6 +98,7 @@ async def upload_statement(
             "isin": h["isin"],
             "category": h["category"],
             "sub_category": h.get("sub_category", ""),
+            "sector": h.get("sector", ""),
             "amc": h.get("amc", ""),
             "folio": h.get("folio", ""),
             "quantity": h["quantity"],
