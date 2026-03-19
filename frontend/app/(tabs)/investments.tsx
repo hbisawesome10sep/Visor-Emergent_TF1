@@ -644,11 +644,28 @@ export default function InvestmentsScreen() {
            ═══════════════════════════════════════════════════════════ */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 14 }}>
           <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0, marginTop: 0 }]}>My Holdings</Text>
-          <UploadDropdown
-            colors={colors}
-            isDark={isDark}
-            onSelect={handleStatementUpload}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {holdingsData?.holdings && holdingsData.holdings.length > 0 && (
+              <TouchableOpacity
+                data-testid="clear-holdings-header-btn"
+                onPress={handleClearHoldings}
+                style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 5,
+                  paddingHorizontal: 10, paddingVertical: 8, borderRadius: 10,
+                  backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.06)',
+                  borderWidth: 1, borderColor: isDark ? 'rgba(239,68,68,0.25)' : 'rgba(239,68,68,0.15)',
+                }}
+              >
+                <MaterialCommunityIcons name="delete-sweep-outline" size={16} color={Accent.ruby} />
+                <Text style={{ fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700', color: Accent.ruby }}>Clear</Text>
+              </TouchableOpacity>
+            )}
+            <UploadDropdown
+              colors={colors}
+              isDark={isDark}
+              onSelect={handleStatementUpload}
+            />
+          </View>
         </View>
 
         {/* Stock Holdings */}
