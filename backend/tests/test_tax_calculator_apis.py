@@ -9,7 +9,7 @@ import requests
 import os
 from uuid import uuid4
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ai-agent-deep-dive.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ai-voice-chat-24.preview.emergentagent.com')
 
 # Test credentials from review request
 TEST_EMAIL = "rajesh@visor.demo"
