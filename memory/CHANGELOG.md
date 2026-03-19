@@ -13,10 +13,12 @@
 
 ### XLSX Statement Parser (New Feature)
 - **Backend**: Intelligent XLSX parser (`statement_parser.py`) — auto-detects source (Groww/Zerodha) and column mapping via regex patterns
-- **Endpoint**: `POST /api/upload-statement` — accepts XLSX, parses holdings, saves to DB with duplicate detection
-- **Preview**: `POST /api/parse-statement-preview` — parse without saving
-- **Supported formats**: Stock holdings, Mutual Fund holdings from Groww, Zerodha Console, and generic XLSX
-- **Frontend**: Connected UploadDropdown → DocumentPicker → upload-statement API with FormData support
+- **Groww MF format verified**: Handles headers at row 20 (0-indexed), personal details section, summary section with portfolio XIRR, per-holding XIRR
+- **Parsed real Groww statement**: 6 MF holdings correctly extracted (Nippon India Small Cap, Parag Parikh Flexi Cap, DSP Small Cap, Motilal Oswal Midcap, Quant Small Cap, Nippon India Growth Mid Cap)
+- **Per-holding XIRR**: Captured from statement (11-26% range), weighted average XIRR (17.78%) displayed on Dashboard
+- **Endpoints**: `POST /api/upload-statement` (save), `POST /api/parse-statement-preview` (preview without saving)
+- **Duplicate detection**: Re-upload updates existing holdings by ISIN or name+category match
+- **Frontend**: UploadDropdown → DocumentPicker → FormData upload
 
 ### Other
 - `apiRequest` now supports FormData uploads (`isFormData` option)

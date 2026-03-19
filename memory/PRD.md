@@ -700,14 +700,16 @@ User Speaks → [ElevenLabs STT] → Text → [Existing Visor AI Pipeline] → A
 | POST | `/api/sip-analytics/link-sip` | Link SIP to goal |
 | POST | `/api/sip-analytics/unlink-sip` | Unlink SIP from goal |
 
-### Holdings & Portfolio (6 endpoints)
+### Holdings & Portfolio (8 endpoints)
 | POST | `/api/holdings/upload-cas` | Upload CAS PDF |
 | GET | `/api/holdings` | List holdings |
 | GET | `/api/holdings/live` | Holdings with live prices |
 | PUT | `/api/holdings/{id}` | Update holding |
 | DELETE | `/api/holdings/{id}` | Delete holding |
-| GET | `/api/portfolio-overview` | Portfolio allocation |
+| GET | `/api/portfolio-overview` | Portfolio allocation (holdings-only) |
 | GET | `/api/portfolio-rebalancing` | Rebalancing suggestions |
+| POST | `/api/upload-statement` | Upload Groww/Zerodha XLSX statement |
+| POST | `/api/parse-statement-preview` | Preview parsed holdings |
 
 ### Tax (6 endpoints)
 | GET | `/api/tax-calculator` | Old vs New regime comparison |
@@ -748,6 +750,9 @@ User Speaks → [ElevenLabs STT] → Text → [Existing Visor AI Pipeline] → A
 - [x] Landing Page: Full-featured marketing page
 - [x] Expo QR Page: Auto-refreshing QR code for Expo Go preview
 - [x] Color Consistency: Goal categories unified across Dashboard and Invest screen
+- [x] Voice AI: ElevenLabs STT/TTS + Hindi/multilingual ticker detection
+- [x] Investment Screen Overhaul: Portfolio data fix, Stock/MF holdings cards, UploadDropdown
+- [x] Groww MF Statement Parser: XLSX parser with per-holding XIRR, auto-detection, weighted XIRR
 
 ### NOT STARTED
 - [ ] Phase 4: Advanced Tax Screen (Tax-loss Harvesting, Advance Tax alerts)
