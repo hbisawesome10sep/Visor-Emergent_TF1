@@ -165,6 +165,9 @@ async def refresh_holdings_prices(user=Depends(get_current_user)):
     if stocks:
         stock_prices = await loop.run_in_executor(_yf_executor, fetch_stock_prices, stocks)
     if mfs:
+        # Pass original current_value for NAV validation
+        for mf in mfs:
+            mf["_original_current_value"] = mf.get("current_value", 0)
         mf_navs = await loop.run_in_executor(_yf_executor, fetch_mf_prices, mfs)
 
     updated = 0

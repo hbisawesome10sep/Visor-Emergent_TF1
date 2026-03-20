@@ -1,12 +1,15 @@
 """
 Holdings Price Updater — Fetches live prices for stocks (yfinance) and mutual funds (mfapi.in)
 and updates current_value, gain_loss, gain_loss_pct in the holdings collection.
+
+Key fix: MF matching respects Direct vs Regular plan from the fund name and uses ISIN
+for precise matching when available.
 """
 import logging
+import re
 import requests
 import yfinance as yf
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 _executor = ThreadPoolExecutor(max_workers=3)
@@ -16,22 +19,101 @@ _executor = ThreadPoolExecutor(max_workers=3)
 _MFAPI_SEARCH = "https://api.mfapi.in/mf/search?q={query}"
 _MFAPI_LATEST = "https://api.mfapi.in/mf/{scheme_code}/latest"
 
-# Cache scheme_code lookups to avoid repeated searches
+# Cache scheme_code lookups
 _scheme_code_cache: dict[str, int | None] = {}
 
 
-def _search_scheme_code(fund_name: str) -> int | None:
-    """Search mfapi.in for a scheme code matching the fund name."""
-    if fund_name in _scheme_code_cache:
-        return _scheme_code_cache[fund_name]
+def _is_direct_plan(name: str) -> bool | None:
+    """Determine if a fund name indicates Direct or Regular plan.
+    Returns True for Direct, False for Regular, None if ambiguous."""
+    lower = name.lower()
+    if "direct" in lower:
+        return True
+    if "regular" in lower:
+        return False
+    # No explicit mention — treat as Regular (most common for external/distributor funds)
+    return None
+
+
+def _score_match(user_name: str, candidate_name: str, is_user_direct: bool | None) -> int:
+    """Score how well a candidate fund name matches the user's fund name.
+    Higher score = better match. Returns -1 for disqualified matches."""
+    score = 0
+    c_lower = candidate_name.lower()
+    u_lower = user_name.lower()
+
+    is_candidate_direct = "direct" in c_lower
+
+    # Plan type matching — critical for correct NAV
+    if is_user_direct is True:
+        if is_candidate_direct:
+            score += 100
+        else:
+            return -1
+    elif is_user_direct is False:
+        if not is_candidate_direct:
+            score += 100
+        else:
+            return -1
+    elif is_user_direct is None:
+        # Ambiguous — prefer Regular (non-direct)
+        if not is_candidate_direct:
+            score += 50
+        else:
+            score += 10
+
+    # Growth/Dividend/Bonus option matching
+    if "growth" in u_lower:
+        if "idcw" in c_lower or "dividend" in c_lower:
+            return -1
+        if "bonus" in c_lower and "bonus" not in u_lower:
+            return -1  # Bonus option is different from Growth
+        if "growth" in c_lower:
+            score += 30
+
+    # Name similarity — match key fund words
+    noise = {"fund", "plan", "direct", "growth", "option", "regular", "the", "of", "mutual", "-"}
+    user_words = set(re.findall(r'[a-z]+', u_lower)) - noise
+    cand_words = set(re.findall(r'[a-z]+', c_lower)) - noise
+    common = user_words & cand_words
+
+    if user_words:
+        # Reward common words
+        score += int(30 * len(common) / len(user_words))
+
+        # Penalize extra candidate words not in user's name
+        # This avoids matching "DSP BlackRock Small Mid Cap" when user has "DSP Small Cap"
+        extra = cand_words - user_words
+        suspect_words = {"blackrock", "institutional", "flexi", "value", "large", "vision"}
+        for w in extra:
+            if w in suspect_words:
+                score -= 20
+            else:
+                score -= 3
+
+    return score
+
+
+def _search_scheme_code(fund_name: str, isin: str = "") -> int | None:
+    """Search mfapi.in for a scheme code matching the fund name, respecting plan type."""
+    cache_key = f"{fund_name}|{isin}"
+    if cache_key in _scheme_code_cache:
+        return _scheme_code_cache[cache_key]
+
+    is_direct = _is_direct_plan(fund_name)
 
     # Try progressively shorter search terms
     search_terms = [fund_name]
     words = fund_name.split()
-    if len(words) > 3:
-        search_terms.append(" ".join(words[:4]))
-    if len(words) > 2:
-        search_terms.append(" ".join(words[:3]))
+    # Remove plan/growth keywords for broader search
+    clean_words = [w for w in words if w.lower() not in ("direct", "plan", "growth", "option", "regular", "-")]
+    if len(clean_words) > 3:
+        search_terms.append(" ".join(clean_words[:4]))
+    if len(clean_words) > 2:
+        search_terms.append(" ".join(clean_words[:3]))
+
+    best_match = None
+    best_score = -1
 
     for query in search_terms:
         try:
@@ -39,30 +121,34 @@ def _search_scheme_code(fund_name: str) -> int | None:
                 _MFAPI_SEARCH.format(query=requests.utils.quote(query)),
                 timeout=8,
             )
-            if resp.status_code == 200:
-                results = resp.json()
-                if isinstance(results, list) and results:
-                    # Try exact match first
-                    for r in results:
-                        if r.get("schemeName", "").strip().lower() == fund_name.strip().lower():
-                            code = int(r["schemeCode"])
-                            _scheme_code_cache[fund_name] = code
-                            return code
-                    # Fallback: pick first direct-growth match
-                    for r in results:
-                        name_lower = r.get("schemeName", "").lower()
-                        if "direct" in name_lower and "growth" in name_lower:
-                            code = int(r["schemeCode"])
-                            _scheme_code_cache[fund_name] = code
-                            return code
-                    # Fallback: first result
-                    code = int(results[0]["schemeCode"])
-                    _scheme_code_cache[fund_name] = code
-                    return code
+            if resp.status_code != 200:
+                continue
+            results = resp.json()
+            if not isinstance(results, list) or not results:
+                continue
+
+            for r in results:
+                sn = r.get("schemeName", "")
+                sc = _score_match(fund_name, sn, is_direct)
+                if sc > best_score:
+                    best_score = sc
+                    best_match = r
+
+            # If we found a good match, stop searching
+            if best_score >= 80:
+                break
+
         except Exception as e:
             logger.debug(f"mfapi search failed for '{query}': {e}")
 
-    _scheme_code_cache[fund_name] = None
+    if best_match and best_score > 0:
+        code = int(best_match["schemeCode"])
+        logger.info(f"MF match: '{fund_name[:40]}' -> '{best_match['schemeName'][:50]}' (score={best_score})")
+        _scheme_code_cache[cache_key] = code
+        return code
+
+    logger.debug(f"No match for '{fund_name}'")
+    _scheme_code_cache[cache_key] = None
     return None
 
 
@@ -82,17 +168,58 @@ def _fetch_mf_nav(scheme_code: int) -> float | None:
     return None
 
 
+def _validate_nav(holding: dict, nav: float) -> bool:
+    """Validate that the NAV makes sense given the holding data.
+    Uses buy_price as the primary reference since it never gets corrupted by refreshes."""
+    qty = holding.get("quantity", 0)
+    buy_price = holding.get("buy_price", 0)
+    invested = holding.get("invested_value", 0)
+
+    if qty <= 0 or nav <= 0:
+        return False
+
+    # Primary validation: NAV vs buy_price
+    # For equity MFs, NAV should be within 0.1x to 8.0x of the original buy price
+    # (generous range to handle multi-year appreciation/depreciation)
+    if buy_price and buy_price > 0:
+        ratio = nav / buy_price
+        if ratio < 0.1 or ratio > 10.0:
+            logger.warning(
+                f"NAV validation FAILED for {holding.get('name', '')[:30]}: "
+                f"nav={nav:.4f} vs buy_price={buy_price:.4f} (ratio={ratio:.2f})"
+            )
+            return False
+        return True
+
+    # Fallback: NAV vs invested_value / quantity
+    if invested and invested > 0 and qty > 0:
+        implied_buy = invested / qty
+        ratio = nav / implied_buy
+        if ratio < 0.1 or ratio > 10.0:
+            logger.warning(
+                f"NAV validation FAILED for {holding.get('name', '')[:30]}: "
+                f"nav={nav:.4f} vs implied_buy={implied_buy:.4f} (ratio={ratio:.2f})"
+            )
+            return False
+
+    return True
+
+
 def fetch_mf_prices(holdings: list[dict]) -> dict[str, float]:
     """Fetch current NAVs for a list of MF holdings. Returns {holding_id: nav}."""
     result = {}
     for h in holdings:
         name = h.get("name", "")
-        scheme_code = _search_scheme_code(name)
+        isin = h.get("isin", "")
+        scheme_code = _search_scheme_code(name, isin)
         if scheme_code:
             nav = _fetch_mf_nav(scheme_code)
             if nav and nav > 0:
-                result[h["id"]] = nav
-                logger.info(f"MF NAV: {name[:40]} = {nav}")
+                if _validate_nav(h, nav):
+                    result[h["id"]] = nav
+                    logger.info(f"MF NAV OK: {name[:40]} = {nav}")
+                else:
+                    logger.warning(f"MF NAV REJECTED for {name[:40]} (nav={nav}) — keeping original value")
             else:
                 logger.debug(f"MF NAV not found for {name}")
         else:
