@@ -562,14 +562,20 @@ export default function TransactionsScreen() {
         </View>
 
         {/* ═══ PERIOD FILTER ═══ */}
-        <View style={[styles.periodFilterRow, {
+        <View style={[{
           backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
           borderBottomWidth: selectedPeriod !== 'C' ? 1 : 0,
           borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 8,
         }]}>
-          <Text style={[styles.periodFilterLabel, { color: colors.textSecondary }]} numberOfLines={1}>{periodLabel}</Text>
+          {/* Row 1: period label */}
+          <Text style={[styles.periodFilterLabel, { color: colors.textSecondary, marginBottom: 6 }]}>{periodLabel}</Text>
+          {/* Row 2: pills — full width, no overflow */}
           <View style={[styles.periodPillsGroup, {
             backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+            alignSelf: 'flex-start',
           }]}>
             {(['Q', 'M', 'Y', 'All', 'C'] as const).map(p => (
               <TouchableOpacity
