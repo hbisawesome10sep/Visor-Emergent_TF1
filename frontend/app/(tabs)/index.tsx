@@ -686,6 +686,24 @@ export default function DashboardScreen() {
                 const makeLine = (key: string) => points.map((p: any, i: number) => `${toX(i)},${toY(p[key])}`).join(' ');
                 const gridLines = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(maxVal * f));
 
+                // Smart X-axis label decimation: fit ~7 labels max in the available width
+                const maxXLabels = Math.max(2, Math.floor(drawW / 36));
+                const xStep = Math.ceil(points.length / maxXLabels);
+
+                // Format label based on frequency & raw label text
+                const fmtLabel = (raw: string): string => {
+                  if (selectedFrequency === 'Year') {
+                    // "Jan 05" → "Jan", "Feb 09" → "Feb", bare month names pass through
+                    const m = raw.match(/^([A-Za-z]{3})/);
+                    return m ? m[1] : raw;
+                  }
+                  if (selectedFrequency === 'Quarter') {
+                    // "Jan 05" → "Jan 5", keep compact
+                    return raw.replace(/^([A-Za-z]{3})\s?0?(\d)/, '$1 $2');
+                  }
+                  return raw; // Month / All: use as-is
+                };
+
                 return (
                   <View style={{ marginTop: 4, marginBottom: 4 }}>
                     <Svg width={chartW} height={chartH}>
@@ -704,12 +722,29 @@ export default function DashboardScreen() {
                       <Polyline points={makeLine('expenses')} fill="none" stroke={Accent.ruby} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
                       {/* Investments line */}
                       <Polyline points={makeLine('investments')} fill="none" stroke={Accent.sapphire} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" strokeDasharray="4,3" />
-                      {/* X-axis labels */}
-                      {points.map((p: any, i: number) => (
-                        <SvgText key={i} x={toX(i)} y={chartH - 4} fill={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)'} fontSize={9} textAnchor="middle">
-                          {p.label}
-                        </SvgText>
-                      ))}
+                      {/* X-axis labels — decimated & formatted by frequency */}
+                      {points.map((p: any, i: number) => {
+                        // Always show first & last; show others every xStep
+                        const isFirst = i === 0;
+                        const isLast = i === points.length - 1;
+                        const isStep = i % xStep === 0;
+                        if (!isFirst && !isLast && !isStep) return null;
+                        // Avoid last label overlapping second-to-last shown label
+                        const prevShown = points.slice(0, i).map((_: any, j: number) => j).filter((j: number) => j === 0 || j % xStep === 0).pop() ?? -1;
+                        if (isLast && prevShown >= 0 && (toX(i) - toX(prevShown)) < 28) return null;
+                        return (
+                          <SvgText
+                            key={i}
+                            x={toX(i)}
+                            y={chartH - 4}
+                            fill={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)'}
+                            fontSize={9}
+                            textAnchor={i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle'}
+                          >
+                            {fmtLabel(p.label)}
+                          </SvgText>
+                        );
+                      })}
                       {/* Data dots */}
                       {points.map((p: any, i: number) => (
                         <G key={`dots-${i}`}>
