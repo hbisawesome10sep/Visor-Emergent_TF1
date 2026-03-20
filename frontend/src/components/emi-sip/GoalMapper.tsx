@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, FlatList, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { apiRequest } from '../../utils/api';
 import { formatINRShort } from '../../utils/formatters';
@@ -226,35 +226,40 @@ export const GoalMapper = ({ token, isDark, colors }: Props) => {
         );
       })}
 
-      {/* Unmapped SIPs */}
+      {/* Unmapped SIPs — horizontal scroll chips */}
       {unmapped.length > 0 && (
         <View style={{ marginTop: 12 }}>
-          <Text style={[s.subhead, { color: colors.textPrimary }]}>Unmapped SIPs</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <Text style={[s.subhead, { color: colors.textPrimary }]}>Unmapped SIPs</Text>
+            <Text style={[s.chipCount, { color: colors.textSecondary }]}>{unmapped.length} unlinked</Text>
+          </View>
           <Text style={[s.desc, { color: colors.textSecondary, marginBottom: 8 }]}>
-            Link these SIPs to a goal to track progress.
+            Tap a SIP to link it to a goal.
           </Text>
-          {unmapped.map(sip => (
-            <View key={sip.id} style={[s.unmappedCard, {
-              backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
-              borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-            }]}>
-              <MaterialCommunityIcons name="repeat" size={16} color="#3B82F6" />
-              <View style={{ flex: 1 }}>
-                <Text style={[s.unmappedName, { color: colors.textPrimary }]}>{sip.name}</Text>
-                <Text style={[s.unmappedAmt, { color: colors.textSecondary }]}>{formatINRShort(sip.monthly_equivalent)}/mo</Text>
-              </View>
-              {goals.length > 0 && (
-                <TouchableOpacity
-                  data-testid={`link-sip-btn-${sip.id}`}
-                  style={[s.linkBtn, { backgroundColor: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)' }]}
-                  onPress={() => setLinkModal({ visible: true, sipId: sip.id, sipName: sip.name })}
-                >
-                  <MaterialCommunityIcons name="link" size={13} color="#3B82F6" />
-                  <Text style={s.linkBtnText}>Link</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 4 }}>
+            {unmapped.map(sip => (
+              <TouchableOpacity
+                key={sip.id}
+                data-testid={`link-sip-btn-${sip.id}`}
+                style={[s.sipChip, {
+                  backgroundColor: isDark ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.07)',
+                  borderColor: isDark ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.2)',
+                }]}
+                onPress={() => goals.length > 0 && setLinkModal({ visible: true, sipId: sip.id, sipName: sip.name })}
+                activeOpacity={0.75}
+              >
+                <MaterialCommunityIcons name="repeat" size={13} color="#3B82F6" />
+                <View style={{ maxWidth: 120 }}>
+                  <Text style={[s.chipName, { color: colors.textPrimary }]} numberOfLines={1}>{sip.name}</Text>
+                  <Text style={[s.chipAmt, { color: '#3B82F6' }]}>{formatINRShort(sip.monthly_equivalent)}/mo</Text>
+                </View>
+                <View style={s.chipLinkTag}>
+                  <MaterialCommunityIcons name="link-plus" size={11} color="#3B82F6" />
+                  <Text style={s.chipLinkText}>Link</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       )}
 
@@ -351,6 +356,22 @@ const s = StyleSheet.create({
   unlinkBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: 'rgba(239,68,68,0.1)' },
   unlinkText: { fontSize: 11, color: '#EF4444', fontWeight: '600' },
   subhead: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+  chipCount: { fontSize: 11, fontWeight: '500' },
+  sipChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    paddingHorizontal: 10, paddingVertical: 9,
+    borderRadius: 12, borderWidth: 1,
+  },
+  chipName: { fontSize: 12, fontWeight: '600' },
+  chipAmt: { fontSize: 10, fontWeight: '500', marginTop: 1 },
+  chipLinkTag: {
+    flexDirection: 'row', alignItems: 'center', gap: 2,
+    backgroundColor: 'rgba(59,130,246,0.15)',
+    paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6,
+    marginLeft: 2,
+  },
+  chipLinkText: { fontSize: 10, color: '#3B82F6', fontWeight: '700' },
+  // kept for backwards compat (linked sips unlink)
   unmappedCard: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 10, borderWidth: 1, marginBottom: 6 },
   unmappedName: { fontSize: 13, fontWeight: '600' },
   unmappedAmt: { fontSize: 11, marginTop: 1 },

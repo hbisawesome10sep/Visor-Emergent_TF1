@@ -659,19 +659,21 @@ export default function InvestmentsScreen() {
         />
 
         {/* ═══════════════════════════════════════════════════════════
-             SECTION 2.5: MY HOLDINGS (Stock + MF Cards + Upload)
+             SECTION 2.5: MY HOLDINGS HEADER
            ═══════════════════════════════════════════════════════════ */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 14 }}>
-          <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0, marginTop: 0 }]}>My Holdings</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ marginTop: 24, marginBottom: 14 }}>
+          {/* Title row */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0, marginTop: 0 }]}>My Holdings</Text>
+            {/* Live Prices — icon-only compact button */}
             {holdingsData?.holdings && holdingsData.holdings.length > 0 && (
               <TouchableOpacity
                 data-testid="refresh-prices-btn"
                 style={{
-                  flexDirection: 'row', alignItems: 'center', gap: 4,
-                  paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+                  flexDirection: 'row', alignItems: 'center', gap: 5,
+                  paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
                   backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)',
-                  borderWidth: 1, borderColor: isDark ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.15)',
+                  borderWidth: 1, borderColor: isDark ? 'rgba(16,185,129,0.3)' : 'rgba(16,185,129,0.2)',
                 }}
                 onPress={handleRefreshPrices}
                 disabled={refreshingPrices}
@@ -679,19 +681,20 @@ export default function InvestmentsScreen() {
                 {refreshingPrices ? (
                   <ActivityIndicator size="small" color="#10B981" />
                 ) : (
-                  <MaterialCommunityIcons name="refresh" size={14} color="#10B981" />
+                  <MaterialCommunityIcons name="refresh" size={13} color="#10B981" />
                 )}
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#10B981', fontFamily: 'DM Sans' }}>
+                <Text style={{ fontSize: 11, fontWeight: '600' as any, color: '#10B981', fontFamily: 'DM Sans' }}>
                   {refreshingPrices ? 'Updating...' : 'Live Prices'}
                 </Text>
               </TouchableOpacity>
             )}
-            <UploadDropdown
-              colors={colors}
-              isDark={isDark}
-              onSelect={handleStatementUpload}
-            />
           </View>
+          {/* Import Statement full-width button row */}
+          <UploadDropdown
+            colors={colors}
+            isDark={isDark}
+            onSelect={handleStatementUpload}
+          />
         </View>
 
         {/* Stock Holdings */}
@@ -1060,15 +1063,8 @@ export default function InvestmentsScreen() {
         </View>
 
         {/* ═══════════════════════════════════════════════════════════
-             SECTION 5.9d: GOAL MAPPING
+             SECTION 5.9d: GOAL MAPPING (removed from here — now at bottom)
            ═══════════════════════════════════════════════════════════ */}
-        <View style={[styles.glassCard, {
-          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-          marginTop: 6,
-        }]}>
-          <GoalMapper token={token || ''} isDark={isDark} colors={colors} />
-        </View>
 
         {/* ═══════════════════════════════════════════════════════════
              SECTION 6: FINANCIAL GOALS
@@ -1081,6 +1077,17 @@ export default function InvestmentsScreen() {
           onEditGoal={openEditGoal}
           onDeleteGoal={handleDeleteGoal}
         />
+
+        {/* ═══════════════════════════════════════════════════════════
+             SECTION 6.5: GOAL MAPPING (bottom of screen)
+           ═══════════════════════════════════════════════════════════ */}
+        <View style={[styles.glassCard, {
+          backgroundColor: isDark ? 'rgba(10, 10, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+          marginTop: 6,
+        }]}>
+          <GoalMapper token={token || ''} isDark={isDark} colors={colors} />
+        </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
