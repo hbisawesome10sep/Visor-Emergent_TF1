@@ -589,7 +589,7 @@ export default function TransactionsScreen() {
                   styles.periodPillText,
                   { color: selectedPeriod === p ? '#fff' : colors.textSecondary },
                 ]}>
-                  {p === 'C' ? 'Custom' : p}
+                  {p}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -1596,7 +1596,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   periodPill: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
