@@ -130,13 +130,24 @@ export default function TransactionsScreen() {
   const [showSearch, setShowSearch] = useState(false);
   const [datePreset, setDatePreset] = useState('All Time');
 
-  // Period filter: Q=Quarter, M=Month, Y=Year, C=Custom(All)
-  const [selectedPeriod, setSelectedPeriod] = useState<'Q' | 'M' | 'Y' | 'C'>('M');
+  // Period filter: Q=Quarter, M=Month, Y=Year, All=All Time, C=Custom Range
+  const [selectedPeriod, setSelectedPeriod] = useState<'Q' | 'M' | 'Y' | 'All' | 'C'>('M');
+
+  // Custom date range state
+  const [customStartDate, setCustomStartDate] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [customEndDate, setCustomEndDate] = useState<Date>(new Date());
+  const [showCustomStartPicker, setShowCustomStartPicker] = useState(false);
+  const [showCustomEndPicker, setShowCustomEndPicker] = useState(false);
+  const [tempCustomStart, setTempCustomStart] = useState<Date>(new Date());
+  const [tempCustomEnd, setTempCustomEnd] = useState<Date>(new Date());
+  const [customRangeApplied, setCustomRangeApplied] = useState(false);
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fmtDateDisplay = (d: Date) => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
   // Compute start_date/end_date from selected period
   const periodDates = useMemo(() => {
     const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
     const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     if (selectedPeriod === 'M') {
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -149,9 +160,11 @@ export default function TransactionsScreen() {
       return { start: fmt(start), end: fmt(end) };
     } else if (selectedPeriod === 'Y') {
       return { start: `${now.getFullYear()}-01-01`, end: `${now.getFullYear()}-12-31` };
+    } else if (selectedPeriod === 'C' && customRangeApplied) {
+      return { start: fmt(customStartDate), end: fmt(customEndDate) };
     }
     return { start: null, end: null };
-  }, [selectedPeriod]);
+  }, [selectedPeriod, customStartDate, customEndDate, customRangeApplied]);
 
   // Human-readable period label
   const periodLabel = useMemo(() => {
@@ -160,8 +173,12 @@ export default function TransactionsScreen() {
     if (selectedPeriod === 'M') return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
     if (selectedPeriod === 'Q') return `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`;
     if (selectedPeriod === 'Y') return `${now.getFullYear()}`;
+    if (selectedPeriod === 'C' && customRangeApplied) {
+      return `${fmtDateDisplay(customStartDate)} – ${fmtDateDisplay(customEndDate)}`;
+    }
+    if (selectedPeriod === 'C') return 'Custom Range';
     return 'All Time';
-  }, [selectedPeriod]);
+  }, [selectedPeriod, customStartDate, customEndDate, customRangeApplied]);
 
   // Form
   const [form, setForm] = useState({
@@ -547,33 +564,172 @@ export default function TransactionsScreen() {
         {/* ═══ PERIOD FILTER ═══ */}
         <View style={[styles.periodFilterRow, {
           backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-          borderBottomWidth: 1,
+          borderBottomWidth: selectedPeriod !== 'C' ? 1 : 0,
           borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
         }]}>
-          <Text style={[styles.periodFilterLabel, { color: colors.textSecondary }]}>{periodLabel}</Text>
+          <Text style={[styles.periodFilterLabel, { color: colors.textSecondary }]} numberOfLines={1}>{periodLabel}</Text>
           <View style={[styles.periodPillsGroup, {
             backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
           }]}>
-            {(['Q', 'M', 'Y', 'C'] as const).map(p => (
+            {(['Q', 'M', 'Y', 'All', 'C'] as const).map(p => (
               <TouchableOpacity
                 key={p}
                 data-testid={`txn-period-${p}`}
                 style={[
                   styles.periodPill,
                   selectedPeriod === p && { backgroundColor: colors.primary },
+                  p === 'C' && selectedPeriod === 'C' && { backgroundColor: '#F59E0B' },
                 ]}
-                onPress={() => setSelectedPeriod(p)}
+                onPress={() => {
+                  setSelectedPeriod(p);
+                  if (p !== 'C') setCustomRangeApplied(false);
+                }}
               >
                 <Text style={[
                   styles.periodPillText,
                   { color: selectedPeriod === p ? '#fff' : colors.textSecondary },
                 ]}>
-                  {p === 'C' ? 'All' : p}
+                  {p === 'C' ? 'Custom' : p}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
+
+        {/* ═══ CUSTOM DATE RANGE PICKER ═══ */}
+        {selectedPeriod === 'C' && (
+          <View style={[styles.customRangeContainer, {
+            backgroundColor: isDark ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.06)',
+            borderColor: isDark ? 'rgba(245,158,11,0.25)' : 'rgba(245,158,11,0.3)',
+            borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+            borderBottomWidth: 1,
+          }]}>
+            <View style={styles.customRangeRow}>
+              {/* From Date */}
+              <TouchableOpacity
+                data-testid="custom-range-start"
+                style={[styles.customDateBtn, {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }]}
+                onPress={() => {
+                  setTempCustomStart(customStartDate);
+                  setShowCustomStartPicker(true);
+                  setCustomRangeApplied(false);
+                }}
+              >
+                <MaterialCommunityIcons name="calendar-start" size={14} color={Accent.amber} />
+                <View>
+                  <Text style={[styles.customDateLabel, { color: colors.textSecondary }]}>From</Text>
+                  <Text style={[styles.customDateValue, { color: colors.textPrimary }]}>
+                    {fmtDateDisplay(customStartDate)}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <MaterialCommunityIcons name="arrow-right" size={16} color={colors.textSecondary} />
+
+              {/* To Date */}
+              <TouchableOpacity
+                data-testid="custom-range-end"
+                style={[styles.customDateBtn, {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }]}
+                onPress={() => {
+                  setTempCustomEnd(customEndDate);
+                  setShowCustomEndPicker(true);
+                  setCustomRangeApplied(false);
+                }}
+              >
+                <MaterialCommunityIcons name="calendar-end" size={14} color={Accent.amber} />
+                <View>
+                  <Text style={[styles.customDateLabel, { color: colors.textSecondary }]}>To</Text>
+                  <Text style={[styles.customDateValue, { color: colors.textPrimary }]}>
+                    {fmtDateDisplay(customEndDate)}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Apply Button */}
+              <TouchableOpacity
+                data-testid="custom-range-apply"
+                style={[styles.customApplyBtn, { backgroundColor: Accent.amber }]}
+                onPress={() => setCustomRangeApplied(true)}
+              >
+                <Text style={styles.customApplyText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Android Start Date Picker */}
+            {showCustomStartPicker && Platform.OS !== 'ios' && (
+              <DateTimePicker
+                value={customStartDate}
+                mode="date"
+                display="default"
+                maximumDate={customEndDate}
+                onChange={(_, d) => {
+                  setShowCustomStartPicker(false);
+                  if (d) setCustomStartDate(d);
+                }}
+              />
+            )}
+
+            {/* Android End Date Picker */}
+            {showCustomEndPicker && Platform.OS !== 'ios' && (
+              <DateTimePicker
+                value={customEndDate}
+                mode="date"
+                display="default"
+                minimumDate={customStartDate}
+                maximumDate={new Date()}
+                onChange={(_, d) => {
+                  setShowCustomEndPicker(false);
+                  if (d) setCustomEndDate(d);
+                }}
+              />
+            )}
+          </View>
+        )}
+
+        {/* iOS Custom Start Date Picker Modal */}
+        {Platform.OS === 'ios' && (
+          <>
+            <Modal visible={showCustomStartPicker} transparent animationType="slide">
+              <TouchableOpacity style={styles.dateModalOverlay} activeOpacity={1} onPress={() => setShowCustomStartPicker(false)}>
+                <View style={[styles.dateModalContent, { backgroundColor: colors.surface }]}>
+                  <View style={styles.dateModalHeader}>
+                    <TouchableOpacity onPress={() => setShowCustomStartPicker(false)}>
+                      <Text style={[styles.dateModalActionText, { color: colors.textSecondary }]}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.dateModalTitle, { color: colors.textPrimary }]}>Start Date</Text>
+                    <TouchableOpacity onPress={() => { setCustomStartDate(tempCustomStart); setShowCustomStartPicker(false); }}>
+                      <Text style={[styles.dateModalActionText, { color: Accent.amber, fontWeight: '700' as any }]}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker value={tempCustomStart} mode="date" display="spinner" maximumDate={customEndDate} onChange={(_, d) => { if (d) setTempCustomStart(d); }} themeVariant={isDark ? 'dark' : 'light'} style={{ height: 200 }} />
+                </View>
+              </TouchableOpacity>
+            </Modal>
+
+            <Modal visible={showCustomEndPicker} transparent animationType="slide">
+              <TouchableOpacity style={styles.dateModalOverlay} activeOpacity={1} onPress={() => setShowCustomEndPicker(false)}>
+                <View style={[styles.dateModalContent, { backgroundColor: colors.surface }]}>
+                  <View style={styles.dateModalHeader}>
+                    <TouchableOpacity onPress={() => setShowCustomEndPicker(false)}>
+                      <Text style={[styles.dateModalActionText, { color: colors.textSecondary }]}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.dateModalTitle, { color: colors.textPrimary }]}>End Date</Text>
+                    <TouchableOpacity onPress={() => { setCustomEndDate(tempCustomEnd); setShowCustomEndPicker(false); }}>
+                      <Text style={[styles.dateModalActionText, { color: Accent.amber, fontWeight: '700' as any }]}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker value={tempCustomEnd} mode="date" display="spinner" minimumDate={customStartDate} maximumDate={new Date()} onChange={(_, d) => { if (d) setTempCustomEnd(d); }} themeVariant={isDark ? 'dark' : 'light'} style={{ height: 200 }} />
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </>
+        )}
 
         {/* ═══ FLAGGED TRANSACTIONS ALERT BAR ═══ */}
         {flaggedCount > 0 && (
@@ -1450,7 +1606,52 @@ const styles = StyleSheet.create({
     fontWeight: '700' as any,
   },
 
-  // Flagged Transactions Bar
+  // Custom Date Range
+  customRangeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    gap: 10,
+  },
+  customRangeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  customDateBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  customDateLabel: {
+    fontSize: 10,
+    fontFamily: 'DM Sans',
+    fontWeight: '500' as any,
+  },
+  customDateValue: {
+    fontSize: 11,
+    fontFamily: 'DM Sans',
+    fontWeight: '600' as any,
+  },
+  customApplyBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  customApplyText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'DM Sans',
+    fontWeight: '700' as any,
+  },
+
+
   flaggedBar: {
     flexDirection: 'row',
     alignItems: 'center',

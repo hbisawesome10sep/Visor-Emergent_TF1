@@ -9,7 +9,7 @@ import os
 from datetime import datetime, timedelta
 
 # Use public backend URL for testing
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://statement-sync-6.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://portfolio-polish-9.preview.emergentagent.com').rstrip('/')
 
 @pytest.fixture
 def api_client():
