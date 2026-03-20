@@ -107,11 +107,15 @@ export default function InvestmentsScreen() {
     }
   };
 
+  const isPickingRef = useRef(false);
+
   const handleStatementUpload = async (type: 'stock_statement' | 'mf_statement' | 'ecas') => {
     if (type === 'ecas') {
       setShowCasModal(true);
       return;
     }
+    if (isPickingRef.current) return;
+    isPickingRef.current = true;
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
@@ -137,6 +141,8 @@ export default function InvestmentsScreen() {
     } catch (e: any) {
       setUploadingStatement(false);
       Alert.alert('Upload Error', e.message || 'Failed to upload statement');
+    } finally {
+      isPickingRef.current = false;
     }
   };
 
@@ -415,6 +421,8 @@ export default function InvestmentsScreen() {
     ]);
   };
   const handleCasUpload = async () => {
+    if (isPickingRef.current) return;
+    isPickingRef.current = true;
     try {
       // Use expo-document-picker for cross-platform file selection
       const result = await DocumentPicker.getDocumentAsync({
@@ -483,6 +491,8 @@ export default function InvestmentsScreen() {
     } catch (e: any) { 
       console.error('File picker error:', e);
       Alert.alert('Error', 'Could not open file picker. Please try again.'); 
+    } finally {
+      isPickingRef.current = false;
     }
   };
 

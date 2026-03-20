@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert,
   Switch, TextInput, Platform, StatusBar, Modal, Dimensions,
@@ -47,6 +47,9 @@ export default function SettingsScreen() {
   const [showAadhaar, setShowAadhaar] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
+  // Global document picker mutex — prevents "Different document picking in progress" error
+  const isPickingRef = useRef(false);
 
   // Gmail state
   const [gmailConnected, setGmailConnected] = useState(false);
@@ -165,6 +168,8 @@ export default function SettingsScreen() {
 
   // Bank statement upload functions
   const handlePickFile = async () => {
+    if (isPickingRef.current) return;
+    isPickingRef.current = true;
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: ['application/pdf', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
@@ -177,6 +182,8 @@ export default function SettingsScreen() {
       }
     } catch (e: any) {
       Alert.alert('Error', 'Failed to pick file: ' + e.message);
+    } finally {
+      isPickingRef.current = false;
     }
   };
 
@@ -388,6 +395,8 @@ export default function SettingsScreen() {
     }, []);
 
     const pickCCFile = async () => {
+      if (isPickingRef.current) return;
+      isPickingRef.current = true;
       try {
         const result = await DocumentPicker.getDocumentAsync({
           type: ['application/pdf', 'text/csv', 'application/vnd.ms-excel',
@@ -397,7 +406,9 @@ export default function SettingsScreen() {
         if (!result.canceled && result.assets?.[0]) {
           setSelectedCCFile(result.assets[0]);
         }
-      } catch (e) { Alert.alert('Error', 'Could not pick file'); }
+      } catch (e) { Alert.alert('Error', 'Could not pick file'); } finally {
+        isPickingRef.current = false;
+      }
     };
 
     const handleCCUpload = async () => {
