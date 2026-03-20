@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
-  Platform, TouchableWithoutFeedback,
+  Linking, TouchableWithoutFeedback,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -10,18 +10,21 @@ type UploadType = 'stock_statement' | 'mf_statement' | 'ecas';
 interface Props {
   colors: any;
   isDark: boolean;
-  onSelect: (type: UploadType) => void;
+  token: string;
+  onSelect?: (type: UploadType) => void; // kept for compat but not used for file picking
 }
 
 const OPTIONS: { key: UploadType; label: string; icon: string; desc: string; color: string }[] = [
-  { key: 'stock_statement', label: 'Stock Holdings',      icon: 'chart-line',        desc: 'Groww / Zerodha stock XLSX',     color: '#F97316' },
-  { key: 'mf_statement',   label: 'Mutual Fund Holdings', icon: 'chart-arc',         desc: 'Groww / Zerodha MF XLSX',        color: '#6366F1' },
-  { key: 'ecas',           label: 'eCAS Statement',       icon: 'file-certificate',  desc: 'CAMS/KFintech consolidated PDF', color: '#10B981' },
+  { key: 'stock_statement', label: 'Stock Holdings',       icon: 'chart-line',       desc: 'Groww / Zerodha stock XLSX',     color: '#F97316' },
+  { key: 'mf_statement',   label: 'Mutual Fund Holdings',  icon: 'chart-arc',        desc: 'Groww / Zerodha MF XLSX',        color: '#6366F1' },
+  { key: 'ecas',           label: 'eCAS Statement',        icon: 'file-certificate', desc: 'CAMS/KFintech consolidated PDF', color: '#10B981' },
 ];
 
-export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) => {
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+export const UploadDropdown: React.FC<Props> = ({ colors, isDark, token }) => {
   const [open, setOpen] = useState(false);
-  const anim = useRef(new Animated.Value(0)).current;
+  const anim = React.useRef(new Animated.Value(0)).current;
 
   const show = () => {
     setOpen(true);
@@ -33,18 +36,14 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) =>
   };
 
   const handleOptionPress = (key: UploadType) => {
-    // 1. Hide the dropdown (pure Animated.View — no modal to dismiss)
     hide();
-    // 2. Wait for the animation + an extra OS settle buffer, then call the picker
-    //    Using setTimeout here is safe because there is NO native Modal presentation
-    //    in flight; just a JS-side animation.
-    const delay = Platform.OS === 'ios' ? 250 : 100;
-    setTimeout(() => onSelect(key), delay);
+    // Open Safari web upload page — completely bypasses iOS native document picker
+    const url = `${BACKEND_URL}/api/upload-page?token=${encodeURIComponent(token)}&type=${key}`;
+    setTimeout(() => Linking.openURL(url), 200);
   };
 
   return (
     <View style={{ zIndex: 100 }}>
-      {/* Trigger button */}
       <TouchableOpacity
         data-testid="upload-statement-dropdown"
         style={[s.trigger, {
@@ -59,14 +58,12 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) =>
         <MaterialCommunityIcons name={open ? 'chevron-up' : 'chevron-down'} size={16} color="#F97316" />
       </TouchableOpacity>
 
-      {/* Backdrop — dismisses on tap outside */}
       {open && (
         <TouchableWithoutFeedback onPress={hide}>
           <View style={s.backdrop} />
         </TouchableWithoutFeedback>
       )}
 
-      {/* Dropdown sheet — pure Animated.View, NO Modal */}
       {open && (
         <Animated.View
           style={[s.sheet, {
@@ -77,7 +74,9 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) =>
           }]}
         >
           <Text style={[s.sheetTitle, { color: colors.textPrimary }]}>Import Statement</Text>
-          <Text style={[s.sheetDesc, { color: colors.textSecondary }]}>Choose the type of statement</Text>
+          <Text style={[s.sheetDesc, { color: colors.textSecondary }]}>
+            Opens in Safari — works on iOS &amp; Android
+          </Text>
 
           {OPTIONS.map((opt) => (
             <TouchableOpacity
@@ -97,7 +96,7 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) =>
                 <Text style={[s.optLabel, { color: colors.textPrimary }]}>{opt.label}</Text>
                 <Text style={[s.optDesc, { color: colors.textSecondary }]}>{opt.desc}</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={16} color={colors.textSecondary} />
+              <MaterialCommunityIcons name="open-in-new" size={14} color={colors.textSecondary} />
             </TouchableOpacity>
           ))}
         </Animated.View>

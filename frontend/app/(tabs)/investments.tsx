@@ -3,7 +3,7 @@ import { useFocusEffect } from 'expo-router';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl,
   ActivityIndicator, Dimensions, Platform, StatusBar, Animated, Modal,
-  TextInput, KeyboardAvoidingView, Alert,
+  TextInput, KeyboardAvoidingView, Alert, AppState,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -212,6 +212,14 @@ export default function InvestmentsScreen() {
       fetchData();
     }, [fetchData])
   );
+
+  // Auto-refresh when user returns from Safari upload page
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fetchData();
+    });
+    return () => sub.remove();
+  }, [fetchData]);
 
   const onRefresh = () => { setRefreshing(true); fetchData(); };
 
@@ -717,7 +725,7 @@ export default function InvestmentsScreen() {
           <UploadDropdown
             colors={colors}
             isDark={isDark}
-            onSelect={handleStatementUpload}
+            token={token || ''}
           />
         </View>
 
