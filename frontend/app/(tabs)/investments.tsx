@@ -109,6 +109,20 @@ export default function InvestmentsScreen() {
 
   const isPickingRef = useRef(false);
 
+  // Safely open document picker — catches iOS "picking in progress" and retries once
+  const safePickDocument = async (options: Parameters<typeof DocumentPicker.getDocumentAsync>[0]) => {
+    try {
+      return await DocumentPicker.getDocumentAsync(options);
+    } catch (e: any) {
+      const msg: string = e?.message || '';
+      if (msg.toLowerCase().includes('picking in progress') || msg.toLowerCase().includes('another picker')) {
+        await new Promise(r => setTimeout(r, 800));
+        return await DocumentPicker.getDocumentAsync(options);
+      }
+      throw e;
+    }
+  };
+
   const handleStatementUpload = async (type: 'stock_statement' | 'mf_statement' | 'ecas') => {
     if (type === 'ecas') {
       setShowCasModal(true);
@@ -117,7 +131,7 @@ export default function InvestmentsScreen() {
     if (isPickingRef.current) return;
     isPickingRef.current = true;
     try {
-      const result = await DocumentPicker.getDocumentAsync({
+      const result = await safePickDocument({
         type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
         copyToCacheDirectory: true,
       });
