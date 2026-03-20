@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Accent } from '../../utils/theme';
 
@@ -19,6 +19,34 @@ const OPTIONS: { key: UploadType; label: string; icon: string; desc: string; col
 
 export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) => {
   const [open, setOpen] = useState(false);
+  // Store the pending selection so we can call onSelect AFTER modal is fully gone
+  const pendingTypeRef = useRef<UploadType | null>(null);
+
+  const handleOptionPress = (key: UploadType) => {
+    pendingTypeRef.current = key;
+    setOpen(false);
+    // Android: onDismiss doesn't fire reliably, use a timeout as fallback
+    if (Platform.OS === 'android') {
+      setTimeout(() => {
+        if (pendingTypeRef.current) {
+          const t = pendingTypeRef.current;
+          pendingTypeRef.current = null;
+          onSelect(t);
+        }
+      }, 350);
+    }
+    // iOS: handled by onDismiss below
+  };
+
+  // Called by iOS Modal after the dismiss animation fully completes
+  const handleDismiss = () => {
+    if (pendingTypeRef.current) {
+      const t = pendingTypeRef.current;
+      pendingTypeRef.current = null;
+      // Extra tick to ensure the modal view hierarchy is fully torn down
+      setTimeout(() => onSelect(t), 50);
+    }
+  };
 
   return (
     <>
@@ -35,7 +63,13 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) =>
         <MaterialCommunityIcons name="chevron-down" size={16} color="#F97316" />
       </TouchableOpacity>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+        onDismiss={handleDismiss}
+      >
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setOpen(false)}>
           <View style={[s.sheet, {
             backgroundColor: isDark ? '#141416' : '#FFFFFF',
@@ -54,7 +88,7 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onSelect }) =>
                   backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
                   borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
                 }]}
-                onPress={() => { setOpen(false); onSelect(opt.key); }}
+                onPress={() => handleOptionPress(opt.key)}
               >
                 <View style={[s.optIcon, { backgroundColor: `${opt.color}18` }]}>
                   <MaterialCommunityIcons name={opt.icon as any} size={22} color={opt.color} />
