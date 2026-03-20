@@ -1928,6 +1928,12 @@ const styles = StyleSheet.create({
   // App Info
   appInfo: { alignItems: 'center', marginTop: 16, gap: 4 },
   appInfoText: { fontSize: 12 },
+  qrPreviewBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    paddingHorizontal: 16, paddingVertical: 10,
+    borderRadius: 12, borderWidth: 1, marginBottom: 10,
+  },
+  qrPreviewText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '600' as any },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
