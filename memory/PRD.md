@@ -243,7 +243,6 @@ Build a **comprehensive personal finance management application** named **Visor*
 | Data Export | Transactions CSV / PDF export |
 | Gmail Sync | OAuth-based email scan for bank transaction emails |
 | Delete Account | Full data purge |
-| **Mobile Preview (QR)** | "Preview on Mobile (Expo Go)" button → opens `/api/expo/qr` (Added March 20) |
 | App Info | Version, build info |
 
 ### 5.11 Voice AI (Visor AI)
