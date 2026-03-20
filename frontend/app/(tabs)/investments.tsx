@@ -88,6 +88,24 @@ export default function InvestmentsScreen() {
   const [sipSuggestions, setSipSuggestions] = useState<Array<{ id: string; fund_name: string; isin: string }>>([]);
 
   const [uploadingStatement, setUploadingStatement] = useState(false);
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
+
+  const handleRefreshPrices = async () => {
+    setRefreshingPrices(true);
+    try {
+      const resp = await apiRequest('/holdings/refresh-prices', { method: 'POST', token });
+      if (resp?.updated > 0) {
+        Alert.alert('Prices Updated', `Updated ${resp.updated} of ${resp.total} holdings with live prices.`);
+        fetchData();
+      } else {
+        Alert.alert('No Updates', resp?.message || 'Prices are already up to date.');
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to refresh prices');
+    } finally {
+      setRefreshingPrices(false);
+    }
+  };
 
   const handleStatementUpload = async (type: 'stock_statement' | 'mf_statement' | 'ecas') => {
     if (type === 'ecas') {
@@ -108,7 +126,8 @@ export default function InvestmentsScreen() {
       const resp = await apiRequest('/upload-statement', { token, method: 'POST', body: formData, isFormData: true });
       setUploadingStatement(false);
       if (resp?.status === 'success') {
-        Alert.alert('Import Successful', `${resp.saved} holdings imported, ${resp.duplicates} updated.\nSource: ${resp.metadata?.source || 'Unknown'}`);
+        const sipMsg = resp.sip_suggestions_created > 0 ? `\n${resp.sip_suggestions_created} SIP suggestion(s) added for your review.` : '';
+        Alert.alert('Import Successful', `${resp.saved} holdings imported, ${resp.duplicates} updated.\nSource: ${resp.metadata?.source || 'Unknown'}${sipMsg}`);
         fetchData();
       } else if (resp?.status === 'no_holdings') {
         Alert.alert('No Holdings Found', resp.message || 'Please check the file format.');
@@ -644,11 +663,35 @@ export default function InvestmentsScreen() {
            ═══════════════════════════════════════════════════════════ */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 14 }}>
           <Text data-testid="holdings-section-title" style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0, marginTop: 0 }]}>My Holdings</Text>
-          <UploadDropdown
-            colors={colors}
-            isDark={isDark}
-            onSelect={handleStatementUpload}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {holdingsData?.holdings && holdingsData.holdings.length > 0 && (
+              <TouchableOpacity
+                data-testid="refresh-prices-btn"
+                style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 4,
+                  paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+                  backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)',
+                  borderWidth: 1, borderColor: isDark ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.15)',
+                }}
+                onPress={handleRefreshPrices}
+                disabled={refreshingPrices}
+              >
+                {refreshingPrices ? (
+                  <ActivityIndicator size="small" color="#10B981" />
+                ) : (
+                  <MaterialCommunityIcons name="refresh" size={14} color="#10B981" />
+                )}
+                <Text style={{ fontSize: 11, fontWeight: '600', color: '#10B981', fontFamily: 'DM Sans' }}>
+                  {refreshingPrices ? 'Updating...' : 'Live Prices'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            <UploadDropdown
+              colors={colors}
+              isDark={isDark}
+              onSelect={handleStatementUpload}
+            />
+          </View>
         </View>
 
         {/* Stock Holdings */}

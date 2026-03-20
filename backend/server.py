@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware
 import asyncio
 import logging
+from datetime import datetime, timezone
 
 # Configure logging
 logging.basicConfig(
@@ -99,6 +100,70 @@ app.add_middleware(
 )
 
 
+async def holdings_price_scheduler():
+    """Run holdings price refresh daily at 18:00 IST (after market close)."""
+    from database import db
+    from datetime import datetime, timezone, timedelta
+    from services.holdings_price_updater import fetch_stock_prices, fetch_mf_prices
+    from concurrent.futures import ThreadPoolExecutor
+    _hp_executor = ThreadPoolExecutor(max_workers=2)
+
+    while True:
+        utc_now = datetime.now(timezone.utc)
+        ist_now = utc_now + timedelta(hours=5, minutes=30)
+        ist_hhmm = ist_now.strftime("%H:%M")
+
+        # Refresh at 18:00 and 22:00 IST (post-market hours)
+        if ist_hhmm in ("18:00", "22:00"):
+            logger.info(f"Holdings price refresh triggered at IST {ist_hhmm}")
+            try:
+                # Get all unique user_ids with holdings
+                user_ids = await db.holdings.distinct("user_id")
+                for uid in user_ids:
+                    holdings = []
+                    async for doc in db.holdings.find({"user_id": uid}):
+                        mongo_id = doc["_id"]
+                        doc["id"] = doc.get("id") or str(mongo_id)
+                        doc["_mongo_id"] = mongo_id
+                        doc.pop("_id", None)
+                        holdings.append(doc)
+
+                    stocks = [h for h in holdings if h.get("category") == "Stock"]
+                    mfs = [h for h in holdings if h.get("category") == "Mutual Fund"]
+
+                    loop = asyncio.get_running_loop()
+                    stock_prices = await loop.run_in_executor(_hp_executor, fetch_stock_prices, stocks) if stocks else {}
+                    mf_navs = await loop.run_in_executor(_hp_executor, fetch_mf_prices, mfs) if mfs else {}
+
+                    now = datetime.now(timezone.utc).isoformat()
+                    for h in holdings:
+                        hid = h["id"]
+                        qty = h.get("quantity", 0)
+                        invested = h.get("invested_value", 0) or (qty * h.get("buy_price", 0))
+                        new_price = stock_prices.get(hid, {}).get("price") if hid in stock_prices else mf_navs.get(hid)
+
+                        if new_price and new_price > 0:
+                            current_value = round(qty * new_price, 2)
+                            gain_loss = round(current_value - invested, 2)
+                            gain_loss_pct = round((gain_loss / invested) * 100, 2) if invested else 0
+                            await db.holdings.update_one(
+                                {"_id": h["_mongo_id"]},
+                                {"$set": {
+                                    "current_price": round(new_price, 4),
+                                    "current_value": current_value,
+                                    "gain_loss": gain_loss,
+                                    "gain_loss_pct": gain_loss_pct,
+                                    "price_updated_at": now,
+                                }},
+                            )
+                    logger.info(f"Updated holdings prices for user {uid}: {len(stock_prices)} stocks, {len(mf_navs)} MFs")
+            except Exception as e:
+                logger.error(f"Holdings price scheduler error: {e}")
+
+        await asyncio.sleep(30)
+
+
+
 @app.on_event("startup")
 async def startup():
     """Initialize application on startup."""
@@ -115,6 +180,9 @@ async def startup():
     
     # Start market data refresh scheduler
     asyncio.create_task(market_data_scheduler())
+    
+    # Start holdings price refresh scheduler (daily)
+    asyncio.create_task(holdings_price_scheduler())
     
     logger.info("Visor Finance API started successfully!")
 

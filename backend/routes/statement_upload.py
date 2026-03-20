@@ -142,6 +142,25 @@ async def upload_statement(
         "imported_at": datetime.now(timezone.utc).isoformat(),
     })
 
+    # Auto-create SIP suggestions for Mutual Fund holdings
+    sip_suggestions_created = 0
+    mf_holdings = [h for h in holdings if h["category"] == "Mutual Fund"]
+    for mf in mf_holdings:
+        existing_sug = await db.sip_suggestions.find_one({
+            "user_id": user_id,
+            "fund_name": mf["name"],
+            "status": {"$in": ["pending", "approved"]},
+        })
+        if not existing_sug:
+            await db.sip_suggestions.insert_one({
+                "user_id": user_id,
+                "fund_name": mf["name"],
+                "isin": mf.get("isin", ""),
+                "status": "pending",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+            sip_suggestions_created += 1
+
     return {
         "status": "success",
         "message": f"Imported {saved} holdings ({duplicates} updated, {errors} errors)",
@@ -151,6 +170,7 @@ async def upload_statement(
         "total_parsed": len(holdings),
         "holdings": saved_holdings,
         "metadata": metadata,
+        "sip_suggestions_created": sip_suggestions_created,
     }
 
 

@@ -138,6 +138,75 @@ async def delete_holding(holding_id: str, user=Depends(get_current_user)):
     return {"message": "Holding deleted"}
 
 
+@router.post("/holdings/refresh-prices")
+async def refresh_holdings_prices(user=Depends(get_current_user)):
+    """Fetch live prices for all holdings (stocks via yfinance, MFs via mfapi.in) and update DB."""
+    import asyncio
+    from services.holdings_price_updater import fetch_stock_prices, fetch_mf_prices
+
+    holdings = []
+    cursor = db.holdings.find({"user_id": user["id"]})
+    async for doc in cursor:
+        mongo_id = doc["_id"]
+        doc["id"] = doc.get("id") or str(mongo_id)
+        doc["_mongo_id"] = mongo_id  # Keep for DB update
+        doc.pop("_id", None)
+        holdings.append(doc)
+
+    if not holdings:
+        return {"message": "No holdings to update", "updated": 0}
+
+    stocks = [h for h in holdings if h.get("category") == "Stock"]
+    mfs = [h for h in holdings if h.get("category") == "Mutual Fund"]
+
+    loop = asyncio.get_running_loop()
+    stock_prices, mf_navs = {}, {}
+
+    if stocks:
+        stock_prices = await loop.run_in_executor(_yf_executor, fetch_stock_prices, stocks)
+    if mfs:
+        mf_navs = await loop.run_in_executor(_yf_executor, fetch_mf_prices, mfs)
+
+    updated = 0
+    now = datetime.now(timezone.utc).isoformat()
+
+    for h in holdings:
+        hid = h["id"]
+        qty = h.get("quantity", 0)
+        invested = h.get("invested_value", 0) or (qty * h.get("buy_price", 0))
+        new_price = None
+
+        if hid in stock_prices:
+            new_price = stock_prices[hid]["price"]
+        elif hid in mf_navs:
+            new_price = mf_navs[hid]
+
+        if new_price and new_price > 0:
+            current_value = round(qty * new_price, 2)
+            gain_loss = round(current_value - invested, 2)
+            gain_loss_pct = round((gain_loss / invested) * 100, 2) if invested else 0
+
+            await db.holdings.update_one(
+                {"_id": h["_mongo_id"]},
+                {"$set": {
+                    "current_price": round(new_price, 4),
+                    "current_value": current_value,
+                    "gain_loss": gain_loss,
+                    "gain_loss_pct": gain_loss_pct,
+                    "price_updated_at": now,
+                }},
+            )
+            updated += 1
+
+    return {
+        "message": f"Updated prices for {updated} of {len(holdings)} holdings",
+        "updated": updated,
+        "total": len(holdings),
+        "stocks_updated": len(stock_prices),
+        "mfs_updated": len(mf_navs),
+    }
+
+
 @router.post("/holdings/upload-cas")
 async def upload_cas(
     file: UploadFile = File(...),
