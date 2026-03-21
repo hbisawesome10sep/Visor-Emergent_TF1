@@ -178,9 +178,14 @@ async def refresh_holdings_prices(user=Depends(get_current_user)):
         qty = h.get("quantity", 0)
         invested = h.get("invested_value", 0) or (qty * h.get("buy_price", 0))
         new_price = None
+        update_fields = {}
 
         if hid in stock_prices:
-            new_price = stock_prices[hid]["price"]
+            new_price = stock_prices[hid].get("price")
+            # Save resolved ticker to DB if ISIN was resolved
+            resolved = stock_prices[hid].get("resolved_ticker")
+            if resolved and not h.get("ticker"):
+                update_fields["ticker"] = resolved
         elif hid in mf_navs:
             new_price = mf_navs[hid]
 
@@ -189,15 +194,17 @@ async def refresh_holdings_prices(user=Depends(get_current_user)):
             gain_loss = round(current_value - invested, 2)
             gain_loss_pct = round((gain_loss / invested) * 100, 2) if invested else 0
 
+            update_fields.update({
+                "current_price": round(new_price, 4),
+                "current_value": current_value,
+                "gain_loss": gain_loss,
+                "gain_loss_pct": gain_loss_pct,
+                "price_updated_at": now,
+            })
+
             await db.holdings.update_one(
                 {"_id": h["_mongo_id"]},
-                {"$set": {
-                    "current_price": round(new_price, 4),
-                    "current_value": current_value,
-                    "gain_loss": gain_loss,
-                    "gain_loss_pct": gain_loss_pct,
-                    "price_updated_at": now,
-                }},
+                {"$set": update_fields},
             )
             updated += 1
 

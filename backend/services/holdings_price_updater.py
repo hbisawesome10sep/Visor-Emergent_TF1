@@ -230,36 +230,49 @@ def fetch_mf_prices(holdings: list[dict]) -> dict[str, float]:
 # ── yfinance helpers ─────────────────────────────────────────────────────────
 
 def fetch_stock_prices(holdings: list[dict]) -> dict[str, dict]:
-    """Fetch current prices for stock holdings. Returns {holding_id: {price, prev_close}}."""
+    """Fetch current prices for stock holdings.
+    
+    Returns {holding_id: {price, prev_close, resolved_ticker?}}.
+    Holdings with tickers are batched via yfinance.
+    Holdings with ISINs but no tickers are resolved individually via ISIN lookup.
+    """
+    from services.isin_resolver import batch_resolve_and_fetch
+
     result = {}
     ticker_map = {}  # yf_ticker -> holding_id
+    isin_only = []   # holdings with ISIN but no ticker
 
     for h in holdings:
         ticker = h.get("ticker", "")
-        if not ticker:
-            continue
-        # Ensure .NS suffix for Indian stocks
-        yf_ticker = ticker if "." in ticker else f"{ticker}.NS"
-        ticker_map[yf_ticker] = h["id"]
+        if ticker:
+            yf_ticker = ticker if "." in ticker else f"{ticker}.NS"
+            ticker_map[yf_ticker] = h["id"]
+        elif h.get("isin"):
+            isin_only.append(h)
 
-    if not ticker_map:
-        return result
+    # Batch fetch for holdings that already have tickers
+    if ticker_map:
+        try:
+            tickers_str = " ".join(ticker_map.keys())
+            tickers = yf.Tickers(tickers_str)
+            for yf_t, hid in ticker_map.items():
+                try:
+                    t = tickers.tickers[yf_t]
+                    info = t.fast_info
+                    price = float(info.last_price) if info.last_price else 0
+                    prev = float(info.previous_close) if info.previous_close else 0
+                    if price > 0:
+                        result[hid] = {"price": price, "prev_close": prev}
+                        logger.info(f"Stock: {yf_t} = {price}")
+                except Exception as e:
+                    logger.debug(f"yfinance error for {yf_t}: {e}")
+        except Exception as e:
+            logger.error(f"yfinance batch error: {e}")
 
-    try:
-        tickers_str = " ".join(ticker_map.keys())
-        tickers = yf.Tickers(tickers_str)
-        for yf_t, hid in ticker_map.items():
-            try:
-                t = tickers.tickers[yf_t]
-                info = t.fast_info
-                price = float(info.last_price) if info.last_price else 0
-                prev = float(info.previous_close) if info.previous_close else 0
-                if price > 0:
-                    result[hid] = {"price": price, "prev_close": prev}
-                    logger.info(f"Stock: {yf_t} = {price}")
-            except Exception as e:
-                logger.debug(f"yfinance error for {yf_t}: {e}")
-    except Exception as e:
-        logger.error(f"yfinance batch error: {e}")
+    # Resolve ISINs and fetch prices for holdings without tickers
+    if isin_only:
+        logger.info(f"Resolving {len(isin_only)} stock ISINs to tickers...")
+        isin_results = batch_resolve_and_fetch(isin_only)
+        result.update(isin_results)
 
     return result

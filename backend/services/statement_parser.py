@@ -45,8 +45,8 @@ _COL_PATTERNS = {
         r"^total\s*invest", r"^amount\s*invested$",
     ],
     "current_value": [
-        r"(?:current|present|market|mkt|portfolio)\s*(?:value|val|amount)",
-        r"^cur\.?\s*val\.?$", r"^present\s*value$",
+        r"(?:current|present|market|mkt|portfolio|closing)\s*(?:value|val|amount)",
+        r"^cur\.?\s*val\.?$", r"^present\s*value$", r"^closing\s*value$",
     ],
     "pnl": [
         r"(?:p\s*&?\s*l|profit|gain|unrealised|unrealized)",
