@@ -416,7 +416,7 @@ Build a **comprehensive personal finance management application** named **Visor*
 | Demo | `rajesh@visor.demo` | `Demo@123` | Pre-seeded demo data |
 | Real Data | `raj@visor.best` | `Demo@123` | Uploaded Groww/Zerodha statements |
 
-**Expo Go Preview URL**: `https://portfolio-polish-9.preview.emergentagent.com/api/expo/qr`
+**Expo Go Preview URL**: `https://fintech-tracker-7.preview.emergentagent.com/api/expo/qr`
 
 ---
 
