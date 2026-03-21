@@ -5,7 +5,7 @@ All bank-specific PDF parsing logic for Indian bank statements.
 import re
 import io
 import logging
-from parsers.utils import detect_bank, parse_date, parse_amount
+from parsers.utils import detect_bank, parse_date, parse_amount, detect_header_columns
 
 logger = logging.getLogger(__name__)
 
