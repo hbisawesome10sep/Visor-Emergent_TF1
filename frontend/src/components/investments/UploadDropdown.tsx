@@ -1,56 +1,116 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
-  Linking, TouchableWithoutFeedback,
+  Platform, TouchableWithoutFeedback, Alert,
 } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-type UploadType = 'stock_statement' | 'mf_statement' | 'ecas';
+export type UploadType = 'stock_statement' | 'mf_statement' | 'ecas';
+export type PickedFile = { uri: string; name: string; mimeType?: string };
 
 interface Props {
   colors: any;
   isDark: boolean;
-  token: string;
-  onSelect?: (type: UploadType) => void; // kept for compat but not used for file picking
+  token?: string;
+  /** Called when the user has chosen a file */
+  onFile: (type: UploadType, file: PickedFile) => void;
+  /** Called when user picks eCAS (PDF) */
+  onEcas?: () => void;
 }
 
 const OPTIONS: { key: UploadType; label: string; icon: string; desc: string; color: string }[] = [
-  { key: 'stock_statement', label: 'Stock Holdings',       icon: 'chart-line',       desc: 'Groww / Zerodha stock XLSX',     color: '#F97316' },
+  { key: 'stock_statement', label: 'Stock Holdings',       icon: 'chart-line',       desc: 'Zerodha / Groww stock XLSX',     color: '#F97316' },
   { key: 'mf_statement',   label: 'Mutual Fund Holdings',  icon: 'chart-arc',        desc: 'Groww / Zerodha MF XLSX',        color: '#6366F1' },
   { key: 'ecas',           label: 'eCAS Statement',        icon: 'file-certificate', desc: 'CAMS/KFintech consolidated PDF', color: '#10B981' },
 ];
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+// Module-level flag — prevents any concurrent picker call across re-renders
+let _globalPickerLock = false;
 
-export const UploadDropdown: React.FC<Props> = ({ colors, isDark, token }) => {
+export const UploadDropdown: React.FC<Props> = ({ colors, isDark, onFile, onEcas }) => {
   const [open, setOpen] = useState(false);
-  const anim = React.useRef(new Animated.Value(0)).current;
+  const anim = useRef(new Animated.Value(0)).current;
+  const closingRef = useRef(false);
 
   const show = () => {
+    if (closingRef.current) return;
     setOpen(true);
     Animated.spring(anim, { toValue: 1, useNativeDriver: true, tension: 300, friction: 20 }).start();
   };
 
-  const hide = () => {
-    Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => setOpen(false));
+  const hideAndPick = (key: UploadType) => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+
+    // Close animation — open picker ONLY in the completion callback
+    Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      setOpen(false);
+      closingRef.current = false;
+
+      // eCAS: delegate to parent for its own modal/flow
+      if (key === 'ecas') {
+        onEcas?.();
+        return;
+      }
+
+      // Guard against concurrent picker calls (iOS module-level lock)
+      if (_globalPickerLock) {
+        Alert.alert('Please wait', 'Another file picker is already open.');
+        return;
+      }
+
+      _globalPickerLock = true;
+      const accept =
+        key === 'ecas'
+          ? 'application/pdf'
+          : [
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/vnd.ms-excel',
+            ];
+
+      DocumentPicker.getDocumentAsync({
+        type: accept,
+        copyToCacheDirectory: true,
+        multiple: false,
+      })
+        .then((result) => {
+          _globalPickerLock = false;
+          if (!result.canceled && result.assets?.length) {
+            const asset = result.assets[0];
+            onFile(key, { uri: asset.uri, name: asset.name, mimeType: asset.mimeType });
+          }
+        })
+        .catch((err: Error) => {
+          _globalPickerLock = false;
+          const msg = err?.message ?? '';
+          // Surface picker errors only if unexpected
+          if (!msg.includes('cancel') && !msg.includes('dismissed')) {
+            Alert.alert('File Picker Error', msg || 'Could not open file picker.');
+          }
+        });
+    });
   };
 
-  const handleOptionPress = (key: UploadType) => {
-    hide();
-    // Open Safari web upload page — completely bypasses iOS native document picker
-    const url = `${BACKEND_URL}/api/upload-page?token=${encodeURIComponent(token)}&type=${key}`;
-    setTimeout(() => Linking.openURL(url), 200);
+  const hideOnly = () => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      setOpen(false);
+      closingRef.current = false;
+    });
   };
 
   return (
     <View style={{ zIndex: 100 }}>
+      {/* Trigger */}
       <TouchableOpacity
         data-testid="upload-statement-dropdown"
         style={[s.trigger, {
           backgroundColor: isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.06)',
-          borderColor: isDark ? 'rgba(249,115,22,0.3)' : 'rgba(249,115,22,0.2)',
+          borderColor:      isDark ? 'rgba(249,115,22,0.30)' : 'rgba(249,115,22,0.20)',
         }]}
-        onPress={open ? hide : show}
+        onPress={open ? hideOnly : show}
         activeOpacity={0.8}
       >
         <MaterialCommunityIcons name="file-upload-outline" size={18} color="#F97316" />
@@ -58,24 +118,26 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, token }) => {
         <MaterialCommunityIcons name={open ? 'chevron-up' : 'chevron-down'} size={16} color="#F97316" />
       </TouchableOpacity>
 
+      {/* Backdrop */}
       {open && (
-        <TouchableWithoutFeedback onPress={hide}>
+        <TouchableWithoutFeedback onPress={hideOnly}>
           <View style={s.backdrop} />
         </TouchableWithoutFeedback>
       )}
 
+      {/* Dropdown — pure Animated.View, zero React Native Modals */}
       {open && (
         <Animated.View
           style={[s.sheet, {
             backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+            borderColor:     isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
             opacity: anim,
             transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
           }]}
         >
           <Text style={[s.sheetTitle, { color: colors.textPrimary }]}>Import Statement</Text>
-          <Text style={[s.sheetDesc, { color: colors.textSecondary }]}>
-            Opens in Safari — works on iOS &amp; Android
+          <Text style={[s.sheetDesc,  { color: colors.textSecondary }]}>
+            Select the type of statement to upload
           </Text>
 
           {OPTIONS.map((opt) => (
@@ -84,9 +146,9 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, token }) => {
               data-testid={`upload-opt-${opt.key}`}
               style={[s.optRow, {
                 backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
-                borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                borderColor:     isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
               }]}
-              onPress={() => handleOptionPress(opt.key)}
+              onPress={() => hideAndPick(opt.key)}
               activeOpacity={0.7}
             >
               <View style={[s.optIcon, { backgroundColor: `${opt.color}20` }]}>
@@ -94,9 +156,9 @@ export const UploadDropdown: React.FC<Props> = ({ colors, isDark, token }) => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.optLabel, { color: colors.textPrimary }]}>{opt.label}</Text>
-                <Text style={[s.optDesc, { color: colors.textSecondary }]}>{opt.desc}</Text>
+                <Text style={[s.optDesc,  { color: colors.textSecondary }]}>{opt.desc}</Text>
               </View>
-              <MaterialCommunityIcons name="open-in-new" size={14} color={colors.textSecondary} />
+              <MaterialCommunityIcons name="chevron-right" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
           ))}
         </Animated.View>
@@ -113,23 +175,23 @@ const s = StyleSheet.create({
   },
   triggerText: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '700', color: '#F97316' },
   backdrop: {
-    position: 'absolute', top: 46, left: -1000, right: -1000, bottom: -2000,
+    position: 'absolute', top: 46,
+    left: -1000, right: -1000, bottom: -2000,
     zIndex: 98,
   },
   sheet: {
     position: 'absolute', top: 48, left: 0, right: 0,
-    borderRadius: 16, borderWidth: 1,
-    padding: 14, zIndex: 99,
+    borderRadius: 16, borderWidth: 1, padding: 14, zIndex: 99,
     shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18, shadowRadius: 12, elevation: 10,
   },
   sheetTitle: { fontSize: 15, fontFamily: 'DM Sans', fontWeight: '700', marginBottom: 2 },
-  sheetDesc: { fontSize: 12, fontFamily: 'DM Sans', marginBottom: 12 },
+  sheetDesc:  { fontSize: 12, fontFamily: 'DM Sans', marginBottom: 12 },
   optRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     padding: 12, borderRadius: 12, borderWidth: 1, marginBottom: 8,
   },
   optIcon: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   optLabel: { fontSize: 14, fontFamily: 'DM Sans', fontWeight: '700' },
-  optDesc: { fontSize: 11, fontFamily: 'DM Sans', marginTop: 1 },
+  optDesc:  { fontSize: 11, fontFamily: 'DM Sans', marginTop: 1 },
 });

@@ -172,16 +172,20 @@ export default function SettingsScreen() {
     isPickingRef.current = true;
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
+        type: ['application/pdf', 'text/csv',
+               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+               'application/vnd.ms-excel'],
         copyToCacheDirectory: true,
       });
-      
       if (!result.canceled && result.assets?.[0]) {
         setSelectedFile(result.assets[0]);
         setShowUploadModal(true);
       }
     } catch (e: any) {
-      Alert.alert('Error', 'Failed to pick file: ' + e.message);
+      const msg = e?.message ?? '';
+      if (!msg.includes('cancel') && !msg.includes('dismissed')) {
+        Alert.alert('Error', 'Failed to pick file: ' + msg);
+      }
     } finally {
       isPickingRef.current = false;
     }

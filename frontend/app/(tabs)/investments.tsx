@@ -726,6 +726,30 @@ export default function InvestmentsScreen() {
             colors={colors}
             isDark={isDark}
             token={token || ''}
+            onFile={async (type, file) => {
+              // File already picked — proceed straight to upload
+              setUploadingStatement(true);
+              try {
+                const formData = new FormData();
+                formData.append('file', { uri: file.uri, name: file.name, type: file.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } as any);
+                formData.append('statement_type', type);
+                const resp = await apiRequest('/upload-statement', { token, method: 'POST', body: formData, isFormData: true });
+                if (resp?.status === 'success') {
+                  const sipMsg = resp.sip_suggestions_created > 0 ? `\n${resp.sip_suggestions_created} SIP suggestion(s) added.` : '';
+                  Alert.alert('Import Successful', `${resp.saved} holdings imported, ${resp.duplicates} updated.${sipMsg}`);
+                  fetchData();
+                } else if (resp?.status === 'no_holdings') {
+                  Alert.alert('No Holdings Found', resp.message || 'Please check the file format.');
+                } else {
+                  Alert.alert('Import Failed', resp?.detail || resp?.message || 'Unknown error');
+                }
+              } catch (e: any) {
+                Alert.alert('Upload Error', e.message || 'Failed to upload');
+              } finally {
+                setUploadingStatement(false);
+              }
+            }}
+            onEcas={() => setShowCasModal(true)}
           />
         </View>
 
