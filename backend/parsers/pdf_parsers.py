@@ -1839,71 +1839,93 @@ def _clean_union_neft(desc: str) -> str:
 
 
 def clean_kotak_description(raw_desc: str) -> str:
-    """Clean up Kotak Bank transaction description."""
+    """Clean up Kotak Bank transaction description.
+    Kotak patterns:
+      UPI/<Payee>/<ref>/<Purpose>
+      IMPS-<Company>
+      Recd:IMPS/<ref>/<Payee>
+      NEFT-<ref>-<Payee>
+      OS <Merchant>  (Online Services)
+      Chrg: / Rem Chrgs:
+    """
     desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
-    
-    lower_desc = desc.lower()
-    
-    # Known merchants
-    known_merchants = {
-        'paytm': 'Paytm',
-        'phonepe': 'PhonePe',
-        'bajaj finance': 'Bajaj Finance',
-        'ullu digital': 'Ullu',
-        'cashfree': 'Cashfree',
-        'razorecom': 'Razorpay',
+    if not desc:
+        return "Bank Transaction"
+
+    lower = desc.lower()
+
+    # ── Known payment gateways to bypass for payee ───────────────────────
+    gateway_names = {
+        'credclub': 'Cred', 'cred ': 'Cred',
     }
-    
-    # Check for known merchants
-    for key, name in known_merchants.items():
-        if key in lower_desc:
-            return f"UPI - {name}"
-    
-    # UPI format: UPI/Name/refno/Purpose
+
+    # ── UPI format: UPI/<Payee>/<ref>/<Purpose> ──────────────────────────
     if desc.startswith('UPI/'):
         parts = desc.split('/')
         if len(parts) >= 2:
-            name = parts[1].strip()
-            if name and any(c.isalpha() for c in name):
-                return f"UPI - {name.title()}"
+            payee = parts[1].strip()
+            # Check if payee is a gateway
+            for gw_key, gw_name in gateway_names.items():
+                if gw_key in payee.lower():
+                    return f"UPI - {gw_name}"
+            # Clean up payee: remove trailing spaces/numbers
+            payee = re.sub(r'\d{5,}.*', '', payee).strip()
+            if payee and len(payee) > 1 and any(c.isalpha() for c in payee):
+                return f"UPI - {payee.title()}"
         return "UPI Transfer"
-    
-    # IMPS
-    if desc.startswith('IMPS-') or desc.startswith('Recd:IMPS'):
-        parts = desc.replace('Recd:IMPS/', '').replace('IMPS-', '').split('/')
-        if parts:
-            name = parts[0].strip()
-            if name and any(c.isalpha() for c in name):
-                return f"IMPS - {name.title()}"
+
+    # ── IMPS incoming: Recd:IMPS/<ref>/<Payee> ───────────────────────────
+    if lower.startswith('recd:imps') or lower.startswith('recd: imps'):
+        parts = desc.split('/')
+        if len(parts) >= 3:
+            payee = parts[2].strip()
+            payee = re.sub(r'\d{5,}.*', '', payee).strip()
+            if payee and any(c.isalpha() for c in payee):
+                return f"IMPS - {payee.title()}"
+        return "IMPS Inward"
+
+    # ── IMPS outgoing: IMPS-<Company> ────────────────────────────────────
+    if desc.startswith('IMPS-') or desc.startswith('IMPS '):
+        rest = re.sub(r'^IMPS[\-\s]+', '', desc).strip()
+        # Remove trailing ref numbers
+        rest = re.sub(r'\s+\d{6,}.*', '', rest).strip()
+        if rest and any(c.isalpha() for c in rest):
+            return f"IMPS - {rest.title()}"
         return "IMPS Transfer"
-    
-    # NEFT
+
+    # ── NEFT ─────────────────────────────────────────────────────────────
     if 'NEFT' in desc.upper():
-        parts = desc.split(' ')
-        for part in parts:
-            if len(part) > 5 and part.isupper() and part not in ('NEFT', 'NEFTINW'):
-                return f"NEFT - {part.title()}"
+        neft_match = re.search(r'NEFT[\-/]\s*(?:[A-Z0-9]+[\-/])?\s*([A-Za-z][\w\s]+)', desc)
+        if neft_match:
+            payee = neft_match.group(1).strip()
+            if payee:
+                return f"NEFT - {payee.title()}"
         return "NEFT Transfer"
-    
-    # Own Transfer
-    if 'own transfer' in lower_desc:
+
+    # ── Own Transfer ─────────────────────────────────────────────────────
+    if 'own transfer' in lower:
         return "Own Account Transfer"
-    
-    # Cash Deposit
-    if 'cash deposit' in lower_desc:
+
+    # ── Cash Deposit ─────────────────────────────────────────────────────
+    if 'cash deposit' in lower:
         return "Cash Deposit"
-    
-    # OS (Online Services / Payment Gateway)
+
+    # ── OS (Online Services / Payment Gateway) ───────────────────────────
     if desc.startswith('OS '):
         merchant = desc[3:].split(' ')[0]
         return f"Payment - {merchant.title()}"
-    
-    # Chrg / Charges
-    if desc.startswith('Chrg:') or desc.startswith('Rem Chrgs:'):
+
+    # ── Charges ──────────────────────────────────────────────────────────
+    if desc.startswith('Chrg:') or desc.startswith('Rem Chrgs:') or 'consolidated chrg' in lower:
         return "Bank Charges"
-    
-    # Return first 50 chars
-    return desc[:50] if len(desc) > 50 else desc
+
+    # ── Interest ─────────────────────────────────────────────────────────
+    if 'interest' in lower or 'int.pd' in lower or 'int.cr' in lower:
+        return "Interest Credit"
+
+    # ── Fallback ─────────────────────────────────────────────────────────
+    desc_clean = re.sub(r'\s+', ' ', desc).strip()
+    return desc_clean[:80] if len(desc_clean) > 80 else desc_clean
 
 
 def parse_kotak_pdf(pdf, all_text: str) -> list:
@@ -1985,97 +2007,153 @@ def parse_kotak_table_format(pdf) -> list:
 
 
 def parse_kotak_text_format(pdf, all_text: str) -> list:
-    """Parse Kotak text-based formats (both Format 1 and Format 2)."""
+    """Parse Kotak text-based format using word positions for column detection.
+    
+    Uses balance-delta approach: the balance column (rightmost) is ground truth.
+    Amount and debit/credit are computed from balance differences because
+    pdfplumber's (Dr)/(Cr) suffixes are unreliable for Kotak's multi-line layout.
+    
+    Column layout (from word x-positions):
+      x ~30:  Date
+      x ~94:  Narration
+      x ~277: Chq/Ref No (excluded)
+      x ~400: Amount (Dr/Cr)
+      x ~500: Balance (Cr)
+    """
     transactions = []
-    
+    BALANCE_X_THRESHOLD = 470  # Words at x >= 470 are in the Balance column
+    AMOUNT_X_THRESHOLD = 380   # Words at x >= 380 are in Amount or Balance columns
+    NARRATION_X_MAX = 270      # Words at x < 270 are narration (excludes Ref No at ~277)
+    DATE_PATTERN = re.compile(r'^\d{2}-\d{2}-\d{4}$')
+    AMOUNT_DRCR = re.compile(r'([\d,]+\.\d{2})\s*\((Cr|Dr)\)')
+
+    prev_balance = None
+
     for page in pdf.pages:
-        text = page.extract_text()
-        if not text:
+        words = page.extract_words(x_tolerance=3, y_tolerance=3)
+        if not words:
             continue
-        
-        lines = text.split('\n')
-        i = 0
-        
-        while i < len(lines):
-            line = lines[i].strip()
-            
-            # Format 1: Line starts with date DD-MM-YYYY
-            if re.match(r'^\d{2}-\d{2}-\d{4}', line):
-                date_str = line[:10]
-                date = parse_date(date_str)
-                
-                if date:
-                    # Combine multi-line entries
-                    full_line = line
-                    j = i + 1
-                    while j < len(lines) and j < i + 5:
-                        next_line = lines[j].strip()
-                        if re.match(r'^\d{2}-\d{2}-\d{4}', next_line):
-                            break
-                        if '(Dr)' in next_line or '(Cr)' in next_line:
-                            full_line += ' ' + next_line
-                            break
-                        full_line += ' ' + next_line
-                        j += 1
-                    
-                    # Extract amount with Dr/Cr
-                    amount_match = re.search(r'([\d,]+\.?\d*)\s*\((Dr|Cr)\)', full_line)
-                    if amount_match:
-                        amount = parse_amount(amount_match.group(1))
-                        is_credit = amount_match.group(2) == 'Cr'
-                        
-                        desc_end = full_line.find(amount_match.group(0))
-                        description = full_line[10:desc_end].strip()
-                        
-                        if amount > 0:
-                            transactions.append({
-                                'date': date,
-                                'description': clean_kotak_description(description),
-                                'bank_debit': 0 if is_credit else amount,
-                                'bank_credit': amount if is_credit else 0,
-                            })
-            
-            # Format 2: Line starts with serial number then DD Mon YYYY
-            elif re.match(r'^\d+\s+\d{2}\s+\w{3}\s+\d{4}', line):
-                parts = line.split()
-                if len(parts) >= 5:
-                    # Date is parts[1:4]
-                    date_str = ' '.join(parts[1:4])
-                    date = parse_date(date_str)
-                    
-                    if date:
-                        # Find amounts with +/- prefix AND decimal point (to avoid matching ref numbers)
-                        # Pattern: +/-number,number.decimal
-                        amount_matches = re.findall(r'([+-][\d,]+\.\d{2})\b', line)
-                        
-                        if amount_matches:
-                            # The transaction amount is the one with +/- prefix
-                            for amt_str in amount_matches:
-                                is_credit = amt_str.startswith('+')
-                                amount = parse_amount(amt_str.replace('+', '').replace('-', ''))
-                                
-                                if amount > 0:
-                                    # Get description - between date and first amount
-                                    desc_start = line.find(parts[3]) + len(parts[3]) + 1
-                                    desc_end = line.find(amt_str)
-                                    if desc_end > desc_start:
-                                        description = line[desc_start:desc_end].strip()
-                                        # Remove reference numbers
-                                        description = re.sub(r'\b[A-Z]{2,}-?\d+\b', '', description).strip()
-                                        description = re.sub(r'\s+', ' ', description)
-                                    else:
-                                        description = line[desc_start:].strip()
-                                    
-                                    transactions.append({
-                                        'date': date,
-                                        'description': clean_kotak_description(description),
-                                        'bank_debit': 0 if is_credit else amount,
-                                        'bank_credit': amount if is_credit else 0,
-                                    })
-                                    break  # Only take first amount per line
-            
-            i += 1
-    
+
+        # Group words by approximate y-position (2px bands for tight grouping)
+        from collections import defaultdict
+        y_lines = defaultdict(list)
+        for w in words:
+            y_key = round(w['top'] / 3) * 3
+            y_lines[y_key].append(w)
+
+        # Merge lines that are very close vertically into visual rows
+        sorted_ys = sorted(y_lines.keys())
+        merged_lines = []
+        for y in sorted_ys:
+            if merged_lines and abs(y - merged_lines[-1][0]) < 8:
+                merged_lines[-1][1].extend(y_lines[y])
+            else:
+                merged_lines.append([y, list(y_lines[y])])
+
+        # Build transaction entries: group lines between date-starting rows
+        entries = []
+        current_entry = None
+
+        for _, line_words in merged_lines:
+            line_words.sort(key=lambda w: w['x0'])
+            first_word = line_words[0]['text'] if line_words else ""
+
+            # Check if this line starts a new entry (has date at x ~30)
+            if DATE_PATTERN.match(first_word) and line_words[0]['x0'] < 80:
+                if current_entry:
+                    entries.append(current_entry)
+                current_entry = {
+                    'date_str': first_word,
+                    'narration_words': [],
+                    'amount_words': [],
+                    'balance_words': [],
+                }
+
+            if current_entry is None:
+                continue
+
+            # Classify each word into columns by x-position
+            for w in line_words:
+                text = w['text']
+                x = w['x0']
+                if DATE_PATTERN.match(text) and x < 80:
+                    continue  # Skip the date word itself
+                if x >= BALANCE_X_THRESHOLD:
+                    current_entry['balance_words'].append(text)
+                elif x >= AMOUNT_X_THRESHOLD:
+                    current_entry['amount_words'].append(text)
+                elif x < NARRATION_X_MAX:
+                    current_entry['narration_words'].append(text)
+                # Words between NARRATION_X_MAX and AMOUNT_X_THRESHOLD (Ref column) are excluded
+
+        if current_entry:
+            entries.append(current_entry)
+
+        # Process each entry using balance-delta
+        for entry in entries:
+            date = parse_date(entry['date_str'])
+            if not date:
+                continue
+
+            # Build narration text (strip summary artifacts)
+            narration = ' '.join(entry['narration_words']).strip()
+            narration = re.sub(r'\s*Statement Summary.*$', '', narration, flags=re.IGNORECASE).strip()
+            if not narration:
+                continue
+
+            # Skip summary/balance lines
+            narration_lower = narration.lower()
+            if any(kw in narration_lower for kw in ['opening balance', 'closing balance', 'total withdrawal', 'total deposit']):
+                continue
+
+            # Extract balance from balance_words
+            balance_text = ' '.join(entry['balance_words'])
+            amt_text = ' '.join(entry['amount_words'])
+            all_text_combined = amt_text + ' ' + balance_text
+            balance_match = AMOUNT_DRCR.search(balance_text)
+            if not balance_match:
+                all_amounts = AMOUNT_DRCR.findall(all_text_combined)
+                if len(all_amounts) >= 2:
+                    balance_val = parse_amount(all_amounts[-1][0])
+                elif len(all_amounts) == 1:
+                    balance_val = parse_amount(all_amounts[0][0])
+                else:
+                    continue
+            else:
+                balance_val = parse_amount(balance_match.group(1))
+
+            if balance_val is None or balance_val < 0:
+                continue
+
+            if prev_balance is not None:
+                delta = round(balance_val - prev_balance, 2)
+                amount = abs(delta)
+                if amount < 0.01:
+                    prev_balance = balance_val
+                    continue
+                is_credit = delta > 0
+            else:
+                # First entry: extract amount from amount_words text
+                first_amt_match = AMOUNT_DRCR.search(amt_text)
+                if first_amt_match:
+                    amount = parse_amount(first_amt_match.group(1))
+                    # Infer direction: opening_balance = balance - amount (if Cr) or balance + amount (if Dr)
+                    # The first entry amount is usually correct in the first row
+                    is_credit = first_amt_match.group(2) == 'Cr'
+                else:
+                    prev_balance = balance_val
+                    continue
+
+            if amount > 0:
+                transactions.append({
+                    'date': date,
+                    'description': clean_kotak_description(narration),
+                    'bank_debit': 0 if is_credit else amount,
+                    'bank_credit': amount if is_credit else 0,
+                })
+
+            prev_balance = balance_val
+
     return transactions
 
 

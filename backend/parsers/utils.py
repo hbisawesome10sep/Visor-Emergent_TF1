@@ -52,7 +52,7 @@ def detect_bank(user_input: str, pdf_text: str = "") -> str:
         "icici": ["icici bank", "icici account", "statement of icici", "statement of transactions in saving account"],
         "sbi": ["state bank of india", "sbi account", "sbi statement"],
         "hdfc": ["hdfc bank", "hdfc account", "hdfc statement"],
-        "kotak": ["kotak mahindra", "kotak bank"],
+        "kotak": ["kotak mahindra", "kotak bank", "cust.reln.no"],
         "pnb": ["punjab national bank"],
     }
 
