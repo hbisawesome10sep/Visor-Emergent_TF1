@@ -1,162 +1,382 @@
-# VISOR FINANCE — PRD v3.1
+# VISOR FINANCE — Comprehensive Product Document
 
-## Product Overview
-Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI + MongoDB) that tracks investments, transactions, credit cards, goals, and provides AI insights.
-
----
-
-## Completed Features (Cumulative)
-
-### Core
-- [x] Auth (JWT), PIN lock, demo accounts
-- [x] Dashboard with Financial Health Score, Overview cards, Trend Analysis, AI Insights
-- [x] Transactions: CRUD, bulk import (bank statement CSV/PDF), Custom date range filter
-- [x] Investments: Holdings, SIP tracking, Goal mapping, Live prices (yfinance)
-- [x] Credit Cards: Add/manage cards, statement upload, utilization tracking
-- [x] AI Advisor Chat (GPT-5.2 via Emergent LLM Key)
-- [x] Voice interaction (ElevenLabs TTS)
-- [x] Tax Module (Phase 1-3: Old/New regime, HRA, 80C/80D)
-- [x] Settings: Profile, Dark mode, Export, Bank statement upload
-- [x] Expo Go QR auto-refresh webpage (`/api/expo/qr`)
-
-### v3.1 Changes (March 22, 2026)
-- [x] **Groww Stock Statement Support**: ISIN → NSE/BSE ticker resolution via yfinance. All 26 stocks resolved correctly. Tickers cached in DB after first resolution.
-- [x] **Zerodha Multi-Sheet Statement Support**: Parses Equity, Mutual Funds, and Combined sheets from a single Zerodha XLSX. Stocks get `.NS` tickers, MFs get ISIN for NAV lookup. Correctly skips Combined sheet when specific sheets are available.
-- [x] **Category Detection Fix**: Sheet name takes priority over statement_type for multi-sheet files (Equity sheet → Stock, MF sheet → Mutual Fund).
-- [x] **MF Ticker Fix**: Mutual Funds now always use ISIN for NAV lookup (mfapi.in) instead of the fund name from Symbol column.
-- [x] **ISIN Fallback for Failed Tickers**: When a stock ticker fails in yfinance (e.g., hyphenated `TATAGOLD-E`), falls back to ISIN resolution (TATAGOLD-E → INF277KA1976 → TATAGOLD.NS).
-- [x] **Bank Statement Upload Fix**: Missing `detect_header_columns` import in `pdf_parsers.py` fixed.
-- [x] **HDFC Bank Statement Parser Overhaul**:
-  - Multi-line narration collection (was only reading first line, missing UPI ID/merchant info)
-  - `clean_hdfc_description()` rewritten with 15+ transaction type handlers
-  - Generic "UPI Transfer" reduced from 322 to 0 occurrences
-  - Reference numbers extracted and stored for deduplication
-  - Known merchant detection (50+ Indian merchants: Swiggy, Zomato, Cred, Amazon, etc.)
-- [x] **Duplicate Detection Fixed**: Now uses ref_number (unique per bank txn) instead of aggressive description[:30] matching. Result: 433 of 456 imported (was ~50 before).
-- [x] **Auto-Categorization Enhanced**: Added Credit Card (Cred, Slice), Entertainment (Dream11), Transport (Mumbai Metro), UPI Payment (Paytm, PhonePe), Transfer fallback for person-to-person UPI.
-- [x] **Portfolio Overview Card Scaling**: Added `numberOfLines={1}` + `adjustsFontSizeToFit` to prevent text wrapping on smaller screens.
-- [x] **SIP Date Picker iOS Fix**: Increased picker height from 130px to 200px to show year column on iOS.
-- [x] **Flippable Investment Summary Card**: Dashboard Investment card now flips to show:
-  - Asset allocation breakdown with horizontal bars
-  - AI-generated daily investment insight (GPT-4o, cached 24h)
-- [x] **Investment Amount Alignment**: Dashboard Overview "Investments" card now uses `portfolio_invested` (from holdings) instead of transaction-based total, aligning with Investment Summary Card.
-- [x] **Bank Statement Parser Refinements (Session Mar 22, 2026)**:
-  - ICICI: Complete text-extraction rewrite for interleaved blocks
-  - SBI: Rewrote `clean_sbi_description` to prevent truncation
-  - Union Bank: Multi-line continuation extraction (e.g., `/Salary`)
-  - Axis Bank: Handle "F07 Cred", Card Charges, bypass payment gateways
-  - PNB: Fixed NEFT company name indices, RTGS/cheque cleanup
-  - **Canara Bank**: Fully rewrote `clean_canara_description` — RTGS/NEFT now extract actual company names via IFSC regex, IMPS shows bank+last4, cheque returns show payee, all 51 test transactions clean
-  - **Bank of Baroda**: Complete rewrite of `parse_bob_pdf` — switched from text-based to TABLE extraction for ground-truth debit/credit columns (fixing 8+ wrong debit/credit classifications). Added gap-filling text pass for page-boundary entries. Rewrote `clean_bob_description` for UPI, NEFT, ACH-DR, ECS, NRP, IMPS patterns. CredClub→Cred. 25/25 transactions verified, balance matches to the penny (25,073.92).
-  - **Kotak Bank**: Complete rewrite of `parse_kotak_text_format` — switched to word-position-based column extraction with **balance-delta** approach. pdfplumber's (Dr)/(Cr) suffixes were unreliable due to multi-line column alignment issues, so amounts and debit/credit are now computed from balance differences. Rewrote `clean_kotak_description` to cleanly extract UPI payees without Chq/Ref column noise. 43/43 transactions verified, balance matches exactly (11,406.54).
-  - **Bank Detection Fix**: Added Canara, Union, IDBI to `detect_bank` priority patterns (was misdetecting Canara as HDFC). Added BARB0 IFSC pattern for BOB detection (was falling to Yes Bank). Added "cust.reln.no" for Kotak (bank name not present in statement text).
-  - **Categorization Fix**: Fixed "cred" keyword false-positive on "credit" (Clearing Credit no longer miscategorized as Credit Card). Added IMPS/cheque/RTGS charges to Bank Charges category
-- [x] **Clear All Transactions Feature** (Mar 22, 2026):
-  - Backend: `DELETE /api/clear-all-transactions` — clears all transactions, credit card transactions, bank accounts, journal entries, statement hashes
-  - Frontend: "Data Management" section in Settings > Banking with red "Clear All Transactions" button + confirmation dialog with detailed warning
-- [x] **Credit Card Benefits Tab** (Mar 22, 2026):
-  - Backend: `GET /api/credit-cards/{card_id}/benefits` (AI-powered via GPT-5.2) + `GET /api/credit-cards/all-benefits`
-  - Frontend: New "Benefits" tab in Credit Cards screen with expand/collapse per card, "Fetch Benefits with AI" button, cached benefits display with category icons, AI disclaimer
-  - Benefits cached in `card_benefits_cache` MongoDB collection to avoid repeated AI calls
-- [x] **Dashboard Financial Year & Date Range Fix** (Mar 22, 2026):
-  - 'Y' toggle now shows Indian Financial Year (April 1 – March 31) instead of calendar year. Header and date indicator display "FY 2025-26" format
-  - Backend: `/api/dashboard/stats` accepts `frequency` param. When `frequency=Year` (or date span >120 days), trend data groups by month (labels: Apr, May, …) instead of weekly
-  - Custom date range picker `minimumDate` changed from `userCreatedAt` (was limiting to Feb 2026) to January 1, 2020, so users can pick dates back to 2020
-  - Trend Analysis X-axis shows month labels (Apr, May, Jun, …) for full FY when Y is selected
-- [x] **Transaction Summary Double-Counting Bug Fix** (Mar 22, 2026):
-  - Root cause: Transactions API had `.to_list(500)` cap while Dashboard had `.to_list(1000)`. User with 982 transactions (711 HDFC + 271 SBI) saw correct totals on Dashboard but only half on Transactions screen
-  - Fix: Increased list limits to 5000 on both endpoints, AND added server-side `GET /api/transactions/summary` using MongoDB aggregation for accurate totals regardless of list size
-  - Frontend transactions screen now uses server-side summary for the Income/Expenses/Net bar
+**Version**: 3.2 | **Last Updated**: March 22, 2026
+**Platform**: iOS & Android (React Native Expo) | **Backend**: FastAPI + MongoDB
 
 ---
 
-## Architecture
+## 1. Product Overview
+
+Visor Finance is an AI-powered personal finance super-app designed specifically for Indian users. It consolidates banking, investments, credit cards, taxes, loans, and bookkeeping into a single mobile experience — powered by natural language AI that understands 22+ Indian languages.
+
+**Tagline**: *Your AI-Powered Finance Companion for India*
+
+---
+
+## 2. Core Feature Modules
+
+### 2.1 Smart Dashboard
+The command center for your financial life, with real-time data across all modules.
+
+- **Financial Health Score** (0–1000): A proprietary composite score computed from savings rate, expense ratio, investment diversity, debt-to-income ratio, and goal progress. Includes a visual donut chart and trend indicator (e.g., "4 pts this month").
+- **Share My Score**: One-tap shareable financial health card for social bragging or accountability.
+- **Overview Cards**: Three color-coded cards showing Total Income (green), Total Expenses (red), and Investments (blue) for the selected period. Each card shows a fill-percent bar relative to income.
+- **Credit Card Summary**: Outstanding balance, total credit limit, utilization percentage with a color-coded progress bar (green < 50%, yellow 50–80%, red > 80%). Shows count of linked cards.
+- **Trend Analysis Chart**: Interactive income vs. expenses vs. investments chart. Weekly bars for short periods, monthly bars for Financial Year view. Tap for AI-generated insights about spending patterns.
+- **AI Daily Insight**: GPT-powered contextual financial tip card, refreshed daily, based on the user's actual transaction patterns and portfolio.
+- **Net Worth Tracker**: Real-time calculation combining bank balances, investment portfolio value, fixed assets, minus outstanding loans and credit card debt.
+- **Investment Summary (Flippable Card)**: Front shows portfolio value, total invested, and P&L. Flip to reveal:
+  - Asset allocation breakdown (Stocks, MFs, Gold, FDs, etc.) with horizontal progress bars
+  - AI-generated daily investment insight (GPT-4o, cached 24 hours)
+- **Upcoming Dues**: Aggregated list of upcoming credit card due dates, SIP execution dates, EMI payments, and loan installments.
+- **Recent Transactions**: Quick-view of the last 5 transactions with category icons and amounts.
+
+**Period Selector**: Toggle between Q (Quarter), M (Month), Y (Financial Year: April 1 – March 31), and C (Custom date range). Custom date picker supports dates back to January 2020. The Y toggle shows Indian Financial Year labels like "FY 2025-26".
+
+---
+
+### 2.2 Bank Statement Import & Transaction Management
+
+#### Supported Banks (PDF Parsing — 12 Banks)
+Each bank has a purpose-built parser using the optimal extraction strategy:
+
+| Bank | Strategy | Key Technique |
+|------|----------|---------------|
+| **HDFC Bank** | Text Extraction | Multi-line narration, 15+ transaction type handlers, 50+ merchant detection |
+| **ICICI Bank** | Text Extraction | Interleaved block handling for mixed narration formats |
+| **SBI** | Table + Text | Table extraction with text fallback, smart description truncation prevention |
+| **Axis Bank** | Table + Text | Handles "F07 Cred", card charges, bypass payment gateways |
+| **Kotak Mahindra** | Balance-Delta | Word-position column extraction; ignores unreliable Dr/Cr labels, computes type from balance changes |
+| **Bank of Baroda** | Table Extraction | Ground-truth debit/credit columns from pdfplumber tables; gap-filling text pass for page boundaries |
+| **Canara Bank** | Table + Text | IFSC regex for company names on RTGS/NEFT; IMPS shows bank+last4 |
+| **Punjab National Bank** | Table Extraction | NEFT company name extraction, RTGS/cheque cleanup |
+| **Union Bank** | Text Extraction | Multi-line continuation handling (e.g., salary narratives) |
+| **IndusInd Bank** | Table Extraction | Standard pdfplumber table parsing |
+| **Yes Bank** | Table Extraction | Standard pdfplumber table parsing |
+| **IDBI Bank** | Table Extraction | Standard pdfplumber table parsing |
+
+**Password-Protected PDFs**: Full support for encrypted bank statement PDFs.
+
+#### Auto-Categorization Engine (30+ Categories)
+Every imported transaction is automatically categorized using a 100+ keyword rule engine:
+
+**Income**: Salary, Interest, Dividends, Refunds, Rental Income, Bank Transfer In
+**Food**: Food & Dining (Swiggy, Zomato, restaurants), Groceries (BigBasket, Blinkit, Zepto, DMart)
+**Transport**: Uber/Ola, Fuel (all oil companies), Metro, Parking/Toll, Flights (IndiGo, SpiceJet, MakeMyTrip)
+**Utilities**: Electricity, Water, Gas, Internet, Mobile Recharge, DTH
+**Entertainment**: Netflix, Hotstar, Spotify, YouTube Premium, Dream11, Bookmyshow
+**Shopping**: Amazon, Flipkart, Myntra, Ajio, Decathlon, Croma
+**Financial**: Insurance, EMI, Credit Card Payments, SIP, PPF, NPS, FD, Gold, Stocks
+**Housing**: Rent, Society Maintenance
+**Health**: Hospitals, Pharmacies (1mg, PharmEasy), Diagnostics
+**Education**: Udemy, Coursera, BYJU's, Coaching
+**Others**: Personal Care, Donations, Taxes & Fees, Bank Charges, Cash/ATM
+
+**Known Merchant Detection**: 50+ Indian merchants recognized by name (Swiggy, Cred, Amazon, PhonePe, Paytm, Dream11, Mumbai Metro, etc.)
+
+#### Duplicate Detection
+Uses unique reference numbers (UTR for UPI, NEFT ref, RTGS ref) rather than description matching. Prevents re-import of the same statement while allowing legitimate similar transactions.
+
+#### Transaction Management
+- **CRUD Operations**: Create, read, update, delete individual transactions
+- **Type Filters**: All, Income, Expense, Investment
+- **Category Filters**: Quick-scroll chips for Rent, Food, Salary, SIP, Shopping, etc.
+- **Search**: Full-text search across description, category, notes, and payment account
+- **Custom Date Range**: Filter transactions by any date range (2020 onwards)
+- **Server-Side Summary**: Income/Expenses/Net computed via MongoDB aggregation for accuracy regardless of list size
+- **Recategorize All**: One-click re-run of the categorization engine on all imported transactions
+
+---
+
+### 2.3 Investment Tracking
+
+#### Portfolio Overview
+- **Total Invested vs Current Value**: Real-time P&L with absolute and percentage returns
+- **Asset Allocation**: Visual breakdown by category (Stocks, Mutual Funds, Gold, FDs, etc.)
+- **Live Market Ticker**: Scrolling bar showing Nifty 50, SENSEX, Nifty Bank, Gold (10g), Silver (1Kg) — live prices via yfinance + GoldAPI
+
+#### Holdings Management
+- **Stocks**: Live prices via yfinance (NSE/BSE tickers). Supports `.NS` and `.BO` suffixes.
+- **Mutual Funds**: NAV lookup via mfapi.in using ISIN codes. Supports both direct and regular plans.
+- **ISIN Resolution**: Automatic ISIN → ticker resolution with caching. Handles edge cases like hyphenated names (TATAGOLD-E → TATAGOLD.NS).
+- **Refresh Prices**: One-tap live price update for entire portfolio.
+- **Manual Holdings**: Add any holding manually with buy price, quantity, and date.
+- **Clear All Holdings**: Bulk delete for re-import scenarios.
+
+#### Statement Upload (Investment Statements)
+- **Groww**: XLSX parsing with ISIN → NSE/BSE ticker resolution for all stocks
+- **Zerodha**: Multi-sheet XLSX support — Equity, Mutual Funds, and Combined sheets parsed correctly
+- **CAS (Consolidated Account Statement)**: CAMS/KFintech MF CAS upload support
+- **Category Detection**: Sheet name takes priority for multi-sheet files (Equity → Stock, MF → Mutual Fund)
+
+#### SIP Tracker
+- **Active SIPs**: Track all Systematic Investment Plans with amount, frequency, and next execution date
+- **SIP Suggestions**: AI-generated SIP recommendations based on portfolio gaps
+- **Link to Goals**: Map SIPs to financial goals for progress tracking
+
+#### Portfolio Analytics
+- **Portfolio Rebalancing**: AI-powered suggestions comparing current vs. ideal allocation based on risk profile
+- **Wealth Projector**: Project future portfolio value based on current SIPs and expected returns
+- **Goal Mapper**: Link investments to specific financial goals and track progress
+
+#### Risk Profile
+- Questionnaire-based risk assessment (Conservative, Moderate, Aggressive)
+- Risk score with breakdown across categories
+- Personalized investment recommendations based on profile
+
+---
+
+### 2.4 Credit Card Management
+
+#### Card Management
+- **Add/Edit Cards**: Store card details (last 4 digits, issuer, network, credit limit, billing cycle)
+- **Supported Issuers**: HDFC, ICICI, SBI, Axis, Kotak, IndusInd, Standard Chartered, RBL, Yes Bank, IDFC, Amex, Citibank, HSBC
+- **Utilization Tracking**: Real-time credit utilization with color-coded alerts
+
+#### Credit Card Statement Upload
+- **PDF & CSV Support**: Auto-detect issuer from statement content
+- **16 Issuer Parsers**: HDFC, ICICI, SBI, Axis, Kotak, IndusInd, Standard Chartered, RBL, Yes Bank, IDFC, Amex, Citi, HSBC + Generic fallback
+- **Transaction Import**: Automatically categorize CC transactions with the same 30+ category engine
+
+#### Credit Card Analytics
+- **Due Calendar**: Visual calendar of upcoming payment due dates across all cards
+- **Interest Calculator**: Calculate interest charges based on outstanding balance, rate, and payment plan
+- **Rewards Tracker**: Track reward points across cards
+- **Card Recommender**: AI-powered card recommendations based on spending patterns
+
+#### AI-Powered Benefits Tab
+- **Per-Card Benefits**: Fetch card-specific rewards (lounge access, fuel waivers, cashback rates, milestone rewards) using GPT-5.2
+- **Cached Results**: Benefits cached in MongoDB to avoid repeated API calls
+- **AI Disclaimer**: Clear indication that benefits are AI-generated and should be verified with the issuer
+
+---
+
+### 2.5 AI Financial Advisor (Visor AI)
+
+#### Text Chat
+- **GPT-5.2 Powered**: Full conversational financial advisor using OpenAI via Emergent LLM Key
+- **Context-Aware**: Pulls user's actual financial data (transactions, portfolio, goals, loans) into every conversation for personalized advice
+- **22 Indian Languages**: Understands queries in all 22 scheduled Indian languages, including transliterated text (e.g., "enna mutual fund invest pannanum?" in Tamil)
+- **Default Hinglish**: Responds in professional Hinglish (Hindi-English mix) by default, adapts to user's language preference
+- **Financial Calculator**: Built-in calculator triggered by mathematical queries (EMI, SIP returns, compound interest)
+- **Live Market Data**: Can fetch and discuss current stock prices, indices, gold/silver rates
+- **Web Search**: Financial news and research integration for up-to-date market commentary
+- **Chat History**: Persistent conversation history with delete individual messages or clear all
+- **Finance-Only Guardrail**: Strictly refuses non-financial queries
+
+#### Voice Chat
+- **Speech-to-Text**: ElevenLabs STT for accurate voice transcription
+- **Text-to-Speech**: ElevenLabs TTS with multilingual v2 model for natural voice responses
+- **Same AI Engine**: Voice queries processed through the same Visor AI engine as text chat
+- **Audio Response**: Returns both text and audio (base64) for simultaneous display
+
+---
+
+### 2.6 Tax Module
+
+#### Tax Summary
+- **Old vs New Regime Comparison**: Side-by-side comparison showing which regime saves more
+- **Automatic Slab Calculation**: Income tax computed for both regimes with applicable slabs
+- **Surcharge & Cess**: Health & Education Cess (4%) and surcharge automatically applied
+- **Effective Tax Rate**: Shows actual tax percentage on total income
+
+#### Deductions Management
+- **Auto-Detected Deductions**: Transactions automatically scanned for tax-deductible payments (Insurance → 80C, Medical → 80D, Education Loan → 80E, HRA → 10(13A))
+- **Manual Deductions**: Add custom deductions under any section (80C, 80D, 80E, 80G, 80TTA, 80GG, 24(b), etc.)
+- **Smart Tax Notifications**: Alerts for missing deduction opportunities and approaching limits
+
+#### Capital Gains
+- **STCG & LTCG Tracking**: Short-term and long-term capital gains computed from investment holdings
+- **Tax-Loss Harvesting**: Identify loss positions for potential tax offset
+- **Section 111A / 112A**: Proper classification with applicable rates (15% STCG, 12.5% LTCG above ₹1.25L)
+
+#### Tax Planning
+- **AI Tax Scanner**: Scans all transactions and suggests potential deductions
+- **Deduction Floating Bar**: Persistent summary bar showing total deductions claimed vs. available limits
+- **Financial Year Aware**: All calculations aligned to Indian FY (April–March)
+
+---
+
+### 2.7 Loan & EMI Management
+
+#### Loan Tracker
+- **Add Loans**: Home loan, car loan, personal loan, education loan, gold loan
+- **Encrypted Storage**: Sensitive loan details (account numbers, lender info) encrypted with AES-256-GCM field-level encryption
+- **EMI Calculator**: Standard EMI formula with monthly rate computation
+- **Amortization Schedule**: Full EMI schedule showing principal vs interest split for every month
+
+#### EMI Analytics
+- **EMI Overview Dashboard**: Total EMIs, upcoming payments, portfolio interest rate
+- **Prepayment Calculator**: See how extra payments reduce tenure and total interest
+- **Principal-Interest Split**: Visual breakdown of where each EMI payment goes
+- **EMI Tracker Dashboard**: Centralized view of all active EMIs across loans
+
+---
+
+### 2.8 Double-Entry Bookkeeping
+
+#### Journal
+- **Automatic Double-Entry**: Every transaction auto-generates proper journal entries (debit/credit pairs)
+- **Account Categorization**: Assets, Liabilities, Income, Expenses, Equity
+- **Filter by Date Range**: View journal entries for any period
+
+#### Financial Statements
+- **Profit & Loss Statement**: Income vs. expenses for any date range with gross/net profit
+- **Balance Sheet**: Assets, liabilities, and equity as of any date. Includes bank balances, investments, loans payable
+- **General Ledger**: Account-wise transaction history with running balances
+
+#### Export
+- **PDF Export**: Professional formatted PDF reports for Journal, P&L, Balance Sheet, and Ledger
+- **Excel Export**: Full data export to XLSX for all four report types
+- **Indian Rupee Formatting**: All amounts in ₹ with lakh/crore notation
+
+---
+
+### 2.9 Goals & Savings
+
+- **Create Financial Goals**: Emergency Fund, House Down Payment, Car, Vacation, Retirement, Education, Wedding, etc.
+- **Target Amount & Timeline**: Set goal amount and target date
+- **Progress Tracking**: Visual progress bars and percentage completion
+- **Link to Investments**: Map specific holdings or SIPs to goals
+- **Dashboard Integration**: Goal progress visible on the main dashboard
+
+---
+
+### 2.10 Recurring Transactions
+
+- **Track Recurring Payments**: Rent, subscriptions, SIPs, EMIs, utilities
+- **Frequency Options**: Daily, weekly, monthly, quarterly, yearly
+- **Auto-Execute**: Mark recurring transactions as executed with one tap
+- **Pause/Resume**: Temporarily pause and resume recurring items
+- **Next Execution Date**: Smart calculation of upcoming payment dates
+
+---
+
+### 2.11 Fixed Assets
+
+- **Asset Registry**: Track property, vehicles, jewelry, electronics, and other fixed assets
+- **Purchase Details**: Cost, purchase date, current estimated value
+- **Net Worth Integration**: Fixed asset values included in net worth calculation
+
+---
+
+### 2.12 Insurance Policies
+
+- **Policy Tracker**: Store life insurance, health insurance, vehicle insurance, and other policies
+- **Premium Tracking**: Policy amount, premium, frequency, and next due date
+- **Tax Integration**: Insurance premiums automatically eligible for Section 80C/80D deductions
+
+---
+
+### 2.13 Market Data
+
+- **Live Indian Market Indices**: Nifty 50, SENSEX, Nifty Bank — real-time via yfinance
+- **Gold & Silver Prices**: 10g gold and 1Kg silver in INR via GoldAPI.io with yfinance fallback
+- **Auto-Refresh**: Market data cached and refreshed on dashboard load
+- **Scrolling Ticker Bar**: Live prices displayed as a scrolling horizontal bar on the Investments screen
+
+---
+
+### 2.14 Settings & Data Management
+
+- **Profile Management**: Name, email, PIN lock setup
+- **Dark Mode**: Full dark theme support across all screens
+- **Bank Account Management**: Add/edit/delete linked bank accounts, set default account
+- **Bank Statement Upload**: Upload PDF bank statements directly from Settings
+- **Data Management**: "Clear All Transactions" button with confirmation dialog — wipes all bank transactions, credit card transactions, bank accounts, journal entries, and statement hashes for a clean re-import
+- **Delete Account**: Complete account deletion with all associated data
+
+---
+
+## 3. Security & Privacy
+
+- **JWT Authentication**: Secure token-based authentication with expiry
+- **PIN Lock**: Optional 4-digit PIN for app access (with skip option)
+- **AES-256-GCM Encryption**: Field-level encryption for sensitive loan and account data using per-user Data Encryption Keys (DEK)
+- **No Plain-Text Storage**: Sensitive fields encrypted at rest in MongoDB
+- **Master Key Architecture**: User DEKs encrypted with a master key for key rotation capability
+
+---
+
+## 4. Technical Architecture
 
 ```
-/app
-├── backend/
-│   ├── server.py
-│   ├── config.py
-│   ├── routes/
-│   │   ├── dashboard.py, dashboard_v2.py
-│   │   ├── holdings.py
-│   │   ├── bank_statements.py
-│   │   ├── statement_upload.py
-│   │   ├── credit_cards.py
-│   │   ├── ai_advisor.py
-│   │   └── expo_qr.py
-│   ├── services/
-│   │   ├── statement_parser.py
-│   │   ├── holdings_price_updater.py
-│   │   └── isin_resolver.py (NEW)
-│   └── parsers/
-│       ├── pdf_parsers.py (REWRITTEN: HDFC parser)
-│       ├── csv_excel.py
-│       └── utils.py (ENHANCED: categorization)
-├── frontend/
-│   ├── app/(tabs)/
-│   │   ├── index.tsx (Dashboard)
-│   │   ├── investments.tsx (Date picker fix)
-│   │   ├── transactions.tsx
-│   │   └── settings.tsx
-│   └── src/components/
-│       ├── dashboard/
-│       │   └── InvestmentSummaryCard.tsx (REWRITTEN: flippable)
-│       └── investments/
-│           ├── PortfolioOverviewCard.tsx (scaling fix)
-│           └── UploadDropdown.tsx (DO NOT MODIFY)
-└── memory/PRD.md
+Frontend: React Native Expo (iOS + Android + Web)
+Backend:  FastAPI (Python 3.11+)
+Database: MongoDB (with Motor async driver)
+AI:       GPT-5.2 + GPT-4o via Emergent LLM Key
+Voice:    ElevenLabs (STT + TTS, multilingual v2)
+Markets:  yfinance (stocks/indices) + mfapi.in (MF NAV) + GoldAPI.io (metals)
+PDF:      pdfplumber (table + text extraction)
+Exports:  ReportLab (PDF) + openpyxl (Excel)
+Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 ```
 
----
-
-## Pending Issues
-
-| # | Issue | Priority | Status |
-|---|-------|----------|--------|
-| 1 | iOS Document Picker crash | P0 | USER VERIFICATION PENDING |
-| 2 | "Share" button cut off on Share Score screen | P1 | NOT STARTED |
-| 3 | "Plan" button poorly styled in ActionableInsights | P1 | NOT STARTED |
-| 4 | Misaligned "Add Goal" button on Dashboard | P2 | NOT STARTED |
+### API Surface
+- **150+ REST endpoints** across 30 route modules
+- **12 bank statement parsers** with bank-specific extraction strategies
+- **16 credit card issuer parsers** (PDF + CSV)
+- **5 investment statement parsers** (Groww, Zerodha, CAS, manual)
 
 ---
 
-## Upcoming Tasks
+## 5. Integrations
 
-| # | Task | Priority |
-|---|------|----------|
-| 1 | Refactor `pdf_parsers.py` (2800+ lines → `/parsers/banks/` per-bank files) | P1 |
-| 2 | FinancialHealthScore → Flip Card (detailed breakdown on back) | P1 |
-| 3 | Streaming TTS for faster perceived voice response | P1 |
-| 4 | Refactor investments.tsx (~1900 lines → modules) | P1 |
-| 5 | Refactor index.tsx (~2000 lines → modules) | P1 |
-
-## Future/Backlog
-
-| # | Task | Priority |
-|---|------|----------|
-| 1 | Advanced Tax Module (Phase 4) | P2 |
-| 2 | Gmail Integration for auto-importing bank emails | P2 |
-| 3 | Voice Cloning (ElevenLabs custom persona) | P3 |
-| 4 | "Share with Friends" referral feature | P3 |
-| 5 | WhatsApp/Telegram bot for transaction logging | P3 |
-| 6 | Multi-currency for NRI users | P3 |
+| Integration | Purpose | Key |
+|-------------|---------|-----|
+| OpenAI GPT-5.2 | AI Advisor, Insights, Benefits, Tax Scanner | Emergent LLM Key |
+| OpenAI GPT-4o | Investment Insights (cached 24h) | Emergent LLM Key |
+| ElevenLabs | Voice chat (STT + TTS) | Emergent LLM Key |
+| yfinance | Live stock prices, indices (Nifty, SENSEX) | Open Source |
+| mfapi.in | Mutual Fund NAV lookup by ISIN | Public API |
+| GoldAPI.io | Gold & Silver spot prices in INR | API Key |
+| Cloudflare Tunnels | Expo Go mobile preview | Pre-configured |
 
 ---
 
-## Key API Endpoints
+## 6. Key Screens (for Landing Page Showcase)
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/transactions/summary` | GET | Server-side aggregation for accurate income/expense/investment totals (no list-size truncation) |
-| `/api/dashboard/stats` | GET | Dashboard stats (accepts `frequency` param: Month/Quarter/Year/Custom; Year uses FY monthly grouping) |
-| `/api/dashboard/investment-summary` | GET | Investment summary with allocation breakdown |
-| `/api/dashboard/investment-insight` | GET | AI-generated investment insight (cached 24h) |
-| `/api/holdings/refresh-prices` | POST | Refresh live prices (resolves ISINs for Groww stocks) |
-| `/api/bank-statements/upload` | POST | Upload bank statement PDF/CSV |
-| `/api/upload-statement` | POST | Upload stock/MF statement |
-| `/api/expo/qr` | GET | Auto-refreshing QR code webpage |
+1. **Dashboard** — Financial health score, overview cards, trend chart, AI insight, net worth, investment summary
+2. **Transactions** — Searchable, filterable transaction list with auto-categorized bank imports
+3. **Investments** — Portfolio overview, live holdings, SIP tracker, market ticker, risk profile
+4. **Insights (AI Advisor)** — Conversational AI chat + voice assistant in 22 Indian languages
+5. **Credit Cards** — Card management, statement upload, utilization tracking, AI benefits
+6. **Tax** — Old vs New regime comparison, auto-detected deductions, capital gains
+7. **Books** — Double-entry journal, P&L, balance sheet, ledger with PDF/Excel export
+8. **Settings** — Profile, dark mode, bank accounts, data management
 
-## Credentials
-- Demo: `rajesh@visor.demo` / `Demo@123`
-- QR: `https://visor-finance-3.preview.emergentagent.com/api/expo/qr`
+---
+
+## 7. What Makes Visor Unique
+
+- **India-First**: Built for Indian banking formats, tax laws (80C/80D/HRA), and financial products (SIP, NPS, PPF, SGBs)
+- **12 Bank Parsers**: The deepest bank statement parsing in any Indian finance app — each bank has a custom-built parser, not a generic OCR
+- **AI That Speaks Your Language**: Financial advice in Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, and 16 more languages — even transliterated in English script
+- **Professional Hinglish**: The AI speaks like a real Indian financial advisor, not a robotic chatbot
+- **Complete Financial Picture**: Transactions + Investments + Credit Cards + Loans + Tax + Insurance + Goals — all in one app
+- **Double-Entry Bookkeeping**: Export-ready financial statements (P&L, Balance Sheet) — useful for freelancers and small business owners
+- **Privacy-First**: AES-256-GCM encryption for sensitive data, no third-party analytics
+
+---
+
+## 8. Credentials
+
+- **Demo Account**: `rajesh@visor.demo` / `Demo@123`
+- **Expo Go QR**: `https://visor-finance-3.preview.emergentagent.com/api/expo/qr`
+
+---
+
+## 9. Upcoming Roadmap
+
+| Priority | Feature |
+|----------|---------|
+| P0 | Refactor pdf_parsers.py (3000+ lines → modular per-bank files) |
+| P1 | Streaming TTS for faster perceived voice response |
+| P1 | Financial Health Score flip card (detailed breakdown on back) |
+| P1 | Frontend refactoring (investments.tsx, index.tsx — 2000+ lines each) |
+| P2 | Advanced Tax Module Phase 4 (ITR filing integration) |
+| P2 | Gmail Integration for auto-importing bank transaction emails |
+| P3 | Voice Cloning with ElevenLabs for a custom Visor persona |
+| P3 | "Share with Friends" referral feature |
+| P3 | WhatsApp/Telegram bot for transaction logging |
+| P3 | Multi-currency support for NRI users |
