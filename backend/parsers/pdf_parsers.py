@@ -1262,93 +1262,137 @@ def _extract_upi_description(desc: str, ref_number: str = "") -> str:
 
 
 def clean_pnb_description(raw_desc: str) -> str:
-    """Clean up PNB Bank transaction description."""
+    """Clean up PNB Bank transaction description.
+    PNB narration formats:
+      NEFT IN:CODE:COMPANYNAME:BANKCODE:ACCOUNTNO
+      NEFT OUT:CODE:PAYEENAME:BANKCODE:
+      RTGS From : REF/COMPANYNAME
+      RTGS To : REF/PAYEENAME
+      Transfer From A/C...NACOMPANYNAME
+      TRF COMPANYNAME
+      IMPS-IN/ref/phone
+      ACH/BD-CompanyName/ref
+      Cash Withdrawal At Br : BRANCH
+      PMSBY RENEWAL
+      INTT. From :date to date
+      SMS CHRG FOR:period
+      CHQ BK CH:number
+      By CLEARING - ref
+    """
     desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
-    
+    if not desc:
+        return "Bank Transaction"
+
+    upper = desc.upper()
     lower_desc = desc.lower()
-    
-    # SMS charges
+
+    # ── SMS charges & reversal ───────────────────────────────────────────
     if 'sms chrg' in lower_desc or 'smsch' in lower_desc:
+        if 'rev' in lower_desc:
+            return "SMS Charge Reversal"
         return "SMS Charges"
-    
-    # Interest credit
-    if 'intt.' in lower_desc or 'interest' in lower_desc:
+
+    # ── Interest credit ──────────────────────────────────────────────────
+    if upper.startswith('INTT.') or 'INTEREST' in upper:
         return "Interest Credit"
-    
-    # Transfer from account
-    if desc.startswith('Transfer From'):
-        # Extract name if present
-        parts = desc.split('SHREE')
-        if len(parts) > 1:
-            return "NEFT - Shree Shyamjee Transport"
-        return "NEFT Inward"
-    
-    # NEFT IN
-    if 'NEFT IN' in desc:
-        # Try to extract company name
+
+    # ── NEFT IN (credit) — company name at parts[2] ─────────────────────
+    if 'NEFT IN' in upper:
         parts = desc.split(':')
-        if len(parts) >= 2:
-            company = parts[1].strip()
-            if company:
+        # Format: NEFT IN:CODE:CompanyName:BankCode:AccountNo
+        if len(parts) >= 3:
+            company = parts[2].strip()
+            if company and len(company) > 1 and not company.isdigit():
                 return f"NEFT - {company.title()}"
         return "NEFT Inward"
-    
-    # NEFT OUT
-    if 'NEFT OUT' in desc:
+
+    # ── NEFT OUT (debit) — payee at parts[2] ─────────────────────────────
+    if 'NEFT OUT' in upper:
         parts = desc.split(':')
-        if len(parts) >= 2:
-            name = parts[1].strip()
-            if name:
-                return f"NEFT - {name.title()}"
+        if len(parts) >= 3:
+            payee = parts[2].strip()
+            if payee and len(payee) > 1 and not payee.isdigit():
+                return f"NEFT - {payee.title()}"
         return "NEFT Outward"
-    
-    # RTGS
-    if 'RTGS' in desc.upper():
-        if 'RTGS To' in desc:
-            return "RTGS Outward"
-        if 'RTGS From' in desc:
-            parts = desc.split('/')
-            if len(parts) >= 2:
-                company = parts[-1].strip()
-                return f"RTGS - {company.title()}"
-            return "RTGS Inward"
-        return "RTGS Transfer"
-    
-    # IMPS
-    if 'IMPS' in desc.upper():
-        return "IMPS Transfer"
-    
-    # Cash Withdrawal
-    if 'cash withdrawal' in lower_desc:
-        return "Cash Withdrawal"
-    
-    # TRF (Transfer)
-    if desc.startswith('TRF '):
-        name = desc[4:].strip()
-        return f"Transfer - {name.title()}"
-    
-    # PMSBY (Insurance)
-    if 'PMSBY' in desc.upper():
-        return "PMSBY Insurance"
-    
-    # Clearing
-    if 'CLEARING' in desc.upper():
-        return "Cheque Clearing"
-    
-    # ACH / Auto-debit
-    if desc.startswith('ACH/'):
+
+    # ── NEFT Inward Settlement (Transfer From A/C) ───────────────────────
+    if desc.startswith('Transfer From'):
+        # Format: Transfer From A/C<account>NA<CompanyName> or NEFT INWARD SETTLEMENT
+        # Look for company name patterns
+        for keyword in ['SHREE', 'SALASAR', 'CRYSTAL', 'DELHIVERY']:
+            if keyword in upper:
+                idx = upper.find(keyword)
+                company = desc[idx:].split('NEFT')[0].split('INWARD')[0].strip()
+                if company:
+                    return f"NEFT - {company.title()}"
+        # Generic fallback
+        return "NEFT Inward"
+
+    # ── RTGS ─────────────────────────────────────────────────────────────
+    if 'RTGS' in upper:
         parts = desc.split('/')
         if len(parts) >= 2:
-            company = parts[1].strip()
-            return f"Auto-debit - {company.title()}"
+            company = parts[-1].strip()
+            if company and len(company) > 2 and any(c.isalpha() for c in company):
+                if 'TO' in upper:
+                    return f"RTGS Out - {company.title()}"
+                return f"RTGS - {company.title()}"
+        if 'TO' in upper:
+            return "RTGS Outward"
+        return "RTGS Inward"
+
+    # ── IMPS ─────────────────────────────────────────────────────────────
+    if 'IMPS' in upper:
+        return "IMPS Transfer"
+
+    # ── Cash Withdrawal ──────────────────────────────────────────────────
+    if 'cash withdrawal' in lower_desc:
+        return "Cash Withdrawal"
+
+    # ── TRF (cheque transfer) ────────────────────────────────────────────
+    if desc.startswith('TRF '):
+        name = desc[4:].strip()
+        if name:
+            return f"Transfer - {name.title()}"
+        return "Fund Transfer"
+
+    # ── PMSBY ────────────────────────────────────────────────────────────
+    if 'PMSBY' in upper:
+        if '- R' in desc or 'REV' in upper:
+            return "PMSBY Insurance (Reversal)"
+        return "PMSBY Insurance"
+
+    # ── Clearing ─────────────────────────────────────────────────────────
+    if 'CLEARING' in upper:
+        return "Cheque Clearing"
+
+    # ── ACH / Auto-debit ─────────────────────────────────────────────────
+    if desc.startswith('ACH/') or 'ACH/' in desc:
+        parts = desc.split('-')
+        for part in parts[1:]:
+            p = part.strip().split('/')[0].strip()
+            if p and len(p) > 2 and p.upper() not in ('BD', 'ACH'):
+                return f"Auto-debit - {p.title()}"
         return "Auto-debit"
-    
-    # LIC
-    if 'lic of india' in lower_desc:
+
+    # ── LIC ──────────────────────────────────────────────────────────────
+    if 'LIC OF INDIA' in upper or upper.startswith('LIC '):
         return "LIC Premium"
-    
-    # Return first 50 chars
-    return desc[:50] if len(desc) > 50 else desc
+
+    # ── Bajaj Allianz ────────────────────────────────────────────────────
+    if 'BAJAJ' in upper and ('ALLIA' in upper or 'ALLINAZ' in upper):
+        return "Bajaj Allianz Insurance"
+
+    # ── Cheque book charges ──────────────────────────────────────────────
+    if 'CHQ BK CH' in upper or 'CHEQUE BOOK' in upper:
+        return "Cheque Book Charges"
+
+    # ── HDFC Bank transfer (cheque) ──────────────────────────────────────
+    if 'HDFC BANK LTD' in upper:
+        return "Bank Transfer (HDFC)"
+
+    # ── Fallback ─────────────────────────────────────────────────────────
+    return desc[:60] if len(desc) > 60 else desc
 
 
 def clean_idbi_description(raw_desc: str) -> str:
