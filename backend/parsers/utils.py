@@ -42,6 +42,9 @@ def detect_bank(user_input: str, pdf_text: str = "") -> str:
 
     pdf_lower = pdf_text.lower()
     bank_patterns = {
+        "canara": ["canara bank", "canarabank"],
+        "union": ["union bank of india", "union bank"],
+        "idbi": ["idbi bank"],
         "indusind": ["indusind bank", "indusind"],
         "yes": ["yes bank"],
         "axis": ["axis bank", "axis account", "statement of axis"],
@@ -108,7 +111,8 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
         (["dividend", "div credit"], "Dividends", "income"),
         (["upi refund", "refund", "reversal", "cashback", "cash back", "refund credit", "upi reversal"], "Refund", "income"),
         (["rent received", "rental income"], "Rental Income", "income"),
-        (["neft cr", "neft credit", "imps cr", "imps credit", "rtgs cr", "fund transfer -"], "Bank Transfer In", "income"),
+        (["neft cr", "neft credit", "imps cr", "imps credit", "rtgs cr", "fund transfer -",
+          "clearing credit", "clearing -", "by clg"], "Bank Transfer In", "income"),
 
         # Food & Dining (specific merchants first, before generic keywords)
         (["sodexo", "swiggy", "zomato", "cloud kitchen", "sai siddhi"], "Food & Dining", "expense"),
@@ -167,7 +171,7 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
           "education loan", "bajaj finance", "bajajfinance", "hdfc credila",
           "tata capital"], "EMI", "expense"),
         (["cc payment", "credit card bill", "federal bank cc", "onecard cc",
-          "credit card", "cred", "slice", "onecard", "hdfc cc",
+          "credit card", "cred bill", "cred -", "slice", "onecard", "hdfc cc",
           "sbi card", "kotak card", "icici card", "axis card"], "Credit Card", "expense"),
 
         # Investments
@@ -209,7 +213,9 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
         # Bank Charges
         (["bank charge", "service charge", "sms charge", "sms alert",
           "debit card", "atm charge", "annual fee", "maintenance charge",
-          "minimum balance", "consolidated charge", "instaalertchg"], "Bank Charges", "expense"),
+          "minimum balance", "consolidated charge", "instaalertchg",
+          "imps charge", "cheque book", "cheque return charge", "chq rtn chg",
+          "chq bk", "rtgs service charge", "rtgs 00"], "Bank Charges", "expense"),
 
         # Cash
         (["atm", "cash withdrawal", "cash deposit", "self withdrawal", "nwd-"], "Cash", "expense"),

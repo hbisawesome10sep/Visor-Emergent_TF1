@@ -40,6 +40,15 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
   - Asset allocation breakdown with horizontal bars
   - AI-generated daily investment insight (GPT-4o, cached 24h)
 - [x] **Investment Amount Alignment**: Dashboard Overview "Investments" card now uses `portfolio_invested` (from holdings) instead of transaction-based total, aligning with Investment Summary Card.
+- [x] **Bank Statement Parser Refinements (Session Mar 22, 2026)**:
+  - ICICI: Complete text-extraction rewrite for interleaved blocks
+  - SBI: Rewrote `clean_sbi_description` to prevent truncation
+  - Union Bank: Multi-line continuation extraction (e.g., `/Salary`)
+  - Axis Bank: Handle "F07 Cred", Card Charges, bypass payment gateways
+  - PNB: Fixed NEFT company name indices, RTGS/cheque cleanup
+  - **Canara Bank**: Fully rewrote `clean_canara_description` — RTGS/NEFT now extract actual company names via IFSC regex, IMPS shows bank+last4, cheque returns show payee, all 51 test transactions clean
+  - **Bank Detection Fix**: Added Canara, Union, IDBI to `detect_bank` priority patterns (was misdetecting Canara as HDFC)
+  - **Categorization Fix**: Fixed "cred" keyword false-positive on "credit" (Clearing Credit no longer miscategorized as Credit Card). Added IMPS/cheque/RTGS charges to Bank Charges category
 
 ---
 
@@ -98,10 +107,11 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
 
 | # | Task | Priority |
 |---|------|----------|
-| 1 | FinancialHealthScore → Flip Card (detailed breakdown on back) | P1 |
-| 2 | Streaming TTS for faster perceived voice response | P1 |
-| 3 | Refactor investments.tsx (~1900 lines → modules) | P1 |
-| 4 | Refactor index.tsx (~2000 lines → modules) | P1 |
+| 1 | Refactor `pdf_parsers.py` (2800+ lines → `/parsers/banks/` per-bank files) | P1 |
+| 2 | FinancialHealthScore → Flip Card (detailed breakdown on back) | P1 |
+| 3 | Streaming TTS for faster perceived voice response | P1 |
+| 4 | Refactor investments.tsx (~1900 lines → modules) | P1 |
+| 5 | Refactor index.tsx (~2000 lines → modules) | P1 |
 
 ## Future/Backlog
 
@@ -130,4 +140,4 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
 
 ## Credentials
 - Demo: `rajesh@visor.demo` / `Demo@123`
-- QR: `https://invest-dash-55.preview.emergentagent.com/api/expo/qr`
+- QR: `https://payee-master.preview.emergentagent.com/api/expo/qr`

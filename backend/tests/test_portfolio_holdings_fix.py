@@ -14,7 +14,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://invest-dash-55.preview.emergentagent.com")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://payee-master.preview.emergentagent.com")
 
 # Demo account credentials
 DEMO_EMAIL = "rajesh@visor.demo"

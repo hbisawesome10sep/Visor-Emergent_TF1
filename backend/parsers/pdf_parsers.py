@@ -1485,64 +1485,175 @@ def clean_idbi_description(raw_desc: str) -> str:
 
 
 def clean_canara_description(raw_desc: str) -> str:
-    """Clean up Canara Bank transaction description."""
+    """Clean up Canara Bank transaction description.
+    Canara Bank patterns:
+      RTGS Cr-<REF>-<BANKCODE>-<COMPANY>--/<PRIORITY>/
+      RTGS Dr-<REF>-<BANKCODE>-<PAYEE>-/<PURPOSE>/
+      NEFT Cr-<REF>-<BANKCODE>-<COMPANY>--/<PURPOSE>/
+      Funds Transfer Debit - <NAME>
+      self-<name> - <BRANCH>   or   self - <BRANCH>
+      IB-IMPS-DR//<BANK>/**<LAST4>//<DATE> <TIME>
+      IB ITG <ref> <acctno> Online Transaction <purpose>
+      Chq Paid-MICR Inward Clearing-<PAYEE>-<BANK>-<BANK>
+      I/W Chq return- Funds Insufficient- for payee -<PAYEE>--
+      By Clg:<CLEARING_HOUSE>-<BANK>, <PAYEE>
+    """
+    import re
     desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
-    
-    lower_desc = desc.lower()
-    
-    # Cash BNA (Cash Deposit via machine)
-    if 'cash-bna' in lower_desc or 'cash bna' in lower_desc:
+    if not desc:
+        return "Bank Transaction"
+
+    upper = desc.upper()
+    lower = desc.lower()
+
+    # ── Cash BNA (Cash Deposit via machine) ──────────────────────────────
+    if 'cash-bna' in lower or 'cash bna' in lower:
         return "Cash Deposit (BNA)"
-    
-    # Cheque Book Issue
-    if 'chq bk issue' in lower_desc:
+
+    # ── Cash Deposit at branch ───────────────────────────────────────────
+    if lower.startswith('cash deposit'):
+        return "Cash Deposit"
+
+    # ── Cheque Book Issue ────────────────────────────────────────────────
+    if 'chq bk issue' in lower:
         return "Cheque Book Issue Charges"
-    
-    # RTGS Credit
-    if desc.startswith('RTGS Cr'):
-        parts = desc.split('-')
-        for part in parts:
-            if len(part) > 5 and part.isupper() and ' ' in part:
-                return f"RTGS - {part.title()}"
-        return "RTGS Inward"
-    
-    # NEFT Credit
-    if desc.startswith('NEFT Cr'):
-        parts = desc.split('-')
-        for part in parts:
-            if len(part) > 5 and any(c.isalpha() for c in part) and not part.startswith('ICIC') and not part.startswith('HDFC'):
-                clean_part = part.strip()
-                if clean_part and not clean_part.startswith('N0'):
-                    return f"NEFT - {clean_part.title()}"
+
+    # ── RTGS Cr / RTGS Dr ────────────────────────────────────────────────
+    # Format: RTGS Cr-<REF>-<IFSC>-<COMPANY_NAME>--/URGENT/
+    if upper.startswith('RTGS CR') or upper.startswith('RTGS DR'):
+        is_debit = upper.startswith('RTGS DR')
+        # IFSC code pattern: 4 alpha + 0 + 6 alphanumeric (e.g., ICIC0000011, BARB0MOUNTR)
+        ifsc_match = re.search(r'[A-Z]{4}0[A-Z0-9]{6}', upper)
+        if ifsc_match:
+            after_ifsc = desc[ifsc_match.end():]
+            after_ifsc = re.sub(r'^[\s\-]+', '', after_ifsc)
+            name = re.split(r'--+|/URGENT|/NONE|/\s*$', after_ifsc)[0].strip()
+            name = name.rstrip('-/ ')
+            if name and len(name) > 1 and any(c.isalpha() for c in name):
+                label = "RTGS Out" if is_debit else "RTGS"
+                return f"{label} - {name.title()}"
+        return "RTGS Outward" if is_debit else "RTGS Inward"
+
+    # ── RTGS Service Charges ─────────────────────────────────────────────
+    if upper.startswith('RTGS') and ('SC' in upper or 'SERVICE' in upper or 'UPTO' in upper):
+        return "RTGS Service Charges"
+
+    # ── NEFT Cr ──────────────────────────────────────────────────────────
+    # Format: NEFT Cr-<REF>-<IFSC>-<COMPANY>--/<PURPOSE>
+    if upper.startswith('NEFT CR'):
+        ifsc_match = re.search(r'[A-Z]{4}0[A-Z0-9]{6}', upper)
+        if ifsc_match:
+            after_ifsc = desc[ifsc_match.end():]
+            after_ifsc = re.sub(r'^[\s\-]+', '', after_ifsc)
+            name = re.split(r'--+|/NEFT|/\s*$', after_ifsc)[0].strip()
+            name = name.rstrip('-/ ')
+            if name and len(name) > 1 and any(c.isalpha() for c in name):
+                return f"NEFT - {name.title()}"
         return "NEFT Inward"
-    
-    # Funds Transfer Debit
-    if 'funds transfer debit' in lower_desc:
+
+    # ── Funds Transfer Debit ─────────────────────────────────────────────
+    if 'funds transfer debit' in lower:
         parts = desc.split('-')
         if len(parts) >= 2:
             name = parts[-1].strip()
-            return f"Transfer - {name.title()}"
+            if name:
+                return f"Transfer - {name.title()}"
         return "Funds Transfer"
-    
-    # Self transfer
-    if desc.lower().startswith('self'):
+
+    # ── Self transfer ────────────────────────────────────────────────────
+    # Format: self-<name> - <BRANCH>  or  self - <BRANCH>
+    if lower.startswith('self'):
+        # Remove 'self' prefix and any separator
+        rest = re.sub(r'^self[\s\-]*', '', desc, flags=re.IGNORECASE).strip()
+        # Split on ' - ' to separate name from branch
+        parts = rest.split(' - ')
+        name_part = parts[0].strip() if parts else ""
+        if name_part and len(name_part) > 1 and not name_part.upper().startswith('DELHI') and not name_part.upper().startswith('MUMBAI'):
+            return f"Self - {name_part.title()}"
+        return "Self Transfer"
+
+    # ── I/W Cheque Return (with payee) ───────────────────────────────────
+    if 'chq return' in lower or 'i/w chq return' in lower:
+        # Extract payee from 'for payee -<NAME>--'
+        payee_match = re.search(r'for payee\s*[\-\s]+(.+?)--', desc, re.IGNORECASE)
+        if payee_match:
+            payee = payee_match.group(1).strip()
+            if payee:
+                return f"Cheque Return - {payee.title()}"
+        return "Cheque Return"
+
+    # ── INW CHQ RTN CHG (Cheque Return Charges) ─────────────────────────
+    if 'chq rtn chg' in lower or 'inw chq rtn' in lower:
+        return "Cheque Return Charges"
+
+    # ── IB-IMPS-DR (Internet Banking IMPS Debit) ────────────────────────
+    # Format: IB-IMPS-DR//<BANK>/**<LAST4>//<DATE> <TIME>
+    if upper.startswith('IB-IMPS'):
+        bank_match = re.search(r'//([A-Z]+)/\*\*(\d+)//', desc)
+        if bank_match:
+            bank = bank_match.group(1)
+            last4 = bank_match.group(2)
+            return f"IMPS Transfer ({bank} **{last4})"
+        return "IMPS Transfer"
+
+    # ── ATM / IMPS Charges ───────────────────────────────────────────────
+    if 'atm txn' in lower and 'imps charges' in lower:
+        return "IMPS Charges"
+
+    # ── IB ITG (Internet Banking Internal Transfer) ──────────────────────
+    # Format: IB ITG <ref> <acctno> Online Transaction <purpose>
+    if upper.startswith('IB ITG'):
+        purpose_match = re.search(r'Online Transaction\s+(.+)', desc, re.IGNORECASE)
+        if purpose_match:
+            purpose = purpose_match.group(1).strip()
+            # Clean up purpose (OTH-site expnse => Site Expense)
+            purpose = re.sub(r'^OTH[\-\s]*', '', purpose).strip()
+            if purpose:
+                return f"Online Transfer - {purpose.title()}"
+        return "Online Transfer"
+
+    # ── Chq Paid-MICR (Cheque Clearing Debit) ───────────────────────────
+    # Format: Chq Paid-MICR Inward Clearing-<PAYEE>-<BANK>-<BANK>
+    if 'chq paid' in lower and 'micr' in lower:
+        # Extract payee after 'Clearing-' or 'Clearing '
+        clearing_match = re.search(r'Clearing[\-\s]+(.+)', desc, re.IGNORECASE)
+        if clearing_match:
+            rest = clearing_match.group(1).strip()
+            # Payee is the first segment before a bank name
+            bank_pattern = r'\-\s*(HDFC|ICICI|SBI|AXIS|CANARA|CENTRAL|CITI|KOTAK|BOB|PNB|IDBI|YES|INDUSIND)'
+            parts = re.split(bank_pattern, rest, flags=re.IGNORECASE)
+            payee = parts[0].strip().rstrip('- ')
+            if payee:
+                return f"Cheque - {payee.title()}"
+        return "Cheque Payment"
+
+    # ── By Clg (Clearing Credit) ─────────────────────────────────────────
+    # Format: By Clg:<CLEARING_HOUSE>-<BANK>, <PAYEE>
+    if lower.startswith('by clg'):
+        # Try to extract payee after comma
+        comma_idx = desc.find(',')
+        if comma_idx > 0:
+            payee = desc[comma_idx + 1:].strip()
+            if payee and len(payee) > 1:
+                return f"Clearing Credit - {payee.title()}"
+        # Try to extract bank name
         parts = desc.split('-')
         if len(parts) >= 2:
-            name = parts[0].replace('self', '').strip()
-            if name:
-                return f"Self - {name.title()}"
-        return "Self Transfer"
-    
-    # Cheque Return
-    if 'chq return' in lower_desc or 'i/w chq return' in lower_desc:
-        return "Cheque Return"
-    
-    # Cheque Return Charges
-    if 'chq rtn chg' in lower_desc:
-        return "Cheque Return Charges"
-    
-    # Return first 50 chars
-    return desc[:50] if len(desc) > 50 else desc
+            bank_part = parts[-1].strip()
+            if bank_part:
+                return f"Clearing Credit ({bank_part.title()})"
+        return "Clearing Credit"
+
+    # ── Service Charges ──────────────────────────────────────────────────
+    if lower.startswith('service charge'):
+        return "Service Charges"
+
+    # ── SMS Charges ──────────────────────────────────────────────────────
+    if 'sms charge' in lower:
+        return "SMS Charges"
+
+    # ── Fallback: return first 60 chars ──────────────────────────────────
+    return desc[:60] if len(desc) > 60 else desc
 
 
 def clean_union_description(raw_desc: str) -> str:

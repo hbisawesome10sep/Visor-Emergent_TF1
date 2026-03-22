@@ -1,213 +1,157 @@
-<analysis>An analysis of the LLM message history is complete. Here is the handover summary for the next agent.
-
-**original_problem_statement**: The user wants to build a robust investment portfolio tracking system. The core requirements have expanded to include:
-1.  **Data Accuracy**: Source all portfolio data from user holdings, parsed from uploaded XLSX statements (Groww for Mutual Funds, Zerodha for Stocks), fixing the initial hoax data problem.
-2.  **Live Price Updates**: The current value of all stocks and mutual funds must be updated daily to reflect market changes.
-3.  **UI/UX Overhaul**:
-    -   Display holdings in new, well-designed, scrollable UI cards.
-    -   Provide an option for the user to clear all their holdings.
-    -   Fix a list of specific UI bugs identified from screenshots (misaligned buttons, poor layout in cards, etc.).
-4.  **SIP Automation**: When a mutual fund statement is uploaded, automatically create pending SIP suggestions for user approval in the SIP Section. Approving a suggestion should open the Add SIP modal pre-filled with the fund's name.
-5.  **Environment Stability**: Ensure the Expo Go preview QR code page is stable and works reliably.
+<analysis>**original_problem_statement**: The user is building a comprehensive Indian personal finance app tracking investments, transactions, and goals. Recent requests focused on drastically improving backend parsing logic, duplicate detection, and transaction categorization for multiple bank statements (HDFC, ICICI, SBI, Union, Axis, PNB, and Canara) to ensure accurate payee extraction over generic UPI Transfer or payment gateway names.
 
 **PRODUCT REQUIREMENTS**:
-- Implement features as per the original problem statement.
-- Address all UI/UX feedback from the user's screenshots.
-- Ensure backend data processing is accurate, especially for financial calculations like portfolio value.
+- App must parse bank statements accurately across multiple formats.
+- App must extract actual payee names from UPI/NEFT descriptions, ignoring generic gateway tags (e.g., Paytm, Cred, Cashfree).
+- App must avoid false duplicates.
+- App must correctly categorize transactions based on refined merchant names and description continuations (e.g., detecting multi-line Salary remarks).
 
 **User's preferred language**: English
 
-**what currently exists?**
-The application now has a sophisticated backend for investment tracking and a largely revamped frontend.
-
--   **Backend:**
-    -   A robust XLSX parsing service () for Groww (MF) and Zerodha (Stock) statements.
-    -   An intelligent price update service () that fetches live stock prices from  and mutual fund NAVs from . The MF matching logic is highly accurate, distinguishing between Regular and Direct plans to prevent incorrect valuations.
-    -   API endpoints for statement uploads (), clearing holdings (), and triggering price refreshes ().
-    -   A daily background scheduler in  automatically updates all holding prices after market close.
-    -   The statement upload process now automatically generates pending SIP suggestions for any new mutual funds found.
-    -   A stable, auto-refreshing Expo Go QR code page is served from , using the reliable Cloudflare tunnel.
-
--   **Frontend:**
-    -   The  screen features custom cards for stocks and mutual funds, an upload dropdown, and buttons to clear holdings and refresh prices.
-    -   The Clear All Holdings button, previously hidden, is now correctly placed and visible.
-    -   The frontend shows a toast notification indicating how many new SIP suggestions were created after a statement upload.
+**what currently exists?** 
+A full-stack financial tracking application (React Native Expo + FastAPI + MongoDB). Features a comprehensive dashboard, transaction list, and AI-driven insights. The backend has highly refined PDF statement parsers for HDFC, ICICI, SBI, Union, Axis, and PNB banks, utilizing both table-extraction and interleaved text-extraction strategies optimized for precise payee extraction and categorization.
 
 **Last working item**:
--   Last item agent was working: The user provided a new set of frontend UI/UX bugs with annotated screenshots. The agent analyzed these screenshots to understand the required fixes for the Dashboard and other screens and was preparing to create a plan of action.
--   Status: NOT STARTED
--   Agent Testing Done: N
--   Which testing method agent to use? screenshot tool for each UI fix, followed by  to confirm no regressions were introduced.
--   User Testing Done: N
+    - Last item agent was working: Refining the Canara Bank PDF statement parser ( and  in ). The user uploaded a sample statement, and the agent had just analyzed the table structure but ran out of context before implementing or testing the description cleaning logic.
+    - Status: IN PROGRESS
+    - Agent Testing Done: N
+    - Which testing method agent to use? manual testing by python -c / execute_bash (Backend parsing logic testing against the uploaded sample located at ).
+    - User Testing Done: N
 
-**All Pending/In progress Issue list**:
--   Issue 1: Misaligned Add Goal button on Dashboard (P0)
--   Issue 2: Poor layout in  on Dashboard (P0)
--   Issue 3: Share button is cut off on the Share Score screen (P1)
--   Issue 4: Poorly styled Plan button in  (P1)
--   Issue 5: User Verification for older bug fixes (P2)
+**All Pending/In progress Issue list**: 
 
-Issues Detail:
--   **Issue 1: Misaligned Add Goal button on Dashboard (P0)**
-    -   **Next debug checklist**:
-        1.  Locate the component file, likely .
-        2.  Adjust the Flexbox styling () on the container view that holds the section title and the button.
-        3.  Verify the fix with the .
-    -   **Why fix this issue and what will be achieved with the fix?**: A minor but noticeable UI flaw that makes the app look unpolished. Fixing it improves visual consistency.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
+  Issue 1: Improve Canara Bank statement parsing (P0)
+     - Attempted fixes: None yet. The agent only extracted text to verify the table structure exists.
+     - Next debug checklist: Check  and  in . Write a python script via bash to test current parser output against . Refine string matching to extract proper payee names from descriptions (e.g., extracting from ). Test the E2E upload flow.
+     - Why fix this issue and what will be achieved with the fix? To accurately categorize transactions and prevent generic/ugly descriptions for Canara Bank users, continuing the pattern established for the other banks in this session.
+     - Status: IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? backend (via bash python script)
 
--   **Issue 2: Poor layout in  on Dashboard (P0)**
-    -   **Next debug checklist**:
-        1.  Locate .
-        2.  Increase the spacing between the Current Value and Invested sections.
-        3.  Adjust font sizes and weights to create a clearer visual hierarchy.
-        4.  Verify the fix with the .
-    -   **Why fix this issue and what will be achieved with the fix?**: Improves readability and the professional look of a key dashboard component.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
-
--   **Issue 3: Share button is cut off on the Share Score screen (P1)**
-    -   **Next debug checklist**:
-        1.  Identify the component file for the Share Score modal/screen.
-        2.  Wrap the screen's content in a  or add appropriate padding to the bottom to avoid being obscured by system UI elements.
-        3.  Verify the fix with the .
-    -   **Why fix this issue and what will be achieved with the fix?**: Fixes a functional bug where a primary action button is inaccessible.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
-
--   **Issue 4: Poorly styled Plan button in  (P1)**
-    -   **Next debug checklist**:
-        1.  Locate the relevant component for the insights card.
-        2.  Apply proper styling to the button: add padding, a background color, and adjust the text style to make it look like a clickable call-to-action.
-        3.  Verify the fix with the .
-    -   **Why fix this issue and what will be achieved with the fix?**: Improves UI/UX by making an important action button clearly identifiable and clickable.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
-
--   **Issue 5: User Verification for older bug fixes (P2)**
-    -   **Next debug checklist**: After fixing the current issues, prompt the user to test previously resolved items to formally close them.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: Y
-
-**In progress Task List**:
--   None.
+**In progress Task List**: 
+None. (The only ongoing task is tracked under Issue 1).
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   (P1) **Convert  to a Flip Card**: Implement a flip animation on the health score card to show a detailed breakdown on the back.
-    -   (P1) Streaming TTS on the frontend for faster perceived voice response.
-    -   (P1) Refactor  file (currently >1800 lines).
-    -   (P2) Advanced Tax Module (Phase 4).
--   **Future Tasks**:
-    -   (P2) Gmail Integration for transaction import.
-    -   (P2) Voice Cloning with ElevenLabs for a custom Visor persona.
-    -   (P3) Share with Friends referral feature.
+  Upcoming Tasks:
+  - (P1) Streaming TTS on the frontend for faster perceived voice response.
+  - (P1) Refactor  and  files (both are massive, ~2000 lines).
+  - (P1) Refactor  (has grown >2700 lines, desperately needs modularization per bank into a new folder structure).
+  
+  Future Tasks:
+  - (P2) Advanced Tax Module (Phase 4).
+  - (P2) Gmail Integration for auto-importing bank emails.
+  - (P3) Share with Friends referral feature.
+  - (P3) Voice Cloning with ElevenLabs for a custom Visor persona.
 
 **Completed work in this session**
--   **Critical Bug Fix: Incorrect Mutual Fund Valuation (DONE)**: Diagnosed and fixed a bug causing wildly incorrect MF valuations by implementing a much more accurate NAV matching logic in  that correctly distinguishes between Regular and Direct plans.
--   **Feature: Live Price Updates for Holdings (DONE)**:
-    -   Created a backend service and a manual refresh endpoint () to update stock and MF prices.
-    -   Added a daily scheduler to  for automatic price refreshes.
-    -   Added a Refresh Prices button on the frontend.
--   **Feature: Automatic SIP Suggestions (DONE)**: The backend now automatically creates pending SIP suggestions when a user uploads a mutual fund statement.
--   **P0 Environment Fix: Expo Go QR Code Page (DONE)**: Stabilized the development environment by replacing the failing 
-PYNGROK VERSION:
-   7.5.0 tunnel with the robust  tunnel and creating a new auto-refreshing QR code page at .
--   **P0 Bug Fix: Clear All Holdings Button (DONE)**: Moved the button from a hidden modal to a prominent, visible location on the main Invest screen.
+- Generated auto-refreshing Expo Go QR code page for the user via  (DONE).
+- **HDFC Parser**: Fixed via Cred matching, fixed Sodexo/Paytm mislabeling, stopped footer text leaking into descriptions, and added hospitality exception to Health categorization in  (DONE).
+- **ICICI Parser**: Completely rewrote  to handle interleaved text blocks ( description line followed by  line) and improved  (DONE).
+- **SBI Parser**: Rewrote  to prevent truncation and extract accurate payees (DONE).
+- **Union Bank Parser**: Rewrote  and added a text-enrichment step in  to capture multi-line continuations like  (DONE).
+- **Axis Bank Parser**: Rewrote  to handle F07 Cred, Card Charges, and bypass payment gateway prefixes like Paytm/Cashfree (DONE).
+- **PNB Parser**: Rewrote  to fix NEFT company name indices and clean RTGS/cheque descriptions (DONE).
 
 **Earlier issues found/mentioned but not fixed**
--   **Web Preview Rendering**: An issue with  in React Native Web causes the Visor AI FAB button to render incorrectly. The user has confirmed this is not a priority.
+None.
 
 **Known issue recurrence from previous fork**
--   The User Verification for Previous Fixes task is a recurring item.
+  - Issue recurrence in previous fork: **Expo Go / Metro Bundler Caching**.
+  - Recurrence count: 4
+  - Status: RESOLVED (Mitigated via strict user instructions)
+  - Note: Metro is running in CI mode. Code changes *will not* reflect on the user's phone via hot-reload. The next agent MUST instruct the user to **force-quit the Expo Go app completely from their app switcher** before scanning the QR code if frontend UI updates are made.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Fuzzy String Matching & Data Validation**: The core of the MF valuation fix involved advanced string comparison to match fund names accurately and data validation to reject anomalous prices.
--   **Background Scheduler**: Using  to run a daily task in a FastAPI application.
--   **External API Integration**: Fetching data from  (stocks) and  (mutual funds).
--   **React Native Layout (Flexbox)**: The upcoming tasks require a solid understanding of React Native's layout and styling system to fix alignment and spacing issues.
--   **Environment/DevOps**: Resolved a critical development environment issue by reconfiguring the service supervisor () to use a different tunneling technology.
+- **PDF Parsing Strategies**: The backend uses two distinct strategies depending on the bank: usage: pdfplumber [-h] [--structure | --structure-text]
+                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
+                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
+                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
+                  [--laparams LAPARAMS] [--precision PRECISION]
+                  [--pages PAGES [PAGES ...]] [--indent INDENT]
+                  [infile]
+
+positional arguments:
+  infile
+
+options:
+  -h, --help            show this help message and exit
+  --structure           Write the structure tree as JSON. All other arguments
+                        except --pages, --laparams, and --indent will be
+                        ignored
+  --structure-text      Write the structure tree as JSON including text
+                        contents. All other arguments except --pages,
+                        --laparams, and --indent will be ignored
+  --format {csv,json,text}
+  --types TYPES [TYPES ...]
+  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
+                        Include *only* these object attributes in output.
+  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
+                        Exclude these object attributes from output.
+  --laparams LAPARAMS
+  --precision PRECISION
+  --pages PAGES [PAGES ...]
+  --indent INDENT       Indent level for JSON pretty-printing. Table extraction (SBI, PNB, Canara) and pure Text extraction with regex/line-parsing (HDFC, ICICI, Union).
+- **Categorization Heuristics**:  in  relies heavily on . The parsers are intentionally designed to strip out generic gateways (Paytm, Cred, Cashfree) to expose the *actual* payee name extracted from the UPI string for accurate categorization.
 
 **key DB schema**
--   ****: Schema now includes  and , which are updated by the new price refresh service. The  is considered the immutable source of truth from the statement.
--   ****: Now populated automatically on MF statement uploads.
+  - : , Sun Mar 22 05:53:30 UTC 2026, , , , . (Descriptions are now significantly cleaner and more accurate).
 
 **changes in tech stack**
--   No new dependencies were added. The agent relied on  and .
+  - None.
 
-**All files of reference**
--   **/app/backend/services/holdings_price_updater.py**: The core logic for the mutual fund valuation fix.
--   **/app/backend/server.py**: Contains the daily price refresh scheduler.
--   **/app/frontend/app/(tabs)/dashboard.tsx**: The screen where most of the pending UI fixes are located.
--   **/app/frontend/src/components/dashboard/InvestmentSummaryCard.tsx**: A key component to be fixed.
--   **/app/frontend/src/components/dashboard/FinancialGoals.tsx**: Another component to be fixed.
+**All files of reference** 
+  - : Heavily edited to refine  and  for HDFC, ICICI, SBI, Union, Axis, and PNB. Needs to be edited for Canara.
+  - : Updated  logic, fixed hospital vs hospitality clashing, and improved merchant mapping rules.
+  - : Used for E2E backend testing of the upload flow to verify parsed transactions insert correctly.
 
 **Areas that need refactoring**:
--   ****: This file is now over 1800 lines long and remains a high-priority candidate for refactoring into smaller components and custom hooks.
+-  is now over 2700 lines long and handles way too many banks in a single file. Highly recommended to split into a  directory with individual files per bank as a future technical debt task.
 
 **key api endpoints**
--   : **(New)** Triggers a background task to fetch live prices for all user holdings. Tested and working correctly.
--   : **(New)** Serves the auto-refreshing Expo Go QR code page. Tested and working correctly.
+- : Handles PDF processing, deduplication, and DB insertion.
+- : Serves auto-refreshing Expo QR html.
 
 **Critical Info for New Agent**
--   Your immediate task is to address the list of frontend UI/UX fixes requested by the user via screenshots. The highest priority (P0) items are the  layout and the misaligned Add Goal button on the Dashboard.
--   Do not modify the backend price update logic (). It has been extensively debugged and is now working correctly.
--   Use the  to verify each UI fix individually before moving to the next.
--   After completing all frontend fixes, run the  to ensure no regressions have been introduced to other parts of the application.
+- The user is currently on a testing spree, uploading sample bank statements to refine the parsing algorithms. The previous agent systematically wrote  functions and ran E2E tests via a bash python script testing  logic.
+- **Workflow Tip**: When testing parsers, use  with a python script that loads the uploaded file from  and passes it through the specific bank parser function to print results. Do not rely solely on the upload API without testing the raw parser output first.
+- The Canara bank sample is located at . 
 
 **documents and test reports created in this job**
--   
--   
--   
--   
--    (Updated)
+  - None explicitly written.
 
-**Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requests frontend fixes with screenshots. (**Status: Not Started**)
-2.  **User:** Reports the MF card valuation is completely wrong, provides screenshots. (**Status: Completed**)
-3.  **User:** Requests auto-creation of SIP suggestions on MF statement upload and daily price updates for all holdings. (**Status: Completed**)
-4.  **User:** Asks for the auto-refreshing QR code page. (**Status: Completed**)
-5.  **User:** Acknowledges completion of a previous task and allows the agent to proceed. (**Status: Completed**)
-6.  **User:** Expresses frustration about the agent being stuck and demands a fix for the Expo Go QR code page. (**Status: Completed**)
-7.  **User:** Approves the plan to fix the Clear Holdings button. (**Status: Completed**)
-8.  **User:** Asks the agent to present its plan. (**Status: Completed**)
-9.  From prev. summary: **User:** Reports Clear holdings button is not visible. (**Status: Completed**)
-10. From prev. summary: **User:** Asks for an option to clear holdings. (**Status: Completed**)
+**Last 10 User Messages and any pending HUMAN messages** 
+ 1. **User**: Uploaded Canara Bank statement. -> *[Pending Agent implementation]*
+ 2. **User**: Uploaded PNB statement. -> Agent refined PNB description cleaner. (Completed)
+ 3. **User**: Uploaded Axis Bank statement. -> Agent refined Axis description cleaner. (Completed)
+ 4. **User**: Uploaded Union Bank statement. -> Agent refined Union description cleaner and added multi-line extraction. (Completed)
+ 5. **User**: Asked if agent wants to do more banks. -> Agent enthusiastically agreed.
+ 6. **User**: Uploaded SBI statement. -> Agent refined SBI description cleaner. (Completed)
+ 7. **User**: Uploaded ICICI statement. -> Agent completely rewrote ICICI text extraction and description cleaner. (Completed)
+ 8. **User**: Asked if agent wants ICICI and SBI next. -> Agent agreed.
+ 9. **User**: Uploaded HDFC statement. -> Agent fixed major categorisation and extraction bugs for HDFC. (Completed)
+ 10. **User**: Asked if agent wants sample statements for testing. -> Agent agreed.
 
 **Project Health Check:**
--   **Backend**: **Good**. Core features are implemented, tested, and a critical data accuracy bug has been resolved.
--   **Frontend**: **Needs Attention**. While functional, there are several small but prominent UI/UX bugs on the Dashboard that make the application feel unpolished. The  file remains a significant maintenance risk due to its size.
+Healthy. No broken routes.
 
-**3rd Party Integrations**
--   ****: For parsing XLSX investment statements.
--   ****: For fetching live stock prices.
--   ****: A public, free API for fetching Indian mutual fund NAVs.
--   **ElevenLabs**: Used for Speech-to-Text and Text-to-Speech (existing).
--   **OpenAI**: For the core AI agent's intelligence (existing).
--   **Cloudflare Tunnel**: For exposing the frontend service in the development environment.
+**3rd Party Integrations** 
+  • OpenAI GPT-5.2 — uses Emergent LLM Key (Insights)
+  • ElevenLabs (Voice) — uses Emergent LLM Key
+  • yfinance (Stocks) — Open Source
+  • mfapi.in (Mutual Funds) — Public API
+  • Cloudflare (Tunnels) — Pre-configured in env
 
 **Testing status**
--   Testing agent used after significant changes: YES. The testing agent was used to verify the QR page fix, the initial price refresh implementation, and the final MF valuation fix.
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created:
-    -    (created by the testing agent).
--   Known regressions: None.
+  - Testing agent used after significant changes: NO (Testing was confined to rigorous manual Python scripts via  to validate backend regex, parsing arrays, and the E2E DB insertion flow against the uploaded test PDFs).
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None
+  - Known regressions: None.
 
 **Credentials to test flow:**
--   **User 1 (for demo data):**
-    -   Email: 
-    -   Password: 
--   **User 2 (for real statement data):**
-    -   Email: 
-    -   Password: 
+  - Demo:  / 
 
 **What agent forgot to execute**
--   The agent has successfully addressed all major user requests from this session. The only pending work is the new batch of frontend fixes requested in the very last user message.</analysis>
+The agent ran out of context exactly after checking the table structure of the Canara Bank statement (the user's final upload). The next agent must start by refining  and testing it.</analysis>
