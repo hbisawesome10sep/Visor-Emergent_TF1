@@ -51,6 +51,13 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
   - **Kotak Bank**: Complete rewrite of `parse_kotak_text_format` — switched to word-position-based column extraction with **balance-delta** approach. pdfplumber's (Dr)/(Cr) suffixes were unreliable due to multi-line column alignment issues, so amounts and debit/credit are now computed from balance differences. Rewrote `clean_kotak_description` to cleanly extract UPI payees without Chq/Ref column noise. 43/43 transactions verified, balance matches exactly (11,406.54).
   - **Bank Detection Fix**: Added Canara, Union, IDBI to `detect_bank` priority patterns (was misdetecting Canara as HDFC). Added BARB0 IFSC pattern for BOB detection (was falling to Yes Bank). Added "cust.reln.no" for Kotak (bank name not present in statement text).
   - **Categorization Fix**: Fixed "cred" keyword false-positive on "credit" (Clearing Credit no longer miscategorized as Credit Card). Added IMPS/cheque/RTGS charges to Bank Charges category
+- [x] **Clear All Transactions Feature** (Mar 22, 2026):
+  - Backend: `DELETE /api/clear-all-transactions` — clears all transactions, credit card transactions, bank accounts, journal entries, statement hashes
+  - Frontend: "Data Management" section in Settings > Banking with red "Clear All Transactions" button + confirmation dialog with detailed warning
+- [x] **Credit Card Benefits Tab** (Mar 22, 2026):
+  - Backend: `GET /api/credit-cards/{card_id}/benefits` (AI-powered via GPT-5.2) + `GET /api/credit-cards/all-benefits`
+  - Frontend: New "Benefits" tab in Credit Cards screen with expand/collapse per card, "Fetch Benefits with AI" button, cached benefits display with category icons, AI disclaimer
+  - Benefits cached in `card_benefits_cache` MongoDB collection to avoid repeated AI calls
 
 ---
 
