@@ -11,6 +11,7 @@ router = APIRouter(prefix="/api")
 async def get_dashboard_stats(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    frequency: Optional[str] = None,
     user=Depends(get_current_user),
 ):
     user_id = user["id"]
@@ -141,59 +142,86 @@ async def get_dashboard_stats(
     trend_data = []
     trend_insights = []
 
+    # Determine grouping: monthly for Year frequency or long date ranges, otherwise weekly
+    use_monthly = frequency and frequency.lower() == "year"
+    if not use_monthly and start_date and end_date:
+        try:
+            sd = datetime.strptime(start_date, "%Y-%m-%d")
+            ed = datetime.strptime(end_date, "%Y-%m-%d")
+            if (ed - sd).days > 120:
+                use_monthly = True
+        except Exception:
+            pass
+
     if txns:
         sorted_txns = sorted(txns, key=lambda x: x.get("date", ""))
-        weekly_data = {}
+        bucket_data = {}
         for t in sorted_txns:
             date_str = t.get("date", "")
             if not date_str:
                 continue
             try:
                 dt = datetime.strptime(date_str, "%Y-%m-%d")
-                week_start = dt - timedelta(days=dt.weekday())
-                week_key = week_start.strftime("%b %d")
+                if use_monthly:
+                    bucket_key = dt.strftime("%Y-%m")
+                    bucket_sort = bucket_key
+                else:
+                    week_start = dt - timedelta(days=dt.weekday())
+                    bucket_key = week_start.strftime("%b %d")
+                    bucket_sort = week_start.strftime("%Y-%m-%d")
             except Exception:
                 continue
 
-            if week_key not in weekly_data:
-                weekly_data[week_key] = {"income": 0, "expenses": 0, "investments": 0}
+            if bucket_key not in bucket_data:
+                bucket_data[bucket_key] = {"income": 0, "expenses": 0, "investments": 0, "_sort": bucket_sort}
 
             if t["type"] == "income":
-                weekly_data[week_key]["income"] += t["amount"]
+                bucket_data[bucket_key]["income"] += t["amount"]
             elif t["type"] == "expense":
-                weekly_data[week_key]["expenses"] += t["amount"]
+                bucket_data[bucket_key]["expenses"] += t["amount"]
             elif t["type"] == "investment":
-                weekly_data[week_key]["investments"] += t["amount"]
+                bucket_data[bucket_key]["investments"] += t["amount"]
 
-        for week_label, data in weekly_data.items():
+        # Sort buckets chronologically
+        sorted_keys = sorted(bucket_data.keys(), key=lambda k: bucket_data[k]["_sort"])
+        for bk in sorted_keys:
+            data = bucket_data[bk]
+            if use_monthly:
+                # Format "2025-04" → "Apr"
+                try:
+                    label = datetime.strptime(bk, "%Y-%m").strftime("%b")
+                except Exception:
+                    label = bk
+            else:
+                label = bk
             trend_data.append({
-                "label": week_label,
+                "label": label,
                 "income": round(data["income"], 2),
                 "expenses": round(data["expenses"], 2),
                 "investments": round(data["investments"], 2),
             })
 
-        if len(weekly_data) >= 2:
-            weeks = list(weekly_data.keys())
-            last_week = weekly_data.get(weeks[-1], {})
-            prev_week = weekly_data.get(weeks[-2], {})
+        if len(sorted_keys) >= 2:
+            last_bucket = bucket_data.get(sorted_keys[-1], {})
+            prev_bucket = bucket_data.get(sorted_keys[-2], {})
+            period_label = "month" if use_monthly else "week"
 
-            exp_change = last_week.get("expenses", 0) - prev_week.get("expenses", 0)
+            exp_change = last_bucket.get("expenses", 0) - prev_bucket.get("expenses", 0)
             if exp_change > 0:
-                exp_pct = (exp_change / max(prev_week.get("expenses", 1), 1)) * 100
-                trend_insights.append({"type": "warning", "icon": "trending-up", "title": "Expenses Increasing", "message": f"Your spending increased by ₹{exp_change:,.0f} ({exp_pct:.1f}%) from last week"})
+                exp_pct = (exp_change / max(prev_bucket.get("expenses", 1), 1)) * 100
+                trend_insights.append({"type": "warning", "icon": "trending-up", "title": "Expenses Increasing", "message": f"Your spending increased by ₹{exp_change:,.0f} ({exp_pct:.1f}%) from last {period_label}"})
             elif exp_change < 0:
-                exp_pct = abs(exp_change / max(prev_week.get("expenses", 1), 1)) * 100
-                trend_insights.append({"type": "success", "icon": "trending-down", "title": "Expenses Decreasing", "message": f"Great! You saved ₹{abs(exp_change):,.0f} ({exp_pct:.1f}%) compared to last week"})
+                exp_pct = abs(exp_change / max(prev_bucket.get("expenses", 1), 1)) * 100
+                trend_insights.append({"type": "success", "icon": "trending-down", "title": "Expenses Decreasing", "message": f"Great! You saved ₹{abs(exp_change):,.0f} ({exp_pct:.1f}%) compared to last {period_label}"})
 
-            inc_change = last_week.get("income", 0) - prev_week.get("income", 0)
+            inc_change = last_bucket.get("income", 0) - prev_bucket.get("income", 0)
             if inc_change > 0:
-                inc_pct = (inc_change / max(prev_week.get("income", 1), 1)) * 100
+                inc_pct = (inc_change / max(prev_bucket.get("income", 1), 1)) * 100
                 trend_insights.append({"type": "success", "icon": "cash-plus", "title": "Income Growing", "message": f"Income increased by ₹{inc_change:,.0f} ({inc_pct:.1f}%)"})
 
-            inv_change = last_week.get("investments", 0) - prev_week.get("investments", 0)
+            inv_change = last_bucket.get("investments", 0) - prev_bucket.get("investments", 0)
             if inv_change > 0:
-                trend_insights.append({"type": "success", "icon": "chart-line", "title": "Investing More", "message": f"You invested ₹{last_week.get('investments', 0):,.0f} this week"})
+                trend_insights.append({"type": "success", "icon": "chart-line", "title": "Investing More", "message": f"You invested ₹{last_bucket.get('investments', 0):,.0f} this {period_label}"})
 
         if category_breakdown:
             top_cat = max(category_breakdown.items(), key=lambda x: x[1])

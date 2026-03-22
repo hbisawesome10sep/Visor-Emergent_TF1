@@ -42,6 +42,21 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type FrequencyOption = 'Quarter' | 'Month' | 'Year' | 'Custom';
 
+// Indian Financial Year: April 1 → March 31
+function getFinancialYear(): { start: Date; end: Date; label: string } {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+  // If current month is Jan–Mar (0–2), FY started previous year April
+  const fyStartYear = month < 3 ? year - 1 : year;
+  const start = new Date(fyStartYear, 3, 1); // April 1
+  const end = new Date(fyStartYear + 1, 2, 31); // March 31
+  // Cap end to today if FY hasn't ended yet
+  const cappedEnd = end > now ? now : end;
+  const label = `FY ${fyStartYear}-${String(fyStartYear + 1).slice(2)}`;
+  return { start, end: cappedEnd, label };
+}
+
 type DashboardStats = {
   total_income: number;
   total_expenses: number;
@@ -146,9 +161,12 @@ export default function DashboardScreen() {
       case 'Quarter':
         start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
         break;
-      case 'Year':
-        start = new Date(now.getFullYear(), 0, 1);
+      case 'Year': {
+        const fy = getFinancialYear();
+        start = fy.start;
+        end = fy.end;
         break;
+      }
       case 'Custom':
         start = dateRange.start;
         end = dateRange.end;
@@ -175,9 +193,12 @@ export default function DashboardScreen() {
         case 'Quarter':
           startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
           break;
-        case 'Year':
-          startDate = new Date(now.getFullYear(), 0, 1);
+        case 'Year': {
+          const fy = getFinancialYear();
+          startDate = fy.start;
+          endDate = fy.end;
           break;
+        }
         case 'Custom':
           startDate = dateRange.start;
           endDate = dateRange.end;
@@ -197,7 +218,7 @@ export default function DashboardScreen() {
       console.log(`[Dashboard] Fetching stats: ${selectedFrequency} | ${startStr} → ${endStr}`);
       
       const [s, g] = await Promise.all([
-        apiRequest(`/dashboard/stats?start_date=${startStr}&end_date=${endStr}`, { token }),
+        apiRequest(`/dashboard/stats?start_date=${startStr}&end_date=${endStr}&frequency=${selectedFrequency}`, { token }),
         apiRequest('/goals', { token }),
       ]);
       setStats(s);
@@ -225,9 +246,9 @@ export default function DashboardScreen() {
 
   const handleFrequencyChange = (freq: FrequencyOption) => {
     if (freq === 'Custom') {
-      // Pre-fill custom inputs with current date range
-      const earliest = userCreatedAt ? new Date(userCreatedAt) : new Date(new Date().getFullYear(), 0, 1);
-      setCustomStartDate(earliest);
+      // Pre-fill custom inputs: default to start of current FY
+      const fy = getFinancialYear();
+      setCustomStartDate(fy.start);
       setCustomEndDate(new Date());
       setShowDatePicker(true);
     } else {
@@ -337,12 +358,13 @@ export default function DashboardScreen() {
 
   // Format current date range display
   const range = getDateRangeForFrequency(selectedFrequency);
+  const fyInfo = getFinancialYear();
   const rangeDisplay = selectedFrequency === 'Month' 
     ? getCurrentMonthYear()
     : selectedFrequency === 'Quarter'
     ? `Q${Math.floor(new Date().getMonth() / 3) + 1} ${new Date().getFullYear()}`
     : selectedFrequency === 'Year'
-    ? `${new Date().getFullYear()}`
+    ? fyInfo.label
     : `${range.start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${range.end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
 
   return (
@@ -437,7 +459,7 @@ export default function DashboardScreen() {
               ? new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
               : selectedFrequency === 'Quarter'
               ? `Q${Math.floor(new Date().getMonth() / 3) + 1} ${new Date().getFullYear()}`
-              : `Year ${new Date().getFullYear()}`
+              : fyInfo.label
             }
           </Text>
         </View>
@@ -658,7 +680,7 @@ export default function DashboardScreen() {
                 <View>
                   <Text style={[styles.trendTitle, { color: colors.textPrimary }]}>Trend Analysis</Text>
                   <Text style={[styles.trendSubtitle, { color: colors.textSecondary }]}>
-                    {selectedFrequency === 'Month' ? 'This Month' : selectedFrequency === 'Quarter' ? 'This Quarter' : selectedFrequency === 'Year' ? 'This Year' : 'All Time'} · Tap for insights
+                    {selectedFrequency === 'Month' ? 'This Month' : selectedFrequency === 'Quarter' ? 'This Quarter' : selectedFrequency === 'Year' ? fyInfo.label : 'Custom Range'} · Tap for insights
                   </Text>
                 </View>
                 <TouchableOpacity 
@@ -1112,7 +1134,7 @@ export default function DashboardScreen() {
                   mode="date"
                   display="spinner"
                   themeVariant={isDark ? 'dark' : 'light'}
-                  minimumDate={userCreatedAt ? new Date(userCreatedAt) : new Date(2020, 0, 1)}
+                  minimumDate={new Date(2020, 0, 1)}
                   maximumDate={new Date()}
                   onChange={(event: any, date?: Date) => {
                     if (date) {
@@ -1166,7 +1188,7 @@ export default function DashboardScreen() {
           value={activePickerField === 'start' ? customStartDate : customEndDate}
           mode="date"
           display="default"
-          minimumDate={userCreatedAt ? new Date(userCreatedAt) : new Date(2020, 0, 1)}
+          minimumDate={new Date(2020, 0, 1)}
           maximumDate={new Date()}
           onChange={handleNativeDateChange}
         />
