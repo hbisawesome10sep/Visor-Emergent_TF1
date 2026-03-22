@@ -130,4 +130,4 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
 
 ## Credentials
 - Demo: `rajesh@visor.demo` / `Demo@123`
-- QR: `https://fintech-tracker-7.preview.emergentagent.com/api/expo/qr`
+- QR: `https://invest-dash-55.preview.emergentagent.com/api/expo/qr`
