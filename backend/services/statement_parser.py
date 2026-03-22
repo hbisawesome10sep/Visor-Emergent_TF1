@@ -96,12 +96,18 @@ def _detect_source(headers: list[str], sheet_name: str, all_rows: list) -> str:
     return "Unknown"
 
 
-def _detect_category(name: str, ticker: str, isin: str, cat_cell: str, statement_type: str) -> str:
+def _detect_category(name: str, ticker: str, isin: str, cat_cell: str, statement_type: str, sheet_name: str = "") -> str:
     """Detect if a holding is Stock or Mutual Fund."""
+    sheet_lower = sheet_name.lower()
+    # Sheet name takes highest priority (multi-sheet files like Zerodha)
+    if "mutual" in sheet_lower or "mf" in sheet_lower:
+        return "Mutual Fund"
+    if "equity" in sheet_lower or "stock" in sheet_lower:
+        # Even in equity sheet, INF ISINs could be ETFs — treat as Stock for exchange pricing
+        return "Stock"
+    # statement_type hint (single-sheet uploads)
     if statement_type == "mf_statement":
         return "Mutual Fund"
-    if statement_type == "stock_statement":
-        return "Stock"
     # Auto-detect from data
     name_lower = name.lower()
     cat_lower = cat_cell.lower() if cat_cell else ""
@@ -187,13 +193,14 @@ def _extract_personal_details(rows: list) -> dict:
 
 def _build_ticker(name: str, ticker: str, isin: str, category: str) -> str:
     """Build a Yahoo Finance compatible ticker."""
+    # Mutual Funds use ISIN for NAV lookup (mfapi.in), not exchange symbol
+    if category == "Mutual Fund" and isin:
+        return isin
     if ticker:
         t = ticker.strip().upper().replace(" ", "")
         if not t.endswith(".NS") and not t.endswith(".BO") and category == "Stock":
             t = f"{t}.NS"
         return t
-    if category == "Mutual Fund" and isin:
-        return isin
     return ""
 
 
@@ -319,7 +326,7 @@ def parse_holdings_xlsx(file_bytes: bytes, statement_type: str = "auto", filenam
                 continue
             
             # Determine category
-            category = _detect_category(name, ticker, isin, cat_cell, statement_type)
+            category = _detect_category(name, ticker, isin, cat_cell, statement_type, sheet_name)
             
             # Build ticker
             final_ticker = _build_ticker(name, ticker, isin, category)

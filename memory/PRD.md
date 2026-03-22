@@ -21,6 +21,10 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
 
 ### v3.1 Changes (March 22, 2026)
 - [x] **Groww Stock Statement Support**: ISIN → NSE/BSE ticker resolution via yfinance. All 26 stocks resolved correctly. Tickers cached in DB after first resolution.
+- [x] **Zerodha Multi-Sheet Statement Support**: Parses Equity, Mutual Funds, and Combined sheets from a single Zerodha XLSX. Stocks get `.NS` tickers, MFs get ISIN for NAV lookup. Correctly skips Combined sheet when specific sheets are available.
+- [x] **Category Detection Fix**: Sheet name takes priority over statement_type for multi-sheet files (Equity sheet → Stock, MF sheet → Mutual Fund).
+- [x] **MF Ticker Fix**: Mutual Funds now always use ISIN for NAV lookup (mfapi.in) instead of the fund name from Symbol column.
+- [x] **ISIN Fallback for Failed Tickers**: When a stock ticker fails in yfinance (e.g., hyphenated `TATAGOLD-E`), falls back to ISIN resolution (TATAGOLD-E → INF277KA1976 → TATAGOLD.NS).
 - [x] **Bank Statement Upload Fix**: Missing `detect_header_columns` import in `pdf_parsers.py` fixed.
 - [x] **HDFC Bank Statement Parser Overhaul**:
   - Multi-line narration collection (was only reading first line, missing UPI ID/merchant info)

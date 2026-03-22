@@ -251,6 +251,7 @@ def fetch_stock_prices(holdings: list[dict]) -> dict[str, dict]:
             isin_only.append(h)
 
     # Batch fetch for holdings that already have tickers
+    failed_tickers = []  # Holdings whose tickers failed — will try ISIN fallback
     if ticker_map:
         try:
             tickers_str = " ".join(ticker_map.keys())
@@ -264,15 +265,24 @@ def fetch_stock_prices(holdings: list[dict]) -> dict[str, dict]:
                     if price > 0:
                         result[hid] = {"price": price, "prev_close": prev}
                         logger.info(f"Stock: {yf_t} = {price}")
+                    else:
+                        # Ticker returned 0 price — queue for ISIN fallback
+                        h = next((x for x in holdings if x["id"] == hid and x.get("isin")), None)
+                        if h:
+                            failed_tickers.append(h)
                 except Exception as e:
                     logger.debug(f"yfinance error for {yf_t}: {e}")
+                    h = next((x for x in holdings if x["id"] == hid and x.get("isin")), None)
+                    if h:
+                        failed_tickers.append(h)
         except Exception as e:
             logger.error(f"yfinance batch error: {e}")
 
-    # Resolve ISINs and fetch prices for holdings without tickers
-    if isin_only:
-        logger.info(f"Resolving {len(isin_only)} stock ISINs to tickers...")
-        isin_results = batch_resolve_and_fetch(isin_only)
+    # Combine ISIN-only holdings + failed tickers for ISIN resolution
+    isin_fallback = isin_only + failed_tickers
+    if isin_fallback:
+        logger.info(f"Resolving {len(isin_fallback)} stock ISINs to tickers...")
+        isin_results = batch_resolve_and_fetch(isin_fallback)
         result.update(isin_results)
 
     return result
