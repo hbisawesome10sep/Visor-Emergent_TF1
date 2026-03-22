@@ -58,6 +58,11 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
   - Backend: `GET /api/credit-cards/{card_id}/benefits` (AI-powered via GPT-5.2) + `GET /api/credit-cards/all-benefits`
   - Frontend: New "Benefits" tab in Credit Cards screen with expand/collapse per card, "Fetch Benefits with AI" button, cached benefits display with category icons, AI disclaimer
   - Benefits cached in `card_benefits_cache` MongoDB collection to avoid repeated AI calls
+- [x] **Dashboard Financial Year & Date Range Fix** (Mar 22, 2026):
+  - 'Y' toggle now shows Indian Financial Year (April 1 – March 31) instead of calendar year. Header and date indicator display "FY 2025-26" format
+  - Backend: `/api/dashboard/stats` accepts `frequency` param. When `frequency=Year` (or date span >120 days), trend data groups by month (labels: Apr, May, …) instead of weekly
+  - Custom date range picker `minimumDate` changed from `userCreatedAt` (was limiting to Feb 2026) to January 1, 2020, so users can pick dates back to 2020
+  - Trend Analysis X-axis shows month labels (Apr, May, Jun, …) for full FY when Y is selected
 
 ---
 
@@ -139,7 +144,7 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/dashboard/stats` | GET | Dashboard stats (now includes `portfolio_invested`) |
+| `/api/dashboard/stats` | GET | Dashboard stats (accepts `frequency` param: Month/Quarter/Year/Custom; Year uses FY monthly grouping) |
 | `/api/dashboard/investment-summary` | GET | Investment summary with allocation breakdown |
 | `/api/dashboard/investment-insight` | GET | AI-generated investment insight (cached 24h) |
 | `/api/holdings/refresh-prices` | POST | Refresh live prices (resolves ISINs for Groww stocks) |
