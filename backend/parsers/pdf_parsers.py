@@ -2081,159 +2081,249 @@ def parse_kotak_text_format(pdf, all_text: str) -> list:
 
 
 def clean_bob_description(raw_desc: str) -> str:
-    """Clean up Bank of Baroda transaction description."""
-    desc = raw_desc
-    
-    # Extract payee from UPI strings
-    # Format: UPI/P2A/318262797206/JIVRAYEL /Punjab Na/UPI
-    upi_match = re.search(r'UPI/P2[AM]/\d+/([^/]+)', desc)
-    if upi_match:
-        payee = upi_match.group(1).strip()
-        if payee:
-            return f"UPI - {payee}"
-    
-    # Extract from NEFT
-    # Format: NEFT/N185232529725945/JOINMAY M/HDFC BANK/NEFT
-    neft_match = re.search(r'NEFT/[A-Z0-9]+/([^/]+)', desc)
-    if neft_match:
-        payee = neft_match.group(1).strip()
-        if payee:
-            return f"NEFT - {payee}"
-    
-    # Extract from ACH-DR
-    # Format: ACH-DR-TPCapfrst IDFC FIRST-1177262059-UTIB702160
-    if 'ACH-DR' in desc:
-        ach_match = re.search(r'ACH-DR-([A-Za-z]+)', desc)
-        if ach_match:
-            return f"ACH Debit - {ach_match.group(1)}"
-    
-    # Extract from ECS
-    # Format: ECS/UTIBDE65064150202305/Bajaj Finance Ltd_SMS OT
-    ecs_match = re.search(r'ECS/[A-Z0-9]+/([^/]+)', desc)
-    if ecs_match:
-        return f"ECS - {ecs_match.group(1).strip()}"
-    
-    # Interest
-    if 'Int.Pd' in desc:
-        return "Interest Paid"
-    
-    # GST
-    if 'GST' in desc:
-        return desc.strip()
-    
-    # Consolidated Charges
-    if 'Consolidated Charges' in desc:
+    """Clean up Bank of Baroda transaction description.
+    BOB patterns:
+      UPI/P2A/<ref>/<PAYEE>/<BANK>/<purpose>   (Person-to-Account)
+      UPI/P2M/<ref>/<PAYEE>/<BANK>/<purpose>   (Person-to-Merchant)
+      NEFT/<ref>/<PAYEE>/<BANK>/NEFT
+      ACH-DR-<Company> <Bank>-<ref>-<code>
+      ECS/<ref>/<Company_purpose>
+      NRP<ref><PayeePurpose>
+      920...:Int.Pd:<date_range>
+      GST @18% on Charge
+      Consolidated Charges for A/c
+    """
+    desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
+    if not desc:
+        return "Bank Transaction"
+
+    upper = desc.upper()
+
+    # ── Known payment gateways to bypass for actual payee ────────────────
+    gateway_names = {
+        'credclub': 'Cred',
+    }
+
+    # ── UPI (P2A / P2M) ─────────────────────────────────────────────────
+    # Format: UPI/P2A/ref/PAYEE/Bank/purpose or UPI/P2M/ref/PAYEE/Bank/purpose
+    if upper.startswith('UPI/'):
+        parts = desc.split('/')
+        # parts: ['UPI', 'P2A', 'ref', 'PAYEE', 'BankName', 'purpose']
+        if len(parts) >= 4:
+            payee = parts[3].strip()
+            # Check if payee is a known gateway
+            payee_lower = payee.lower().replace(' ', '')
+            for gw_key, gw_name in gateway_names.items():
+                if gw_key in payee_lower:
+                    return f"UPI - {gw_name}"
+            if payee and len(payee) > 1:
+                # Capitalize properly
+                return f"UPI - {payee.title()}"
+        return "UPI Transfer"
+
+    # ── NEFT ─────────────────────────────────────────────────────────────
+    # Format: NEFT/ref/PAYEE/BANK/NEFT
+    if upper.startswith('NEFT/'):
+        parts = desc.split('/')
+        if len(parts) >= 3:
+            payee = parts[2].strip()
+            if payee and len(payee) > 1:
+                return f"NEFT - {payee.title()}"
+        return "NEFT Transfer"
+
+    # ── ACH-DR (Auto Clearing House Debit) ───────────────────────────────
+    # Format: ACH-DR-TPCapfrst IDFC FIRST-ref-code
+    if 'ACH-DR' in upper:
+        rest = re.sub(r'^ACH-DR-', '', desc, flags=re.IGNORECASE).strip()
+        # Take the company name part (before the ref number dash)
+        parts = rest.split('-')
+        if parts:
+            company = parts[0].strip()
+            if company:
+                return f"Auto-Debit - {company.title()}"
+        return "Auto-Debit"
+
+    # ── ECS (Electronic Clearing) ────────────────────────────────────────
+    # Format: ECS/ref/Company_purpose
+    if upper.startswith('ECS/'):
+        parts = desc.split('/')
+        if len(parts) >= 3:
+            purpose = parts[2].strip()
+            # Clean up: "Bajaj Finance Ltd_SMS OT" → "Bajaj Finance Ltd"
+            purpose = re.split(r'_', purpose)[0].strip()
+            if purpose:
+                return f"ECS - {purpose.title()}"
+        return "ECS Debit"
+
+    # ── NRP (NEFT Remittance Payment / incoming transfer) ────────────────
+    # Format: NRP<digits><PayeePurpose> e.g. NRP21555713RatanshahaniJulyRen
+    if upper.startswith('NRP'):
+        # Strip NRP and leading digits
+        rest = re.sub(r'^NRP\d+', '', desc).strip()
+        if rest:
+            # CamelCase split: insert space before uppercase letters
+            spaced = re.sub(r'([a-z])([A-Z])', r'\1 \2', rest)
+            return f"NRP - {spaced.title()}"
+        return "NRP Inward"
+
+    # ── IMPS ─────────────────────────────────────────────────────────────
+    if upper.startswith('IMPS/'):
+        parts = desc.split('/')
+        if len(parts) >= 3:
+            payee = parts[2].strip()
+            if payee and len(payee) > 1:
+                return f"IMPS - {payee.title()}"
+        return "IMPS Transfer"
+
+    # ── Interest Paid ────────────────────────────────────────────────────
+    if 'INT.PD' in upper or 'INT.CR' in upper or 'INTEREST' in upper:
+        return "Interest Credit"
+
+    # ── GST ──────────────────────────────────────────────────────────────
+    if upper.startswith('GST'):
+        return "GST Charges"
+
+    # ── Consolidated Charges ─────────────────────────────────────────────
+    if 'CONSOLIDATED CHARGE' in upper:
         return "Bank Charges"
-    
-    # Clean up whitespace
-    desc = re.sub(r'\s+', ' ', desc).strip()
-    return desc[:100] if len(desc) > 100 else desc
+
+    # ── SMS Charges ──────────────────────────────────────────────────────
+    if 'SMS' in upper and 'CHARGE' in upper:
+        return "SMS Charges"
+
+    # ── Fallback ─────────────────────────────────────────────────────────
+    desc_clean = re.sub(r'\s+', ' ', desc).strip()
+    return desc_clean[:80] if len(desc_clean) > 80 else desc_clean
 
 
 def parse_bob_pdf(pdf, all_text: str) -> list:
     """
     Parse Bank of Baroda PDF statement.
     
-    Format:
-    - Headers: Txn Date | Transaction | Withdrawals | Deposits | Balance | Other
-    - Date format: DD-MM-YYYY
-    - Amounts with commas, separate columns for withdrawals and deposits
+    Uses TABLE extraction as primary method — the table has separate
+    Withdrawals and Deposits columns giving us ground truth for debit/credit.
     
-    Uses text-based parsing as primary method for better reliability.
+    Page 1 table has 7 cols: [date, empty, description, withdrawals, deposits, balance, other]
+    Page 2+ tables have 6 cols: [date, description, withdrawals, deposits, balance, other]
     """
     transactions = []
-    
-    # First try text-based parsing (more reliable for BOB)
+
+    for page in pdf.pages:
+        tables = page.extract_tables()
+
+        for table in tables:
+            if not table or len(table) < 2:
+                continue
+
+            for row in table:
+                if not row or len(row) < 5:
+                    continue
+
+                cleaned = [str(cell).replace('\n', ' ').strip() if cell else "" for cell in row]
+
+                # Determine column layout (7-col vs 6-col)
+                if len(cleaned) >= 7:
+                    date_str = cleaned[0]
+                    desc = cleaned[2]
+                    withdrawal_str = cleaned[3]
+                    deposit_str = cleaned[4]
+                elif len(cleaned) >= 6:
+                    date_str = cleaned[0]
+                    desc = cleaned[1]
+                    withdrawal_str = cleaned[2]
+                    deposit_str = cleaned[3]
+                else:
+                    continue
+
+                # Parse date
+                date_str_clean = date_str.split(' ')[0] if ' ' in date_str else date_str
+                date = parse_date(date_str_clean)
+                if not date:
+                    continue
+
+                # Skip Opening/Closing Balance
+                if 'opening balance' in desc.lower() or 'closing balance' in desc.lower():
+                    continue
+
+                # Skip empty descriptions
+                if not desc:
+                    continue
+
+                withdrawal = parse_amount(withdrawal_str)
+                deposit = parse_amount(deposit_str)
+
+                if withdrawal == 0 and deposit == 0:
+                    continue
+
+                transactions.append({
+                    'date': date,
+                    'description': clean_bob_description(desc),
+                    'bank_debit': withdrawal,
+                    'bank_credit': deposit,
+                })
+
+    # ── Gap-filling: catch entries missed by table extraction (page boundaries) ──
+    captured = set()
+    for t in transactions:
+        amt = t['bank_debit'] if t['bank_debit'] > 0 else t['bank_credit']
+        captured.add((t['date'], amt))
+
+    prev_balance = None
     for page in pdf.pages:
         text = page.extract_text()
         if not text:
             continue
-        
-        lines = text.split('\n')
-        
-        for line in lines:
+        for line in text.split('\n'):
             line = line.strip()
-            
-            # Match lines starting with date DD-MM-YYYY
             date_match = re.match(r'^(\d{2}-\d{2}-\d{4})\s+(.+)', line)
             if not date_match:
                 continue
-            
             date = parse_date(date_match.group(1))
             if not date:
                 continue
-            
             rest = date_match.group(2)
-            
-            # Skip opening/closing balance lines
             if 'Opening Balance' in rest or 'Closing Balance' in rest:
+                amounts = re.findall(r'([\d,]+\.\d{2})', rest)
+                if amounts:
+                    prev_balance = parse_amount(amounts[-1])
                 continue
-            
-            # Find all amounts in the line (pattern: digits with optional commas and decimal)
-            amount_pattern = r'([\d,]+\.\d{2})'
-            amounts = re.findall(amount_pattern, rest)
-            
+
+            amounts = re.findall(r'([\d,]+\.\d{2})', rest)
             if len(amounts) < 2:
                 continue
-            
-            # Get description (everything before the first amount)
+
+            txn_amount = parse_amount(amounts[0])
+            new_balance = parse_amount(amounts[-1])
+
+            if txn_amount <= 0:
+                prev_balance = new_balance
+                continue
+
+            if (date, txn_amount) in captured:
+                prev_balance = new_balance
+                continue
+
             desc_end = rest.find(amounts[0])
             description = rest[:desc_end].strip()
-            
             if not description:
+                prev_balance = new_balance
                 continue
-            
-            # The first amount is the transaction amount, last is usually balance
-            transaction_amount = parse_amount(amounts[0])
-            
-            if transaction_amount <= 0:
-                continue
-            
-            # Determine if this is a credit or debit based on description keywords
-            desc_lower = description.lower()
-            
-            # Credit indicators (money coming IN)
-            is_credit = any([
-                'upi/p2a/' in desc_lower,  # UPI Pay to Account = receiving money
-                'nrp' in desc_lower,       # NRP = incoming transfer
-                'neft/' in desc_lower and 'neft -' not in desc_lower,  # NEFT incoming
-                'imps/' in desc_lower and 'sent' not in desc_lower,    # IMPS incoming
-                'int.pd' in desc_lower,    # Interest paid
-                'deposit' in desc_lower,
-                'credit' in desc_lower,
-                'refund' in desc_lower,
-            ])
-            
-            # Debit indicators (money going OUT)
-            is_debit = any([
-                'upi/p2m/' in desc_lower,  # UPI Pay to Merchant = payment
-                'ach-dr' in desc_lower,    # ACH Debit
-                'ecs/' in desc_lower,      # ECS = Electronic Clearing (EMI/auto-debit)
-                'gst' in desc_lower,       # GST charges
-                'charge' in desc_lower,    # Bank charges
-                'withdrawal' in desc_lower,
-                'transfer' in desc_lower and 'received' not in desc_lower,
-            ])
-            
-            # If both or neither, use balance comparison if available
-            if is_credit and not is_debit:
-                withdrawal = 0
-                deposit = transaction_amount
-            elif is_debit or not is_credit:
-                withdrawal = transaction_amount
-                deposit = 0
+
+            if prev_balance is not None and new_balance > prev_balance:
+                withdrawal, deposit = 0, txn_amount
             else:
-                # Default to withdrawal (most common case for expense tracking)
-                withdrawal = transaction_amount
-                deposit = 0
-            
+                withdrawal, deposit = txn_amount, 0
+
             transactions.append({
                 'date': date,
                 'description': clean_bob_description(description),
                 'bank_debit': withdrawal,
                 'bank_credit': deposit,
             })
-    
+            captured.add((date, txn_amount))
+            prev_balance = new_balance
+
+    transactions.sort(key=lambda t: t['date'])
     return transactions
 
 

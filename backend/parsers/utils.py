@@ -44,6 +44,7 @@ def detect_bank(user_input: str, pdf_text: str = "") -> str:
     bank_patterns = {
         "canara": ["canara bank", "canarabank"],
         "union": ["union bank of india", "union bank"],
+        "bob": ["bank of baroda", "barb0"],
         "idbi": ["idbi bank"],
         "indusind": ["indusind bank", "indusind"],
         "yes": ["yes bank"],
@@ -53,7 +54,6 @@ def detect_bank(user_input: str, pdf_text: str = "") -> str:
         "hdfc": ["hdfc bank", "hdfc account", "hdfc statement"],
         "kotak": ["kotak mahindra", "kotak bank"],
         "pnb": ["punjab national bank"],
-        "bob": ["bank of baroda"],
     }
 
     for bank_code, patterns in bank_patterns.items():

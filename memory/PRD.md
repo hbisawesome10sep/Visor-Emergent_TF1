@@ -47,7 +47,8 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
   - Axis Bank: Handle "F07 Cred", Card Charges, bypass payment gateways
   - PNB: Fixed NEFT company name indices, RTGS/cheque cleanup
   - **Canara Bank**: Fully rewrote `clean_canara_description` — RTGS/NEFT now extract actual company names via IFSC regex, IMPS shows bank+last4, cheque returns show payee, all 51 test transactions clean
-  - **Bank Detection Fix**: Added Canara, Union, IDBI to `detect_bank` priority patterns (was misdetecting Canara as HDFC)
+  - **Bank of Baroda**: Complete rewrite of `parse_bob_pdf` — switched from text-based to TABLE extraction for ground-truth debit/credit columns (fixing 8+ wrong debit/credit classifications). Added gap-filling text pass for page-boundary entries. Rewrote `clean_bob_description` for UPI, NEFT, ACH-DR, ECS, NRP, IMPS patterns. CredClub→Cred. 25/25 transactions verified, balance matches to the penny (25,073.92).
+  - **Bank Detection Fix**: Added Canara, Union, IDBI to `detect_bank` priority patterns (was misdetecting Canara as HDFC). Added BARB0 IFSC pattern for BOB detection (was falling to Yes Bank).
   - **Categorization Fix**: Fixed "cred" keyword false-positive on "credit" (Clearing Credit no longer miscategorized as Credit Card). Added IMPS/cheque/RTGS charges to Bank Charges category
 
 ---
