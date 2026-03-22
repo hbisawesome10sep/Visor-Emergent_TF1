@@ -97,49 +97,80 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
     """Auto-categorize a transaction based on description keywords."""
     desc = description.lower()
 
+    # Strip "(via Cred)" annotation before category matching — this is just payment method info
+    via_cred = "(via cred)" in desc
+    clean_desc = desc.replace("(via cred)", "").strip() if via_cred else desc
+
     category_rules = [
-        (["salary", "payroll", "wages", "stipend"], "Salary", "income"),
-        (["interest", "int.cr", "int cr", "interest credit", "int.pd", "interest paid", "int credit"], "Interest", "income"),
+        # Income categories (checked first)
+        (["salary credit", "salary", "payroll", "wages", "stipend"], "Salary", "income"),
+        (["interest credit", "interest", "int.cr", "int cr", "int.pd", "interest paid", "int credit"], "Interest", "income"),
         (["dividend", "div credit"], "Dividends", "income"),
-        (["refund", "reversal", "cashback", "cash back", "refund credit", "upi reversal"], "Refund", "income"),
+        (["upi refund", "refund", "reversal", "cashback", "cash back", "refund credit", "upi reversal"], "Refund", "income"),
         (["rent received", "rental income"], "Rental Income", "income"),
-        (["neft cr", "neft credit", "imps cr", "imps credit", "rtgs cr"], "Bank Transfer In", "income"),
-        (["swiggy", "zomato", "food", "restaurant", "dining", "cafe", "pizza",
-          "burger", "mcdonald", "kfc", "domino", "starbucks", "chaayos", "haldiram",
-          "barbeque", "biryani", "hotel", "dhaba", "eatery"], "Food & Dining", "expense"),
+        (["neft cr", "neft credit", "imps cr", "imps credit", "rtgs cr", "fund transfer -"], "Bank Transfer In", "income"),
+
+        # Food & Dining (specific merchants first, before generic keywords)
+        (["sodexo", "swiggy", "zomato", "cloud kitchen", "sai siddhi"], "Food & Dining", "expense"),
+        (["food", "restaurant", "dining", "cafe", "pizza", "burger", "mcdonald",
+          "kfc", "domino", "starbucks", "chaayos", "haldiram", "barbeque",
+          "biryani", "dhaba", "eatery", "quickbite", "burmaburma", "bhukkad",
+          "catering", "coffee"], "Food & Dining", "expense"),
+
+        # Groceries
         (["grocery", "groceries", "bigbasket", "blinkit", "zepto", "instamart",
           "dmart", "d-mart", "d mart", "more supermarket", "reliance fresh", "spencer",
-          "nature basket", "jiomart", "kirana", "vegetables", "fruits", "supermarket"], "Groceries", "expense"),
-        (["uber", "ola", "rapido", "taxi", "cab", "auto", "rickshaw"], "Transport", "expense"),
+          "nature basket", "jiomart", "kirana", "vegetables", "fruits", "supermarket",
+          "fresh n green", "freshngreen"], "Groceries", "expense"),
+
+        # Transport & Travel
+        (["uber", "ola ", "rapido", "taxi", "cab ", "auto ", "rickshaw"], "Transport", "expense"),
         (["petrol", "diesel", "fuel", "hp petrol", "iocl", "bpcl", "indian oil",
           "bharat petroleum", "hindustan petroleum", "shell", "essar"], "Fuel", "expense"),
-        (["irctc", "train", "railway", "railways"], "Travel", "expense"),
+        (["irctc", "indian railway", "train", "railway", "railways", "ecatering"], "Travel", "expense"),
         (["flight", "airline", "indigo", "spicejet", "air india", "vistara",
           "goair", "akasa", "makemytrip", "goibibo", "cleartrip", "yatra"], "Travel", "expense"),
         (["metro", "dmrc", "bmrc", "mmrc", "rapidx", "mumbai metro", "mahamumbaimetro"], "Transport", "expense"),
         (["parking", "fastag", "toll"], "Transport", "expense"),
+
+        # Utilities
         (["electricity", "power", "bescom", "msedcl", "tata power", "adani electricity",
           "bses", "cesc", "torrent power"], "Electricity", "expense"),
         (["water", "bwssb", "water bill", "water supply"], "Water", "expense"),
-        (["gas", "png", "lpg", "indane", "bharat gas", "hp gas", "mahanagar gas"], "Gas", "expense"),
+        (["gas service", "deogasservice", "jodhpurgas", "png", "lpg", "indane",
+          "bharat gas", "hp gas", "mahanagar gas", "gas cylinder"], "Gas", "expense"),
         (["internet", "broadband", "wifi", "act fibernet", "hathway", "tikona"], "Internet", "expense"),
-        (["recharge", "prepaid", "postpaid", "airtel", "jio", "vodafone",
-          "vi ", "bsnl", "mobile recharge"], "Mobile Recharge", "expense"),
+
+        # Mobile / Telecom (specific patterns before generic)
+        (["airtel recharge", "vi recharge", "vodafoneidea", "bhartihexacom",
+          "recharge", "prepaid recharge", "postpaid", "jio", "vodafone",
+          "bsnl", "mobile recharge"], "Mobile Recharge", "expense"),
         (["dth", "tata sky", "dish tv", "airtel dth", "videocon", "sun direct"], "DTH", "expense"),
+
+        # Subscriptions & Entertainment
         (["netflix", "hotstar", "prime video", "amazon prime", "spotify", "gaana",
           "youtube premium", "zee5", "sonyliv", "jiocinema", "apple tv", "disney",
-          "subscription", "oneplay", "apple music", "audible"], "Subscriptions", "expense"),
+          "subscription", "oneplay", "apple music", "audible", "steam (valve)",
+          "jiocinema/viacom18"], "Subscriptions", "expense"),
         (["movie", "cinema", "pvr", "inox", "bookmyshow", "paytm movie"], "Entertainment", "expense"),
-        (["dream11", "fantasy", "mpl", "winzo", "my11circle"], "Entertainment", "expense"),
+        (["dream11", "fantasy", "mpl", "winzo", "my11circle", "astrotalk"], "Entertainment", "expense"),
+
+        # Shopping
         (["amazon", "flipkart", "myntra", "ajio", "meesho", "snapdeal", "tatacliq",
-          "nykaa", "purplle", "mamaearth"], "Shopping", "expense"),
+          "nykaa", "purplle", "mamaearth", "innovist", "artpillz"], "Shopping", "expense"),
         (["decathlon", "croma", "reliance digital", "vijay sales"], "Shopping", "expense"),
+
+        # Financial
         (["insurance", "lic", "icici pru", "hdfc life", "max life", "sbi life",
           "bajaj allianz", "health ins", "term ins", "policy"], "Insurance", "expense"),
-        (["emi", "loan", "home loan", "car loan", "personal loan", "education loan",
-          "bajaj finance", "bajajfinance", "hdfc credila", "tata capital"], "EMI", "expense"),
-        (["cc payment", "credit card", "cred", "slice", "onecard", "hdfc cc",
+        (["emi payment", "emi", "loan", "home loan", "car loan", "personal loan",
+          "education loan", "bajaj finance", "bajajfinance", "hdfc credila",
+          "tata capital"], "EMI", "expense"),
+        (["cc payment", "credit card bill", "federal bank cc", "onecard cc",
+          "credit card", "cred", "slice", "onecard", "hdfc cc",
           "sbi card", "kotak card", "icici card", "axis card"], "Credit Card", "expense"),
+
+        # Investments
         (["sip", "mutual fund", "mf invest", "elss", "groww", "zerodha", "upstox",
           "kuvera", "paytm money", "coin by zerodha"], "SIP", "investment"),
         (["ppf", "provident fund"], "PPF", "investment"),
@@ -147,30 +178,49 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
         (["fd", "fixed deposit"], "Fixed Deposit", "investment"),
         (["gold", "sovereign gold", "sgb", "gold bond"], "Gold", "investment"),
         (["stocks", "shares", "equity", "demat"], "Stocks", "investment"),
-        (["rent", "house rent", "rental", "pg rent", "hostel"], "Rent", "expense"),
+
+        # Housing
+        (["rent", "house rent", "rental", "pg rent", "hostel", "cash rent"], "Rent", "expense"),
         (["maintenance", "society", "apartment", "flat maintenance"], "Maintenance", "expense"),
-        (["hospital", "medical", "pharmacy", "medicine", "doctor", "clinic",
-          "apollo", "fortis", "max hospital", "medplus", "netmeds", "1mg",
-          "pharmeasy", "truemeds", "diagnostic", "lab test", "pathology"], "Health", "expense"),
+
+        # Health & Medical
+        (["hospital", "medical", "pharmacy", "medicine", "doctor",
+          "clinic", "apollo", "fortis", "max hospital", "medplus", "netmeds",
+          "1mg", "pharmeasy", "truemeds", "diagnostic", "lab test", "pathology",
+          "aiims", "medico", "umeshmedical"], "Health", "expense"),
+
+        # Education
         (["school", "college", "tuition", "education", "course", "coaching",
-          "udemy", "coursera", "upgrad", "byjus", "unacademy", "vedantu"], "Education", "expense"),
+          "udemy", "coursera", "upgrad", "byjus", "unacademy", "vedantu",
+          "icai", "institute of cha"], "Education", "expense"),
+
+        # Personal Care
         (["salon", "parlour", "spa", "haircut", "grooming", "urban company",
-          "urbanclap"], "Personal Care", "expense"),
-        (["donation", "charity", "ngo", "temple", "church", "mosque", "gurudwara"], "Donations", "expense"),
+          "urbanclap", "fascino"], "Personal Care", "expense"),
+
+        # Donations
+        (["donation", "charity", "ngo", "temple", "church", "mosque",
+          "gurudwara", "seva bharati"], "Donations", "expense"),
+
+        # Taxes & Fees
         (["gst", "income tax", "tds", "government", "challan", "passport",
-          "stamps", "registration"], "Taxes & Fees", "expense"),
-        (["bank charge", "service charge", "sms charge", "debit card", "atm charge",
-          "annual fee", "maintenance charge", "minimum balance", "consolidated charge"], "Bank Charges", "expense"),
+          "stamps", "registration", "godaddy"], "Taxes & Fees", "expense"),
+
+        # Bank Charges
+        (["bank charge", "service charge", "sms charge", "sms alert",
+          "debit card", "atm charge", "annual fee", "maintenance charge",
+          "minimum balance", "consolidated charge", "instaalertchg"], "Bank Charges", "expense"),
+
+        # Cash
         (["atm", "cash withdrawal", "cash deposit", "self withdrawal", "nwd-"], "Cash", "expense"),
-        (["paytm", "phonepe", "google pay", "gpay"], "UPI Payment", "expense"),
     ]
 
     for keywords, category, txn_type in category_rules:
-        if any(kw in desc for kw in keywords):
+        if any(kw in clean_desc for kw in keywords):
             return category, txn_type
 
     # Fallback: categorize UPI person-to-person transfers
-    if desc.startswith("upi -") or desc.startswith("imps -") or desc.startswith("neft -"):
+    if clean_desc.startswith("upi -") or clean_desc.startswith("imps -") or clean_desc.startswith("neft -"):
         if is_credit:
             return "Transfer In", "income"
         return "Transfer", "expense"

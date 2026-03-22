@@ -682,102 +682,49 @@ def parse_yesbank_pdf(pdf, all_text: str) -> list:
 def clean_hdfc_description(raw_desc: str, ref_number: str = "") -> str:
     """Clean up HDFC Bank transaction description.
     Extracts meaningful merchant/payee names from full multi-line narrations.
-    Keeps descriptions unique by including ref suffix when needed."""
+    Priority: UPI payee extraction first, then pattern matching, then keyword fallback."""
     desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
     if not desc:
         return f"Transaction {ref_number}" if ref_number else "Unknown Transaction"
 
-    lower_desc = desc.lower()
+    upper_desc = desc.upper()
 
-    # ── Known merchants (checked against the FULL narration) ─────────────
-    _MERCHANTS = {
-        'amazon': 'Amazon', 'flipkart': 'Flipkart', 'swiggy': 'Swiggy',
-        'zomato': 'Zomato', 'paytm': 'Paytm', 'phonepe': 'PhonePe',
-        'uber': 'Uber', 'ola': 'Ola', 'rapido': 'Rapido',
-        'vodafone': 'Vodafone', 'airtel': 'Airtel', 'jio': 'Jio',
-        'reliance': 'Reliance', 'netflix': 'Netflix', 'spotify': 'Spotify',
-        'youtube': 'YouTube', 'google': 'Google', 'apple': 'Apple',
-        'myntra': 'Myntra', 'bigbasket': 'BigBasket', 'blinkit': 'Blinkit',
-        'zepto': 'Zepto', 'dunzo': 'Dunzo', 'meesho': 'Meesho',
-        'cred': 'Cred', 'slice': 'Slice', 'nykaa': 'Nykaa',
-        'zerodha': 'Zerodha', 'groww': 'Groww', 'upstox': 'Upstox',
-        'kotak': 'Kotak', 'icici': 'ICICI', 'axis': 'Axis',
-        'irctc': 'IRCTC', 'makemytrip': 'MakeMyTrip', 'goibibo': 'Goibibo',
-        'ixigo': 'Ixigo', 'olacab': 'Ola', 'dream11': 'Dream11',
-        'mumbai metro': 'Mumbai Metro', 'mahamumbaimetro': 'Mumbai Metro',
-        'paytmmall': 'Paytm Mall', 'insurance': 'Insurance',
-        'mutual fund': 'MF Investment', 'sip': 'SIP Investment',
-    }
-    for key, name in _MERCHANTS.items():
-        if key in lower_desc:
-            if 'pos' in lower_desc:
-                return f"Card - {name}"
-            return f"Payment - {name}"
+    # ── Quick checks for non-UPI transaction types ───────────────────────
+    if 'INTERESTPAID' in upper_desc or 'INTEREST PAID' in upper_desc or 'CREDITINTEREST' in upper_desc:
+        return "Interest Credit"
 
-    # ── UPI transactions ─────────────────────────────────────────────────
+    if any(kw in upper_desc for kw in ['JPMCSALARY', 'JPMC SALARY', 'SALARY']):
+        return "Salary Credit"
+
+    if upper_desc.startswith('CASHDEP') or 'CASH DEP' in upper_desc:
+        return "Cash Deposit"
+
+    if any(kw in upper_desc for kw in ['INSTAALERTCHG', 'INSTA ALERT', 'SMS CHARGES', 'SMSCHG']):
+        return "Bank Charges - SMS Alert"
+
+    # ── UPI transactions (MUST be checked before merchant keyword scan) ──
     if 'UPI-' in desc or 'UPI/' in desc:
-        # HDFC full narration: UPI-PAYEENAME<continuation>-UPIID@BANK-IFSC-REF-UPI
-        # Extract the payee name (between first UPI- and the UPI ID @)
-        upi_match = re.search(r'UPI[/-]([^@]+?)[@\s]', desc)
-        if upi_match:
-            raw_name = upi_match.group(1)
-            # Clean up the name: remove ref numbers, bank codes
-            # Split by common separators, take meaningful parts
-            name_parts = re.split(r'[\-/\s]+', raw_name)
-            # Filter out numeric-only parts, bank codes, ref numbers
-            clean_parts = []
-            for p in name_parts:
-                p = p.strip()
-                if not p:
-                    continue
-                # Skip pure numbers, short codes, common prefixes
-                if re.match(r'^\d+$', p):
-                    continue
-                if len(p) <= 2:
-                    continue
-                if p.upper() in ('UPI', 'REV', 'HDFC', 'SBI', 'ICIC', 'AXIS', 'PNB', 'BOI', 'CAN', 'BNKUPI'):
-                    continue
-                clean_parts.append(p)
-            if clean_parts:
-                payee = ' '.join(clean_parts[:3]).title()
-                # Truncate overly long names
-                if len(payee) > 35:
-                    payee = payee[:35].rsplit(' ', 1)[0]
-                return f"UPI - {payee}"
-
-        # Fallback: try extracting UPI ID
-        upi_id_match = re.search(r'([a-zA-Z0-9_.]+@[a-z]+)', desc)
-        if upi_id_match:
-            upi_id = upi_id_match.group(1)
-            name = upi_id.split('@')[0]
-            # Clean up name
-            name = re.sub(r'\d{5,}', '', name).strip('.')
-            if name and len(name) > 2:
-                return f"UPI - {name.title()}"
-
-        # Last resort: include ref number for uniqueness
-        if ref_number:
-            return f"UPI Transfer #{ref_number[-6:]}"
-        return "UPI Transfer"
+        return _extract_upi_description(desc, ref_number)
 
     # ── REV-UPI (UPI reversal) ───────────────────────────────────────────
-    if desc.startswith('REV-UPI') or desc.startswith('REV-'):
+    if upper_desc.startswith('REV-UPI') or upper_desc.startswith('REV-'):
         payee_match = re.search(r'([A-Za-z][A-Za-z\s]+?)(?:\d{5,}|@|-\d)', desc[4:])
         if payee_match:
             return f"UPI Reversal - {payee_match.group(1).strip().title()}"
         return "UPI Reversal"
 
-    # ── FT (Fund Transfer / NEFT / RTGS) ─────────────────────────────────
-    if desc.startswith('FT-') or desc.startswith('FT '):
-        # Look for company/person name in continuation
+    # ── FT (Fund Transfer — often salary) ─────────────────────────────────
+    if upper_desc.startswith('FT-') or upper_desc.startswith('FT '):
+        if 'SALARY' in upper_desc or 'PAYROLL' in upper_desc:
+            return "Salary Credit"
         alpha_parts = re.findall(r'[A-Z][A-Za-z]{3,}(?:\s+[A-Z][A-Za-z]+)*', desc)
         if alpha_parts:
             name = alpha_parts[-1] if len(alpha_parts) > 1 else alpha_parts[0]
-            return f"Transfer - {name.title()}"
+            return f"Fund Transfer - {name.title()}"
         return "Fund Transfer"
 
     # ── IMPS ─────────────────────────────────────────────────────────────
-    if desc.startswith('IMPS-') or desc.startswith('IMPS/'):
+    if upper_desc.startswith('IMPS-') or upper_desc.startswith('IMPS/'):
         parts = re.split(r'[\-/]', desc)
         for part in parts[1:]:
             part = part.strip()
@@ -786,7 +733,7 @@ def clean_hdfc_description(raw_desc: str, ref_number: str = "") -> str:
         return "IMPS Transfer"
 
     # ── NEFT ─────────────────────────────────────────────────────────────
-    if 'NEFT' in desc.upper():
+    if 'NEFT' in upper_desc:
         parts = re.split(r'[\-/]', desc)
         for part in parts:
             part = part.strip()
@@ -795,11 +742,11 @@ def clean_hdfc_description(raw_desc: str, ref_number: str = "") -> str:
         return "NEFT Transfer"
 
     # ── EMI ──────────────────────────────────────────────────────────────
-    if desc.startswith('EMI') or 'EMI' in desc.upper():
+    if upper_desc.startswith('EMI') or 'EMI' in upper_desc:
         return "EMI Payment"
 
     # ── ACH debit ────────────────────────────────────────────────────────
-    if desc.startswith('ACHD-') or desc.startswith('ACH-') or 'ACH D' in desc.upper():
+    if upper_desc.startswith('ACHD-') or upper_desc.startswith('ACH-') or 'ACH D' in upper_desc:
         parts = re.split(r'[\-/]', desc)
         if len(parts) >= 2:
             company = parts[1].strip()
@@ -808,15 +755,15 @@ def clean_hdfc_description(raw_desc: str, ref_number: str = "") -> str:
         return "Auto-debit"
 
     # ── Bill payment ─────────────────────────────────────────────────────
-    if 'BILLPAY' in desc.upper() or 'BIL/' in desc:
+    if 'BILLPAY' in upper_desc or 'BIL/' in desc:
         if 'HDFCPE' in desc:
             return "HDFC CC Payment"
-        if 'SBICARDS' in desc.upper():
+        if 'SBICARDS' in upper_desc:
             return "SBI Card Payment"
         return "Bill Payment"
 
     # ── POS / Card swipe ─────────────────────────────────────────────────
-    if desc.startswith('POS') or 'POSDEBIT' in desc.upper():
+    if upper_desc.startswith('POS') or 'POSDEBIT' in upper_desc:
         parts = desc.split('XXXXXX')
         if len(parts) > 1:
             merchant = parts[-1].replace('POSDEBIT', '').strip()
@@ -825,23 +772,134 @@ def clean_hdfc_description(raw_desc: str, ref_number: str = "") -> str:
         return "Card Purchase"
 
     # ── NWD (ATM / cash withdrawal) ──────────────────────────────────────
-    if desc.startswith('NWD') or desc.startswith('AWD'):
+    if upper_desc.startswith('NWD') or upper_desc.startswith('AWD'):
         return "ATM Withdrawal"
 
-    # ── Interest / Cash / ATM ────────────────────────────────────────────
-    if 'INTEREST' in desc.upper() or 'CREDITINTEREST' in desc:
-        return "Interest Credit"
-    if 'CASHDEP' in desc or 'CASH DEP' in desc:
-        return "Cash Deposit"
-    if 'ATM' in desc.upper():
-        return "ATM Deposit" if 'DEP' in desc.upper() else "ATM Withdrawal"
-
-    # ── Salary credit ────────────────────────────────────────────────────
-    if any(kw in lower_desc for kw in ['salary', 'payroll']):
-        return "Salary Credit"
+    if 'ATM' in upper_desc:
+        return "ATM Deposit" if 'DEP' in upper_desc else "ATM Withdrawal"
 
     # ── Fallback: preserve raw desc (trimmed) ────────────────────────────
     return desc[:60] if len(desc) > 60 else desc
+
+
+# ── Known payee-to-merchant mappings for UPI ────────────────────────────
+_UPI_MERCHANT_MAP = {
+    'sodexo': 'Sodexo', 'sodexoindiaservice': 'Sodexo', 'sodexoindia': 'Sodexo',
+    'swiggy': 'Swiggy', 'swiggystores': 'Swiggy',
+    'zomato': 'Zomato', 'zomatoonline': 'Zomato',
+    'zepto': 'Zepto', 'zeptomarketplace': 'Zepto',
+    'blinkit': 'Blinkit', 'blinkitcommerce': 'Blinkit',
+    'dreamplugservice': 'Cred', 'dreamplug': 'Cred',
+    'cred': 'Cred',
+    'bhartihexacom': 'Airtel Recharge', 'bhartihexacomlimit': 'Airtel Recharge',
+    'airtelpayments': 'Airtel', 'wwwairtel': 'Airtel',
+    'fpltechnologies': 'PhonePe',
+    'gokiwitechprivate': 'Ola',
+    'cloudkitchprivatel': 'Swiggy (Cloud Kitchen)',
+    'rainboxmediapvt': 'JioCinema/Viacom18',
+    'irctc': 'IRCTC', 'irctcecatering': 'IRCTC eCatering',
+    'indianrailway': 'Indian Railways',
+    'amazon': 'Amazon', 'flipkart': 'Flipkart', 'myntra': 'Myntra',
+    'uber': 'Uber', 'uberindiasystems': 'Uber',
+    'olacabs': 'Ola', 'rapido': 'Rapido',
+    'mcdonalds': 'McDonalds', 'tatastarbucks': 'Starbucks',
+    'vodafoneidea': 'Vi Recharge', 'vi': 'Vi Recharge',
+    'googleasiapacific': 'Google', 'google': 'Google',
+    'goibibo': 'Goibibo', 'makemytrip': 'MakeMyTrip',
+    'godaddy': 'GoDaddy',
+    'bajajfinancelimite': 'Bajaj Finance', 'bajajfinance': 'Bajaj Finance',
+    'agionetechnologies': 'Agione Technologies',
+    'innovist': 'Innovist',
+    'netflix': 'Netflix', 'spotify': 'Spotify',
+    'federalonecredit': 'Federal Bank CC Payment', 'onecard': 'OneCard CC Payment',
+    'creditcardbill': 'Credit Card Bill',
+    'theinstituteofcha': 'ICAI',
+    'wefast': 'WeFast Delivery',
+    'vendiman': 'Vendiman Vending',
+    'astrotalkservices': 'AstroTalk',
+    'emergentlabs': 'Emergent Labs',
+    'valve': 'Steam (Valve)',
+    'sevabharati': 'Seva Bharati',
+    'okaydiagnostic': 'Diagnostic Lab',
+    'allindiainstitute': 'AIIMS',
+    'saisiddhihospitali': 'Sai Siddhi (Food)', 'saisiddhihospitality': 'Sai Siddhi (Food)',
+    'anmolcateringand': 'Anmol Catering', 'anmolcatering': 'Anmol Catering',
+    'tuljabhavanifastfo': 'Tulja Bhavani Foods',
+    'manasgastro': 'Manas Gastro',
+}
+
+# Bank/UPI infrastructure codes to strip from payee names
+_BANK_CODES = {
+    'JPMC', 'PR', 'HDFC', 'ICIC', 'SBIN', 'PUNB', 'YESB', 'UTIB', 'KKBK',
+    'BARB', 'IPOS', 'FDRL', 'AIRP', 'UBIN', 'IDBI', 'CNRB', 'BKID', 'CORP',
+    'IOBA', 'MAHB', 'RMGB', 'CBIN', 'MAHG', 'INDB', 'PPIW',
+    'LIMIT', 'LIMITED', 'PVT', 'LTD', 'PRIVATE',
+}
+
+
+def _extract_upi_description(desc: str, ref_number: str = "") -> str:
+    """Extract clean payee name from HDFC UPI narration.
+    HDFC format: UPI-PAYEENAME-UPIHANDLE@BANK-IFSC-REF-NOTE
+    Multi-line continuation joined with spaces."""
+    upper = desc.upper()
+
+    # Detect payment method annotations
+    via_cred = 'PAIDVIACRED' in upper or 'PAYMENTONCRED' in upper
+    is_refund = 'UPIREFUND' in upper or 'REFUND' in upper
+
+    # Find the UPI- prefix and extract everything after it
+    upi_start = desc.find('UPI-')
+    if upi_start < 0:
+        upi_start = desc.find('UPI/')
+    if upi_start < 0:
+        return f"UPI Transfer #{ref_number[-6:]}" if ref_number else "UPI Transfer"
+
+    rest = desc[upi_start + 4:]  # Text after 'UPI-'
+
+    # Extract payee: first hyphen-separated segment
+    first_segment = rest.split('-')[0].strip()
+
+    # If the segment has spaces (from multi-line joining), filter bank code artifacts
+    if ' ' in first_segment:
+        words = first_segment.split()
+        clean_words = []
+        for i, w in enumerate(words):
+            if w.upper() in _BANK_CODES:
+                break
+            # Only filter short (<=2 char) trailing words if they're not name prefixes
+            if len(w) <= 2 and w.upper() not in ('MR', 'MS', 'DR', 'MO', 'MD'):
+                # If it's the first word, keep it (could be a short name)
+                if i > 0:
+                    break
+            clean_words.append(w)
+        first_segment = ' '.join(clean_words) if clean_words else words[0]
+
+    payee_raw = first_segment.strip()
+    if not payee_raw:
+        return f"UPI Transfer #{ref_number[-6:]}" if ref_number else "UPI Transfer"
+
+    # Map to known merchant name
+    payee_key = payee_raw.lower().replace(' ', '')
+    merchant = _UPI_MERCHANT_MAP.get(payee_key)
+
+    if merchant:
+        payee = merchant
+    else:
+        # Title-case the raw payee name for person names
+        payee = payee_raw.title()
+        # Truncate overly long names
+        if len(payee) > 35:
+            payee = payee[:35].rsplit(' ', 1)[0]
+
+    # Build final description with context
+    if is_refund:
+        return f"UPI Refund - {payee}"
+
+    # For "via Cred" payments: show actual payee, not Cred
+    if via_cred and payee_key not in ('cred', 'dreamplugservice', 'dreamplug'):
+        return f"UPI - {payee} (via Cred)"
+
+    return f"UPI - {payee}"
 
 
 def clean_pnb_description(raw_desc: str) -> str:
@@ -1855,12 +1913,13 @@ def parse_hdfc_pdf(pdf, all_text: str) -> list:
 
     # Skip header/footer noise patterns
     _SKIP = re.compile(
-        r'^(PageNo|Statement|Date\s+Narration|From\s*:|To\s*:|Account|HDFC\s+BANK|'
-        r'Opening\s+Balance|Closing\s+Balance|\*\*\*|JOINT|Nomination|'
+        r'^(PageNo|Statement|Date\s+Narration|From\s*:|To\s*:|Account|HDFC\s*BANK|'
+        r'Opening\s+Balance|Closing\s+Balance|\*\*\*|\*Closing|JOINT|Nomination|'
         r'This is a computer|Contents of this|The details|Generated|'
         r'Customer|RTGS|MICR|Branch|Email|City|State|Currency|'
         r'ODLimit|A/C\s*Open|AccountNo|AccountStatus|AccountType|'
-        r'CustID|PhoneNo|Address)', re.IGNORECASE)
+        r'CustID|PhoneNo|Address|HDFCBANKLIMITED|RegisteredOffice|'
+        r'StateaccountbranchGSTN|HDFCBankGSTIN|Contentsofthis)', re.IGNORECASE)
 
     DATE_RE = re.compile(r'^\d{2}/\d{2}/\d{2,4}\s')
     AMOUNT_RE = re.compile(r'([\d,]+\.\d{2})')
