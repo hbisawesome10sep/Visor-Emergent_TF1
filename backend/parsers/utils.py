@@ -101,7 +101,7 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
         (["salary", "payroll", "wages", "stipend"], "Salary", "income"),
         (["interest", "int.cr", "int cr", "interest credit", "int.pd", "interest paid", "int credit"], "Interest", "income"),
         (["dividend", "div credit"], "Dividends", "income"),
-        (["refund", "reversal", "cashback", "cash back", "refund credit"], "Refund", "income"),
+        (["refund", "reversal", "cashback", "cash back", "refund credit", "upi reversal"], "Refund", "income"),
         (["rent received", "rental income"], "Rental Income", "income"),
         (["neft cr", "neft credit", "imps cr", "imps credit", "rtgs cr"], "Bank Transfer In", "income"),
         (["swiggy", "zomato", "food", "restaurant", "dining", "cafe", "pizza",
@@ -116,7 +116,7 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
         (["irctc", "train", "railway", "railways"], "Travel", "expense"),
         (["flight", "airline", "indigo", "spicejet", "air india", "vistara",
           "goair", "akasa", "makemytrip", "goibibo", "cleartrip", "yatra"], "Travel", "expense"),
-        (["metro", "dmrc", "bmrc", "mmrc", "rapidx"], "Transport", "expense"),
+        (["metro", "dmrc", "bmrc", "mmrc", "rapidx", "mumbai metro", "mahamumbaimetro"], "Transport", "expense"),
         (["parking", "fastag", "toll"], "Transport", "expense"),
         (["electricity", "power", "bescom", "msedcl", "tata power", "adani electricity",
           "bses", "cesc", "torrent power"], "Electricity", "expense"),
@@ -130,13 +130,16 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
           "youtube premium", "zee5", "sonyliv", "jiocinema", "apple tv", "disney",
           "subscription", "oneplay", "apple music", "audible"], "Subscriptions", "expense"),
         (["movie", "cinema", "pvr", "inox", "bookmyshow", "paytm movie"], "Entertainment", "expense"),
+        (["dream11", "fantasy", "mpl", "winzo", "my11circle"], "Entertainment", "expense"),
         (["amazon", "flipkart", "myntra", "ajio", "meesho", "snapdeal", "tatacliq",
           "nykaa", "purplle", "mamaearth"], "Shopping", "expense"),
         (["decathlon", "croma", "reliance digital", "vijay sales"], "Shopping", "expense"),
         (["insurance", "lic", "icici pru", "hdfc life", "max life", "sbi life",
           "bajaj allianz", "health ins", "term ins", "policy"], "Insurance", "expense"),
         (["emi", "loan", "home loan", "car loan", "personal loan", "education loan",
-          "bajaj finance", "hdfc credila", "tata capital"], "EMI", "expense"),
+          "bajaj finance", "bajajfinance", "hdfc credila", "tata capital"], "EMI", "expense"),
+        (["cc payment", "credit card", "cred", "slice", "onecard", "hdfc cc",
+          "sbi card", "kotak card", "icici card", "axis card"], "Credit Card", "expense"),
         (["sip", "mutual fund", "mf invest", "elss", "groww", "zerodha", "upstox",
           "kuvera", "paytm money", "coin by zerodha"], "SIP", "investment"),
         (["ppf", "provident fund"], "PPF", "investment"),
@@ -158,12 +161,19 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
           "stamps", "registration"], "Taxes & Fees", "expense"),
         (["bank charge", "service charge", "sms charge", "debit card", "atm charge",
           "annual fee", "maintenance charge", "minimum balance", "consolidated charge"], "Bank Charges", "expense"),
-        (["atm", "cash withdrawal", "cash deposit", "self withdrawal"], "Cash", "expense"),
+        (["atm", "cash withdrawal", "cash deposit", "self withdrawal", "nwd-"], "Cash", "expense"),
+        (["paytm", "phonepe", "google pay", "gpay"], "UPI Payment", "expense"),
     ]
 
     for keywords, category, txn_type in category_rules:
         if any(kw in desc for kw in keywords):
             return category, txn_type
+
+    # Fallback: categorize UPI person-to-person transfers
+    if desc.startswith("upi -") or desc.startswith("imps -") or desc.startswith("neft -"):
+        if is_credit:
+            return "Transfer In", "income"
+        return "Transfer", "expense"
 
     if is_credit:
         return "Transfer In", "income"

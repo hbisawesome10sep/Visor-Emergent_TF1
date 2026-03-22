@@ -1579,7 +1579,7 @@ export default function InvestmentsScreen() {
                         maximumDate={new Date(2040, 11, 31)}
                         minimumDate={new Date(2015, 0, 1)}
                         onChange={(event: any, date?: Date) => { if (date) setIosPickerDate(date); }}
-                        style={{ height: 130 }}
+                        style={{ height: 200 }}
                       />
                     </View>
                   )}

@@ -46,6 +46,8 @@ type DashboardStats = {
   total_income: number;
   total_expenses: number;
   total_investments: number;
+  portfolio_invested: number;
+  portfolio_current: number;
   net_balance: number;
   savings: number;
   savings_rate: number;
@@ -475,8 +477,8 @@ export default function DashboardScreen() {
             />
             <LiquidFillCard
               title="Investments"
-              amount={formatINRShort(stats?.total_investments || 0)}
-              fillPercent={Math.min(100, ((stats?.total_investments || 0) / (stats?.total_income || 1)) * 100)}
+              amount={formatINRShort(stats?.portfolio_invested || stats?.total_investments || 0)}
+              fillPercent={Math.min(100, ((stats?.portfolio_invested || stats?.total_investments || 0) / (stats?.total_income || 1)) * 100)}
               gradient={[Accent.sapphire, '#4F46E5']}
               icon="trending-up"
               onPress={() => router.push('/(tabs)/investments')}

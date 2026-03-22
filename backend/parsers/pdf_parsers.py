@@ -679,111 +679,169 @@ def parse_yesbank_pdf(pdf, all_text: str) -> list:
     return transactions
 
 
-def clean_hdfc_description(raw_desc: str) -> str:
-    """Clean up HDFC Bank transaction description."""
+def clean_hdfc_description(raw_desc: str, ref_number: str = "") -> str:
+    """Clean up HDFC Bank transaction description.
+    Extracts meaningful merchant/payee names from full multi-line narrations.
+    Keeps descriptions unique by including ref suffix when needed."""
     desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
-    
-    # Known merchants
-    known_merchants = {
-        'amazon': 'Amazon',
-        'flipkart': 'Flipkart',
-        'swiggy': 'Swiggy',
-        'zomato': 'Zomato',
-        'paytm': 'Paytm',
-        'uber': 'Uber',
-        'ola': 'Ola',
-        'vodafone': 'Vodafone',
-        'airtel': 'Airtel',
-        'jio': 'Jio',
-        'reliance': 'Reliance',
-    }
-    
+    if not desc:
+        return f"Transaction {ref_number}" if ref_number else "Unknown Transaction"
+
     lower_desc = desc.lower()
-    
-    # Check for known merchants
-    for key, name in known_merchants.items():
+
+    # ── Known merchants (checked against the FULL narration) ─────────────
+    _MERCHANTS = {
+        'amazon': 'Amazon', 'flipkart': 'Flipkart', 'swiggy': 'Swiggy',
+        'zomato': 'Zomato', 'paytm': 'Paytm', 'phonepe': 'PhonePe',
+        'uber': 'Uber', 'ola': 'Ola', 'rapido': 'Rapido',
+        'vodafone': 'Vodafone', 'airtel': 'Airtel', 'jio': 'Jio',
+        'reliance': 'Reliance', 'netflix': 'Netflix', 'spotify': 'Spotify',
+        'youtube': 'YouTube', 'google': 'Google', 'apple': 'Apple',
+        'myntra': 'Myntra', 'bigbasket': 'BigBasket', 'blinkit': 'Blinkit',
+        'zepto': 'Zepto', 'dunzo': 'Dunzo', 'meesho': 'Meesho',
+        'cred': 'Cred', 'slice': 'Slice', 'nykaa': 'Nykaa',
+        'zerodha': 'Zerodha', 'groww': 'Groww', 'upstox': 'Upstox',
+        'kotak': 'Kotak', 'icici': 'ICICI', 'axis': 'Axis',
+        'irctc': 'IRCTC', 'makemytrip': 'MakeMyTrip', 'goibibo': 'Goibibo',
+        'ixigo': 'Ixigo', 'olacab': 'Ola', 'dream11': 'Dream11',
+        'mumbai metro': 'Mumbai Metro', 'mahamumbaimetro': 'Mumbai Metro',
+        'paytmmall': 'Paytm Mall', 'insurance': 'Insurance',
+        'mutual fund': 'MF Investment', 'sip': 'SIP Investment',
+    }
+    for key, name in _MERCHANTS.items():
         if key in lower_desc:
             if 'pos' in lower_desc:
                 return f"Card - {name}"
             return f"Payment - {name}"
-    
-    # UPI format: UPI-refno-upiid-ref-OK
-    if desc.startswith('UPI-'):
-        # Try to extract payee from UPI ID
-        parts = desc.split('-')
-        if len(parts) >= 3:
-            upi_id = parts[2]
-            if '@' in upi_id:
-                name = upi_id.split('@')[0]
+
+    # ── UPI transactions ─────────────────────────────────────────────────
+    if 'UPI-' in desc or 'UPI/' in desc:
+        # HDFC full narration: UPI-PAYEENAME<continuation>-UPIID@BANK-IFSC-REF-UPI
+        # Extract the payee name (between first UPI- and the UPI ID @)
+        upi_match = re.search(r'UPI[/-]([^@]+?)[@\s]', desc)
+        if upi_match:
+            raw_name = upi_match.group(1)
+            # Clean up the name: remove ref numbers, bank codes
+            # Split by common separators, take meaningful parts
+            name_parts = re.split(r'[\-/\s]+', raw_name)
+            # Filter out numeric-only parts, bank codes, ref numbers
+            clean_parts = []
+            for p in name_parts:
+                p = p.strip()
+                if not p:
+                    continue
+                # Skip pure numbers, short codes, common prefixes
+                if re.match(r'^\d+$', p):
+                    continue
+                if len(p) <= 2:
+                    continue
+                if p.upper() in ('UPI', 'REV', 'HDFC', 'SBI', 'ICIC', 'AXIS', 'PNB', 'BOI', 'CAN', 'BNKUPI'):
+                    continue
+                clean_parts.append(p)
+            if clean_parts:
+                payee = ' '.join(clean_parts[:3]).title()
+                # Truncate overly long names
+                if len(payee) > 35:
+                    payee = payee[:35].rsplit(' ', 1)[0]
+                return f"UPI - {payee}"
+
+        # Fallback: try extracting UPI ID
+        upi_id_match = re.search(r'([a-zA-Z0-9_.]+@[a-z]+)', desc)
+        if upi_id_match:
+            upi_id = upi_id_match.group(1)
+            name = upi_id.split('@')[0]
+            # Clean up name
+            name = re.sub(r'\d{5,}', '', name).strip('.')
+            if name and len(name) > 2:
                 return f"UPI - {name.title()}"
+
+        # Last resort: include ref number for uniqueness
+        if ref_number:
+            return f"UPI Transfer #{ref_number[-6:]}"
         return "UPI Transfer"
-    
-    # IMPS format: IMPS-ref-Name-Bank-Account-Purpose
-    if desc.startswith('IMPS-'):
-        parts = desc.split('-')
-        if len(parts) >= 3:
-            name = parts[2]
-            if name and any(c.isalpha() for c in name):
-                return f"IMPS - {name.title()}"
+
+    # ── REV-UPI (UPI reversal) ───────────────────────────────────────────
+    if desc.startswith('REV-UPI') or desc.startswith('REV-'):
+        payee_match = re.search(r'([A-Za-z][A-Za-z\s]+?)(?:\d{5,}|@|-\d)', desc[4:])
+        if payee_match:
+            return f"UPI Reversal - {payee_match.group(1).strip().title()}"
+        return "UPI Reversal"
+
+    # ── FT (Fund Transfer / NEFT / RTGS) ─────────────────────────────────
+    if desc.startswith('FT-') or desc.startswith('FT '):
+        # Look for company/person name in continuation
+        alpha_parts = re.findall(r'[A-Z][A-Za-z]{3,}(?:\s+[A-Z][A-Za-z]+)*', desc)
+        if alpha_parts:
+            name = alpha_parts[-1] if len(alpha_parts) > 1 else alpha_parts[0]
+            return f"Transfer - {name.title()}"
+        return "Fund Transfer"
+
+    # ── IMPS ─────────────────────────────────────────────────────────────
+    if desc.startswith('IMPS-') or desc.startswith('IMPS/'):
+        parts = re.split(r'[\-/]', desc)
+        for part in parts[1:]:
+            part = part.strip()
+            if len(part) > 3 and any(c.isalpha() for c in part) and not part.isdigit():
+                return f"IMPS - {part.title()}"
         return "IMPS Transfer"
-    
-    # NEFT format: NEFTDR-Bank-Name-NETBANK...
-    if desc.startswith('NEFTDR') or desc.startswith('NEFT-'):
-        parts = desc.split('-')
+
+    # ── NEFT ─────────────────────────────────────────────────────────────
+    if 'NEFT' in desc.upper():
+        parts = re.split(r'[\-/]', desc)
         for part in parts:
-            # Look for person/company name (alphanumeric, not a bank code)
-            if len(part) > 3 and part.isalpha():
+            part = part.strip()
+            if len(part) > 3 and part.replace(' ', '').isalpha():
                 return f"NEFT - {part.title()}"
         return "NEFT Transfer"
-    
-    # EMI payment
-    if desc.startswith('EMI'):
+
+    # ── EMI ──────────────────────────────────────────────────────────────
+    if desc.startswith('EMI') or 'EMI' in desc.upper():
         return "EMI Payment"
-    
-    # ACH debit
-    if desc.startswith('ACHD-') or desc.startswith('ACH-'):
-        parts = desc.split('-')
+
+    # ── ACH debit ────────────────────────────────────────────────────────
+    if desc.startswith('ACHD-') or desc.startswith('ACH-') or 'ACH D' in desc.upper():
+        parts = re.split(r'[\-/]', desc)
         if len(parts) >= 2:
-            company = parts[1]
-            return f"Auto-debit - {company.title()}"
+            company = parts[1].strip()
+            if company:
+                return f"Auto-debit - {company.title()}"
         return "Auto-debit"
-    
-    # Bill payment
-    if 'BILLPAY' in desc:
+
+    # ── Bill payment ─────────────────────────────────────────────────────
+    if 'BILLPAY' in desc.upper() or 'BIL/' in desc:
         if 'HDFCPE' in desc:
             return "HDFC CC Payment"
-        if 'SBICARDS' in desc:
+        if 'SBICARDS' in desc.upper():
             return "SBI Card Payment"
-        if 'KOTAK' in desc:
-            return "Kotak Card Payment"
         return "Bill Payment"
-    
-    # POS transaction (card swipe)
-    if desc.startswith('POS') or 'POSDEBIT' in desc:
-        # Try to extract merchant name
+
+    # ── POS / Card swipe ─────────────────────────────────────────────────
+    if desc.startswith('POS') or 'POSDEBIT' in desc.upper():
         parts = desc.split('XXXXXX')
         if len(parts) > 1:
             merchant = parts[-1].replace('POSDEBIT', '').strip()
             if merchant:
                 return f"Card - {merchant.title()}"
         return "Card Purchase"
-    
-    # Interest credit
+
+    # ── NWD (ATM / cash withdrawal) ──────────────────────────────────────
+    if desc.startswith('NWD') or desc.startswith('AWD'):
+        return "ATM Withdrawal"
+
+    # ── Interest / Cash / ATM ────────────────────────────────────────────
     if 'INTEREST' in desc.upper() or 'CREDITINTEREST' in desc:
         return "Interest Credit"
-    
-    # Cash deposit
     if 'CASHDEP' in desc or 'CASH DEP' in desc:
         return "Cash Deposit"
-    
-    # ATM
     if 'ATM' in desc.upper():
-        if 'DEP' in desc.upper():
-            return "ATM Deposit"
-        return "ATM Withdrawal"
-    
-    # Return first 50 chars
-    return desc[:50] if len(desc) > 50 else desc
+        return "ATM Deposit" if 'DEP' in desc.upper() else "ATM Withdrawal"
+
+    # ── Salary credit ────────────────────────────────────────────────────
+    if any(kw in lower_desc for kw in ['salary', 'payroll']):
+        return "Salary Credit"
+
+    # ── Fallback: preserve raw desc (trimmed) ────────────────────────────
+    return desc[:60] if len(desc) > 60 else desc
 
 
 def clean_pnb_description(raw_desc: str) -> str:
@@ -1778,123 +1836,160 @@ def parse_hdfc_pdf(pdf, all_text: str) -> list:
     Parse HDFC Bank PDF statement using text extraction.
     HDFC format: Date | Narration | Chq./Ref.No. | ValueDt | WithdrawalAmt. | DepositAmt. | ClosingBalance
     
-    HDFC's PDF table extraction is unreliable (concatenates rows), so we use text parsing.
-    We determine debit/credit by tracking balance changes.
+    Multi-line narrations: HDFC wraps long narrations across 2-3 lines.
+    We collect continuation lines and join them with the transaction line.
     """
     transactions = []
     prev_balance = None
-    
+
+    # Collect all lines across all pages, tagging with page boundaries
+    all_lines = []
     for page in pdf.pages:
         text = page.extract_text()
         if not text:
             continue
-        
-        lines = text.split('\n')
-        
-        for line in lines:
-            line = line.strip()
-            
-            # Skip non-transaction lines
-            if not line or not re.match(r'^\d{2}/\d{2}/\d{2}', line):
-                continue
-            
-            # Extract date (first 8 chars)
-            date_str = line[:8]
-            date = parse_date(date_str)
-            if not date:
-                continue
-            
-            # Find amounts at the end of line
-            # Pattern: ValueDate Amount(s) Balance
-            # Balance is always the last number, transaction amount is before it
-            
-            amount_pattern = re.compile(r'([\d,]+\.\d{2})')
-            amounts = amount_pattern.findall(line)
-            
-            if len(amounts) < 2:
-                continue
-            
-            # Last amount is balance
-            balance = parse_amount(amounts[-1])
-            
-            # Transaction amount is second-to-last (or we may have withdrawal AND deposit)
-            if len(amounts) >= 3:
-                # Could be: withdrawal, deposit, balance OR amount, balance
-                # Check the structure
-                amt1 = parse_amount(amounts[-3]) if len(amounts) >= 3 else 0
-                amt2 = parse_amount(amounts[-2])
-                
-                # If amt1 and amt2 are both meaningful, one is withdrawal and one is deposit
-                # Usually one is 0 or very small
-                if amt1 > 0 and amt2 > 0:
-                    # Both non-zero - likely one is the transaction, one is balance
-                    # Use balance change to determine
-                    if prev_balance is not None:
-                        change = balance - prev_balance
-                        if abs(change) > 0:
-                            amount = abs(change)
-                            if change > 0:
-                                bank_credit = amount
-                                bank_debit = 0
-                            else:
-                                bank_debit = amount
-                                bank_credit = 0
-                        else:
-                            bank_debit = amt2
-                            bank_credit = 0
-                    else:
-                        bank_debit = amt2
-                        bank_credit = 0
-                else:
-                    # One is zero
-                    if amt1 > 0:
-                        bank_debit = amt1
-                        bank_credit = 0
-                    else:
-                        bank_debit = amt2
-                        bank_credit = 0
-            else:
-                # Only 2 amounts: transaction and balance
-                amount = parse_amount(amounts[-2])
-                
-                # Use balance change to determine debit/credit
+        for line in text.split('\n'):
+            stripped = line.strip()
+            if stripped:
+                all_lines.append(stripped)
+
+    # Skip header/footer noise patterns
+    _SKIP = re.compile(
+        r'^(PageNo|Statement|Date\s+Narration|From\s*:|To\s*:|Account|HDFC\s+BANK|'
+        r'Opening\s+Balance|Closing\s+Balance|\*\*\*|JOINT|Nomination|'
+        r'This is a computer|Contents of this|The details|Generated|'
+        r'Customer|RTGS|MICR|Branch|Email|City|State|Currency|'
+        r'ODLimit|A/C\s*Open|AccountNo|AccountStatus|AccountType|'
+        r'CustID|PhoneNo|Address)', re.IGNORECASE)
+
+    DATE_RE = re.compile(r'^\d{2}/\d{2}/\d{2,4}\s')
+    AMOUNT_RE = re.compile(r'([\d,]+\.\d{2})')
+
+    # First pass: group lines into transactions (date line + continuation lines)
+    txn_groups = []
+    i = 0
+    while i < len(all_lines):
+        line = all_lines[i]
+
+        if DATE_RE.match(line) and not _SKIP.match(line):
+            group = [line]
+            j = i + 1
+            # Collect continuation lines (non-date, non-header)
+            while j < len(all_lines):
+                next_line = all_lines[j]
+                if DATE_RE.match(next_line):
+                    break
+                if _SKIP.match(next_line):
+                    j += 1
+                    continue
+                # A continuation line shouldn't contain amounts in the HDFC balance pattern
+                # unless it's very short (part of narration)
+                amounts_in_next = AMOUNT_RE.findall(next_line)
+                # If next line is purely amounts/numbers (like a wrapped balance), skip
+                cleaned_next = AMOUNT_RE.sub('', next_line).strip()
+                if not cleaned_next and amounts_in_next:
+                    j += 1
+                    continue
+                group.append(next_line)
+                j += 1
+            txn_groups.append(group)
+            i = j
+        else:
+            i += 1
+
+    # Second pass: parse each transaction group
+    for group in txn_groups:
+        first_line = group[0]
+        continuation = ' '.join(group[1:]) if len(group) > 1 else ''
+
+        # Extract date
+        date_str = first_line[:8]
+        date = parse_date(date_str)
+        if not date:
+            continue
+
+        # Extract amounts from the first line only
+        amounts = AMOUNT_RE.findall(first_line)
+        if len(amounts) < 2:
+            continue
+
+        # Last amount is closing balance
+        balance = parse_amount(amounts[-1])
+
+        # Extract reference number (long digit sequence, typically 10-20 digits)
+        ref_matches = re.findall(r'\b(\d{10,20})\b', first_line)
+        ref_number = ref_matches[0] if ref_matches else ''
+
+        # Determine debit/credit by balance change
+        bank_debit = 0.0
+        bank_credit = 0.0
+
+        if len(amounts) >= 3:
+            amt1 = parse_amount(amounts[-3])
+            amt2 = parse_amount(amounts[-2])
+
+            if amt1 > 0 and amt2 > 0:
                 if prev_balance is not None:
                     change = balance - prev_balance
-                    if change > 0:
-                        bank_credit = amount
-                        bank_debit = 0
+                    if abs(change) > 0.005:
+                        if change > 0:
+                            bank_credit = abs(change)
+                        else:
+                            bank_debit = abs(change)
                     else:
-                        bank_debit = amount
-                        bank_credit = 0
+                        bank_debit = amt2
                 else:
-                    # No previous balance - use description hints
-                    rest = line[9:].strip()
-                    if any(kw in rest.upper() for kw in ['DEP', 'CREDIT', 'INTEREST', 'CASHDEP']):
-                        bank_credit = amount
-                        bank_debit = 0
-                    else:
-                        bank_debit = amount
-                        bank_credit = 0
-            
-            # Extract description (between date and value date)
-            rest = line[9:].strip()
-            # Find the value date position
-            value_date_match = re.search(r'\d{2}/\d{2}/\d{2}', rest)
-            if value_date_match:
-                description = rest[:value_date_match.start()].strip()
+                    bank_debit = amt2
+            elif amt1 > 0:
+                bank_debit = amt1
             else:
-                description = rest[:50]
-            
-            if bank_debit > 0 or bank_credit > 0:
-                transactions.append({
-                    'date': date,
-                    'description': clean_hdfc_description(description),
-                    'bank_debit': bank_debit,
-                    'bank_credit': bank_credit,
-                })
-            
-            prev_balance = balance
-    
+                bank_debit = amt2
+        else:
+            amount = parse_amount(amounts[-2])
+            if prev_balance is not None:
+                change = balance - prev_balance
+                if change > 0:
+                    bank_credit = amount
+                else:
+                    bank_debit = amount
+            else:
+                desc_upper = (first_line + ' ' + continuation).upper()
+                if any(kw in desc_upper for kw in ['DEP', 'CREDIT', 'INTEREST', 'CASHDEP', 'REV-']):
+                    bank_credit = amount
+                else:
+                    bank_debit = amount
+
+        # Extract description: between date and value date on first line + continuation
+        rest = first_line[9:].strip()
+        value_date_match = re.search(r'\d{2}/\d{2}/\d{2}', rest)
+        if value_date_match:
+            desc_from_line = rest[:value_date_match.start()].strip()
+        else:
+            desc_from_line = rest[:60]
+
+        # Remove the ref number from description (it's noise for readability)
+        if ref_number and ref_number in desc_from_line:
+            desc_from_line = desc_from_line.replace(ref_number, '').strip()
+
+        # Build full narration by joining with continuation
+        full_narration = desc_from_line
+        if continuation:
+            full_narration = desc_from_line + ' ' + continuation
+        # Clean up extra spaces
+        full_narration = re.sub(r'\s+', ' ', full_narration).strip()
+
+        if bank_debit > 0 or bank_credit > 0:
+            transactions.append({
+                'date': date,
+                'description': clean_hdfc_description(full_narration, ref_number),
+                'raw_description': full_narration[:120],
+                'ref_number': ref_number,
+                'bank_debit': bank_debit,
+                'bank_credit': bank_credit,
+            })
+
+        prev_balance = balance
+
     return transactions
 
 

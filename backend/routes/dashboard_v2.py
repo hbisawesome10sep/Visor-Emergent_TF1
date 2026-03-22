@@ -368,6 +368,36 @@ async def get_investment_summary(user=Depends(get_current_user)):
     else:
         xirr_val = None
 
+    # Build category breakdown for asset allocation
+    category_allocation = {}
+    for h in holdings:
+        cat = h.get("category", "Other")
+        invested = h.get("invested_value", 0) or (h["quantity"] * h["buy_price"])
+        stored_current = h.get("current_value", 0)
+        if h.get("ticker") and h["ticker"] in prices and prices[h["ticker"]]["price"] > 0:
+            current = h["quantity"] * prices[h["ticker"]]["price"]
+        elif stored_current > 0:
+            current = stored_current
+        else:
+            current = invested
+        if cat not in category_allocation:
+            category_allocation[cat] = {"invested": 0, "current": 0, "count": 0}
+        category_allocation[cat]["invested"] += invested
+        category_allocation[cat]["current"] += current
+        category_allocation[cat]["count"] += 1
+
+    allocation = []
+    for cat, data in category_allocation.items():
+        pct = (data["current"] / total_current * 100) if total_current > 0 else 0
+        allocation.append({
+            "category": cat,
+            "invested": round(data["invested"], 2),
+            "current_value": round(data["current"], 2),
+            "percentage": round(pct, 1),
+            "count": data["count"],
+        })
+    allocation.sort(key=lambda x: -x["percentage"])
+
     return {
         "total_invested": round(total_invested, 2),
         "current_value": round(total_current, 2),
@@ -375,7 +405,79 @@ async def get_investment_summary(user=Depends(get_current_user)):
         "absolute_return_pct": round(abs_return_pct, 2),
         "xirr": xirr_val,
         "holdings_count": len(holdings),
+        "allocation": allocation,
     }
+
+
+# ─── Investment AI Insight (cached daily) ──────────────────────
+_inv_insight_cache: dict[str, dict] = {}
+
+@router.get("/dashboard/investment-insight")
+async def get_investment_insight(user=Depends(get_current_user)):
+    user_id = user["id"]
+    now = datetime.now(timezone.utc)
+
+    # Check cache (24h)
+    cached = _inv_insight_cache.get(user_id)
+    if cached:
+        cached_at = datetime.fromisoformat(cached["generated_at"])
+        if (now - cached_at).total_seconds() < 86400:
+            return cached
+
+    holdings = []
+    async for doc in db.holdings.find({"user_id": user_id}, {"_id": 0}):
+        holdings.append(doc)
+
+    if not holdings:
+        result = {"insight": "Start investing to get personalized insights!", "generated_at": now.isoformat()}
+        return result
+
+    total_inv = sum(h.get("invested_value", 0) for h in holdings)
+    total_cur = sum(h.get("current_value", 0) or h.get("invested_value", 0) for h in holdings)
+    gain = total_cur - total_inv
+    gain_pct = (gain / total_inv * 100) if total_inv > 0 else 0
+
+    # Category summary
+    cats = {}
+    for h in holdings:
+        cat = h.get("category", "Other")
+        cats[cat] = cats.get(cat, 0) + (h.get("current_value", 0) or h.get("invested_value", 0))
+    cat_summary = ", ".join(f"{c}: Rs {v:,.0f}" for c, v in sorted(cats.items(), key=lambda x: -x[1]))
+
+    # Top gainer/loser
+    top_gainer = max(holdings, key=lambda h: h.get("gain_loss_pct", 0), default=None)
+    top_loser = min(holdings, key=lambda h: h.get("gain_loss_pct", 0), default=None)
+
+    context = (
+        f"Portfolio: Rs {total_inv:,.0f} invested, Rs {total_cur:,.0f} current ({gain_pct:+.1f}%)\n"
+        f"Allocation: {cat_summary}\n"
+        f"Holdings: {len(holdings)}\n"
+        f"Top gainer: {top_gainer['name'][:20]} ({top_gainer.get('gain_loss_pct', 0):+.1f}%)\n" if top_gainer else ""
+        f"Top loser: {top_loser['name'][:20]} ({top_loser.get('gain_loss_pct', 0):+.1f}%)\n" if top_loser else ""
+    )
+
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=os.environ.get("EMERGENT_LLM_KEY", ""),
+            session_id=f"visor-inv-insight-{user_id}-{now.strftime('%Y%m%d')}",
+            system_message="You are Visor, a sharp Indian investment advisor. Generate exactly 2 sentences: one observation about their portfolio, one actionable tip. Be specific, reference their numbers. Keep it under 30 words total. No greetings.",
+        ).with_model("openai", "gpt-4o")
+
+        insight_text = await chat.send_message(UserMessage(text=context))
+        insight_text = insight_text.strip()
+    except Exception as e:
+        logger.warning(f"Investment insight AI failed: {e}")
+        if gain_pct > 5:
+            insight_text = f"Portfolio up {gain_pct:.1f}% — solid! Consider booking partial profits on your top gainer to lock in gains."
+        elif gain_pct < -5:
+            insight_text = f"Portfolio down {gain_pct:.1f}%. Stay patient — averaging down on fundamentally strong picks can lower your cost basis."
+        else:
+            insight_text = f"Portfolio near breakeven ({gain_pct:+.1f}%). Diversify across MFs, stocks & gold for better risk-adjusted returns."
+
+    result = {"insight": insight_text, "generated_at": now.isoformat()}
+    _inv_insight_cache[user_id] = result
+    return result
 
 
 # ─── Upcoming Dues (CC + Loans) ────────────────────────────────

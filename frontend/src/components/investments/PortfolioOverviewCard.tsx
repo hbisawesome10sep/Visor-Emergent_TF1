@@ -47,14 +47,14 @@ export const PortfolioOverviewCard: React.FC<PortfolioOverviewCardProps> = ({
       <View style={styles.summaryRow}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.smallLabel, { color: colors.textSecondary }]}>Invested</Text>
-          <Text data-testid="portfolio-invested-value" style={[styles.mainNum, { color: colors.textPrimary }]}>
+          <Text data-testid="portfolio-invested-value" style={[styles.mainNum, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
             {formatINR(portfolio.total_invested)}
           </Text>
         </View>
         <View style={[styles.divider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]} />
         <View style={{ flex: 1, alignItems: 'flex-end' as any }}>
           <Text style={[styles.smallLabel, { color: colors.textSecondary }]}>Current Value</Text>
-          <Text data-testid="portfolio-current-value" style={[styles.mainNum, { color: colors.textPrimary }]}>
+          <Text data-testid="portfolio-current-value" style={[styles.mainNum, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
             {formatINR(portfolio.total_current_value)}
           </Text>
         </View>

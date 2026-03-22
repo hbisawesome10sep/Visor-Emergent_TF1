@@ -117,13 +117,27 @@ async def upload_bank_statement(
                 skipped += 1
                 continue
 
-            # Check for duplicate
-            existing = await db.transactions.find_one({
-                "user_id": user["id"],
-                "date": raw["date"],
-                "amount": amount,
-                "description": {"$regex": re.escape(raw["description"][:30]), "$options": "i"},
-            })
+            # Duplicate detection: prefer ref_number (unique per bank txn)
+            ref_number = raw.get("ref_number", "")
+            existing = None
+
+            if ref_number and len(ref_number) >= 10:
+                # Reference numbers 10+ digits are highly unique per bank
+                existing = await db.transactions.find_one({
+                    "user_id": user["id"],
+                    "ref_number": ref_number,
+                    "amount": amount,
+                })
+            
+            if not existing:
+                # Fallback: match on date + amount + exact description
+                existing = await db.transactions.find_one({
+                    "user_id": user["id"],
+                    "date": raw["date"],
+                    "amount": amount,
+                    "description": raw["description"],
+                })
+
             if existing:
                 skipped += 1
                 continue
@@ -138,6 +152,8 @@ async def upload_bank_statement(
                 "amount": amount,
                 "category": category,
                 "description": raw["description"],
+                "raw_description": raw.get("raw_description", ""),
+                "ref_number": ref_number,
                 "date": raw["date"],
                 "is_recurring": False,
                 "recurring_frequency": None,

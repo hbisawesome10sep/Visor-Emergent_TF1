@@ -26,6 +26,11 @@ async def get_dashboard_stats(
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(100)
     credit_cards = await db.credit_cards.find({"user_id": user_id, "is_active": True}, {"_id": 0}).to_list(20)
 
+    # Also fetch holdings for portfolio invested total (aligns Investment card values)
+    holdings = await db.holdings.find({"user_id": user_id}, {"_id": 0, "invested_value": 1, "current_value": 1, "quantity": 1, "buy_price": 1}).to_list(500)
+    portfolio_invested = sum(h.get("invested_value", 0) or (h.get("quantity", 0) * h.get("buy_price", 0)) for h in holdings)
+    portfolio_current = sum(h.get("current_value", 0) or h.get("invested_value", 0) for h in holdings)
+
     total_income = sum(t["amount"] for t in txns if t["type"] == "income")
     total_expenses = sum(t["amount"] for t in txns if t["type"] == "expense")
     total_investments = sum(t["amount"] for t in txns if t["type"] == "investment")
@@ -204,6 +209,8 @@ async def get_dashboard_stats(
         "total_income": total_income,
         "total_expenses": total_expenses,
         "total_investments": total_investments,
+        "portfolio_invested": portfolio_invested,
+        "portfolio_current": portfolio_current,
         "net_balance": net_balance,
         "savings": savings,
         "savings_rate": round(savings_rate, 1),
