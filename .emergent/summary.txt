@@ -1,41 +1,34 @@
-<analysis>**original_problem_statement**: The user is building a comprehensive Indian personal finance app tracking investments, transactions, and goals. Recent requests focused on drastically improving backend parsing logic, duplicate detection, and transaction categorization for multiple bank statements (HDFC, ICICI, SBI, Union, Axis, PNB, and Canara) to ensure accurate payee extraction over generic UPI Transfer or payment gateway names.
+<analysis>**original_problem_statement**: 
+The user is building Visor Finance, a comprehensive Indian personal finance app tracking investments, transactions, and goals. Recent requests focused on drastically improving backend parsing logic, duplicate detection, and transaction categorization for Canara, Bank of Baroda (BoB), and Kotak bank statements. Most recently, the user requested two new features: a Clear All Transactions capability under Settings to completely wipe user data (transactions, credit card txns, bank accounts) for clean re-uploads, and an AI-powered Benefits tab under Credit Cards that automatically fetches and lists card-specific rewards (like lounge access or fuel waivers) utilizing an LLM.
 
-**PRODUCT REQUIREMENTS**:
-- App must parse bank statements accurately across multiple formats.
-- App must extract actual payee names from UPI/NEFT descriptions, ignoring generic gateway tags (e.g., Paytm, Cred, Cashfree).
-- App must avoid false duplicates.
-- App must correctly categorize transactions based on refined merchant names and description continuations (e.g., detecting multi-line Salary remarks).
+PRODUCT REQUIREMENTS:
+- App must parse bank statements accurately across Canara, BoB, and Kotak formats.
+- Data Management: Clear all transactions button with a confirmation dialogue to wipe all banking/CC transactions and associated bank accounts.
+- Credit Cards Benefits: Fetch and display AI-generated credit card rewards/benefits under a dedicated tab with a disclaimer stating the information is AI-generated.
 
 **User's preferred language**: English
 
 **what currently exists?** 
-A full-stack financial tracking application (React Native Expo + FastAPI + MongoDB). Features a comprehensive dashboard, transaction list, and AI-driven insights. The backend has highly refined PDF statement parsers for HDFC, ICICI, SBI, Union, Axis, and PNB banks, utilizing both table-extraction and interleaved text-extraction strategies optimized for precise payee extraction and categorization.
+A full-stack financial tracking application (React Native Expo + FastAPI + MongoDB). The backend has highly refined PDF statement parsers for 9+ Indian banks, utilizing table-extraction, text-extraction, and balance-delta strategies for precise payee and debit/credit extraction. The frontend features a comprehensive dashboard, a Data Management section for clearing transactions, and an AI-powered Credit Card Benefits section using GPT-5.2.
 
-**Last working item**:
-    - Last item agent was working: Refining the Canara Bank PDF statement parser ( and  in ). The user uploaded a sample statement, and the agent had just analyzed the table structure but ran out of context before implementing or testing the description cleaning logic.
-    - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? manual testing by python -c / execute_bash (Backend parsing logic testing against the uploaded sample located at ).
+**Last working item**: 
+    - Last item agent was working: Implemented the Clear All Transactions API/UI and the Credit Card Benefits AI integration. Finished testing both features.
+    - Status: NONE (Completed and verified via testing agent)
+    - Agent Testing Done: Y
+    - Which testing method agent to use? NA (Testing is already done via )
     - User Testing Done: N
 
 **All Pending/In progress Issue list**: 
-
-  Issue 1: Improve Canara Bank statement parsing (P0)
-     - Attempted fixes: None yet. The agent only extracted text to verify the table structure exists.
-     - Next debug checklist: Check  and  in . Write a python script via bash to test current parser output against . Refine string matching to extract proper payee names from descriptions (e.g., extracting from ). Test the E2E upload flow.
-     - Why fix this issue and what will be achieved with the fix? To accurately categorize transactions and prevent generic/ugly descriptions for Canara Bank users, continuing the pattern established for the other banks in this session.
-     - Status: IN PROGRESS
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? backend (via bash python script)
+None.
 
 **In progress Task List**: 
-None. (The only ongoing task is tracked under Issue 1).
+None. 
 
 **Upcoming and Future Tasks**
   Upcoming Tasks:
+  - (P0) Refactor : This file has grown to >3000 lines. It desperately needs modularization into a  directory with individual files per bank.
   - (P1) Streaming TTS on the frontend for faster perceived voice response.
   - (P1) Refactor  and  files (both are massive, ~2000 lines).
-  - (P1) Refactor  (has grown >2700 lines, desperately needs modularization per bank into a new folder structure).
   
   Future Tasks:
   - (P2) Advanced Tax Module (Phase 4).
@@ -44,28 +37,8 @@ None. (The only ongoing task is tracked under Issue 1).
   - (P3) Voice Cloning with ElevenLabs for a custom Visor persona.
 
 **Completed work in this session**
-- Generated auto-refreshing Expo Go QR code page for the user via  (DONE).
-- **HDFC Parser**: Fixed via Cred matching, fixed Sodexo/Paytm mislabeling, stopped footer text leaking into descriptions, and added hospitality exception to Health categorization in  (DONE).
-- **ICICI Parser**: Completely rewrote  to handle interleaved text blocks ( description line followed by  line) and improved  (DONE).
-- **SBI Parser**: Rewrote  to prevent truncation and extract accurate payees (DONE).
-- **Union Bank Parser**: Rewrote  and added a text-enrichment step in  to capture multi-line continuations like  (DONE).
-- **Axis Bank Parser**: Rewrote  to handle F07 Cred, Card Charges, and bypass payment gateway prefixes like Paytm/Cashfree (DONE).
-- **PNB Parser**: Rewrote  to fix NEFT company name indices and clean RTGS/cheque descriptions (DONE).
-
-**Earlier issues found/mentioned but not fixed**
-None.
-
-**Known issue recurrence from previous fork**
-  - Issue recurrence in previous fork: **Expo Go / Metro Bundler Caching**.
-  - Recurrence count: 4
-  - Status: RESOLVED (Mitigated via strict user instructions)
-  - Note: Metro is running in CI mode. Code changes *will not* reflect on the user's phone via hot-reload. The next agent MUST instruct the user to **force-quit the Expo Go app completely from their app switcher** before scanning the QR code if frontend UI updates are made.
-
-**Code Architecture**
-
-
-**Key Technical Concepts**
-- **PDF Parsing Strategies**: The backend uses two distinct strategies depending on the bank: usage: pdfplumber [-h] [--structure | --structure-text]
+- Canara Bank Parser: Rewrote  handling RTGS, NEFT, IMPS, cheque returns, and fixed bank detection rules (DONE).
+- Bank of Baroda Parser: Rewrote  utilizing usage: pdfplumber [-h] [--structure | --structure-text]
                   [--format {csv,json,text}] [--types TYPES [TYPES ...]]
                   [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
                   [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
@@ -93,65 +66,150 @@ options:
   --laparams LAPARAMS
   --precision PRECISION
   --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing. Table extraction (SBI, PNB, Canara) and pure Text extraction with regex/line-parsing (HDFC, ICICI, Union).
-- **Categorization Heuristics**:  in  relies heavily on . The parsers are intentionally designed to strip out generic gateways (Paytm, Cred, Cashfree) to expose the *actual* payee name extracted from the UPI string for accurate categorization.
+  --indent INDENT       Indent level for JSON pretty-printing. TABLE extraction for ground-truth debit/credit columns, fixing wrong transaction types (DONE).
+- Kotak Bank Parser: Rewrote  to use a balance-delta approach and word-position-based column extraction due to unreliable Dr/Cr tags in text extraction (DONE).
+- Clear All Transactions Feature: Created  wiping DB tables, and added a Data Management section in Settings > Banking Tab (DONE).
+- Credit Card Benefits Feature: Created  pulling data via Emergent LLM key (GPT-5.2), and built  for the frontend (DONE).
+
+**Earlier issues found/mentioned but not fixed**
+None.
+
+**Known issue recurrence from previous fork**
+  - Issue recurrence in previous fork: Expo Go / Metro Bundler Caching
+  - Recurrence count: 4
+  - Status: RESOLVED (Mitigated via strict user instructions to force-quit Expo)
+  - Note: Code changes *will not* reflect on the user's phone via hot-reload. The user must force-quit the Expo Go app.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+- **PDF Parsing Strategies**: Three distinct strategies are utilized depending on bank: usage: pdfplumber [-h] [--structure | --structure-text]
+                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
+                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
+                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
+                  [--laparams LAPARAMS] [--precision PRECISION]
+                  [--pages PAGES [PAGES ...]] [--indent INDENT]
+                  [infile]
+
+positional arguments:
+  infile
+
+options:
+  -h, --help            show this help message and exit
+  --structure           Write the structure tree as JSON. All other arguments
+                        except --pages, --laparams, and --indent will be
+                        ignored
+  --structure-text      Write the structure tree as JSON including text
+                        contents. All other arguments except --pages,
+                        --laparams, and --indent will be ignored
+  --format {csv,json,text}
+  --types TYPES [TYPES ...]
+  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
+                        Include *only* these object attributes in output.
+  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
+                        Exclude these object attributes from output.
+  --laparams LAPARAMS
+  --precision PRECISION
+  --pages PAGES [PAGES ...]
+  --indent INDENT       Indent level for JSON pretty-printing. Table extraction (BoB, SBI, PNB), purely Text extraction (HDFC, ICICI, Union), and Balance-Delta calculations ignoring explicit Dr/Cr labels (Kotak).
+- **LLM Integration**: Used  with the Emergent LLM Key (usage: openai [-h] [-v] [-b API_BASE] [-k API_KEY] [-p PROXY [PROXY ...]]
+              [-o ORGANIZATION] [-t {openai,azure}]
+              [--api-version API_VERSION] [--azure-endpoint AZURE_ENDPOINT]
+              [--azure-ad-token AZURE_AD_TOKEN] [-V]
+              {api,tools,migrate,grit} ...
+
+positional arguments:
+  {api,tools,migrate,grit}
+    api                 Direct API calls
+    tools               Client side tools for convenience
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         Set verbosity.
+  -b API_BASE, --api-base API_BASE
+                        What API base url to use.
+  -k API_KEY, --api-key API_KEY
+                        What API key to use.
+  -p PROXY [PROXY ...], --proxy PROXY [PROXY ...]
+                        What proxy to use.
+  -o ORGANIZATION, --organization ORGANIZATION
+                        Which organization to run as (will use your default
+                        organization if not specified)
+  -t {openai,azure}, --api-type {openai,azure}
+                        The backend API to call, must be `openai` or `azure`
+  --api-version API_VERSION
+                        The Azure API version, e.g.
+                        'https://learn.microsoft.com/en-us/azure/ai-
+                        services/openai/reference#rest-api-versioning'
+  --azure-endpoint AZURE_ENDPOINT
+                        The Azure endpoint, e.g.
+                        'https://endpoint.openai.azure.com'
+  --azure-ad-token AZURE_AD_TOKEN
+                        A token from Azure Active Directory,
+                        https://www.microsoft.com/en-
+                        us/security/business/identity-access/microsoft-entra-
+                        id
+  -V, --version         show program's version number and exit, ) for scraping and generating credit card benefits dynamically. The LlmChat class requires a  string during initialization.
 
 **key DB schema**
-  - : , Sun Mar 22 05:53:30 UTC 2026, , , , . (Descriptions are now significantly cleaner and more accurate).
+  - : Core banking transactions
+  - : Distinct from bank transactions
+  - : Linked accounts
+  - : Holds user card details
+  - : Prevents duplicate uploads
 
 **changes in tech stack**
   - None.
 
 **All files of reference** 
-  - : Heavily edited to refine  and  for HDFC, ICICI, SBI, Union, Axis, and PNB. Needs to be edited for Canara.
-  - : Updated  logic, fixed hospital vs hospitality clashing, and improved merchant mapping rules.
-  - : Used for E2E backend testing of the upload flow to verify parsed transactions insert correctly.
+  - : Heavily edited for Canara, BoB, and Kotak. Desperately needs refactoring.
+  - : Added  utilizing .
+  -  & : Added the  route logic.
+  - : Added Data Management view.
+  - : Wired up the Benefits tab.
+  - : New file created for the UI.
 
 **Areas that need refactoring**:
--  is now over 2700 lines long and handles way too many banks in a single file. Highly recommended to split into a  directory with individual files per bank as a future technical debt task.
+-  is now over 3000 lines long. Highly recommended (P0) to split into a  directory with individual files per bank.
 
 **key api endpoints**
-- : Handles PDF processing, deduplication, and DB insertion.
-- : Serves auto-refreshing Expo QR html.
+- : Handles PDF processing.
+- : Deletes all transaction-related collections in MongoDB.
+- : Fetches AI-generated credit card benefits.
 
 **Critical Info for New Agent**
-- The user is currently on a testing spree, uploading sample bank statements to refine the parsing algorithms. The previous agent systematically wrote  functions and ran E2E tests via a bash python script testing  logic.
-- **Workflow Tip**: When testing parsers, use  with a python script that loads the uploaded file from  and passes it through the specific bank parser function to print results. Do not rely solely on the upload API without testing the raw parser output first.
-- The Canara bank sample is located at . 
+- When working with  from , ensure you pass the  argument in the initialization, as omitting it will cause a 500 error.
+- All testing for the new features was finalized successfully by the .
 
 **documents and test reports created in this job**
-  - None explicitly written.
+  - 
+  - 
 
 **Last 10 User Messages and any pending HUMAN messages** 
- 1. **User**: Uploaded Canara Bank statement. -> *[Pending Agent implementation]*
- 2. **User**: Uploaded PNB statement. -> Agent refined PNB description cleaner. (Completed)
- 3. **User**: Uploaded Axis Bank statement. -> Agent refined Axis description cleaner. (Completed)
- 4. **User**: Uploaded Union Bank statement. -> Agent refined Union description cleaner and added multi-line extraction. (Completed)
- 5. **User**: Asked if agent wants to do more banks. -> Agent enthusiastically agreed.
- 6. **User**: Uploaded SBI statement. -> Agent refined SBI description cleaner. (Completed)
- 7. **User**: Uploaded ICICI statement. -> Agent completely rewrote ICICI text extraction and description cleaner. (Completed)
- 8. **User**: Asked if agent wants ICICI and SBI next. -> Agent agreed.
- 9. **User**: Uploaded HDFC statement. -> Agent fixed major categorisation and extraction bugs for HDFC. (Completed)
- 10. **User**: Asked if agent wants sample statements for testing. -> Agent agreed.
+ 1. **User**: Uploaded Bank of Baroda statement. -> Agent rewrote BoB parser using table extraction. (Completed)
+ 2. **User**: Uploaded Kotak Bank statement. -> Agent rewrote Kotak parser using balance-delta logic. (Completed)
+ 3. **User**: Requested Clear All Transactions capability and an AI-powered Benefits tab for Credit Cards. -> Agent proposed a plan using the ask_human tool.
+ 4. **User**: Approved the plan, reminded to add an AI-generated disclaimer at the bottom of the Benefits tab. -> Agent implemented both features, tested thoroughly, and finished the task. (Completed)
 
 **Project Health Check:**
-Healthy. No broken routes.
+Healthy.
 
 **3rd Party Integrations** 
-  • OpenAI GPT-5.2 — uses Emergent LLM Key (Insights)
+  • OpenAI GPT-5.2 — uses Emergent LLM Key (Insights & Credit Card Benefits)
   • ElevenLabs (Voice) — uses Emergent LLM Key
   • yfinance (Stocks) — Open Source
   • mfapi.in (Mutual Funds) — Public API
   • Cloudflare (Tunnels) — Pre-configured in env
 
 **Testing status**
-  - Testing agent used after significant changes: NO (Testing was confined to rigorous manual Python scripts via  to validate backend regex, parsing arrays, and the E2E DB insertion flow against the uploaded test PDFs).
+  - Testing agent used after significant changes: YES (iteration_39.json created, 11/11 tests passed).
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: None
-  - Known regressions: None.
+  - Known regressions: None
 
 **Credentials to test flow:**
   - Demo:  / 
 
 **What agent forgot to execute**
-The agent ran out of context exactly after checking the table structure of the Canara Bank statement (the user's final upload). The next agent must start by refining  and testing it.</analysis>
+The agent successfully executed all user requests in this session without overlooking any features. The primary tech debt left behind is the 3000-line  file which should be addressed in upcoming tasks.</analysis>

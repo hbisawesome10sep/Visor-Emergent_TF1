@@ -16,7 +16,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://payee-master.preview.emergentagent.com")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://visor-finance-3.preview.emergentagent.com")
 
 # Test credentials
 TEST_EMAIL = "rajesh@visor.demo"

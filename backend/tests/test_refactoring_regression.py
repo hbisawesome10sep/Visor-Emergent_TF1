@@ -34,7 +34,7 @@ import base64
 import json
 
 # Use the public URL
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://payee-master.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://visor-finance-3.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "rajesh@visor.demo"
