@@ -63,6 +63,10 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
   - Backend: `/api/dashboard/stats` accepts `frequency` param. When `frequency=Year` (or date span >120 days), trend data groups by month (labels: Apr, May, …) instead of weekly
   - Custom date range picker `minimumDate` changed from `userCreatedAt` (was limiting to Feb 2026) to January 1, 2020, so users can pick dates back to 2020
   - Trend Analysis X-axis shows month labels (Apr, May, Jun, …) for full FY when Y is selected
+- [x] **Transaction Summary Double-Counting Bug Fix** (Mar 22, 2026):
+  - Root cause: Transactions API had `.to_list(500)` cap while Dashboard had `.to_list(1000)`. User with 982 transactions (711 HDFC + 271 SBI) saw correct totals on Dashboard but only half on Transactions screen
+  - Fix: Increased list limits to 5000 on both endpoints, AND added server-side `GET /api/transactions/summary` using MongoDB aggregation for accurate totals regardless of list size
+  - Frontend transactions screen now uses server-side summary for the Income/Expenses/Net bar
 
 ---
 
@@ -144,6 +148,7 @@ Visor is an AI-powered Indian personal finance app (React Native Expo + FastAPI 
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
+| `/api/transactions/summary` | GET | Server-side aggregation for accurate income/expense/investment totals (no list-size truncation) |
 | `/api/dashboard/stats` | GET | Dashboard stats (accepts `frequency` param: Month/Quarter/Year/Custom; Year uses FY monthly grouping) |
 | `/api/dashboard/investment-summary` | GET | Investment summary with allocation breakdown |
 | `/api/dashboard/investment-insight` | GET | AI-generated investment insight (cached 24h) |

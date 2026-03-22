@@ -22,7 +22,7 @@ async def get_dashboard_stats(
         query["date"] = {"$gte": start_date, "$lte": end_date}
         cc_query["date"] = {"$gte": start_date, "$lte": end_date}
 
-    txns = await db.transactions.find(query, {"_id": 0}).to_list(1000)
+    txns = await db.transactions.find(query, {"_id": 0}).to_list(5000)
     cc_txns = await db.credit_card_transactions.find(cc_query, {"_id": 0}).to_list(500)
     goals = await db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(100)
     credit_cards = await db.credit_cards.find({"user_id": user_id, "is_active": True}, {"_id": 0}).to_list(20)

@@ -248,8 +248,14 @@ export default function TransactionsScreen() {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
   }, []);
 
-  // Summary for bank/UPI transactions
+  // Summary from server-side aggregation (accurate, no list-size truncation)
+  const [serverSummary, setServerSummary] = useState<{ income: number; expense: number; investment: number; payment: number; net: number; count: number } | null>(null);
+
   const summary = useMemo(() => {
+    if (txnSource === 'bank' && serverSummary) {
+      return { ...serverSummary, total: transactions.length };
+    }
+    // Fallback: client-side computation for CC transactions
     const txns = txnSource === 'bank' ? transactions : ccTransactions;
     const inc = txns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
     const exp = txns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -257,7 +263,7 @@ export default function TransactionsScreen() {
     const pay = txns.filter(t => t.type === 'payment').reduce((s, t) => s + t.amount, 0);
     const net = inc - exp - inv;
     return { income: inc, expense: exp, investment: inv, payment: pay, net, total: txns.length };
-  }, [transactions, ccTransactions, txnSource]);
+  }, [transactions, ccTransactions, txnSource, serverSummary]);
 
   const fetchTxns = useCallback(async () => {
     if (!token) return;
@@ -270,19 +276,27 @@ export default function TransactionsScreen() {
       if (periodDates.start) params.append('start_date', periodDates.start);
       if (periodDates.end) params.append('end_date', periodDates.end);
       const qs = params.toString() ? `?${params.toString()}` : '';
+
+      // Build summary params (date range only, no type/category filter for totals)
+      const summaryParams = new URLSearchParams();
+      if (periodDates.start) summaryParams.append('start_date', periodDates.start);
+      if (periodDates.end) summaryParams.append('end_date', periodDates.end);
+      const summaryQs = summaryParams.toString() ? `?${summaryParams.toString()}` : '';
       
-      // Fetch both bank transactions and credit card transactions in parallel
-      const [bankData, ccData, cardsData, flaggedData] = await Promise.all([
+      // Fetch transactions, CC transactions, and server-side summary in parallel
+      const [bankData, ccData, cardsData, flaggedData, summaryData] = await Promise.all([
         apiRequest(`/transactions${qs}`, { token }),
         apiRequest(`/credit-card-transactions${qs}`, { token }).catch(() => []),
         apiRequest('/credit-cards', { token }).catch(() => []),
         apiRequest('/flagged-transactions', { token }).catch(() => []),
+        apiRequest(`/transactions/summary${summaryQs}`, { token }).catch(() => null),
       ]);
       
       setTransactions(bankData);
       setCCTransactions(ccData);
       setCreditCards(cardsData);
       setFlaggedCount(flaggedData?.length || 0);
+      if (summaryData) setServerSummary(summaryData);
     } catch (e) { console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
   }, [token, activeType, activeCategory, searchQuery, periodDates]);

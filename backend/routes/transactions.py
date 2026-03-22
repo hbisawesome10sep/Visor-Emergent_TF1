@@ -41,8 +41,43 @@ async def get_transactions(
             date_filter["$lte"] = end_date
         query["date"] = date_filter
 
-    txns = await db.transactions.find(query, {"_id": 0}).sort("date", -1).to_list(500)
+    txns = await db.transactions.find(query, {"_id": 0}).sort("date", -1).to_list(5000)
     return txns
+
+
+@router.get("/transactions/summary")
+async def get_transactions_summary(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    user=Depends(get_current_user)
+):
+    """Server-side aggregation for accurate totals (no list-size truncation)."""
+    match_stage = {"user_id": user["id"]}
+    if start_date or end_date:
+        date_filter = {}
+        if start_date:
+            date_filter["$gte"] = start_date
+        if end_date:
+            date_filter["$lte"] = end_date
+        match_stage["date"] = date_filter
+
+    pipeline = [
+        {"$match": match_stage},
+        {"$group": {
+            "_id": "$type",
+            "total": {"$sum": "$amount"},
+            "count": {"$sum": 1},
+        }},
+    ]
+    results = await db.transactions.aggregate(pipeline).to_list(10)
+    summary = {"income": 0, "expense": 0, "investment": 0, "payment": 0, "count": 0}
+    for r in results:
+        t = r["_id"]
+        if t in summary:
+            summary[t] = round(r["total"], 2)
+        summary["count"] += r["count"]
+    summary["net"] = round(summary["income"] - summary["expense"] - summary["investment"], 2)
+    return summary
 
 
 @router.post("/transactions", response_model=TransactionResponse)
