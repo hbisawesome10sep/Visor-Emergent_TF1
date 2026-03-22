@@ -848,3 +848,127 @@ async def get_card_statement_summary(
         "category_breakdown": category_totals,
         "transactions": txns,
     }
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CREDIT CARD BENEFITS (AI-POWERED)
+# ══════════════════════════════════════════════════════════════════════════════
+
+import os
+import json
+
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+
+
+@router.get("/credit-cards/{card_id}/benefits")
+async def get_card_benefits(card_id: str, user=Depends(get_current_user)):
+    """Fetch AI-generated benefits for a specific credit card."""
+    card = await db.credit_cards.find_one(
+        {"id": card_id, "user_id": user["id"]}, {"_id": 0}
+    )
+    if not card:
+        raise HTTPException(404, "Credit card not found")
+
+    card_name = card.get("card_name", "")
+    issuer = card.get("issuer", "")
+    full_card_name = f"{issuer} {card_name}".strip()
+
+    # Check cache first
+    cached = await db.card_benefits_cache.find_one(
+        {"card_key": full_card_name.lower()}, {"_id": 0}
+    )
+    if cached and cached.get("benefits"):
+        return {
+            "card_name": full_card_name,
+            "benefits": cached["benefits"],
+            "cached": True,
+        }
+
+    # Generate via AI
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+    except ImportError:
+        raise HTTPException(500, "AI service not available")
+
+    prompt = f"""You are a credit card benefits expert for Indian credit cards. For the card "{full_card_name}", provide a JSON array of its key benefits and rewards.
+
+Each benefit should be an object with:
+- "category": one of ["Lounge Access", "Cashback", "Reward Points", "Fuel Benefits", "Travel Benefits", "Dining Benefits", "Shopping Benefits", "Insurance", "Milestone Benefits", "Fee Waiver", "Other"]
+- "title": short benefit title (max 60 chars)
+- "description": 1-2 sentence description with specific details (limits, percentages, conditions)
+- "icon": one of ["airplane", "gas-station", "food", "shopping", "cash", "star", "shield-check", "gift", "percent", "door-open", "ticket-percent", "credit-card-check"]
+
+Return ONLY a valid JSON array of 5-10 benefits. No markdown, no explanation. If you don't know this specific card, provide typical benefits for cards from {issuer} in a similar tier.
+Example format: [{{"category": "Lounge Access", "title": "2 Domestic Lounge Visits/Quarter", "description": "Complimentary access to 1300+ airport lounges in India via DreamFolks. 2 visits per quarter.", "icon": "door-open"}}]"""
+
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"benefits_{card_id}",
+            system_message="You are an expert on Indian credit card benefits and rewards programs. Always return valid JSON arrays."
+        )
+        chat.with_model("openai", "gpt-5.2")
+        response = await chat.send_message(UserMessage(text=prompt))
+
+        # Parse JSON from response
+        response_clean = response.strip()
+        if response_clean.startswith("```"):
+            response_clean = response_clean.split("\n", 1)[-1].rsplit("```", 1)[0]
+        benefits = json.loads(response_clean)
+
+        if not isinstance(benefits, list):
+            benefits = []
+
+        # Cache the result
+        await db.card_benefits_cache.update_one(
+            {"card_key": full_card_name.lower()},
+            {"$set": {
+                "card_key": full_card_name.lower(),
+                "card_name": full_card_name,
+                "benefits": benefits,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }},
+            upsert=True,
+        )
+
+        return {
+            "card_name": full_card_name,
+            "benefits": benefits,
+            "cached": False,
+        }
+
+    except json.JSONDecodeError:
+        logger.error(f"Failed to parse AI benefits response for {full_card_name}")
+        raise HTTPException(500, "Failed to parse card benefits data")
+    except Exception as e:
+        logger.error(f"Benefits AI error for {full_card_name}: {e}")
+        raise HTTPException(500, f"Could not fetch benefits: {str(e)}")
+
+
+@router.get("/credit-cards/all-benefits")
+async def get_all_card_benefits(user=Depends(get_current_user)):
+    """Fetch benefits for ALL credit cards the user has."""
+    cards = await db.credit_cards.find(
+        {"user_id": user["id"], "is_active": True}, {"_id": 0}
+    ).to_list(50)
+
+    results = []
+    for card in cards:
+        card_name = card.get("card_name", "")
+        issuer = card.get("issuer", "")
+        full_name = f"{issuer} {card_name}".strip()
+
+        # Check cache
+        cached = await db.card_benefits_cache.find_one(
+            {"card_key": full_name.lower()}, {"_id": 0}
+        )
+        results.append({
+            "card_id": card["id"],
+            "card_name": full_name,
+            "last_four": card.get("last_four", ""),
+            "benefits": cached.get("benefits", []) if cached else [],
+            "has_benefits": bool(cached and cached.get("benefits")),
+        })
+
+    return {"cards": results}

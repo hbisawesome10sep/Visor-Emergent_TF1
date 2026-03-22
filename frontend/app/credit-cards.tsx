@@ -13,6 +13,7 @@ import { DueCalendarSection } from '../src/components/credit-cards/DueCalendarSe
 import { InterestCalculator } from '../src/components/credit-cards/InterestCalculator';
 import { RewardsTracker } from '../src/components/credit-cards/RewardsTracker';
 import { CardRecommender } from '../src/components/credit-cards/CardRecommender';
+import { BenefitsSection } from '../src/components/credit-cards/BenefitsSection';
 
 const CC_CATEGORIES = ['Food & Dining', 'Shopping', 'Travel', 'Entertainment', 'Utilities', 'Healthcare', 'Fuel', 'Education', 'EMI', 'Subscriptions', 'Other'];
 const TXN_TYPES = [
@@ -72,7 +73,7 @@ export default function CreditCardsScreen() {
   });
 
   // Tab state for analytics sections
-  const [activeTab, setActiveTab] = useState<'cards' | 'dues' | 'rewards' | 'interest' | 'recommend'>('cards');
+  const [activeTab, setActiveTab] = useState<'cards' | 'dues' | 'rewards' | 'interest' | 'recommend' | 'benefits'>('cards');
 
   const fetchCards = useCallback(async () => {
     if (!token) return;
@@ -288,6 +289,7 @@ export default function CreditCardsScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14, flexGrow: 0 }}>
           {[
             { key: 'cards', label: 'My Cards', icon: 'credit-card' },
+            { key: 'benefits', label: 'Benefits', icon: 'gift' },
             { key: 'dues', label: 'Dues', icon: 'calendar-clock' },
             { key: 'rewards', label: 'Rewards', icon: 'star-circle' },
             { key: 'interest', label: 'Interest', icon: 'calculator-variant' },
@@ -490,6 +492,9 @@ export default function CreditCardsScreen() {
         )}
         {activeTab === 'recommend' && token && (
           <CardRecommender token={token} isDark={isDark} colors={colors} />
+        )}
+        {activeTab === 'benefits' && token && (
+          <BenefitsSection token={token} isDark={isDark} colors={colors} cards={cards} />
         )}
 
         <View style={{ height: 100 }} />

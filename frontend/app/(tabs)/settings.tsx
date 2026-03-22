@@ -158,6 +158,35 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handleClearAllTransactions = () => {
+    Alert.alert(
+      'Clear All Transactions',
+      'This will permanently remove:\n\n• All banking transactions\n• All credit card transactions\n• All linked bank accounts\n• All associated journal entries\n\nYou will need to re-upload your bank statements to restore transaction data.\n\nThis action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Everything',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await apiRequest('/clear-all-transactions', {
+                method: 'DELETE',
+                token: token || '',
+              });
+              setBankAccounts([]);
+              Alert.alert(
+                'Data Cleared',
+                `Successfully removed:\n• ${result.deleted?.transactions || 0} transactions\n• ${result.deleted?.credit_card_transactions || 0} credit card transactions\n• ${result.deleted?.bank_accounts || 0} bank accounts\n• ${result.deleted?.journal_entries || 0} journal entries\n\nYou can now re-upload your bank statements.`,
+              );
+            } catch (e: any) {
+              Alert.alert('Error', e.message);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const setDefaultBank = async (id: string) => {
     try {
       await apiRequest(`/bank-accounts/${id}/set-default`, { method: 'PUT', token: token || '' });
@@ -664,6 +693,34 @@ export default function SettingsScreen() {
               <Text style={{ fontSize: 13, color: Accent.ruby, fontFamily: 'DM Sans', fontWeight: '600' }}>Delete All Bank Accounts</Text>
             </TouchableOpacity>
           )}
+        </View>
+
+        {/* Clear All Transactions */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: 14 }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)' }]}>
+              <MaterialCommunityIcons name="delete-sweep" size={22} color={Accent.ruby} />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Data Management</Text>
+          </View>
+          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 14, lineHeight: 20 }}>
+            Clear all imported transactions to start fresh. Useful if you want to re-upload corrected bank statements.
+          </Text>
+          <TouchableOpacity
+            data-testid="clear-all-transactions-btn"
+            style={{
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+              paddingVertical: 14, borderRadius: 12,
+              borderWidth: 1.5, borderColor: Accent.ruby,
+              backgroundColor: isDark ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.05)',
+            }}
+            onPress={handleClearAllTransactions}
+          >
+            <MaterialCommunityIcons name="delete-alert" size={20} color={Accent.ruby} />
+            <Text style={{ fontSize: 14, fontWeight: '700', color: Accent.ruby, fontFamily: 'DM Sans' }}>
+              Clear All Transactions
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Bank Statement Upload Card */}

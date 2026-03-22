@@ -164,3 +164,28 @@ async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(g
 
     updated = await db.transactions.find_one({"id": txn_id}, {"_id": 0})
     return TransactionResponse(**updated)
+
+
+
+@router.delete("/clear-all-transactions")
+async def clear_all_transactions(user=Depends(get_current_user)):
+    """Clear all banking transactions, credit card transactions, bank accounts, and associated journals."""
+    user_id = user["id"]
+
+    txn_result = await db.transactions.delete_many({"user_id": user_id})
+    cc_txn_result = await db.credit_card_transactions.delete_many({"user_id": user_id})
+    bank_result = await db.bank_accounts.delete_many({"user_id": user_id})
+    journal_result = await db.journal_entries.delete_many({"user_id": user_id})
+    # Clear statement hashes to allow re-upload
+    hash_result = await db.statement_hashes.delete_many({"user_id": user_id})
+
+    return {
+        "message": "All transactions cleared successfully",
+        "deleted": {
+            "transactions": txn_result.deleted_count,
+            "credit_card_transactions": cc_txn_result.deleted_count,
+            "bank_accounts": bank_result.deleted_count,
+            "journal_entries": journal_result.deleted_count,
+            "statement_hashes": hash_result.deleted_count,
+        }
+    }
