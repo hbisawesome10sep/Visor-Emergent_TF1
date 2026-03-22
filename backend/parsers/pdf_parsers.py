@@ -1400,68 +1400,185 @@ def clean_canara_description(raw_desc: str) -> str:
 
 
 def clean_union_description(raw_desc: str) -> str:
-    """Clean up Union Bank transaction description."""
+    """Clean up Union Bank transaction description.
+    Union Bank UPI format:
+      UPIAR/ref/DR/PayeeName/BankCode[/upiid] — Debit
+      UPIAB/ref/CR/PayeeName/BankCode[/upiid] — Credit
+      NEFT/ref/CR_or_DR/PayeeName/BankCode[/purpose]
+    """
     desc = raw_desc.replace('\n', ' ').replace('  ', ' ').strip()
-    
-    lower_desc = desc.lower()
-    
-    # UPI Debit: UPIAR/refno/DR/Name/Bank
-    if desc.startswith('UPIAR/'):
-        parts = desc.split('/')
-        for i, part in enumerate(parts):
-            if part == 'DR' and i+1 < len(parts):
-                name = parts[i+1].strip()
-                if name and any(c.isalpha() for c in name):
-                    return f"UPI - {name.title()}"
-        return "UPI Transfer"
-    
-    # UPI Credit: UPIAB/refno/CR/Name/Bank
-    if desc.startswith('UPIAB/'):
-        parts = desc.split('/')
-        for i, part in enumerate(parts):
-            if part == 'CR' and i+1 < len(parts):
-                name = parts[i+1].strip()
-                if name and any(c.isalpha() for c in name):
-                    return f"UPI - {name.title()}"
-        return "UPI Transfer"
-    
-    # NEFT
-    if desc.startswith('NEFT:'):
-        name = desc[5:].strip().split('\n')[0]
-        return f"NEFT - {name.title()}"
-    
-    # Mobile Fund Transfer
-    if desc.startswith('MOBFT to:'):
-        name = desc[9:].strip().split('/')[0]
-        return f"IMPS - {name.title()}"
-    
-    # MAND DR (Mandate Debit / Auto-debit)
-    if 'mand dr' in lower_desc:
-        return "Auto-debit"
-    
-    # General Charges
-    if 'general charges' in lower_desc:
-        return "Service Charges"
-    
-    # Interest credit
-    if 'int.pd' in lower_desc or ':int.' in lower_desc:
+    if not desc:
+        return "Bank Transaction"
+
+    upper = desc.upper()
+
+    # ── UPI Debit (UPIAR) or Credit (UPIAB) ─────────────────────────────
+    if upper.startswith('UPIAR/') or upper.startswith('UPIAB/'):
+        return _clean_union_upi(desc)
+
+    # ── NEFT ─────────────────────────────────────────────────────────────
+    if upper.startswith('NEFT/') or upper.startswith('NEFT:'):
+        return _clean_union_neft(desc)
+
+    # ── Interest ─────────────────────────────────────────────────────────
+    if 'INT.PD' in upper or ':INT.' in upper or 'INTEREST' in upper:
         return "Interest Credit"
-    
-    # SMS Charges
-    if 'sms charges' in lower_desc:
-        return "SMS Charges"
-    
-    # POS (Card purchase)
-    if desc.startswith('POS:'):
+
+    # ── SMS Charges ──────────────────────────────────────────────────────
+    if 'SMS CHARGES' in upper or 'SMS CHG' in upper:
+        return "Bank Charges - SMS"
+
+    # ── General Charges ──────────────────────────────────────────────────
+    if 'GENERAL CHARGES' in upper or 'SERVICE CHARGE' in upper:
+        return "Service Charges"
+
+    # ── MAND DR (Mandate Debit / Auto-debit) ─────────────────────────────
+    if 'MAND DR' in upper or 'MANDATE' in upper:
+        return "Auto-debit"
+
+    # ── POS (Card purchase) ──────────────────────────────────────────────
+    if upper.startswith('POS:') or upper.startswith('POS/'):
         merchant = desc[4:].split('/')[0].strip()
-        return f"Card - {merchant.title()}"
-    
-    # ATM
-    if 'atm' in lower_desc:
+        return f"Card - {merchant.title()}" if merchant else "Card Purchase"
+
+    # ── ATM ──────────────────────────────────────────────────────────────
+    if 'ATM' in upper:
         return "ATM Withdrawal"
-    
-    # Return first 50 chars
-    return desc[:50] if len(desc) > 50 else desc
+
+    # ── IMPS / MOBFT ─────────────────────────────────────────────────────
+    if upper.startswith('MOBFT') or upper.startswith('IMPS'):
+        parts = desc.split('/')
+        for part in parts[1:]:
+            part = part.strip()
+            if part and len(part) > 2 and any(c.isalpha() for c in part):
+                return f"IMPS - {part.title()}"
+        return "IMPS Transfer"
+
+    return desc[:60] if len(desc) > 60 else desc
+
+
+# Union Bank merchant mapping from UPI IDs
+_UNION_UPI_MERCHANTS = {
+    'billdesk.elect': 'Bill - Electricity',
+    'billdesk.recha': 'Bill - Recharge',
+    'billdesk.insur': 'Bill - Insurance',
+    'billdesk.broad': 'Bill - Broadband',
+    'billdesk': 'BillDesk Payment',
+    'paytm-': 'Paytm',
+    'phonepe': 'PhonePe',
+    'bharatpe': 'BharatPe',
+    'euronetgpay': 'Euronet GPay',
+    'resident.uidai': 'Aadhaar Payment',
+    'amazonpay': 'Amazon Pay',
+    'gpay': 'Google Pay',
+    '@ybl': None,  # skip bank codes
+    '@oki': None,
+    '@okhdf': None,
+}
+
+
+def _clean_union_upi(desc: str) -> str:
+    """Extract payee from Union Bank UPI narration."""
+    parts = desc.split('/')
+
+    # Find DR or CR to locate payee
+    payee = None
+    upi_id = None
+    for i, part in enumerate(parts):
+        p = part.strip().upper()
+        if p in ('DR', 'CR'):
+            if i + 1 < len(parts):
+                payee = parts[i + 1].strip()
+            if i + 3 < len(parts):
+                upi_id = parts[i + 3].strip()
+            elif i + 2 < len(parts):
+                # Sometimes bank code is merged, check next part
+                next_part = parts[i + 2].strip() if i + 2 < len(parts) else ''
+                if not next_part.isalpha() or len(next_part) > 5:
+                    upi_id = next_part
+            break
+
+    if not payee:
+        return "UPI Transfer"
+
+    # Check for Aadhaar/DUMMY NAME transactions
+    if payee.upper().startswith('DUMMY'):
+        return "UPI - Aadhaar Transfer"
+
+    # Check UPI ID for known merchants
+    if upi_id:
+        upi_lower = upi_id.lower()
+        for key, merchant in _UNION_UPI_MERCHANTS.items():
+            if key in upi_lower and merchant:
+                return f"UPI - {merchant}"
+
+    # Check payee name for known merchants
+    payee_lower = payee.lower().replace(' ', '')
+    if payee_lower.startswith('billdesk'):
+        # Try UPI ID for specific bill type
+        if upi_id and 'elect' in upi_id.lower():
+            return "UPI - Bill (Electricity)"
+        if upi_id and 'recha' in upi_id.lower():
+            return "UPI - Bill (Recharge)"
+        return "UPI - BillDesk Payment"
+
+    if payee_lower.startswith('euronetg'):
+        return "UPI - Euronet GPay"
+
+    if payee_lower.startswith('protean'):
+        # Protean is NPCI services, check UPI ID for actual merchant
+        if upi_id and 'paytm' in upi_id.lower():
+            return "UPI - Paytm"
+        return "UPI - Protean"
+
+    # Clean payee name
+    # Remove "Mr " / "Mrs " prefix
+    clean_name = re.sub(r'^(?:Mr|Mrs|Ms|Dr)\s+', '', payee, flags=re.IGNORECASE).strip()
+
+    # Remove trailing single character (truncation artifact)
+    clean_name = re.sub(r'\s+[A-Za-z]$', '', clean_name).strip()
+
+    # Remove trailing digits from UPI handles used as names
+    clean_name = re.sub(r'\d+$', '', clean_name).strip()
+
+    if not clean_name:
+        clean_name = payee
+
+    return f"UPI - {clean_name.title()}"
+
+
+def _clean_union_neft(desc: str) -> str:
+    """Extract payee from Union Bank NEFT narration.
+    Format: NEFT/ref/CR_or_DR/PayeeName/BankCode[/purpose]
+    """
+    parts = desc.split('/')
+    payee = None
+    purpose = None
+
+    for i, part in enumerate(parts):
+        p = part.strip().upper()
+        if p in ('CR', 'DR'):
+            if i + 1 < len(parts):
+                payee = parts[i + 1].strip()
+            # Check for purpose (like "Salary")
+            if i + 3 < len(parts):
+                purpose = parts[i + 3].strip()
+            elif i + 2 < len(parts):
+                maybe_purpose = parts[i + 2].strip()
+                if maybe_purpose and not maybe_purpose.isdigit() and len(maybe_purpose) > 4:
+                    purpose = maybe_purpose
+            break
+
+    # Detect salary
+    if purpose and 'salary' in purpose.lower():
+        return "Salary Credit"
+    if payee and 'salary' in payee.lower():
+        return "Salary Credit"
+
+    if payee and len(payee) > 2:
+        return f"NEFT - {payee.title()}"
+
+    return "NEFT Transfer"
 
 
 def clean_kotak_description(raw_desc: str) -> str:
@@ -1953,11 +2070,32 @@ def parse_union_pdf(pdf, all_text: str) -> list:
                 transactions.append({
                     'date': date,
                     'description': clean_union_description(description),
+                    'raw_description': description,
                     'bank_debit': bank_debit,
                     'bank_credit': bank_credit,
                 })
     
+    # Phase 2: Enrich descriptions from text-based continuation lines
+    # Union Bank's text has continuation data (like /Salary) after transaction lines
+    _enrich_union_descriptions(transactions, all_text)
+    
     return transactions
+
+
+def _enrich_union_descriptions(transactions: list, all_text: str) -> None:
+    """Enrich Union Bank transaction descriptions using full text continuation lines."""
+    lines = all_text.split('\n')
+    for i, line in enumerate(lines):
+        line = line.strip()
+        # Check for continuation that indicates salary
+        if line.startswith('/Salary') or line == 'Salary':
+            # Find the transaction that precedes this line
+            for txn in reversed(transactions):
+                raw = txn.get('raw_description', '')
+                if raw.startswith('NEFT') or 'NEFT' in raw:
+                    if txn['bank_credit'] > 0:
+                        txn['description'] = 'Salary Credit'
+                    break
 
 
 def parse_canara_pdf(pdf, all_text: str) -> list:
