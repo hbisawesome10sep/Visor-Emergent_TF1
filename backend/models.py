@@ -41,7 +41,7 @@ class TransactionCreate(BaseModel):
     is_recurring: bool = False
     recurring_frequency: Optional[str] = None
     is_split: bool = False
-    split_count: int = 1
+    split_count: Optional[int] = 1
     notes: Optional[str] = None
     buy_sell: Optional[str] = None
     units: Optional[float] = None
@@ -60,7 +60,7 @@ class TransactionResponse(BaseModel):
     is_recurring: bool = False
     recurring_frequency: Optional[str] = None
     is_split: bool = False
-    split_count: int = 1
+    split_count: Optional[int] = 1
     notes: Optional[str] = None
     buy_sell: Optional[str] = None
     units: Optional[float] = None
@@ -70,7 +70,7 @@ class TransactionResponse(BaseModel):
     is_flagged: bool = False
     flagged_type: Optional[str] = None
     is_approved: bool = False
-    created_at: str
+    created_at: Optional[str] = None
 
 
 # ══════════════════════════════════════
