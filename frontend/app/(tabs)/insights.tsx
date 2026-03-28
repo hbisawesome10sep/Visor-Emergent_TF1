@@ -296,13 +296,20 @@ export default function InsightsScreen() {
   const getDateRange = useCallback((freq: string) => {
     const now = new Date();
     let start: Date;
+    let end: Date = now;
     switch (freq) {
       case 'Quarter':
-        start = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
         break;
-      case 'Year':
-        start = new Date(now.getFullYear(), 0, 1);
+      case 'Year': {
+        // Indian Financial Year: April 1 – March 31
+        const month = now.getMonth();
+        const fyStartYear = month < 3 ? now.getFullYear() - 1 : now.getFullYear();
+        start = new Date(fyStartYear, 3, 1); // April 1
+        const fyEnd = new Date(fyStartYear + 1, 2, 31); // March 31
+        end = fyEnd > now ? now : fyEnd;
         break;
+      }
       case 'Custom':
         start = new Date(2020, 0, 1);
         break;
@@ -310,9 +317,11 @@ export default function InsightsScreen() {
         start = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
     }
+    // Format without timezone shift
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     return {
-      start: start.toISOString().split('T')[0],
-      end: now.toISOString().split('T')[0],
+      start: fmt(start),
+      end: fmt(end),
     };
   }, []);
 
@@ -331,7 +340,7 @@ export default function InsightsScreen() {
       const { start, end } = getDateRange(selectedFrequency);
       const url = selectedFrequency === 'Custom'
         ? '/dashboard/stats'
-        : `/dashboard/stats?start_date=${start}&end_date=${end}`;
+        : `/dashboard/stats?start_date=${start}&end_date=${end}&frequency=${selectedFrequency}`;
       
       // Fetch all data in parallel
       const [statsData, trendsData, alertsData] = await Promise.all([

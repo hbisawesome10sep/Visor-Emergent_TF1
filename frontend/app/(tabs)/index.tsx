@@ -40,6 +40,11 @@ import { JarProgressView } from '../../src/components/JarProgressView';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Format date as YYYY-MM-DD without timezone shift
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 type FrequencyOption = 'Quarter' | 'Month' | 'Year' | 'Custom';
 
 // Indian Financial Year: April 1 → March 31
@@ -212,8 +217,8 @@ export default function DashboardScreen() {
       // Safely format dates - fallback to current month if invalid
       const safeStart = isNaN(startDate.getTime()) ? new Date(now.getFullYear(), now.getMonth(), 1) : startDate;
       const safeEnd = isNaN(endDate.getTime()) ? now : endDate;
-      const startStr = safeStart.toISOString().split('T')[0];
-      const endStr = safeEnd.toISOString().split('T')[0];
+      const startStr = toDateStr(safeStart);
+      const endStr = toDateStr(safeEnd);
       
       console.log(`[Dashboard] Fetching stats: ${selectedFrequency} | ${startStr} → ${endStr}`);
       

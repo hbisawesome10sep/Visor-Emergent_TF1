@@ -380,3 +380,22 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 | P3 | "Share with Friends" referral feature |
 | P3 | WhatsApp/Telegram bot for transaction logging |
 | P3 | Multi-currency support for NRI users |
+
+
+---
+
+## 10. Recent Changes (Changelog)
+
+### Mar 28, 2026
+- **Health Score + Insights FY Fix**: Health score varies with M/Q/Y/Custom period. Fixed Insights screen Year toggle to use Indian FY (Apr 1 – Mar 31). Fixed timezone bug (toISOString date shift).
+- **Holdings P&L**: Updated all 12 holdings with realistic current values (Infosys -9.5% loss, Gold +29% gain, etc.)
+- **Loans/EMIs**: Added 3 loans — Home (₹45L @8.5%), Car (₹10L @9.25%), Education (₹8L @10.5%) with EMI tracking
+- **SIPs**: 4 recurring SIPs matching mutual fund holdings (Parag Parikh, Mirae, Axis ELSS, HDFC Mid-Cap)
+- **Demo Seed**: 220 transactions (Oct 2025 – Mar 2026), 3 credit cards, 4 goals, 2 insurance policies
+
+### Mar 22, 2026
+- **Dashboard FY & Date Range Fix**: Y toggle shows Indian Financial Year (Apr 1 – Mar 31). Custom date picker supports 2020+. Backend groups trend data monthly for Year view.
+- **Transaction Double-Counting Bug Fix**: Increased list limits to 5000, added server-side `/api/transactions/summary`.
+- **Credit Card Benefits Tab**: AI-powered per-card benefits via GPT-5.2 with caching.
+- **Clear All Transactions**: Data management feature in Settings.
+- **Bank Parsers**: Rewrote Canara, BoB (table extraction), Kotak (balance-delta).
