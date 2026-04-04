@@ -9,3 +9,6 @@ export { SalaryProfileWizard } from './SalaryProfileWizard';
 export { HRACalculationCard } from './HRACalculationCard';
 export { Section80CTracker } from './Section80CTracker';
 export { TaxDocumentUpload } from './TaxDocumentUpload';
+export { DeductionGapCard } from './DeductionGapCard';
+export { TDSMismatchCard } from './TDSMismatchCard';
+export { TaxCalendarCard } from './TaxCalendarCard';

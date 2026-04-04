@@ -53,6 +53,7 @@ from routes.emi_sip_analytics import router as emi_sip_analytics_router
 from routes.visor_voice import router as visor_voice_router
 from routes.statement_upload import router as statement_upload_router
 from routes.tax_documents import router as tax_documents_router
+from routes.tax_phase3 import router as tax_phase3_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -93,6 +94,7 @@ app.include_router(emi_sip_analytics_router)
 app.include_router(visor_voice_router)
 app.include_router(statement_upload_router)
 app.include_router(tax_documents_router)
+app.include_router(tax_phase3_router)
 
 # Add CORS middleware
 app.add_middleware(

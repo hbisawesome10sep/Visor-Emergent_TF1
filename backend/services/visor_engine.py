@@ -42,7 +42,7 @@ async def process_visor_message(
     })
 
     # ── Gather ALL user financial data ───────────────────────────────
-    txns, goals, risk_doc, holdings, sips, budgets, loans, credit_cards, bank_accounts, assets, tax_deds, salary_profile, income_profile = (
+    txns, goals, risk_doc, holdings, sips, budgets, loans, credit_cards, bank_accounts, assets, tax_deds, salary_profile, income_profile, auto_deds, tax_docs = (
         await asyncio.gather(
             db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(500),
             db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(50),
@@ -57,13 +57,16 @@ async def process_visor_message(
             db.user_tax_deductions.find({"user_id": user_id}, {"_id": 0}).to_list(50),
             db.salary_profiles.find_one({"user_id": user_id}, {"_id": 0}),
             db.tax_income_profiles.find_one({"user_id": user_id}, {"_id": 0}),
+            db.auto_tax_deductions.find({"user_id": user_id, "fy": "2025-26"}, {"_id": 0}).to_list(100),
+            db.tax_documents.find({"user_id": user_id}, {"_id": 0}).to_list(10),
             return_exceptions=True,
         )
     )
 
     for name, val in [("txns", txns), ("goals", goals), ("holdings", holdings), ("sips", sips),
                       ("budgets", budgets), ("loans", loans), ("credit_cards", credit_cards),
-                      ("bank_accounts", bank_accounts), ("assets", assets), ("tax_deds", tax_deds)]:
+                      ("bank_accounts", bank_accounts), ("assets", assets), ("tax_deds", tax_deds),
+                      ("auto_deds", auto_deds), ("tax_docs", tax_docs)]:
         if isinstance(val, Exception):
             logger.warning(f"Failed to fetch {name}: {val}")
             locals()[name] = []
@@ -118,6 +121,21 @@ async def process_visor_message(
     bank_str = "\n".join(f"  {b.get('bank_name', b.get('name','Account'))}: \u20b9{b.get('balance',0):,.0f}" for b in bank_accounts) if isinstance(bank_accounts, list) and bank_accounts else "  None"
     asset_str = "\n".join(f"  {a.get('name','?')}: \u20b9{a.get('current_value', a.get('purchase_value',0)):,.0f}" for a in assets) if isinstance(assets, list) and assets else "  None"
     tax_str = "\n".join(f"  {d.get('section','?')} - {d.get('name','?')}: \u20b9{d.get('invested_amount',0):,.0f}" for d in tax_deds) if isinstance(tax_deds, list) and tax_deds else "  None claimed"
+
+    # Auto-detected deductions from transactions
+    auto_ded_str = ""
+    if isinstance(auto_deds, list) and auto_deds:
+        # Group by section
+        section_totals = {}
+        for d in auto_deds:
+            sec = d.get("section", "Other")
+            section_totals[sec] = section_totals.get(sec, 0) + d.get("amount", 0)
+        auto_ded_str = "\n  Auto-detected: " + ", ".join(f"{s}: \u20b9{a:,.0f}" for s, a in section_totals.items())
+    
+    # Uploaded tax documents
+    tax_docs_str = ""
+    if isinstance(tax_docs, list) and tax_docs:
+        tax_docs_str = f"\n  Uploaded Docs: {', '.join(d.get('document_type', 'Unknown') for d in tax_docs)}"
 
     risk_str = f"Risk Profile: {risk_doc.get('profile', 'Not assessed')} (Score: {risk_doc.get('score', 0):.1f}/5)" if risk_doc and isinstance(risk_doc, dict) else "Not assessed"
     savings_rate = ((total_income - total_expenses) / total_income * 100) if total_income > 0 else 0
@@ -186,7 +204,7 @@ LOANS/EMIs: {loan_str}
 CREDIT CARDS: {cc_str}
 BANK ACCOUNTS: {bank_str}
 FIXED ASSETS: {asset_str}
-TAX DEDUCTIONS: {tax_str}{salary_ctx}
+TAX DEDUCTIONS: {tax_str}{auto_ded_str}{tax_docs_str}{salary_ctx}
 
 RECENT TRANSACTIONS:
 {recent_txn or '  None'}"""

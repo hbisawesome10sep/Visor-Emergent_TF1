@@ -27,6 +27,9 @@ import {
   HRACalculationCard,
   Section80CTracker,
   TaxDocumentUpload,
+  DeductionGapCard,
+  TDSMismatchCard,
+  TaxCalendarCard,
 } from '../../src/components/tax';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -373,6 +376,33 @@ export default function TaxScreen() {
             colors={colors}
             isDark={isDark}
             onUploadComplete={fetchData}
+          />
+        )}
+
+        {/* ═══ PHASE 3: DEDUCTION GAP ANALYSIS ═══ */}
+        {token && (
+          <DeductionGapCard
+            token={token}
+            colors={colors}
+            isDark={isDark}
+          />
+        )}
+
+        {/* ═══ PHASE 3: TDS MISMATCH DETECTION ═══ */}
+        {token && (
+          <TDSMismatchCard
+            token={token}
+            colors={colors}
+            isDark={isDark}
+          />
+        )}
+
+        {/* ═══ PHASE 3: TAX CALENDAR ═══ */}
+        {token && (
+          <TaxCalendarCard
+            token={token}
+            colors={colors}
+            isDark={isDark}
           />
         )}
 
