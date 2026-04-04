@@ -8,3 +8,4 @@ export { IncomeProfileSetup } from './IncomeProfileSetup';
 export { SalaryProfileWizard } from './SalaryProfileWizard';
 export { HRACalculationCard } from './HRACalculationCard';
 export { Section80CTracker } from './Section80CTracker';
+export { TaxDocumentUpload } from './TaxDocumentUpload';

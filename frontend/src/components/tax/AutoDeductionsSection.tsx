@@ -158,7 +158,7 @@ export const AutoDeductionsSection: React.FC<AutoDeductionsSectionProps> = ({
                     <Text style={[styles.txnName, { color: colors.textPrimary }]} numberOfLines={1}>
                       {txn.name}
                     </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
                       <Text style={[styles.txnMeta, { color: colors.textSecondary }]}>
                         {txn.source_date}
                       </Text>
@@ -173,6 +173,27 @@ export const AutoDeductionsSection: React.FC<AutoDeductionsSectionProps> = ({
                           {txn.detected_from === 'category' ? 'Category' : 'Keywords'}
                         </Text>
                       </View>
+                      {/* Confidence Score Badge */}
+                      {txn.confidence !== undefined && txn.confidence !== null && (
+                        <View style={[styles.confidenceBadge, { 
+                          backgroundColor: txn.confidence >= 0.85 
+                            ? 'rgba(16,185,129,0.1)' 
+                            : txn.confidence >= 0.70 
+                              ? 'rgba(245,158,11,0.1)'
+                              : 'rgba(239,68,68,0.1)'
+                        }]}>
+                          <MaterialCommunityIcons 
+                            name={txn.confidence >= 0.85 ? "check-circle" : txn.confidence >= 0.70 ? "alert-circle" : "help-circle"} 
+                            size={9} 
+                            color={txn.confidence >= 0.85 ? '#10B981' : txn.confidence >= 0.70 ? '#F59E0B' : '#EF4444'} 
+                          />
+                          <Text style={[styles.confidenceText, { 
+                            color: txn.confidence >= 0.85 ? '#10B981' : txn.confidence >= 0.70 ? '#F59E0B' : '#EF4444' 
+                          }]}>
+                            {Math.round(txn.confidence * 100)}%
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                   <Text style={[styles.txnAmount, { color: colors.textPrimary }]}>

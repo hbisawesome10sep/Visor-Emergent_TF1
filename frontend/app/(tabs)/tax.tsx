@@ -26,6 +26,7 @@ import {
   SalaryProfileWizard,
   HRACalculationCard,
   Section80CTracker,
+  TaxDocumentUpload,
 } from '../../src/components/tax';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -362,6 +363,16 @@ export default function TaxScreen() {
             hraData={hraData}
             colors={colors}
             isDark={isDark}
+          />
+        )}
+
+        {/* ═══ PHASE 2: TAX DOCUMENT UPLOAD ═══ */}
+        {token && (
+          <TaxDocumentUpload
+            token={token}
+            colors={colors}
+            isDark={isDark}
+            onUploadComplete={fetchData}
           />
         )}
 

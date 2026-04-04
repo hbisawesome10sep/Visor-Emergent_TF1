@@ -86,7 +86,7 @@
       "mitigation": "Clear Kubernetes ingress/CDN cache or restart expo with --clear flag."
     },
     "proxy_cache_issue": {
-      "root_cause": "Kubernetes ingress proxy is caching the JS bundle. localhost:3000 serves updated bundle with fix, but external URL https://finance-parser-split.preview.emergentagent.com serves cached old bundle.",
+      "root_cause": "Kubernetes ingress proxy is caching the JS bundle. localhost:3000 serves updated bundle with fix, but external URL https://enhanced-tax-module.preview.emergentagent.com serves cached old bundle.",
       "verification": "curl http://localhost:3000/bundle | grep 'remaining_80c' → shows '/ 1000' and '85K' confirming fix is in local bundle."
     }
   },

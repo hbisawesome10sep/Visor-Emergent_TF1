@@ -35,6 +35,7 @@ import { NetWorthCard } from '../../src/components/dashboard/NetWorthCard';
 import { InvestmentSummaryCard } from '../../src/components/dashboard/InvestmentSummaryCard';
 import { UpcomingDuesCard } from '../../src/components/dashboard/UpcomingDuesCard';
 import { AIInsightCard } from '../../src/components/dashboard/AIInsightCard';
+import { TaxMeterCard } from '../../src/components/dashboard/TaxMeterCard';
 import { Accent } from '../../src/utils/theme';
 import { JarProgressView } from '../../src/components/JarProgressView';
 import { useDashboardData, useFrequencyFilter } from '../../src/hooks/dashboard';
@@ -444,6 +445,11 @@ export default function DashboardScreen() {
         {/* ═══ UPCOMING DUES (CC + Loans) — below Overview & Credit Cards ═══ */}
         {token && (
           <UpcomingDuesCard token={token} isDark={isDark} colors={colors} />
+        )}
+
+        {/* ═══ TAX METER CARD ═══ */}
+        {token && (
+          <TaxMeterCard token={token} isDark={isDark} colors={colors} />
         )}
 
         {/* ═══ INVESTMENT SUMMARY CARD ═══ */}
