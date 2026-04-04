@@ -1,16 +1,13 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useFocusEffect } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl,
-  ActivityIndicator, Dimensions, Platform, StatusBar, Animated, Modal,
-  TextInput, KeyboardAvoidingView, Alert, AppState,
+  ActivityIndicator, Dimensions, StatusBar, Modal,
+  TextInput, KeyboardAvoidingView, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Svg, { Circle, G } from 'react-native-svg';
-import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useScreenContext } from '../../src/context/ScreenContext';
@@ -35,12 +32,22 @@ import { PrincipalInterestSplit } from '../../src/components/emi-sip/PrincipalIn
 import { PrepaymentCalculator } from '../../src/components/emi-sip/PrepaymentCalculator';
 import { WealthProjector } from '../../src/components/emi-sip/WealthProjector';
 import { GoalMapper } from '../../src/components/emi-sip/GoalMapper';
+import type {
+  MarketItem, Goal, DashboardStats, PortfolioData,
+  Holding, HoldingsData, RecurringTransaction, RecurringData,
+} from '../../src/components/investments/types';
 import {
-  type MarketItem, type Goal, type DashboardStats, type PortfolioData,
-  type Holding, type HoldingsData, type RecurringTransaction, type RecurringData,
   ASSET_CATEGORIES, GOAL_CATS, HOLDING_CATS, SIP_CATS, SIP_FREQUENCIES,
   RISK_QUESTIONS, RISK_CATEGORY_LABELS, RISK_CATEGORY_DISPLAY,
 } from '../../src/components/investments/types';
+import {
+  useInvestmentData,
+  useHoldingsManager,
+  useDatePicker,
+  useRiskProfile,
+  useGoalsManager,
+  useSIPManager,
+} from '../../src/hooks/investments';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
@@ -52,504 +59,69 @@ export default function InvestmentsScreen() {
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 70 + insets.top;
 
-  const [marketData, setMarketData] = useState<MarketItem[]>([]);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [showRiskModal, setShowRiskModal] = useState(false);
-  const [showGoalModal, setShowGoalModal] = useState(false);
-  const [editGoal, setEditGoal] = useState<Goal | null>(null);
-  const [riskStep, setRiskStep] = useState(0);
-  const [riskAnswers, setRiskAnswers] = useState<{question_id: number; value: number; category: string}[]>([]);
-  const [riskProfile, setRiskProfile] = useState<'Conservative' | 'Moderate' | 'Aggressive'>('Moderate');
-  const [riskScore, setRiskScore] = useState(0);
-  const [riskBreakdown, setRiskBreakdown] = useState<Record<string, number>>({});
-  const [riskSaved, setRiskSaved] = useState(false);
-  const [showRiskResult, setShowRiskResult] = useState(false);
-  const [goalForm, setGoalForm] = useState({ title: '', target_amount: '', current_amount: '0', deadline: '', category: 'Safety' });
-  const [saving, setSaving] = useState(false);
-  const [holdingsData, setHoldingsData] = useState<HoldingsData | null>(null);
-  const [showHoldingModal, setShowHoldingModal] = useState(false);
-  const [showCasModal, setShowCasModal] = useState(false);
-  const [holdingForm, setHoldingForm] = useState({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
-  // Native date picker state
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [datePickerTarget, setDatePickerTarget] = useState<'goal_deadline' | 'holding_buy_date' | 'sip_start_date'>('goal_deadline');
-  const [datePickerValue, setDatePickerValue] = useState(new Date());
-  const [casPassword, setCasPassword] = useState('');
-  const [rebalanceData, setRebalanceData] = useState<any>(null);
-  const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
-  const [showSipModal, setShowSipModal] = useState(false);
-  const [showEMITracker, setShowEMITracker] = useState(false);
-  const [editSip, setEditSip] = useState<RecurringTransaction | null>(null);
-  const [sipForm, setSipForm] = useState({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: '', day_of_month: '5', notes: '' });
-  const [sipSuggestions, setSipSuggestions] = useState<Array<{ id: string; fund_name: string; isin: string }>>([]);
-
-  const [uploadingStatement, setUploadingStatement] = useState(false);
-  const [refreshingPrices, setRefreshingPrices] = useState(false);
-
-  const handleRefreshPrices = async () => {
-    setRefreshingPrices(true);
-    try {
-      const resp = await apiRequest('/holdings/refresh-prices', { method: 'POST', token });
-      if (resp?.updated > 0) {
-        Alert.alert('Prices Updated', `Updated ${resp.updated} of ${resp.total} holdings with live prices.`);
-        fetchData();
-      } else {
-        Alert.alert('No Updates', resp?.message || 'Prices are already up to date.');
-      }
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to refresh prices');
-    } finally {
-      setRefreshingPrices(false);
-    }
-  };
-
-  const isPickingRef = useRef(false);
-
-  // Safely open document picker — catches iOS "picking in progress" and retries once
-  const safePickDocument = async (options: Parameters<typeof DocumentPicker.getDocumentAsync>[0]) => {
-    try {
-      return await DocumentPicker.getDocumentAsync(options);
-    } catch (e: any) {
-      const msg: string = e?.message || '';
-      if (msg.toLowerCase().includes('picking in progress') || msg.toLowerCase().includes('another picker')) {
-        await new Promise(r => setTimeout(r, 800));
-        return await DocumentPicker.getDocumentAsync(options);
-      }
-      throw e;
-    }
-  };
-
-  const handleStatementUpload = async (type: 'stock_statement' | 'mf_statement' | 'ecas') => {
-    if (type === 'ecas') {
-      setShowCasModal(true);
-      return;
-    }
-    if (isPickingRef.current) return;
-    isPickingRef.current = true;
-    try {
-      const result = await safePickDocument({
-        type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
-        copyToCacheDirectory: true,
-      });
-      if (result.canceled || !result.assets?.length) return;
-      const file = result.assets[0];
-      setUploadingStatement(true);
-      const formData = new FormData();
-      formData.append('file', { uri: file.uri, name: file.name, type: file.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } as any);
-      formData.append('statement_type', type);
-      const resp = await apiRequest('/upload-statement', { token, method: 'POST', body: formData, isFormData: true });
-      setUploadingStatement(false);
-      if (resp?.status === 'success') {
-        const sipMsg = resp.sip_suggestions_created > 0 ? `\n${resp.sip_suggestions_created} SIP suggestion(s) added for your review.` : '';
-        Alert.alert('Import Successful', `${resp.saved} holdings imported, ${resp.duplicates} updated.\nSource: ${resp.metadata?.source || 'Unknown'}${sipMsg}`);
-        fetchData();
-      } else if (resp?.status === 'no_holdings') {
-        Alert.alert('No Holdings Found', resp.message || 'Please check the file format.');
-      } else {
-        Alert.alert('Import Failed', resp?.detail || resp?.message || 'Unknown error');
-      }
-    } catch (e: any) {
-      setUploadingStatement(false);
-      Alert.alert('Upload Error', e.message || 'Failed to upload statement');
-    } finally {
-      isPickingRef.current = false;
-    }
-  };
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
   // Set screen context for AI awareness
   useEffect(() => {
     setCurrentScreen('investments');
   }, [setCurrentScreen]);
 
-  const fetchData = useCallback(async () => {
-    if (!token) return;
-    try {
-      const [statsData, goalsData, mktData, portfolioData, holdingsLive, savedRisk, rebalancing, recurringTxns, sipSuggestionsData] = await Promise.all([
-        apiRequest('/dashboard/stats', { token }),
-        apiRequest('/goals', { token }),
-        apiRequest('/market-data?force=true', {}),
-        apiRequest('/portfolio-overview', { token }),
-        apiRequest('/holdings/live', { token }),
-        apiRequest('/risk-profile', { token }),
-        apiRequest('/portfolio-rebalancing', { token }),
-        apiRequest('/recurring', { token }),
-        apiRequest('/sip-suggestions', { token }),
-      ]);
-      setStats(statsData);
-      setGoals(goalsData);
-      setMarketData(mktData || []);
-      setPortfolio(portfolioData);
-      setHoldingsData(holdingsLive);
-      setRebalanceData(rebalancing);
-      setRecurringData(recurringTxns);
-      setSipSuggestions(sipSuggestionsData?.suggestions || []);
-      if (savedRisk && savedRisk.profile) {
-        setRiskProfile(savedRisk.profile);
-        setRiskScore(savedRisk.score || 0);
-        setRiskBreakdown(savedRisk.breakdown || {});
-        setRiskSaved(true);
-      }
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [token]);
+  // Custom hooks for data & state management
+  const {
+    marketData, stats, portfolio, goals, setGoals, holdingsData, rebalanceData,
+    recurringData, sipSuggestions, setSipSuggestions,
+    riskProfile, setRiskProfile, riskScore, setRiskScore, riskBreakdown, setRiskBreakdown,
+    riskSaved, setRiskSaved, loading, refreshing, fetchData, onRefresh, fadeAnim,
+  } = useInvestmentData(token);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const {
+    showHoldingModal, setShowHoldingModal, showCasModal, setShowCasModal,
+    holdingForm, setHoldingForm, casPassword, setCasPassword,
+    uploadingStatement, setUploadingStatement, refreshingPrices,
+    handleRefreshPrices, handleStatementUpload, handleClearHoldings,
+  } = useHoldingsManager(token, fetchData);
 
-  // Re-fetch when tab comes back into focus (e.g., after approving a SIP in Transactions)
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [fetchData])
-  );
+  const {
+    showDatePicker, datePickerTarget, datePickerValue, setDatePickerValue,
+    openDatePicker, closeDatePicker,
+  } = useDatePicker();
 
-  // Auto-refresh when user returns from Safari upload page
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') fetchData();
-    });
-    return () => sub.remove();
-  }, [fetchData]);
+  const {
+    showRiskModal, setShowRiskModal, riskStep, setRiskStep,
+    riskAnswers, showRiskResult, setShowRiskResult,
+    handleRiskAnswer, handleSubmitRiskProfile, resetRiskAssessment,
+  } = useRiskProfile(token, fetchData);
 
-  const onRefresh = () => { setRefreshing(true); fetchData(); };
+  const {
+    showGoalModal, setShowGoalModal, editGoal, goalForm, setGoalForm,
+    saving: savingGoal, handleAddGoal, handleEditGoal, handleSaveGoal, handleDeleteGoal,
+  } = useGoalsManager(token, fetchData);
+
+  const {
+    showSipModal, setShowSipModal, editSip, sipForm, setSipForm,
+    saving: savingSip, handleAddSip, handleEditSip, handleSaveSip, handleDeleteSip,
+  } = useSIPManager(token, fetchData);
+
+  const [showEMITracker, setShowEMITracker] = useState(false);
 
   // ── Date picker helpers ──
-  const openInvestDatePicker = (target: 'goal_deadline' | 'holding_buy_date' | 'sip_start_date') => {
-    let current = new Date();
-    if (target === 'goal_deadline' && goalForm.deadline) {
-      const d = new Date(goalForm.deadline);
-      if (!isNaN(d.getTime())) current = d;
-    } else if (target === 'holding_buy_date' && holdingForm.buy_date) {
-      const d = new Date(holdingForm.buy_date);
-      if (!isNaN(d.getTime())) current = d;
-    } else if (target === 'sip_start_date' && sipForm.start_date) {
-      const d = new Date(sipForm.start_date);
-      if (!isNaN(d.getTime())) current = d;
-    }
-    setDatePickerValue(current);
-    setIosPickerDate(current);
-    setDatePickerTarget(target);
-    setShowDatePicker(true);
-  };
-
-  const handleInvestDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (event.type === 'dismissed' || !selectedDate) return;
-    const formatted = selectedDate.toISOString().split('T')[0];
-    if (datePickerTarget === 'goal_deadline') {
-      setGoalForm(f => ({ ...f, deadline: formatted }));
-    } else if (datePickerTarget === 'holding_buy_date') {
-      setHoldingForm(f => ({ ...f, buy_date: formatted }));
-    } else if (datePickerTarget === 'sip_start_date') {
-      setSipForm(f => ({ ...f, start_date: formatted }));
-    }
-  };
-
-  // iOS date picker: updates state live (no dismiss event)
-  const [iosPickerDate, setIosPickerDate] = useState(new Date());
-
-  // ── Goal handlers ──
-  const openAddGoal = () => {
-    setEditGoal(null);
-    setGoalForm({ title: '', target_amount: '', current_amount: '0', deadline: '', category: 'Safety' });
-    setShowGoalModal(true);
-  };
-  const openEditGoal = (g: Goal) => {
-    setEditGoal(g);
-    setGoalForm({ title: g.title, target_amount: g.target_amount.toString(), current_amount: g.current_amount.toString(), deadline: g.deadline, category: g.category });
-    setShowGoalModal(true);
-  };
-  const handleSaveGoal = async () => {
-    if (!goalForm.title || !goalForm.target_amount || !goalForm.category) { Alert.alert('Error', 'Please fill required fields'); return; }
-    setSaving(true);
-    try {
-      const body = { title: goalForm.title, target_amount: parseFloat(goalForm.target_amount), current_amount: parseFloat(goalForm.current_amount || '0'), deadline: goalForm.deadline || '2026-12-31', category: goalForm.category };
-      if (editGoal) { await apiRequest(`/goals/${editGoal.id}`, { method: 'PUT', token, body }); }
-      else { await apiRequest('/goals', { method: 'POST', token, body }); }
-      setShowGoalModal(false);
-      fetchData();
-    } catch (e: any) { Alert.alert('Error', e.message); }
-    finally { setSaving(false); }
-  };
-  const handleDeleteGoal = (id: string, title: string) => {
-    Alert.alert('Delete Goal', `Delete "${title}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => { await apiRequest(`/goals/${id}`, { method: 'DELETE', token }); fetchData(); } },
-    ]);
-  };
-
-  // ── SIP/Recurring handlers ──
-  const openAddSip = () => {
-    setEditSip(null);
-    const today = new Date().toISOString().split('T')[0];
-    setSipForm({ name: '', amount: '', frequency: 'monthly', category: 'SIP', start_date: today, day_of_month: '5', notes: '' });
-    setShowSipModal(true);
-  };
-  const openEditSip = (sip: RecurringTransaction) => {
-    setEditSip(sip);
-    setSipForm({
-      name: sip.name,
-      amount: sip.amount.toString(),
-      frequency: sip.frequency,
-      category: sip.category,
-      start_date: sip.start_date,
-      day_of_month: sip.day_of_month.toString(),
-      notes: sip.notes || '',
-    });
-    setShowSipModal(true);
-  };
-  const handleSaveSip = async () => {
-    if (!sipForm.name || !sipForm.amount || !sipForm.category) {
-      Alert.alert('Error', 'Please fill required fields');
+  const handleDatePickerConfirm = (event: any, selectedDate?: Date) => {
+    if (event.type === 'dismissed') {
+      closeDatePicker();
       return;
     }
-    setSaving(true);
-    try {
-      const body = {
-        name: sipForm.name,
-        amount: parseFloat(sipForm.amount),
-        frequency: sipForm.frequency,
-        category: sipForm.category,
-        start_date: sipForm.start_date || new Date().toISOString().split('T')[0],
-        day_of_month: parseInt(sipForm.day_of_month) || 5,
-        notes: sipForm.notes || null,
-        is_active: true,
-      };
-      if (editSip) {
-        await apiRequest(`/recurring/${editSip.id}`, { method: 'PUT', token, body });
-      } else {
-        await apiRequest('/recurring', { method: 'POST', token, body });
+    if (selectedDate) {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      if (datePickerTarget === 'goal_deadline') {
+        setGoalForm({ ...goalForm, deadline: dateStr });
+      } else if (datePickerTarget === 'holding_buy_date') {
+        setHoldingForm({ ...holdingForm, buy_date: dateStr });
+      } else if (datePickerTarget === 'sip_start_date') {
+        setSipForm({ ...sipForm, start_date: dateStr });
       }
-      setShowSipModal(false);
-      fetchData();
-    } catch (e: any) {
-      Alert.alert('Error', e.message);
-    } finally {
-      setSaving(false);
     }
-  };
-  const handleDeleteSip = (id: string, name: string) => {
-    Alert.alert('Delete SIP', `Delete "${name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        await apiRequest(`/recurring/${id}`, { method: 'DELETE', token });
-        fetchData();
-      }},
-    ]);
-  };
-  const handlePauseSip = async (sip: RecurringTransaction) => {
-    try {
-      await apiRequest(`/recurring/${sip.id}/pause`, { method: 'POST', token });
-      fetchData();
-    } catch (e: any) {
-      Alert.alert('Error', e.message);
-    }
-  };
-  const handleExecuteSip = async (sip: RecurringTransaction) => {
-    Alert.alert(
-      'Execute SIP',
-      `Record investment of ${formatINR(sip.amount)} for ${sip.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Execute', onPress: async () => {
-          try {
-            await apiRequest(`/recurring/${sip.id}/execute`, { method: 'POST', token });
-            Alert.alert('Success', 'SIP executed successfully!');
-            fetchData();
-          } catch (e: any) {
-            Alert.alert('Error', e.message);
-          }
-        }},
-      ]
-    );
+    closeDatePicker();
   };
 
-
-  const handleRiskAnswer = async (value: number) => {
-    const q = RISK_QUESTIONS[riskStep];
-    const newAnswers = [...riskAnswers, { question_id: q.id, value, category: q.category }];
-    setRiskAnswers(newAnswers);
-    if (riskStep < RISK_QUESTIONS.length - 1) {
-      setRiskStep(riskStep + 1);
-    } else {
-      // Calculate score and breakdown
-      const catScores: Record<string, number[]> = {};
-      newAnswers.forEach(a => {
-        if (!catScores[a.category]) catScores[a.category] = [];
-        catScores[a.category].push(a.value);
-      });
-      const breakdown: Record<string, number> = {};
-      Object.entries(catScores).forEach(([cat, vals]) => {
-        breakdown[cat] = parseFloat((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2));
-      });
-      const avgScore = parseFloat((newAnswers.reduce((s, a) => s + a.value, 0) / newAnswers.length).toFixed(2));
-      const profile: 'Conservative' | 'Moderate' | 'Aggressive' = avgScore <= 2.0 ? 'Conservative' : avgScore <= 3.5 ? 'Moderate' : 'Aggressive';
-
-      setRiskScore(avgScore);
-      setRiskBreakdown(breakdown);
-      setRiskProfile(profile);
-      setShowRiskResult(true);
-
-      // Save to backend
-      try {
-        await apiRequest('/risk-profile', { method: 'POST', token, body: {
-          answers: newAnswers, score: avgScore, profile, breakdown,
-        }});
-        setRiskSaved(true);
-      } catch (e) { console.error('Failed to save risk profile', e); }
-    }
-  };
-
-  const closeRiskModal = () => {
-    setShowRiskModal(false);
-    setShowRiskResult(false);
-    setRiskStep(0);
-    setRiskAnswers([]);
-  };
-
-  // ── Holdings handlers ──
-  const openAddHolding = () => {
-    setHoldingForm({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
-    setShowHoldingModal(true);
-  };
-  const handleSaveHolding = async () => {
-    if (!holdingForm.name || !holdingForm.quantity || !holdingForm.buy_price) { Alert.alert('Error', 'Name, Quantity, and Buy Price are required'); return; }
-    setSaving(true);
-    try {
-      await apiRequest('/holdings', { method: 'POST', token, body: {
-        name: holdingForm.name, ticker: holdingForm.ticker, isin: holdingForm.isin,
-        category: holdingForm.category, quantity: parseFloat(holdingForm.quantity),
-        buy_price: parseFloat(holdingForm.buy_price), buy_date: holdingForm.buy_date,
-      }});
-      setShowHoldingModal(false);
-      fetchData();
-    } catch (e: any) { Alert.alert('Error', e.message); }
-    finally { setSaving(false); }
-  };
-  const handleDeleteHolding = (id: string, name: string) => {
-    Alert.alert('Delete Holding', `Remove "${name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => { await apiRequest(`/holdings/${id}`, { method: 'DELETE', token }); fetchData(); } },
-    ]);
-  };
-  const handleCasUpload = async () => {
-    if (isPickingRef.current) return;
-    isPickingRef.current = true;
-    try {
-      // Use expo-document-picker for cross-platform file selection
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        copyToCacheDirectory: true,
-      });
-      
-      if (result.canceled || !result.assets || result.assets.length === 0) {
-        return; // User cancelled
-      }
-      
-      const file = result.assets[0];
-      setSaving(true);
-      
-      try {
-        const formData = new FormData();
-        
-        // Handle file data for both web and native
-        if (Platform.OS === 'web') {
-          // For web, fetch the file and convert to blob
-          const response = await fetch(file.uri);
-          const blob = await response.blob();
-          formData.append('file', blob, file.name || 'cas.pdf');
-        } else {
-          // For native (Android/iOS)
-          formData.append('file', {
-            uri: file.uri,
-            name: file.name || 'cas.pdf',
-            type: 'application/pdf',
-          } as any);
-        }
-        
-        formData.append('password', casPassword || '');
-        
-        const resp = await fetch(`${BACKEND_URL}/api/holdings/upload-cas`, {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formData,
-        });
-        
-        let data: any = {};
-        try {
-          const text = await resp.text();
-          data = JSON.parse(text);
-        } catch {
-          throw new Error('Server returned an unexpected response. Please try again.');
-        }
-        
-        if (!resp.ok) {
-          throw new Error(data.detail || data.message || `Upload failed (${resp.status})`);
-        }
-        
-        const sipMsg = data.sip_count > 0 ? `\n\nDetected ${data.sip_count} SIP${data.sip_count > 1 ? 's' : ''} — see suggestions below in the SIP section.` : '';
-        Alert.alert('Success', `${data.message || `Imported ${data.imported || 0} holdings`}${sipMsg}`);
-        setShowCasModal(false);
-        setCasPassword('');
-        fetchData();
-      } catch (err: any) {
-        console.error('CAS Upload Error:', err);
-        Alert.alert('Upload Error', err.message || 'Failed to parse CAS. Please check the file and password.');
-      } finally { 
-        setSaving(false); 
-      }
-    } catch (e: any) { 
-      console.error('File picker error:', e);
-      Alert.alert('Error', 'Could not open file picker. Please try again.'); 
-    } finally {
-      isPickingRef.current = false;
-    }
-  };
-
-  const handleClearHoldings = async () => {
-    Alert.alert(
-      'Clear All Holdings',
-      'Are you sure you want to delete all your holdings? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setSaving(true);
-              const resp = await fetch(`${BACKEND_URL}/api/holdings/clear-all`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-              });
-              const data = await resp.json();
-              if (!resp.ok) throw new Error(data.detail || 'Failed to clear');
-              Alert.alert('Success', data.message || 'Holdings cleared');
-              fetchData();
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to clear holdings');
-            } finally {
-              setSaving(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  // ── Computed values ──
+// ── Computed values ──
   const totalInvested = portfolio?.total_invested || stats?.total_investments || 0;
   const allocation = stats?.invest_breakdown || {};
 

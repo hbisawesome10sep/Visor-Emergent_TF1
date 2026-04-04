@@ -37,30 +37,12 @@ import { UpcomingDuesCard } from '../../src/components/dashboard/UpcomingDuesCar
 import { AIInsightCard } from '../../src/components/dashboard/AIInsightCard';
 import { Accent } from '../../src/utils/theme';
 import { JarProgressView } from '../../src/components/JarProgressView';
+import { useDashboardData, useFrequencyFilter } from '../../src/hooks/dashboard';
+import { toDateStr, getFinancialYear, getScoreLabel, getScoreColor } from '../../src/utils/dashboard/dateHelpers';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Format date as YYYY-MM-DD without timezone shift
-function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 type FrequencyOption = 'Quarter' | 'Month' | 'Year' | 'Custom';
-
-// Indian Financial Year: April 1 → March 31
-function getFinancialYear(): { start: Date; end: Date; label: string } {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
-  // If current month is Jan–Mar (0–2), FY started previous year April
-  const fyStartYear = month < 3 ? year - 1 : year;
-  const start = new Date(fyStartYear, 3, 1); // April 1
-  const end = new Date(fyStartYear + 1, 2, 31); // March 31
-  // Cap end to today if FY hasn't ended yet
-  const cappedEnd = end > now ? now : end;
-  const label = `FY ${fyStartYear}-${String(fyStartYear + 1).slice(2)}`;
-  return { start, end: cappedEnd, label };
-}
 
 type DashboardStats = {
   total_income: number;
@@ -104,22 +86,6 @@ type Goal = {
   category: string;
 };
 
-// Health Score - now uses backend-provided score for consistency
-function getScoreLabel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: 'Excellent', color: Accent.emerald };
-  if (score >= 65) return { label: 'Good', color: Accent.teal };
-  if (score >= 50) return { label: 'Fair', color: Accent.amber };
-  if (score >= 35) return { label: 'Needs Work', color: Accent.amber };
-  return { label: 'Critical', color: Accent.ruby };
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 76) return Accent.emerald;
-  if (score >= 61) return Accent.teal;
-  if (score >= 41) return Accent.amber;
-  return Accent.ruby;
-}
-
 export default function DashboardScreen() {
   const { user, token } = useAuth();
   const { colors, isDark } = useTheme();
@@ -127,165 +93,28 @@ export default function DashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedFrequency, setSelectedFrequency] = useState<FrequencyOption>('Month');
-
   // Set screen context for AI awareness
   useEffect(() => {
     setCurrentScreen('dashboard');
   }, [setCurrentScreen]);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  
-  // Calculate header height dynamically based on safe area
+
   const HEADER_HEIGHT = 58 + insets.top;
   const [showScoreBack, setShowScoreBack] = useState(false);
   const [showTrendBack, setShowTrendBack] = useState(false);
-  const [userCreatedAt, setUserCreatedAt] = useState<string>('');
-  
-  // Date range state
-  const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    end: new Date(),
-  });
-  // Custom date range input state - Date objects for calendar picker
-  const [customStartDate, setCustomStartDate] = useState(new Date(new Date().getFullYear(), 0, 1));
-  const [customEndDate, setCustomEndDate] = useState(new Date());
-  const [showNativePicker, setShowNativePicker] = useState(false);
-  const [activePickerField, setActivePickerField] = useState<'start' | 'end'>('start');
 
-  // Get date range based on frequency - no userCreatedAt constraint for Q/M/Y
-  const getDateRangeForFrequency = (freq: FrequencyOption): { start: Date; end: Date } => {
-    const now = new Date();
-    let start: Date;
-    let end = now;
-    
-    switch (freq) {
-      case 'Quarter':
-        start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
-        break;
-      case 'Year': {
-        const fy = getFinancialYear();
-        start = fy.start;
-        end = fy.end;
-        break;
-      }
-      case 'Custom':
-        start = dateRange.start;
-        end = dateRange.end;
-        break;
-      case 'Month':
-      default:
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-    }
-    
-    return { start, end };
-  };
+  // Custom hooks for data & state management
+  const {
+    stats, goals, loading, refreshing, selectedFrequency, setSelectedFrequency,
+    dateRange, setDateRange, fetchData, onRefresh, getDateRangeForFrequency,
+  } = useDashboardData(token);
 
-  const fetchData = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    try {
-      // Calculate date range inline to avoid stale closure issues
-      const now = new Date();
-      let startDate: Date;
-      let endDate = now;
-      
-      switch (selectedFrequency) {
-        case 'Quarter':
-          startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
-          break;
-        case 'Year': {
-          const fy = getFinancialYear();
-          startDate = fy.start;
-          endDate = fy.end;
-          break;
-        }
-        case 'Custom':
-          startDate = dateRange.start;
-          endDate = dateRange.end;
-          break;
-        case 'Month':
-        default:
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-      }
-      
-      // Safely format dates - fallback to current month if invalid
-      const safeStart = isNaN(startDate.getTime()) ? new Date(now.getFullYear(), now.getMonth(), 1) : startDate;
-      const safeEnd = isNaN(endDate.getTime()) ? now : endDate;
-      const startStr = toDateStr(safeStart);
-      const endStr = toDateStr(safeEnd);
-      
-      console.log(`[Dashboard] Fetching stats: ${selectedFrequency} | ${startStr} → ${endStr}`);
-      
-      const [s, g] = await Promise.all([
-        apiRequest(`/dashboard/stats?start_date=${startStr}&end_date=${endStr}&frequency=${selectedFrequency}`, { token }),
-        apiRequest('/goals', { token }),
-      ]);
-      setStats(s);
-      setGoals(g);
-      // Store user's created_at for date range limit
-      if (s?.user_created_at) {
-        setUserCreatedAt(s.user_created_at);
-      }
-    } catch (e: any) {
-      console.warn('[Dashboard] Fetch error:', e?.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [token, selectedFrequency, dateRange]);
+  const {
+    showDatePicker, setShowDatePicker, customStartDate, customEndDate,
+    showNativePicker, activePickerField, handleFrequencyChange,
+    handleApplyCustomRange, openDatePicker, handleNativeDateChange,
+  } = useFrequencyFilter(setSelectedFrequency, setDateRange);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchData();
-  };
-
-  const handleFrequencyChange = (freq: FrequencyOption) => {
-    if (freq === 'Custom') {
-      // Pre-fill custom inputs: default to start of current FY
-      const fy = getFinancialYear();
-      setCustomStartDate(fy.start);
-      setCustomEndDate(new Date());
-      setShowDatePicker(true);
-    } else {
-      setSelectedFrequency(freq);
-    }
-  };
-
-  const handleApplyCustomRange = () => {
-    if (customStartDate > customEndDate) {
-      Alert.alert('Invalid Range', 'Start date must be before end date');
-      return;
-    }
-    setDateRange({ start: customStartDate, end: customEndDate });
-    setSelectedFrequency('Custom');
-    setShowDatePicker(false);
-  };
-
-  const openDatePicker = (field: 'start' | 'end') => {
-    setActivePickerField(field);
-    setShowNativePicker(true);
-  };
-
-  const handleNativeDateChange = (event: any, selectedDate?: Date) => {
-    // On Android, always dismiss first
-    setShowNativePicker(false);
-    if (event.type === 'dismissed' || !selectedDate) return;
-    if (activePickerField === 'start') {
-      setCustomStartDate(selectedDate);
-    } else {
-      setCustomEndDate(selectedDate);
-    }
-  };
 
   if (loading) {
     return (
