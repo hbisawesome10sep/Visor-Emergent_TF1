@@ -213,9 +213,43 @@ Uses unique reference numbers (UTR for UPI, NEFT ref, RTGS ref) rather than desc
 - **Financial Year Aware**: All calculations aligned to Indian FY (April–March)
 
 #### Upcoming Tax Module Phases
-- **Phase 2**: Form 16 PDF parser, AIS/Form 26AS JSON parser, FD Interest Certificate parser, Real-time Tax Meter on Dashboard
-- **Phase 3**: Capital Gains Engine with grandfathering, Deduction Gap Analysis, TDS Mismatch Detection, Monthly Tax Calendar Reminders
+- **Phase 2** ✅ (Completed April 2026): Form 16 PDF parser, AIS/Form 26AS JSON/PDF parser, FD Interest Certificate parser, Real-time Tax Meter on Dashboard
+- **Phase 3** ✅ (Completed April 2026): Capital Gains Engine with grandfathering, Deduction Gap Analysis with product recommendations, TDS Mismatch Detection, Tax Calendar & Proactive Reminders
 - **Non-Salaried Profiles**: Freelancer (44ADA presumptive), Business Owner (44AD), Investor/F&O (speculative income, ITR-3), Rental Income (House Property formula)
+
+#### Phase 2: Document Parsers & Tax Meter (Completed April 2026)
+- **Form 16 PDF Parser** (`POST /api/tax/upload/form16`): Extracts salary components (Basic, HRA, LTA, Perquisites), deductions (80C, 80CCC, 80CCD, 80D, 80E, 80G, 80TTA, 24b), tax computation (total tax, TDS, surcharge, cess), employer info (name, TAN, PAN)
+- **AIS / Form 26AS Parser** (`POST /api/tax/upload/ais`, `POST /api/tax/upload/form26as`): Extracts TDS details, SFT transactions, interest income, dividend income, supports both JSON and PDF formats
+- **FD Interest Certificate Parser** (`POST /api/tax/upload/fd-certificate`): Extracts bank name, FD account, principal, interest earned, TDS deducted, auto-creates 80TTA deduction entry
+- **Tax Meter Dashboard Widget**: Compact card showing estimated tax, TDS paid YTD, tax due/refund expected, 80C utilization progress, regime recommendation (old vs new), effective tax rate
+- **Tax Documents Management** (`GET /api/tax/documents`, `DELETE /api/tax/documents/{id}`): List and manage uploaded tax documents
+
+#### Phase 3: Advanced Tax Analytics (Completed April 2026)
+- **Capital Gains Engine v2** (`GET /api/tax/capital-gains-v2`):
+  - Grandfathering support for equity acquired before Feb 1, 2018 (Budget 2018)
+  - FIFO cost basis matching for sell transactions
+  - STCG (20% equity) and LTCG (12.5% above ₹1.25L exemption) computation
+  - Asset classification by holding period (1 year equity, 2 years property/gold)
+  - Detailed tax breakdown per gain with adjusted cost calculation
+- **Deduction Gap Analysis** (`GET /api/tax/deduction-gap`):
+  - Section-wise gap identification (80C, 80CCD1B, 80D, 80E, 80G, 24b, 80TTA)
+  - Utilization percentage with status badges (optimized/good/under-utilized)
+  - Product recommendations with lock-in periods, expected returns, and tax benefit notes
+  - Top 3 actionable recommendations with potential tax savings at 30% slab
+- **TDS Mismatch Detection** (`GET /api/tax/tds-mismatch`):
+  - Compares employer TDS (from salary profile) with Form 26AS/AIS (uploaded documents)
+  - Status classification: matched, minor_mismatch, major_mismatch, not_found_in_26as
+  - Actionable recommendations for resolution
+- **Tax Calendar** (`GET /api/tax/calendar`):
+  - Full FY tax calendar (April–March) with important dates
+  - Personalized to income type (advance tax dates only for business/freelancer/investor)
+  - Status indicators: urgent, upcoming, future, past, completed
+  - Next deadline preview with days remaining
+- **Proactive Tax Reminders** (`GET /api/tax/reminders`):
+  - Context-aware reminders based on user's data (80C remaining, ITR deadline, Form 16 collection)
+  - Urgency levels: high, medium, low
+  - Month-specific triggers (October–March for 80C, June–July for Form 16/ITR)
+- **AI Context Integration**: Auto-detected deductions and uploaded documents injected into Visor AI context
 
 ---
 ### 2.7 Loan & EMI Management
