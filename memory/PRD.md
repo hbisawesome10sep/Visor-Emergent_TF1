@@ -1,6 +1,6 @@
 # VISOR FINANCE — Comprehensive Product Document
 
-**Version**: 3.2 | **Last Updated**: March 22, 2026
+**Version**: 3.3 | **Last Updated**: April 4, 2026
 **Platform**: iOS & Android (React Native Expo) | **Backend**: FastAPI + MongoDB
 
 ---
@@ -176,27 +176,48 @@ Uses unique reference numbers (UTR for UPI, NEFT ref, RTGS ref) rather than desc
 
 #### Tax Summary
 - **Old vs New Regime Comparison**: Side-by-side comparison showing which regime saves more
-- **Automatic Slab Calculation**: Income tax computed for both regimes with applicable slabs
+- **Automatic Slab Calculation**: Income tax computed for both regimes with applicable slabs (FY 2025-26 new regime: ₹4L nil, ₹8L 5%, ₹12L 10%, etc.)
 - **Surcharge & Cess**: Health & Education Cess (4%) and surcharge automatically applied
 - **Effective Tax Rate**: Shows actual tax percentage on total income
+
+#### Phase 0: Income Profile (Added April 2026)
+- **Tax Profile Setup**: Users select income types (Salaried, Freelancer, Business, Investor, Rental) which drive which tax modules are activated
+- **Income Type Chips**: Multi-select UI with icons, saved to `tax_income_profiles` MongoDB collection
+- **Prerequisite for all downstream tax calculations**
+
+#### Phase 1: Salary-Based Tax Accuracy (Added April 2026)
+- **Salary Profile Wizard** (3-step modal): Employer + city + state (Step 1), Monthly salary breakdown with auto-calculated gross (Step 2), EPF/Professional Tax/TDS/Housing deductions (Step 3)
+  - Auto-detect metro vs non-metro city for HRA calculations
+  - State-wise professional tax lookup (Maharashtra ₹2,400/yr, Karnataka ₹2,400/yr, TN ₹1,200/yr, etc.)
+  - EPF auto-suggestion at 12% of Basic (capped at ₹1,800/month per EPFO ceiling)
+  - Saved to `salary_profiles` MongoDB collection
+- **HRA Auto-Calculation Card**: Expandable card showing 3-condition formula (Actual HRA, City% of Basic, Rent−10%Basic), highlights limiting condition in amber, shows landlord PAN warning if rent > ₹1L/year
+- **Section 80C Limit Tracker**: Stacked progress bar (₹0 to ₹1.5L), instrument-wise breakdown (ELSS, EPF, LIC, PPF, NSC, etc.), NPS 80CCD(1B) ₹50K extra tracker below, status badge (optimized/good/under-utilized)
+- **Enhanced Section Mapping**: Confidence scoring (0.55–0.95) on all auto-detected deductions, `POST /api/tax/remap-transactions` endpoint
+- **Visor AI Context**: Salary profile + HRA exemption + income type injected into AI context for accurate tax Q&A
 
 #### Deductions Management
 - **Auto-Detected Deductions**: Transactions automatically scanned for tax-deductible payments (Insurance → 80C, Medical → 80D, Education Loan → 80E, HRA → 10(13A))
 - **Manual Deductions**: Add custom deductions under any section (80C, 80D, 80E, 80G, 80TTA, 80GG, 24(b), etc.)
 - **Smart Tax Notifications**: Alerts for missing deduction opportunities and approaching limits
+- **Disclaimer Banner**: Minimal collapsible strip: "Estimates only — consult a CA for ITR filing"
 
 #### Capital Gains
 - **STCG & LTCG Tracking**: Short-term and long-term capital gains computed from investment holdings
 - **Tax-Loss Harvesting**: Identify loss positions for potential tax offset
-- **Section 111A / 112A**: Proper classification with applicable rates (15% STCG, 12.5% LTCG above ₹1.25L)
+- **Section 111A / 112A**: Proper classification with applicable rates (20% STCG, 12.5% LTCG above ₹1.25L)
 
 #### Tax Planning
 - **AI Tax Scanner**: Scans all transactions and suggests potential deductions
 - **Deduction Floating Bar**: Persistent summary bar showing total deductions claimed vs. available limits
 - **Financial Year Aware**: All calculations aligned to Indian FY (April–March)
 
----
+#### Upcoming Tax Module Phases
+- **Phase 2**: Form 16 PDF parser, AIS/Form 26AS JSON parser, FD Interest Certificate parser, Real-time Tax Meter on Dashboard
+- **Phase 3**: Capital Gains Engine with grandfathering, Deduction Gap Analysis, TDS Mismatch Detection, Monthly Tax Calendar Reminders
+- **Non-Salaried Profiles**: Freelancer (44ADA presumptive), Business Owner (44AD), Investor/F&O (speculative income, ITR-3), Rental Income (House Property formula)
 
+---
 ### 2.7 Loan & EMI Management
 
 #### Loan Tracker

@@ -187,6 +187,12 @@ async def save_income_profile(data: IncomeProfileCreate, user=Depends(get_curren
     return {"profile": doc}
 
 
+@router.delete("/tax/income-profile")
+async def delete_income_profile(user=Depends(get_current_user)):
+    await db.tax_income_profiles.delete_one({"user_id": user["id"]})
+    return {"status": "deleted"}
+
+
 # ══════════════════════════════════════
 #  PHASE 1.2: SALARY PROFILE
 # ══════════════════════════════════════
