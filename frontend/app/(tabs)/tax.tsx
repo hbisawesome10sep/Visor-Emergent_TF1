@@ -30,6 +30,8 @@ import {
   DeductionGapCard,
   TDSMismatchCard,
   TaxCalendarCard,
+  FreelancerProfileWizard,
+  NonSalariedSummaryCard,
 } from '../../src/components/tax';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -84,6 +86,12 @@ export default function TaxScreen() {
   const [hraData, setHraData] = useState<any>(null);
   const [summary80c, setSummary80c] = useState<any>(null);
   const [disclaimerExpanded, setDisclaimerExpanded] = useState(false);
+
+  // Non-Salaried Profile Wizards
+  const [showFreelancerWizard, setShowFreelancerWizard] = useState(false);
+  const [showBusinessWizard, setShowBusinessWizard] = useState(false);
+  const [showInvestorWizard, setShowInvestorWizard] = useState(false);
+  const [showRentalWizard, setShowRentalWizard] = useState(false);
 
   // Set screen context for AI awareness
   useEffect(() => {
@@ -366,6 +374,20 @@ export default function TaxScreen() {
             hraData={hraData}
             colors={colors}
             isDark={isDark}
+          />
+        )}
+
+        {/* ═══ NON-SALARIED INCOME PROFILES ═══ */}
+        {token && incomeProfile && (
+          <NonSalariedSummaryCard
+            token={token}
+            colors={colors}
+            isDark={isDark}
+            incomeTypes={incomeProfile?.income_types || []}
+            onOpenFreelancer={() => setShowFreelancerWizard(true)}
+            onOpenBusiness={() => Alert.alert('Coming Soon', 'Business profile wizard will be available soon')}
+            onOpenInvestor={() => Alert.alert('Coming Soon', 'Investor profile wizard will be available soon')}
+            onOpenRental={() => Alert.alert('Coming Soon', 'Rental profile wizard will be available soon')}
           />
         )}
 
@@ -732,6 +754,16 @@ export default function TaxScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* ═══ FREELANCER PROFILE WIZARD ═══ */}
+      <FreelancerProfileWizard
+        token={token || ''}
+        colors={colors}
+        isDark={isDark}
+        visible={showFreelancerWizard}
+        onClose={() => setShowFreelancerWizard(false)}
+        onSaved={fetchData}
+      />
     </View>
   );
 }

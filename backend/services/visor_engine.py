@@ -42,7 +42,7 @@ async def process_visor_message(
     })
 
     # ── Gather ALL user financial data ───────────────────────────────
-    txns, goals, risk_doc, holdings, sips, budgets, loans, credit_cards, bank_accounts, assets, tax_deds, salary_profile, income_profile, auto_deds, tax_docs = (
+    txns, goals, risk_doc, holdings, sips, budgets, loans, credit_cards, bank_accounts, assets, tax_deds, salary_profile, income_profile, auto_deds, tax_docs, freelancer_profile, business_profile, investor_profile, rental_profile = (
         await asyncio.gather(
             db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(500),
             db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(50),
@@ -59,6 +59,10 @@ async def process_visor_message(
             db.tax_income_profiles.find_one({"user_id": user_id}, {"_id": 0}),
             db.auto_tax_deductions.find({"user_id": user_id, "fy": "2025-26"}, {"_id": 0}).to_list(100),
             db.tax_documents.find({"user_id": user_id}, {"_id": 0}).to_list(10),
+            db.freelancer_profiles.find_one({"user_id": user_id, "fy": "2025-26"}, {"_id": 0}),
+            db.business_profiles.find_one({"user_id": user_id, "fy": "2025-26"}, {"_id": 0}),
+            db.investor_profiles.find_one({"user_id": user_id, "fy": "2025-26"}, {"_id": 0}),
+            db.rental_profiles.find_one({"user_id": user_id, "fy": "2025-26"}, {"_id": 0}),
             return_exceptions=True,
         )
     )
@@ -76,6 +80,14 @@ async def process_visor_message(
         salary_profile = None
     if isinstance(income_profile, Exception):
         income_profile = None
+    if isinstance(freelancer_profile, Exception):
+        freelancer_profile = None
+    if isinstance(business_profile, Exception):
+        business_profile = None
+    if isinstance(investor_profile, Exception):
+        investor_profile = None
+    if isinstance(rental_profile, Exception):
+        rental_profile = None
 
     # ── Build financial context ──────────────────────────────────────
     total_income = sum(t["amount"] for t in txns if t.get("type") == "income") if isinstance(txns, list) else 0
@@ -181,6 +193,29 @@ async def process_visor_message(
         if income_types:
             income_profile_ctx = f"\nINCOME PROFILE: {', '.join(income_types)} (Primary: {income_profile.get('primary_income_type', 'salaried')})"
 
+    # Non-salaried income profiles context
+    nonsalaried_ctx = ""
+    if freelancer_profile and isinstance(freelancer_profile, dict):
+        gross = freelancer_profile.get("gross_receipts", 0)
+        taxable = gross * 0.50 if freelancer_profile.get("use_presumptive") else gross - freelancer_profile.get("expenses_claimed", gross * 0.30)
+        nonsalaried_ctx += f"\n  Freelancer (44ADA): Gross \u20b9{gross:,.0f}, Taxable \u20b9{taxable:,.0f}, Profession: {freelancer_profile.get('profession', 'N/A')}"
+    if business_profile and isinstance(business_profile, dict):
+        turnover = business_profile.get("gross_turnover", 0)
+        digital_pct = business_profile.get("digital_receipts_pct", 60) / 100
+        taxable = turnover * digital_pct * 0.06 + turnover * (1 - digital_pct) * 0.08
+        nonsalaried_ctx += f"\n  Business (44AD): Turnover \u20b9{turnover:,.0f}, Taxable \u20b9{taxable:,.0f}, Type: {business_profile.get('business_type', 'N/A')}"
+    if investor_profile and isinstance(investor_profile, dict):
+        fo_profit = investor_profile.get("futures_profit", 0) + investor_profile.get("options_profit", 0)
+        intraday = investor_profile.get("intraday_profit", 0)
+        crypto = investor_profile.get("crypto_profit", 0)
+        if fo_profit or intraday or crypto:
+            nonsalaried_ctx += f"\n  Investor/Trader: F&O P/L \u20b9{fo_profit:,.0f}, Intraday \u20b9{intraday:,.0f}, Crypto \u20b9{crypto:,.0f}"
+    if rental_profile and isinstance(rental_profile, dict):
+        props = rental_profile.get("properties", [])
+        total_rent = sum(p.get("gross_annual_rent", 0) for p in props)
+        if total_rent:
+            nonsalaried_ctx += f"\n  Rental Income: {len(props)} properties, Gross \u20b9{total_rent:,.0f}/year"
+
     context = f"""USER FINANCIAL PROFILE:
 
 SUMMARY:
@@ -204,7 +239,7 @@ LOANS/EMIs: {loan_str}
 CREDIT CARDS: {cc_str}
 BANK ACCOUNTS: {bank_str}
 FIXED ASSETS: {asset_str}
-TAX DEDUCTIONS: {tax_str}{auto_ded_str}{tax_docs_str}{salary_ctx}
+TAX DEDUCTIONS: {tax_str}{auto_ded_str}{tax_docs_str}{salary_ctx}{nonsalaried_ctx}
 
 RECENT TRANSACTIONS:
 {recent_txn or '  None'}"""

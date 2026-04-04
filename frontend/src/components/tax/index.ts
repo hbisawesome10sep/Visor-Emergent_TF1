@@ -12,3 +12,5 @@ export { TaxDocumentUpload } from './TaxDocumentUpload';
 export { DeductionGapCard } from './DeductionGapCard';
 export { TDSMismatchCard } from './TDSMismatchCard';
 export { TaxCalendarCard } from './TaxCalendarCard';
+export { FreelancerProfileWizard } from './FreelancerProfileWizard';
+export { NonSalariedSummaryCard } from './NonSalariedSummaryCard';
