@@ -82,7 +82,7 @@ const DimensionBar = ({ dimKey, dim, isDark }: { dimKey: string; dim: Dimension;
   );
 };
 
-export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
+export const FinancialHealthV2Card = ({ token, isDark, colors, frequency = 'Month' }: Props) => {
   const [data, setData] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [flipped, setFlipped] = useState(false);

@@ -1,0 +1,108 @@
+{
+  "summary": "Comprehensive testing of Visor Finance Tax Module Phase 0 + Phase 1 features. 28/28 backend tests passing (100%). All 4 new UI components rendering correctly. 1 display bug found and code-fixed in Section80CTracker.tsx (division by 100 instead of 1000 for K-formatting of remaining amount). FinancialHealthV2Card 'frequency is not defined' bug confirmed FIXED. Visor AI context injection working with salary/income profile data.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "DELETE /api/tax/income-profile",
+        "issue": "Returns 405 Method Not Allowed - no DELETE endpoint for income-profile. Cannot test fresh-user state easily. POST resets to empty if needed."
+      }
+    ]
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Section80CTracker",
+        "issue": "Display bug: '₹854K remaining' instead of '₹85.4K remaining' (line 93: remaining_80c / 100 should be / 1000). FIXED IN CODE but external proxy/CDN is caching old bundle.",
+        "selector": "text=854K remaining",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "Section80CTracker",
+        "issue": "Display bug: '₹500K extra deduction beyond 80C limit' instead of '₹50K' (line 136: nps_remaining / 100 should be / 1000). FIXED IN CODE but proxy cache serving old bundle.",
+        "selector": "text=500K extra",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Tax Screen - Section 80C",
+        "issues": [
+          "The 'Instrument Breakdown' expand section is working well. Color-coded dots for ELSS (orange), EPF (green), Life Insurance (blue) - looks clean.",
+          "HRA limiting condition highlighted in orange/amber with arrow '→' prefix - excellent visual clarity."
+        ]
+      }
+    ]
+  },
+
+  "test_report_links": [
+    "/app/backend/tests/test_tax_enhanced_phase0_phase1.py",
+    "/app/test_reports/pytest/pytest_tax_enhanced.xml"
+  ],
+
+  "action_items": [
+    "REQUIRED: Restart expo to force fresh bundle delivery: `sudo supervisorctl restart expo` — This will bust the Kubernetes ingress cache and serve the updated bundle with fixed K-formatting in Section80CTracker (₹85.4K remaining instead of ₹854K; ₹50K NPS deduction instead of ₹500K). Source fix already applied at lines 93,136 of Section80CTracker.tsx.",
+    "OPTIONAL: Add DELETE /api/tax/income-profile endpoint for resetting user's income profile (currently only GET/POST available)",
+    "OPTIONAL: Verify demo salary profile employer name - current value is 'TCS', review_request stated 'Tata Consultancy'. Restore fixture may need the correct original employer."
+  ],
+
+  "critical_code_review_comments": [
+    "Section80CTracker.tsx line 93: `remaining_80c / 100` → BUG: shows '₹854K remaining' for ₹85,400. FIXED to / 1000 (now shows ₹85.4K). Verify with proxy cache clear.",
+    "Section80CTracker.tsx line 136: `nps_remaining / 100` → BUG: shows '₹500K extra deduction' for ₹50,000. FIXED to / 1000 (now shows ₹50K). Verify with proxy cache clear.",
+    "FinancialHealthV2Card.tsx: `frequency` prop now has default='Month' on line 85 - the 'frequency is not defined' bug IS CONFIRMED FIXED - no JS errors in dashboard.",
+    "visor_engine.py lines 135-165: salary_profile + income_profile context injection working correctly - AI correctly calculates ₹2,64,000 HRA for Mumbai metro based on injected salary data.",
+    "tax_enhanced.py: All 6 new endpoints return correct data. HRA 3-condition formula verified mathematically: c1=384000, c2=480000, c3=264000, exemption=264000 (Condition 3 limiting)."
+  ],
+
+  "updated_files": [
+    "/app/frontend/src/components/tax/Section80CTracker.tsx"
+  ],
+
+  "success_rate": {
+    "backend": "100% (28/28 tests passing)",
+    "frontend": "90% (all components render + interact correctly; 2 display bugs code-fixed, pending proxy cache clear)"
+  },
+
+  "test_credentials": {
+    "demo_account": "rajesh@visor.demo / Demo@123",
+    "note": "/app/memory/test_credentials.md file not found - credentials sourced from review_request"
+  },
+
+  "seed_data_creation": "Backend tests created/modified salary profiles during testing (TEST_Infosys, TEST_Wipro, TEST_TCS, etc.) and restore fixture set employer='Tata Consultancy'. Current demo user salary profile: employer=TCS, Mumbai, basic=80000, hra=32000, rent=30000 (functional, just employer name differs from initial).",
+
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+
+  "context_for_next_testing_agent": "All backend APIs for Phase 0+1 pass (100%). Frontend UI confirmed working via screenshots: disclaimer collapsible, 80C tracker with instrument breakdown expanded, HRA 3-condition expandable with limiting condition highlighted, salary wizard 3-step modal opens. Code fix applied for display bug in Section80CTracker.tsx (/ 100 → / 1000 for both remaining_80c and nps_remaining). Proxy CDN is caching old JS bundle - external URL shows '854K remaining' but localhost:3000 bundle confirmed shows '85K remaining'. Main agent must clear proxy/CDN cache or restart expo with --clear. IncomeProfileSetup card correctly hidden when profile exists. Visor AI working with correct context injection.",
+
+  "rca_of_issues": {
+    "bug_1": {
+      "component": "Section80CTracker.tsx lines 93, 136",
+      "root_cause": "Developer used `/ 100` (paise conversion?) instead of `/ 1000` (to convert rupees to K) for the K-formatted remaining display. So ₹85,400 / 100 = 854 → '₹854K' instead of ₹85,400 / 1000 = 85.4 → '₹85.4K'",
+      "fix": "Changed both occurrences to / 1000. Source file confirmed fixed. Code deployed to dev server.",
+      "mitigation": "Clear Kubernetes ingress/CDN cache or restart expo with --clear flag."
+    },
+    "proxy_cache_issue": {
+      "root_cause": "Kubernetes ingress proxy is caching the JS bundle. localhost:3000 serves updated bundle with fix, but external URL https://finance-parser-split.preview.emergentagent.com serves cached old bundle.",
+      "verification": "curl http://localhost:3000/bundle | grep 'remaining_80c' → shows '/ 1000' and '85K' confirming fix is in local bundle."
+    }
+  },
+
+  "key_verifications": {
+    "income_profile_api": "GET /api/tax/income-profile - 200 OK, returns profile ✓",
+    "income_profile_save": "POST /api/tax/income-profile - saves income_types=['salaried'] ✓",
+    "salary_profile_api": "GET/POST /api/tax/salary-profile - 200 OK, saves with city_type auto-detect ✓",
+    "hra_calculation_api": "GET /api/tax/hra-calculation - returns 3-condition breakdown, exemption=₹2,64,000 ✓",
+    "section_80c_api": "GET /api/tax/80c-summary - total=₹64,600, util=43.1%, 3 instruments ✓",
+    "remap_transactions_api": "POST /api/tax/remap-transactions - status=remapped ✓",
+    "disclaimer_banner_ui": "Visible, collapsible, shows full text on expand ✓",
+    "salary_wizard_ui": "Trigger card visible, opens modal, Next/Back navigation Step 1→2 works ✓",
+    "section_80c_ui": "Progress bar with colored segments, expand shows ELSS/EPF/LIC, NPS section ✓",
+    "hra_card_ui": "Shows ₹2,64,000/year, expand shows 3 conditions, Condition 3 limiting (highlighted) ✓",
+    "financial_health_v2_no_crash": "Dashboard shows '50 pts this month' - NO frequency JS error ✓",
+    "visor_ai_context_injection": "POST /api/visor-ai/chat returns correct ₹2,64,000 HRA based on salary profile ✓"
+  }
+}

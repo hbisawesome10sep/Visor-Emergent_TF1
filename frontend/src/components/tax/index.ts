@@ -4,3 +4,7 @@ export { AutoDeductionsSection } from './AutoDeductionsSection';
 export { CapitalGainsSection } from './CapitalGainsSection';
 export { DeductionFloatingBar } from './DeductionFloatingBar';
 export { SmartTaxNotifications } from './SmartTaxNotifications';
+export { IncomeProfileSetup } from './IncomeProfileSetup';
+export { SalaryProfileWizard } from './SalaryProfileWizard';
+export { HRACalculationCard } from './HRACalculationCard';
+export { Section80CTracker } from './Section80CTracker';

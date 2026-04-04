@@ -27,6 +27,7 @@ from routes.transactions import router as transactions_router
 from routes.goals import router as goals_router
 from routes.dashboard import router as dashboard_router
 from routes.tax import router as tax_router
+from routes.tax_enhanced import router as tax_enhanced_router
 from routes.ai_chat import router as ai_chat_router
 from routes.ai_advisor import router as ai_advisor_router
 from routes.holdings import router as holdings_router
@@ -65,6 +66,7 @@ app.include_router(transactions_router)
 app.include_router(goals_router)
 app.include_router(dashboard_router)
 app.include_router(tax_router)
+app.include_router(tax_enhanced_router)
 app.include_router(ai_chat_router)
 app.include_router(ai_advisor_router)
 app.include_router(holdings_router)

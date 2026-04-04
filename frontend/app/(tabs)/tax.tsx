@@ -9,6 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useScreenContext } from '../../src/context/ScreenContext';
+import { useRouter } from 'expo-router';
 import { Accent } from '../../src/utils/theme';
 import { apiRequest } from '../../src/utils/api';
 import { formatINR, formatINRShort } from '../../src/utils/formatters';
@@ -21,6 +22,10 @@ import {
   CapitalGainsSection,
   DeductionFloatingBar,
   SmartTaxNotifications,
+  IncomeProfileSetup,
+  SalaryProfileWizard,
+  HRACalculationCard,
+  Section80CTracker,
 } from '../../src/components/tax';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -34,6 +39,7 @@ const FY_OPTIONS = [
 
 export default function TaxScreen() {
   const { token } = useAuth();
+  const router = useRouter();
   const { colors, isDark } = useTheme();
   const { setCurrentScreen } = useScreenContext();
   const insets = useSafeAreaInsets();
@@ -68,6 +74,13 @@ export default function TaxScreen() {
   const [taxCalcData, setTaxCalcData] = useState<any>(null);
   const [activeRegime, setActiveRegime] = useState<'old' | 'new'>('new');
 
+  // Phase 0+1 — Income Profile, Salary, HRA, 80C
+  const [incomeProfile, setIncomeProfile] = useState<any>(null);
+  const [salaryProfile, setSalaryProfile] = useState<any>(null);
+  const [hraData, setHraData] = useState<any>(null);
+  const [summary80c, setSummary80c] = useState<any>(null);
+  const [disclaimerExpanded, setDisclaimerExpanded] = useState(false);
+
   // Set screen context for AI awareness
   useEffect(() => {
     setCurrentScreen('tax');
@@ -76,17 +89,26 @@ export default function TaxScreen() {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [taxSummary, userTaxDeductionsData, capGains, taxCalc, autoDeductionsData] = await Promise.all([
+      const [taxSummary, userTaxDeductionsData, capGains, taxCalc, autoDeductionsData,
+        incomeProfileData, salaryProfileData, hraCalcData, summary80cData] = await Promise.all([
         apiRequest('/tax-summary', { token }),
         apiRequest('/user-tax-deductions', { token }),
         apiRequest('/capital-gains', { token }),
         apiRequest(`/tax-calculator?fy=${selectedFY.fy}`, { token }),
         apiRequest(`/auto-tax-deductions?fy=${selectedFY.fy}`, { token }),
+        apiRequest('/tax/income-profile', { token }).catch(() => ({ profile: null })),
+        apiRequest('/tax/salary-profile', { token }).catch(() => ({ profile: null })),
+        apiRequest('/tax/hra-calculation', { token }).catch(() => ({ hra_data: null })),
+        apiRequest(`/tax/80c-summary?fy=${selectedFY.fy}`, { token }).catch(() => null),
       ]);
       setTaxData(taxSummary);
       setCapitalGainsData(capGains);
       setTaxCalcData(taxCalc);
       setAutoDeductions(autoDeductionsData);
+      setIncomeProfile(incomeProfileData?.profile || null);
+      setSalaryProfile(salaryProfileData?.profile || null);
+      setHraData(hraCalcData?.hra_data || null);
+      setSummary80c(summary80cData || null);
       if (userTaxDeductionsData?.deductions) {
         setUserTaxDeductions(userTaxDeductionsData.deductions);
         setUserDeductions(userTaxDeductionsData.deductions.map((d: any) => d.deduction_id));
@@ -273,6 +295,75 @@ export default function TaxScreen() {
             setShowTaxDeductionsModal(true);
           }}
         />
+
+        {/* ═══ DISCLAIMER BANNER (minimal, collapsible) ═══ */}
+        <TouchableOpacity
+          data-testid="tax-disclaimer-banner"
+          style={[styles.disclaimerBanner, {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+          }]}
+          onPress={() => setDisclaimerExpanded(!disclaimerExpanded)}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons name="information-outline" size={12} color={colors.textSecondary} />
+          <Text style={[styles.disclaimerText, { color: colors.textSecondary, flex: 1 }]}>
+            {disclaimerExpanded
+              ? 'Tax calculations are estimates for planning purposes. Consult a CA for final ITR filing.'
+              : 'Estimates only — consult a CA for ITR filing'}
+          </Text>
+          <MaterialCommunityIcons name={disclaimerExpanded ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {/* ═══ PHASE 0: INCOME PROFILE SETUP ═══ */}
+        {!incomeProfile && (
+          <IncomeProfileSetup
+            token={token || ''}
+            colors={colors}
+            isDark={isDark}
+            onSaved={(p) => setIncomeProfile(p)}
+          />
+        )}
+
+        {/* ═══ PHASE 1.2: SALARY PROFILE WIZARD ═══ */}
+        {(incomeProfile?.income_types?.includes('salaried') || !incomeProfile) && (
+          <SalaryProfileWizard
+            token={token || ''}
+            colors={colors}
+            isDark={isDark}
+            existingProfile={salaryProfile}
+            onSaved={(p) => {
+              setSalaryProfile(p);
+              setHraData(p?.hra_data || null);
+              // Refresh 80C summary (EPF may change)
+              apiRequest(`/tax/80c-summary?fy=${selectedFY.fy}`, { token: token || '' })
+                .then(setSummary80c)
+                .catch(() => {});
+            }}
+          />
+        )}
+
+        {/* ═══ PHASE 1.4: 80C TRACKER ═══ */}
+        {summary80c && (
+          <Section80CTracker
+            summary={summary80c}
+            colors={colors}
+            isDark={isDark}
+            onOptimize={() => {
+              // Navigate to Visor AI with pre-loaded prompt
+              router.push('/(tabs)/ai-advisor');
+            }}
+          />
+        )}
+
+        {/* ═══ PHASE 1.3: HRA CALCULATION CARD ═══ */}
+        {salaryProfile && (
+          <HRACalculationCard
+            hraData={hraData}
+            colors={colors}
+            isDark={isDark}
+          />
+        )}
 
         {/* ═══ SECTION 1: TAX PLANNING ═══ */}
         <View style={styles.taxPlanningHeader}>
@@ -624,6 +715,11 @@ const styles = StyleSheet.create({
 
   // Section Title
   sectionTitle: { fontSize: 16, fontFamily: 'DM Sans', fontWeight: '800', marginBottom: 12, letterSpacing: -0.3 },
+  disclaimerBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: 8, borderWidth: 1, marginBottom: 12,
+  },
+  disclaimerText: { fontSize: 10, fontFamily: 'DM Sans', fontStyle: 'italic' },
   taxFyLabel: { fontSize: 11, fontFamily: 'DM Sans', fontWeight: '500' },
   taxSubsectionTitle: { fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 

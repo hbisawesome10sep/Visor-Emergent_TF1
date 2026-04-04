@@ -42,7 +42,7 @@ async def process_visor_message(
     })
 
     # ── Gather ALL user financial data ───────────────────────────────
-    txns, goals, risk_doc, holdings, sips, budgets, loans, credit_cards, bank_accounts, assets, tax_deds = (
+    txns, goals, risk_doc, holdings, sips, budgets, loans, credit_cards, bank_accounts, assets, tax_deds, salary_profile, income_profile = (
         await asyncio.gather(
             db.transactions.find({"user_id": user_id}, {"_id": 0}).to_list(500),
             db.goals.find({"user_id": user_id}, {"_id": 0}).to_list(50),
@@ -55,6 +55,8 @@ async def process_visor_message(
             db.bank_accounts.find({"user_id": user_id}, {"_id": 0}).to_list(10),
             db.fixed_assets.find({"user_id": user_id}, {"_id": 0}).to_list(50),
             db.user_tax_deductions.find({"user_id": user_id}, {"_id": 0}).to_list(50),
+            db.salary_profiles.find_one({"user_id": user_id}, {"_id": 0}),
+            db.tax_income_profiles.find_one({"user_id": user_id}, {"_id": 0}),
             return_exceptions=True,
         )
     )
@@ -67,6 +69,10 @@ async def process_visor_message(
             locals()[name] = []
     if isinstance(risk_doc, Exception):
         risk_doc = None
+    if isinstance(salary_profile, Exception):
+        salary_profile = None
+    if isinstance(income_profile, Exception):
+        income_profile = None
 
     # ── Build financial context ──────────────────────────────────────
     total_income = sum(t["amount"] for t in txns if t.get("type") == "income") if isinstance(txns, list) else 0
@@ -126,12 +132,43 @@ async def process_visor_message(
     top_exp_str = ", ".join(f"{k}: \u20b9{v:,.0f}" for k, v in sorted(cat_exp.items(), key=lambda x: -x[1])[:5]) if cat_exp else "None"
     n_holdings = len(holdings) if isinstance(holdings, list) else 0
 
+    # ── Build salary / tax context ────────────────────────────────────
+    salary_ctx = ""
+    if salary_profile and isinstance(salary_profile, dict):
+        city_type = salary_profile.get("city_type", "non_metro")
+        # Inline HRA computation (mirror of tax_enhanced.compute_hra)
+        monthly_basic = salary_profile.get("monthly_basic", 0)
+        monthly_hra = salary_profile.get("monthly_hra", 0)
+        monthly_rent = salary_profile.get("monthly_rent", 0)
+        c1 = monthly_hra * 12
+        c2 = monthly_basic * 12 * (0.50 if city_type == "metro" else 0.40)
+        c3 = max(0, monthly_rent * 12 - monthly_basic * 12 * 0.10)
+        hra_exemption = min(c1, c2, c3) if salary_profile.get("is_rent_paid") and monthly_rent > 0 else 0
+        rupee = "\u20b9"
+        rent_str = f"Yes, {rupee}{monthly_rent:,.0f}/month" if salary_profile.get("is_rent_paid") else "No"
+        salary_ctx = (
+            f"\nSALARY PROFILE (FY {salary_profile.get('fy', '2025-26')}):"
+            f"\n- Employer: {salary_profile.get('employer_name', 'N/A')}, City: {salary_profile.get('residence_city', 'N/A')} ({city_type})"
+            f"\n- Monthly Basic: {rupee}{monthly_basic:,.0f} | HRA: {rupee}{monthly_hra:,.0f} | Gross Monthly: {rupee}{salary_profile.get('gross_monthly', 0):,.0f}"
+            f"\n- Annual Gross (incl. bonus): {rupee}{salary_profile.get('gross_annual', 0):,.0f}"
+            f"\n- EPF (Employee): {rupee}{salary_profile.get('employee_pf_monthly', 0):,.0f}/month"
+            f"\n- Monthly TDS by employer: {rupee}{salary_profile.get('tds_monthly', 0):,.0f}"
+            f"\n- Rent Paid: {rent_str}"
+            f"\n- HRA Exemption (computed): {rupee}{hra_exemption:,.0f}/year"
+        )
+
+    income_profile_ctx = ""
+    if income_profile and isinstance(income_profile, dict):
+        income_types = income_profile.get("income_types", [])
+        if income_types:
+            income_profile_ctx = f"\nINCOME PROFILE: {', '.join(income_types)} (Primary: {income_profile.get('primary_income_type', 'salaried')})"
+
     context = f"""USER FINANCIAL PROFILE:
 
 SUMMARY:
 - Total Income: \u20b9{total_income:,.0f} | Total Expenses: \u20b9{total_expenses:,.0f}
 - Savings Rate: {savings_rate:.1f}% | Investment Transactions: \u20b9{total_inv_txn:,.0f}
-- {risk_str}
+- {risk_str}{income_profile_ctx}
 
 TOP EXPENSES: {top_exp_str}
 
@@ -149,7 +186,7 @@ LOANS/EMIs: {loan_str}
 CREDIT CARDS: {cc_str}
 BANK ACCOUNTS: {bank_str}
 FIXED ASSETS: {asset_str}
-TAX DEDUCTIONS: {tax_str}
+TAX DEDUCTIONS: {tax_str}{salary_ctx}
 
 RECENT TRANSACTIONS:
 {recent_txn or '  None'}"""
