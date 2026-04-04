@@ -607,6 +607,7 @@ export default function InsightsScreen() {
           token={token || ''}
           isDark={isDark}
           colors={colors}
+          frequency="Month"
         />
 
         {/* ═══ SMART ALERTS ═══ */}

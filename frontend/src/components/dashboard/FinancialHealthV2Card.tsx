@@ -31,7 +31,12 @@ type HealthData = {
   };
 };
 
-type Props = { token: string; isDark: boolean; colors: any };
+type Props = { 
+  token: string; 
+  isDark: boolean; 
+  colors: any; 
+  frequency?: 'Month' | 'Quarter' | 'Year' | 'Custom';
+};
 
 const DIM_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
   savings_rate: { label: 'Savings Rate', icon: 'piggy-bank-outline', color: '#10B981' },
@@ -204,7 +209,7 @@ export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
                   <MaterialCommunityIcons name={data.score_change >= 0 ? 'arrow-up' : 'arrow-down'} size={14} color={data.score_change >= 0 ? Accent.emerald : Accent.ruby} />
                   <Text style={[s.changeText, { color: data.score_change >= 0 ? Accent.emerald : Accent.ruby }]}>
-                    {Math.abs(data.score_change)} pts this month
+                    {Math.abs(data.score_change)} pts this {frequency === 'Year' ? 'year' : frequency === 'Quarter' ? 'quarter' : frequency === 'Custom' ? 'period' : 'month'}
                   </Text>
                 </View>
                 <Text style={[s.tipSmall, { color: colors.textSecondary }]} numberOfLines={2}>
@@ -293,6 +298,7 @@ export const FinancialHealthV2Card = ({ token, isDark, colors }: Props) => {
                     composite_score={data.composite_score}
                     dimensions={data.dimensions}
                     score_change={data.score_change}
+                    frequency={frequency}
                   />
                 </View>
 

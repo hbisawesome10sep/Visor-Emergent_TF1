@@ -300,7 +300,7 @@ export default function DashboardScreen() {
 
         {/* ═══ FINANCIAL HEALTH SCORE V2 (8 Dimensions, 0-1000) ═══ */}
         {token && (
-          <FinancialHealthV2Card token={token} isDark={isDark} colors={colors} />
+          <FinancialHealthV2Card token={token} isDark={isDark} colors={colors} frequency={selectedFrequency} />
         )}
 
         {/* ═══ OVERVIEW CARDS (Liquid Fill) ═══ */}

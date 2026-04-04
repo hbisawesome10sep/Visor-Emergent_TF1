@@ -37,10 +37,11 @@ type Props = {
   dimensions: Record<string, Dimension>;
   score_change: number;
   userName?: string;
+  frequency?: 'Month' | 'Quarter' | 'Year' | 'Custom';
 };
 
 export const ShareScoreCard = forwardRef<View, Props>(
-  ({ composite_score, dimensions, score_change, userName }, ref) => {
+  ({ composite_score, dimensions, score_change, userName, frequency = 'Month' }, ref) => {
     const gradeColors = getGradeColors(composite_score);
     const grade = getGradeLabel(composite_score);
     const scoreRatio = Math.min(1, composite_score / 1000);
@@ -112,7 +113,7 @@ export const ShareScoreCard = forwardRef<View, Props>(
                   color={score_change >= 0 ? '#10B981' : '#EF4444'}
                 />
                 <Text style={{ color: score_change >= 0 ? '#10B981' : '#EF4444', fontSize: 12, fontWeight: '600' }}>
-                  {Math.abs(score_change)} pts this month
+                  {Math.abs(score_change)} pts this {frequency === 'Year' ? 'year' : frequency === 'Quarter' ? 'quarter' : frequency === 'Custom' ? 'period' : 'month'}
                 </Text>
               </View>
             )}
