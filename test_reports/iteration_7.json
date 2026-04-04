@@ -50,7 +50,7 @@
     "frontend_edit_transaction": "PASS - Edit modal opens with all fields populated, Save Changes button"
   },
   "test_environment": {
-    "url": "https://visor-finance-3.preview.emergentagent.com",
+    "url": "https://ai-advisor-demo.preview.emergentagent.com",
     "backend_status": "Running",
     "frontend_status": "Running"
   }

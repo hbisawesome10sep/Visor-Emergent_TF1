@@ -1,33 +1,41 @@
 <analysis>**original_problem_statement**: 
-The user is building Visor Finance, a comprehensive Indian personal finance app tracking investments, transactions, and goals. Recent requests focused on drastically improving backend parsing logic, duplicate detection, and transaction categorization for Canara, Bank of Baroda (BoB), and Kotak bank statements. Most recently, the user requested two new features: a Clear All Transactions capability under Settings to completely wipe user data (transactions, credit card txns, bank accounts) for clean re-uploads, and an AI-powered Benefits tab under Credit Cards that automatically fetches and lists card-specific rewards (like lounge access or fuel waivers) utilizing an LLM.
+The user is continuing development on Visor Finance. The core requests in this session included:
+1. Creating an auto-refreshing Expo Go QR code preview page.
+2. Fixing Dashboard 'Y' toggle to reflect the Indian Financial Year (April 1 - March 31) instead of the calendar year, and fixing the custom date picker limits.
+3. Resolving a double-counting bug in the transactions screen versus the dashboard.
+4. Writing a highly detailed, updated PRD for the current working product to be used for a landing page.
+5. Seeding a demo account () with 6 months of realistic data (salaried employee, rent, mutual funds, gold, equity).
+6. Fixing a 500 Internal Server Error (caused by Pydantic validation on ).
+7. Fixing 3 specific UI/data issues: Making the Financial Health Score dynamic based on the selected time period, setting realistic current vs. invested values for holdings (and linking MF SIPs properly), and seeding Loans/EMIs for tracking.
 
 PRODUCT REQUIREMENTS:
-- App must parse bank statements accurately across Canara, BoB, and Kotak formats.
-- Data Management: Clear all transactions button with a confirmation dialogue to wipe all banking/CC transactions and associated bank accounts.
-- Credit Cards Benefits: Fetch and display AI-generated credit card rewards/benefits under a dedicated tab with a disclaimer stating the information is AI-generated.
+- FY toggles must explicitly span April 1 to March 31.
+- The Transactions screen must display accurate summary totals matching the dashboard.
+- The demo account must have rich, realistic data covering all major app modules (Holdings, SIPs, Loans, Bank/CC transactions) for testing and showcase purposes.
+- Health scores must dynamically re-calculate based on the selected date filter.
 
-**User's preferred language**: English
+**User's preferred language**: INSTRUCT next agent to respond in English only.
 
 **what currently exists?** 
-A full-stack financial tracking application (React Native Expo + FastAPI + MongoDB). The backend has highly refined PDF statement parsers for 9+ Indian banks, utilizing table-extraction, text-extraction, and balance-delta strategies for precise payee and debit/credit extraction. The frontend features a comprehensive dashboard, a Data Management section for clearing transactions, and an AI-powered Credit Card Benefits section using GPT-5.2.
+Visor Finance: A full-stack, AI-powered personal finance application (React Native Expo + FastAPI + MongoDB). Features include highly refined bank statement parsing (12+ Indian banks), comprehensive investment tracking (Stocks, MFs, Gold), Loan/EMI tracking, AI Advisor chatbots, Bookkeeping, Tax module, and a rich Dashboard. It includes a robust seeded demo account for showcasing the app.
 
 **Last working item**: 
-    - Last item agent was working: Implemented the Clear All Transactions API/UI and the Credit Card Benefits AI integration. Finished testing both features.
-    - Status: NONE (Completed and verified via testing agent)
+    - Last item agent was working: Answered the user's question regarding the tech stack (React Native/Expo for frontend, Python/FastAPI for backend) after successfully fixing the dynamic health score, realistic holdings data, and EMI seeding.
+    - Status: NONE (Completed)
     - Agent Testing Done: Y
-    - Which testing method agent to use? NA (Testing is already done via )
+    - Which testing method agent to use? NA (Testing is already done)
     - User Testing Done: N
 
 **All Pending/In progress Issue list**: 
 None.
 
 **In progress Task List**: 
-None. 
+None.
 
 **Upcoming and Future Tasks**
   Upcoming Tasks:
-  - (P0) Refactor : This file has grown to >3000 lines. It desperately needs modularization into a  directory with individual files per bank.
-  - (P1) Streaming TTS on the frontend for faster perceived voice response.
+  - (P0) Refactor : This file is >3000 lines. It must be modularized into a  directory with individual files per bank.
+  - (P1) Streaming TTS on the frontend for faster perceived voice response in AI chat.
   - (P1) Refactor  and  files (both are massive, ~2000 lines).
   
   Future Tasks:
@@ -35,181 +43,139 @@ None.
   - (P2) Gmail Integration for auto-importing bank emails.
   - (P3) Share with Friends referral feature.
   - (P3) Voice Cloning with ElevenLabs for a custom Visor persona.
+  - (P3) WhatsApp/Telegram bot for transaction logging.
+  - (P3) Multi-currency support for NRI users.
 
 **Completed work in this session**
-- Canara Bank Parser: Rewrote  handling RTGS, NEFT, IMPS, cheque returns, and fixed bank detection rules (DONE).
-- Bank of Baroda Parser: Rewrote  utilizing usage: pdfplumber [-h] [--structure | --structure-text]
-                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
-                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
-                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
-                  [--laparams LAPARAMS] [--precision PRECISION]
-                  [--pages PAGES [PAGES ...]] [--indent INDENT]
-                  [infile]
-
-positional arguments:
-  infile
-
-options:
-  -h, --help            show this help message and exit
-  --structure           Write the structure tree as JSON. All other arguments
-                        except --pages, --laparams, and --indent will be
-                        ignored
-  --structure-text      Write the structure tree as JSON including text
-                        contents. All other arguments except --pages,
-                        --laparams, and --indent will be ignored
-  --format {csv,json,text}
-  --types TYPES [TYPES ...]
-  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
-                        Include *only* these object attributes in output.
-  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
-                        Exclude these object attributes from output.
-  --laparams LAPARAMS
-  --precision PRECISION
-  --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing. TABLE extraction for ground-truth debit/credit columns, fixing wrong transaction types (DONE).
-- Kotak Bank Parser: Rewrote  to use a balance-delta approach and word-position-based column extraction due to unreliable Dr/Cr tags in text extraction (DONE).
-- Clear All Transactions Feature: Created  wiping DB tables, and added a Data Management section in Settings > Banking Tab (DONE).
-- Credit Card Benefits Feature: Created  pulling data via Emergent LLM key (GPT-5.2), and built  for the frontend (DONE).
+- Expo QR Code Page: Built  for auto-refreshing Cloudflare tunnel QR codes (DONE).
+- FY Date Range Fix: Updated Dashboard and Insights screens to strictly use Indian FY (Apr-Mar) and fixed custom date picker limits (DONE).
+- Transaction Summary Fix: Added  to backend and updated frontend to prevent list-limit truncation from causing double-counting mismatches (DONE).
+- PRD Generation: Wrote a comprehensive PRD covering all modules for landing page usage (DONE).
+- Demo Account Seeding: Created  &  seeding 6 months of realistic data, loans, SIPs, and realistic holding P&L (DONE).
+- Pydantic Bug Fix: Updated  model in  allowing  to be  (DONE).
+- Dynamic Health Score & Timezone Fix: Fixed UTC offset shifting dates backwards, ensuring the Health Score filters dynamically by M/Q/Y (DONE).
 
 **Earlier issues found/mentioned but not fixed**
 None.
 
 **Known issue recurrence from previous fork**
   - Issue recurrence in previous fork: Expo Go / Metro Bundler Caching
-  - Recurrence count: 4
+  - Recurrence count: 5
   - Status: RESOLVED (Mitigated via strict user instructions to force-quit Expo)
-  - Note: Code changes *will not* reflect on the user's phone via hot-reload. The user must force-quit the Expo Go app.
+  - Note: Code changes *will not* reflect on the user's phone via hot-reload if tunneling limits it. The user must force-quit the Expo Go app.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **PDF Parsing Strategies**: Three distinct strategies are utilized depending on bank: usage: pdfplumber [-h] [--structure | --structure-text]
-                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
-                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
-                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
-                  [--laparams LAPARAMS] [--precision PRECISION]
-                  [--pages PAGES [PAGES ...]] [--indent INDENT]
-                  [infile]
-
-positional arguments:
-  infile
-
-options:
-  -h, --help            show this help message and exit
-  --structure           Write the structure tree as JSON. All other arguments
-                        except --pages, --laparams, and --indent will be
-                        ignored
-  --structure-text      Write the structure tree as JSON including text
-                        contents. All other arguments except --pages,
-                        --laparams, and --indent will be ignored
-  --format {csv,json,text}
-  --types TYPES [TYPES ...]
-  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
-                        Include *only* these object attributes in output.
-  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
-                        Exclude these object attributes from output.
-  --laparams LAPARAMS
-  --precision PRECISION
-  --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing. Table extraction (BoB, SBI, PNB), purely Text extraction (HDFC, ICICI, Union), and Balance-Delta calculations ignoring explicit Dr/Cr labels (Kotak).
-- **LLM Integration**: Used  with the Emergent LLM Key (usage: openai [-h] [-v] [-b API_BASE] [-k API_KEY] [-p PROXY [PROXY ...]]
-              [-o ORGANIZATION] [-t {openai,azure}]
-              [--api-version API_VERSION] [--azure-endpoint AZURE_ENDPOINT]
-              [--azure-ad-token AZURE_AD_TOKEN] [-V]
-              {api,tools,migrate,grit} ...
-
-positional arguments:
-  {api,tools,migrate,grit}
-    api                 Direct API calls
-    tools               Client side tools for convenience
-
-options:
-  -h, --help            show this help message and exit
-  -v, --verbose         Set verbosity.
-  -b API_BASE, --api-base API_BASE
-                        What API base url to use.
-  -k API_KEY, --api-key API_KEY
-                        What API key to use.
-  -p PROXY [PROXY ...], --proxy PROXY [PROXY ...]
-                        What proxy to use.
-  -o ORGANIZATION, --organization ORGANIZATION
-                        Which organization to run as (will use your default
-                        organization if not specified)
-  -t {openai,azure}, --api-type {openai,azure}
-                        The backend API to call, must be `openai` or `azure`
-  --api-version API_VERSION
-                        The Azure API version, e.g.
-                        'https://learn.microsoft.com/en-us/azure/ai-
-                        services/openai/reference#rest-api-versioning'
-  --azure-endpoint AZURE_ENDPOINT
-                        The Azure endpoint, e.g.
-                        'https://endpoint.openai.azure.com'
-  --azure-ad-token AZURE_AD_TOKEN
-                        A token from Azure Active Directory,
-                        https://www.microsoft.com/en-
-                        us/security/business/identity-access/microsoft-entra-
-                        id
-  -V, --version         show program's version number and exit, ) for scraping and generating credit card benefits dynamically. The LlmChat class requires a  string during initialization.
+- **Date Handling (Timezones)**: JS  shifts IST dates backwards. The app uses a custom  formatter for local dates when querying backend range limits.
+- **Aggregation vs Lists**: Transaction lists are capped via pagination/limits, so monetary totals are strictly computed via dedicated summary endpoints (e.g., ).
 
 **key DB schema**
-  - : Core banking transactions
-  - : Distinct from bank transactions
-  - : Linked accounts
-  - : Holds user card details
-  - : Prevents duplicate uploads
+  - : Core banking transactions ( is now optional).
+  - : Houses active SIPs and recurring payments.
+  - : Tracks EMIs and principal/interest splits.
+  - : Tracks investments ( vs ).
 
 **changes in tech stack**
   - None.
 
 **All files of reference** 
-  - : Heavily edited for Canara, BoB, and Kotak. Desperately needs refactoring.
-  - : Added  utilizing .
-  -  & : Added the  route logic.
-  - : Added Data Management view.
-  - : Wired up the Benefits tab.
-  - : New file created for the UI.
+  - : Updated Pydantic types to prevent 500 errors on incomplete demo data.
+  -  & : Updated endpoints.
+  - , , , : heavily modified to fix time ranges, timezone shifts, and summaries.
+  - : Thoroughly overwritten to act as the single source of truth for the entire app.
 
 **Areas that need refactoring**:
--  is now over 3000 lines long. Highly recommended (P0) to split into a  directory with individual files per bank.
+-  (P0) -> Must be split.
+- Frontend files: , ,  are massive and require decomposition into smaller components.
 
 **key api endpoints**
-- : Handles PDF processing.
-- : Deletes all transaction-related collections in MongoDB.
-- : Fetches AI-generated credit card benefits.
+- : Serves the Expo auto-refreshing page.
+- : Aggregates accurate transaction totals.
+- : Returns FY-filtered dashboard stats and health scores.
 
 **Critical Info for New Agent**
-- When working with  from , ensure you pass the  argument in the initialization, as omitting it will cause a 500 error.
-- All testing for the new features was finalized successfully by the .
+- Always use the local date format approach ( without UTC conversion) when sending  and  parameters to the backend to prevent the dates from drifting backwards by a day.
+- A fully populated demo user exists ( / ). If you wipe it, you can rerun === Seeding Rajesh's Demo Account ===
+
+Cleared existing data.
+Bank account created.
+Created 3 credit cards.
+Created 4 goals.
+Created 12 holdings.
+Created 235 transactions across 6 months.
+Created 56 credit card transactions.
+Created 2 insurance policies.
+Created 7 recurring items.
+
+=== Seed Complete ===
+Transactions: 235
+Total Income:        618,757.51
+Total Expenses:      608,916.00
+Total Investments:   165,000.00
+Net:                -155,158.49 followed by === Fixing Demo Data ===
+
+1. Updating holdings with realistic current values...
+  Reliance Industries                      → ₹  23,200 (updated)
+  TCS                                      → ₹  21,500 (updated)
+  HDFC Bank                                → ₹  22,800 (updated)
+  Infosys                                  → ₹  13,400 (updated)
+  Tata Motors                              → ₹  18,700 (updated)
+  Bajaj Finance                            → ₹  24,300 (updated)
+  Parag Parikh Flexi Cap Fund - Direct Gro → ₹  72,500 (updated)
+  Mirae Asset Large Cap Fund - Direct Grow → ₹  57,000 (updated)
+  Axis ELSS Tax Saver Fund - Direct Growth → ₹  38,900 (updated)
+  HDFC Mid-Cap Opportunities Fund - Direct → ₹  30,200 (updated)
+  Sovereign Gold Bond 2024-25 Series III   → ₹  32,400 (updated)
+  Nippon India Gold ETF                    → ₹  94,800 (updated)
+Holdings updated with realistic current values.
+
+2. Seeding SIPs...
+Created 4 SIPs.
+
+3. Seeding Loans/EMIs...
+Created 3 loans:
+  Home Loan - Andheri West 2BHK            | ₹   4,500,000 | 8.5% | 240mo | EMI: ₹39,015
+  Car Loan - Hyundai Creta                 | ₹   1,000,000 | 9.25% | 60mo | EMI: ₹20,878
+  Education Loan - MBA Program             | ₹     800,000 | 10.5% | 84mo | EMI: ₹13,378
+
+=== Done! === to restore it.
 
 **documents and test reports created in this job**
   - 
   - 
 
 **Last 10 User Messages and any pending HUMAN messages** 
- 1. **User**: Uploaded Bank of Baroda statement. -> Agent rewrote BoB parser using table extraction. (Completed)
- 2. **User**: Uploaded Kotak Bank statement. -> Agent rewrote Kotak parser using balance-delta logic. (Completed)
- 3. **User**: Requested Clear All Transactions capability and an AI-powered Benefits tab for Credit Cards. -> Agent proposed a plan using the ask_human tool.
- 4. **User**: Approved the plan, reminded to add an AI-generated disclaimer at the bottom of the Benefits tab. -> Agent implemented both features, tested thoroughly, and finished the task. (Completed)
+ 1. **User**: Please use ask_human tool... (Done)
+ 2. **User**: Give me an Expo QR link (Done)
+ 3. **User**: Fix custom date picker limits and 'Y' Financial Year toggle logic (Done)
+ 4. **User**: QR code link request again (Done)
+ 5. **User**: Bug report: Transactions screen double counts income/expenses vs dashboard (Done)
+ 6. **User**: Request for a highly detailed, updated PRD of the working product (Done)
+ 7. **User**: Seed demo account Rajesh with 6 months data (Done)
+ 8. **User**: Bug report via screenshot (500 Error on Transactions endpoint) (Done)
+ 9. **User**: Fix Health score dynamic toggling, realistic holding data, and add EMIs (Done)
+ 10. **User**: Can you tell me what is front end and back end built upon which coding language. (Done)
 
 **Project Health Check:**
 Healthy.
 
 **3rd Party Integrations** 
-  • OpenAI GPT-5.2 — uses Emergent LLM Key (Insights & Credit Card Benefits)
+  • OpenAI GPT-5.2 — uses Emergent LLM Key
   • ElevenLabs (Voice) — uses Emergent LLM Key
   • yfinance (Stocks) — Open Source
   • mfapi.in (Mutual Funds) — Public API
   • Cloudflare (Tunnels) — Pre-configured in env
 
 **Testing status**
-  - Testing agent used after significant changes: YES (iteration_39.json created, 11/11 tests passed).
+  - Testing agent used after significant changes: YES (iteration_40.json)
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: None
   - Known regressions: None
 
 **Credentials to test flow:**
-  - Demo:  / 
+  - Demo Account:  / 
 
 **What agent forgot to execute**
-The agent successfully executed all user requests in this session without overlooking any features. The primary tech debt left behind is the 3000-line  file which should be addressed in upcoming tasks.</analysis>
+Nothing. All requests were fully implemented and addressed.</analysis>

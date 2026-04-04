@@ -15,7 +15,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://visor-finance-3.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://ai-advisor-demo.preview.emergentagent.com')
 TEST_EMAIL = "rajesh@visor.demo"
 TEST_PASSWORD = "Demo@123"
 
