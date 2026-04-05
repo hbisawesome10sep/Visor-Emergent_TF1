@@ -1,7 +1,30 @@
 # VISOR FINANCE — Comprehensive Product Document
 
-**Version**: 3.3 | **Last Updated**: April 4, 2026
+**Version**: 3.4 | **Last Updated**: April 5, 2026
 **Platform**: iOS & Android (React Native Expo) | **Backend**: FastAPI + MongoDB
+
+---
+
+## Latest Updates (April 5, 2026)
+
+### Bug Fixes - Investments Screen (Critical)
+Fixed 8 undefined variable errors in investments.tsx that were breaking the screen:
+1. `Platform` import added to react-native imports
+2. `saving` variable - combined `savingGoal || savingSip`
+3. `closeRiskModal` helper function added
+4. `handleSaveHolding` - added to useHoldingsManager hook
+5. `handleCasUpload` - added to useHoldingsManager hook
+6. `setShowNativePicker` - added to useFrequencyFilter hook exports
+7. `openInvestDatePicker` → renamed to `openDatePicker`
+8. `handleInvestDateChange` → renamed to `handleDatePickerConfirm`
+
+### Bug Fixes - Dashboard
+- Removed EssentialDashboard routing - all users now get full dashboard
+- Added safety timeout in ExperienceModeContext to prevent infinite loading
+
+### Bug Fixes - Tax Screen
+- Fixed broken routes: `/(tabs)/visor` → `/(tabs)/insights`
+- Fixed broken routes: `/(tabs)/ai-advisor` → `/(tabs)/insights`
 
 ---
 

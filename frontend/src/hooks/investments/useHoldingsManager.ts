@@ -107,6 +107,74 @@ export function useHoldingsManager(token: string | null, fetchData: () => void) 
     ]);
   };
 
+  // Add new holding manually
+  const handleSaveHolding = async () => {
+    try {
+      setUploadingStatement(true);
+      await apiRequest('/holdings', {
+        token,
+        method: 'POST',
+        body: {
+          name: holdingForm.name,
+          ticker: holdingForm.ticker,
+          isin: holdingForm.isin,
+          category: holdingForm.category,
+          quantity: parseFloat(holdingForm.quantity) || 0,
+          buy_price: parseFloat(holdingForm.buy_price) || 0,
+          buy_date: holdingForm.buy_date,
+        },
+      });
+      Alert.alert('Success', 'Holding added successfully');
+      setShowHoldingModal(false);
+      setHoldingForm({ name: '', ticker: '', isin: '', category: 'Stock', quantity: '', buy_price: '', buy_date: '' });
+      fetchData();
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add holding');
+    } finally {
+      setUploadingStatement(false);
+    }
+  };
+
+  // Upload eCAS PDF with password
+  const handleCasUpload = async () => {
+    if (isPickingRef.current) return;
+    isPickingRef.current = true;
+    try {
+      const result = await safePickDocument({
+        type: ['application/pdf'],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.length) {
+        isPickingRef.current = false;
+        return;
+      }
+      const file = result.assets[0];
+      setUploadingStatement(true);
+      const formData = new FormData();
+      formData.append('file', { uri: file.uri, name: file.name, type: 'application/pdf' } as any);
+      formData.append('password', casPassword);
+      formData.append('statement_type', 'ecas');
+      const resp = await apiRequest('/upload-statement', { token, method: 'POST', body: formData, isFormData: true });
+      setUploadingStatement(false);
+      if (resp?.status === 'success') {
+        const sipMsg = resp.sip_suggestions_created > 0 ? `\n${resp.sip_suggestions_created} SIP suggestion(s) added for your review.` : '';
+        Alert.alert('Import Successful', `${resp.saved} holdings imported, ${resp.duplicates} updated.${sipMsg}`);
+        setShowCasModal(false);
+        setCasPassword('');
+        fetchData();
+      } else if (resp?.status === 'no_holdings') {
+        Alert.alert('No Holdings Found', resp.message || 'Please check the file format or password.');
+      } else {
+        Alert.alert('Import Failed', resp?.detail || resp?.message || 'Unknown error');
+      }
+    } catch (e: any) {
+      setUploadingStatement(false);
+      Alert.alert('Upload Error', e.message || 'Failed to upload eCAS statement');
+    } finally {
+      isPickingRef.current = false;
+    }
+  };
+
   return {
     showHoldingModal,
     setShowHoldingModal,
@@ -122,5 +190,7 @@ export function useHoldingsManager(token: string | null, fetchData: () => void) 
     handleRefreshPrices,
     handleStatementUpload,
     handleClearHoldings,
+    handleSaveHolding,
+    handleCasUpload,
   };
 }

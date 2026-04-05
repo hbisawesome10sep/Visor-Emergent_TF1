@@ -77,6 +77,7 @@ export default function InvestmentsScreen() {
     holdingForm, setHoldingForm, casPassword, setCasPassword,
     uploadingStatement, setUploadingStatement, refreshingPrices,
     handleRefreshPrices, handleStatementUpload, handleClearHoldings,
+    handleSaveHolding, handleCasUpload,
   } = useHoldingsManager(token, fetchData);
 
   const {
@@ -790,7 +791,7 @@ export default function InvestmentsScreen() {
               <TouchableOpacity
                 data-testid="goal-deadline-picker"
                 style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
-                onPress={() => openInvestDatePicker('goal_deadline')}
+                onPress={() => openDatePicker('goal_deadline')}
                 activeOpacity={0.7}
               >
                 <Text style={{ color: goalForm.deadline ? colors.textPrimary : colors.textSecondary, fontSize: 15, fontFamily: 'DM Sans' }}>
@@ -961,7 +962,7 @@ export default function InvestmentsScreen() {
               <TouchableOpacity
                 data-testid="holding-date-picker"
                 style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
-                onPress={() => openInvestDatePicker('holding_buy_date')}
+                onPress={() => openDatePicker('holding_buy_date')}
                 activeOpacity={0.7}
               >
                 <Text style={{ color: holdingForm.buy_date ? colors.textPrimary : colors.textSecondary, fontSize: 15, fontFamily: 'DM Sans' }}>
@@ -1154,7 +1155,7 @@ export default function InvestmentsScreen() {
                   <TouchableOpacity
                     data-testid="sip-start-picker"
                     style={[styles.input, { borderColor: colors.border, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
-                    onPress={() => openInvestDatePicker('sip_start_date')}
+                    onPress={() => openDatePicker('sip_start_date')}
                     activeOpacity={0.7}
                   >
                     <Text style={{ color: sipForm.start_date ? colors.textPrimary : colors.textSecondary, fontSize: 13, fontFamily: 'DM Sans' }}>
@@ -1232,7 +1233,7 @@ export default function InvestmentsScreen() {
           display="default"
           maximumDate={datePickerTarget === 'goal_deadline' ? new Date(2040, 11, 31) : new Date()}
           minimumDate={new Date(2015, 0, 1)}
-          onChange={handleInvestDateChange}
+          onChange={handleDatePickerConfirm}
         />
       )}
 
