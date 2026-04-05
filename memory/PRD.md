@@ -170,6 +170,11 @@ Uses unique reference numbers (UTR for UPI, NEFT ref, RTGS ref) rather than desc
 - **Same AI Engine**: Voice queries processed through the same Visor AI engine as text chat
 - **Audio Response**: Returns both text and audio (base64) for simultaneous display
 
+#### AI Intelligence Layer (Added April 2026)
+- **Multi-Model Query Router** (`services/query_router.py`): Pattern-based classifier routes simple queries (price checks, definitions, greetings) to `gpt-4o-mini` and complex queries (tax planning, portfolio analysis, personalized advice) to `gpt-5.2`. Reduces LLM costs by ~40-60%.
+- **Persistent AI Memory** (`services/ai_memory.py`): After each conversation, `gpt-4o-mini` extracts topics, concerns, preferences, open questions, financial facts, and language preference. Stored in `user_ai_memory` MongoDB collection and injected into future conversations. Endpoints: `GET/DELETE /api/visor-ai/memory`.
+- **Memory-Aware System Prompt**: AI uses cross-session memory to reference past discussions, follow up on open questions, and adapt communication style.
+
 ---
 
 ### 2.6 Tax Module
@@ -426,9 +431,14 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 | Priority | Feature |
 |----------|---------|
 | P0 | Refactor pdf_parsers.py (3000+ lines → modular per-bank files) |
+| P1 | Financial Personality Engine (auto-compute from transaction data) |
+| P1 | Tax Knowledge Base / RAG-lite (structured JSON for tax law grounding) |
 | P1 | Streaming TTS for faster perceived voice response |
 | P1 | Financial Health Score flip card (detailed breakdown on back) |
 | P1 | Frontend refactoring (investments.tsx, index.tsx — 2000+ lines each) |
+| P2 | Proactive Morning Brief (daily AI-powered financial summary) |
+| P2 | Categorization Feedback Loop (user correction tracking) |
+| P2 | Expanded Merchant/Keyword Library (+100 merchants) |
 | P2 | Advanced Tax Module Phase 4 (ITR filing integration) |
 | P2 | Gmail Integration for auto-importing bank transaction emails |
 | P3 | Voice Cloning with ElevenLabs for a custom Visor persona |
@@ -440,6 +450,16 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 ---
 
 ## 10. Recent Changes (Changelog)
+
+### Apr 5, 2026
+- **P0: Multi-Model Query Router**: Smart routing — simple queries (definitions, price checks, greetings) → gpt-4o-mini (fast/cheap), complex queries (tax planning, portfolio analysis, personalized advice) → gpt-5.2 (powerful). ~40-60% cost reduction. New file: `services/query_router.py`.
+- **P0: Persistent AI Memory**: Cross-session context memory — AI extracts topics, concerns, preferences, open questions, financial facts, and language preference after each conversation. Stored in `user_ai_memory` MongoDB collection. Injected into future conversations. Endpoints: `GET/DELETE /api/visor-ai/memory`. New file: `services/ai_memory.py`.
+- **System Prompt Update**: Added USER MEMORY section instructing AI to use past conversation context naturally.
+
+### Apr 4, 2026
+- **P2: Tax Summary Export PDF** (`GET /api/exports/tax-summary/pdf`): ReportLab-generated PDF with all deductions, tax liability, and regime comparison.
+- **P1: Enhanced PDF Parsing**: Regex + LLM/GPT-5.2 Vision OCR fallback for Form 16, Form 26AS, and FD Certificates. Handles image-based PDFs via `pdf2image` + GPT-5.2 Vision.
+- **P1: Reparse Endpoint**: `POST /api/tax/reparse` to force LLM-based re-parsing of tax documents.
 
 ### Mar 28, 2026
 - **Health Score + Insights FY Fix**: Health score varies with M/Q/Y/Custom period. Fixed Insights screen Year toggle to use Indian FY (Apr 1 – Mar 31). Fixed timezone bug (toISOString date shift).
