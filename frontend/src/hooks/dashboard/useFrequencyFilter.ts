@@ -67,6 +67,7 @@ export function useFrequencyFilter(
     customStartDate,
     customEndDate,
     showNativePicker,
+    setShowNativePicker,
     activePickerField,
     handleFrequencyChange,
     handleApplyCustomRange,

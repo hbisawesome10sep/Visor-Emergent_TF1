@@ -114,7 +114,7 @@ export default function DashboardScreen() {
 
   const {
     showDatePicker, setShowDatePicker, customStartDate, customEndDate,
-    showNativePicker, activePickerField, handleFrequencyChange,
+    showNativePicker, setShowNativePicker, activePickerField, handleFrequencyChange,
     handleApplyCustomRange, openDatePicker, handleNativeDateChange,
   } = useFrequencyFilter(setSelectedFrequency, setDateRange);
 
