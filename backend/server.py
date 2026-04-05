@@ -56,6 +56,7 @@ from routes.tax_documents import router as tax_documents_router
 from routes.tax_phase3 import router as tax_phase3_router
 from routes.tax_profiles import router as tax_profiles_router
 from routes.ai_features import router as ai_features_router
+from routes.experience_mode import router as experience_mode_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -99,6 +100,7 @@ app.include_router(tax_documents_router)
 app.include_router(tax_phase3_router)
 app.include_router(tax_profiles_router)
 app.include_router(ai_features_router)
+app.include_router(experience_mode_router)
 
 # Add CORS middleware
 app.add_middleware(
