@@ -428,23 +428,25 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 
 ## 9. Upcoming Roadmap
 
-| Priority | Feature |
-|----------|---------|
-| P0 | Refactor pdf_parsers.py (3000+ lines → modular per-bank files) |
-| P1 | Financial Personality Engine (auto-compute from transaction data) |
-| P1 | Tax Knowledge Base / RAG-lite (structured JSON for tax law grounding) |
-| P1 | Streaming TTS for faster perceived voice response |
-| P1 | Financial Health Score flip card (detailed breakdown on back) |
-| P1 | Frontend refactoring (investments.tsx, index.tsx — 2000+ lines each) |
-| P2 | Proactive Morning Brief (daily AI-powered financial summary) |
-| P2 | Categorization Feedback Loop (user correction tracking) |
-| P2 | Expanded Merchant/Keyword Library (+100 merchants) |
-| P2 | Advanced Tax Module Phase 4 (ITR filing integration) |
-| P2 | Gmail Integration for auto-importing bank transaction emails |
-| P3 | Voice Cloning with ElevenLabs for a custom Visor persona |
-| P3 | "Share with Friends" referral feature |
-| P3 | WhatsApp/Telegram bot for transaction logging |
-| P3 | Multi-currency support for NRI users |
+| Priority | Feature | Status |
+|----------|---------|--------|
+| P0 | Multi-Model Query Router (cost saving) | DONE |
+| P0 | Persistent AI Memory (cross-session context) | DONE |
+| P1 | Financial Personality Engine | DONE |
+| P1 | Tax Knowledge Base / RAG-lite | DONE |
+| P1 | Refactor pdf_parsers.py (3000+ lines → modular per-bank files) | TODO |
+| P1 | Streaming TTS for faster perceived voice response | TODO |
+| P1 | Financial Health Score flip card (detailed breakdown on back) | TODO |
+| P1 | Frontend refactoring (investments.tsx, index.tsx — 2000+ lines each) | TODO |
+| P2 | Proactive Morning Brief (daily AI-powered financial summary) | TODO |
+| P2 | Categorization Feedback Loop (user correction tracking) | TODO |
+| P2 | Expanded Merchant/Keyword Library (+100 merchants) | TODO |
+| P2 | Advanced Tax Module Phase 4 (ITR filing integration) | TODO |
+| P2 | Gmail Integration for auto-importing bank transaction emails | TODO |
+| P3 | Voice Cloning with ElevenLabs for a custom Visor persona | TODO |
+| P3 | "Share with Friends" referral feature | TODO |
+| P3 | WhatsApp/Telegram bot for transaction logging | TODO |
+| P3 | Multi-currency support for NRI users | TODO |
 
 
 ---
@@ -454,6 +456,8 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 ### Apr 5, 2026
 - **P0: Multi-Model Query Router**: Smart routing — simple queries (definitions, price checks, greetings) → gpt-4o-mini (fast/cheap), complex queries (tax planning, portfolio analysis, personalized advice) → gpt-5.2 (powerful). ~40-60% cost reduction. New file: `services/query_router.py`.
 - **P0: Persistent AI Memory**: Cross-session context memory — AI extracts topics, concerns, preferences, open questions, financial facts, and language preference after each conversation. Stored in `user_ai_memory` MongoDB collection. Injected into future conversations. Endpoints: `GET/DELETE /api/visor-ai/memory`. New file: `services/ai_memory.py`.
+- **P1: Financial Personality Engine**: Auto-computes spending archetype, savings consistency, investment behavior, life stage, strengths & blind spots from real data. Stored in `financial_personalities` collection. Endpoints: `GET /api/visor-ai/personality`, `GET /api/visor-ai/personality/cached`. New file: `services/financial_personality.py`.
+- **P1: Tax Knowledge Base (RAG-lite)**: 14 Indian tax sections (80C, 80CCD, 80D, 80E, 80G, HRA, 24b, capital gains, regime comparison, advance tax, TDS). Regex classifier injects relevant sections into AI context. New file: `services/tax_knowledge_base.py`.
 - **System Prompt Update**: Added USER MEMORY section instructing AI to use past conversation context naturally.
 
 ### Apr 4, 2026
