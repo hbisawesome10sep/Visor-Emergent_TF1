@@ -103,6 +103,9 @@ export default function InvestmentsScreen() {
   // Combined saving state for UI
   const saving = savingGoal || savingSip;
 
+  // Helper to close risk modal
+  const closeRiskModal = () => setShowRiskModal(false);
+
   const [showEMITracker, setShowEMITracker] = useState(false);
 
   // ── SIP Pause/Execute handlers ──
