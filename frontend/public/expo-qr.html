@@ -208,8 +208,8 @@
 
   <script>
     // Expo Go URL format: exp://hostname:port
-    const NGROK_URL = 'https://morning-brief-learn.ngrok.io';
-    const EXPO_URL = 'exp://' + NGROK_URL.replace('https://', '').replace('http://', '');
+    const TUNNEL_URL = 'https://forget-marc-cholesterol-ware.trycloudflare.com';
+    const EXPO_URL = 'exp://' + TUNNEL_URL.replace('https://', '').replace('http://', '');
     
     function generateQR() {
       const container = document.getElementById('qrcode');
@@ -239,7 +239,7 @@
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
         
-        const resp = await fetch(NGROK_URL + '/api/health', { 
+        const resp = await fetch(TUNNEL_URL + '/api/health', { 
           method: 'GET',
           mode: 'no-cors',
           signal: controller.signal
