@@ -639,6 +639,325 @@ async def export_full_ledger_pdf(
 # EXCEL EXPORTS
 # ══════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════
+# TAX SUMMARY EXPORT (PDF)
+# ══════════════════════════════════════════════════════════════
+
+@router.get("/tax-summary/pdf")
+async def export_tax_summary_pdf(
+    fy: str = "2025-26",
+    user=Depends(get_current_user),
+):
+    """Export comprehensive Tax Summary Report as PDF — includes all deductions, 
+    regime comparison, capital gains, TDS status, and uploaded documents summary.
+    Designed to be shared with CAs for ITR filing."""
+    from reportlab.lib import colors as rl_colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from routes.tax import income_tax_calculator, get_tax_summary
+
+    # ── Fetch all tax data ────────────────────────────────────
+    tax_calc = await income_tax_calculator(user, fy)
+    tax_summary = await get_tax_summary(user)  # noqa: F841
+
+    salary_profile = await db.salary_profiles.find_one({"user_id": user["id"]}, {"_id": 0})
+    income_profile = await db.tax_income_profiles.find_one({"user_id": user["id"]}, {"_id": 0})
+    tax_docs = await db.tax_documents.find({"user_id": user["id"]}, {"_id": 0}).to_list(20)
+    auto_deds = await db.auto_tax_deductions.find(
+        {"user_id": user["id"], "fy": fy}, {"_id": 0}
+    ).to_list(500)
+    user_deds = await db.user_tax_deductions.find(  # noqa: F841
+        {"user_id": user["id"]}, {"_id": 0}
+    ).to_list(100)
+
+    # Freelancer / Business profiles
+    freelancer = await db.freelancer_profiles.find_one({"user_id": user["id"], "fy": fy}, {"_id": 0})
+    business = await db.business_profiles.find_one({"user_id": user["id"], "fy": fy}, {"_id": 0})
+
+    # ── Build PDF ────────────────────────────────────────────
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4,
+        leftMargin=18*mm, rightMargin=18*mm,
+        topMargin=20*mm, bottomMargin=18*mm,
+    )
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # ── Styles ───────────────────────────────────────────────
+    NAVY = rl_colors.HexColor('#1E3A5F')
+    GREEN = rl_colors.HexColor('#059669')
+    LIGHT_BLUE = rl_colors.HexColor('#DBEAFE')
+    LIGHT_GREEN = rl_colors.HexColor('#D1FAE5')
+    LIGHT_RED = rl_colors.HexColor('#FEE2E2')
+    LIGHT_AMBER = rl_colors.HexColor('#FEF3C7')
+    GREY_BG = rl_colors.HexColor('#F3F4F6')
+
+    title_s = ParagraphStyle('TaxTitle', parent=styles['Title'], fontSize=20, textColor=NAVY, alignment=1, spaceAfter=4)
+    sub_s = ParagraphStyle('Sub', parent=styles['Normal'], fontSize=10, textColor=rl_colors.grey, alignment=1)
+    section_s = ParagraphStyle('Section', parent=styles['Heading2'], fontSize=13, textColor=NAVY, spaceBefore=14, spaceAfter=6)
+    note_s = ParagraphStyle('Note', parent=styles['Normal'], fontSize=8, textColor=rl_colors.grey)
+    body_s = ParagraphStyle('Body', parent=styles['Normal'], fontSize=9)
+
+    def make_table(data, col_widths, header_color=NAVY):
+        t = Table(data, colWidths=col_widths, repeatRows=1)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), header_color),
+            ('TEXTCOLOR', (0, 0), (-1, 0), rl_colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('ALIGN', (-1, 0), (-1, -1), 'RIGHT'),
+            ('GRID', (0, 0), (-1, -1), 0.5, rl_colors.HexColor('#E5E7EB')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [rl_colors.white, GREY_BG]),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        return t
+
+    # ══ PAGE 1: HEADER ═══════════════════════════════════════
+    elements.append(Paragraph("TAX SUMMARY REPORT", title_s))
+    fy_parts = fy.split("-")
+    ay = f"{int(fy_parts[0]) + 1}-{int(fy_parts[1]) + 1:02d}"
+    elements.append(Paragraph(f"Financial Year: {fy} | Assessment Year: {ay}", sub_s))
+    elements.append(Paragraph(f"Generated: {datetime.now(timezone.utc).strftime('%d %b %Y, %H:%M UTC')}", sub_s))
+    elements.append(Spacer(1, 8))
+    elements.append(HRFlowable(width="100%", thickness=1, color=NAVY))
+    elements.append(Spacer(1, 8))
+
+    # ── Taxpayer Profile ─────────────────────────────────────
+    if salary_profile or income_profile:
+        elements.append(Paragraph("TAXPAYER PROFILE", section_s))
+        profile_data = [["Field", "Details"]]
+        if salary_profile:
+            profile_data.append(["Employer", salary_profile.get("employer_name", "N/A")])
+            profile_data.append(["City", f"{salary_profile.get('residence_city', 'N/A')} ({salary_profile.get('city_type', 'N/A')})"])
+            gross_m = salary_profile.get("gross_monthly", 0)
+            profile_data.append(["Gross Monthly Salary", format_inr(gross_m)])
+            profile_data.append(["Annual Gross", f"{format_inr(salary_profile.get('gross_annual', gross_m * 12))}"])
+            profile_data.append(["Monthly TDS", f"{format_inr(salary_profile.get('tds_monthly', 0))}"])
+        if income_profile:
+            types = income_profile.get("income_types", [])
+            profile_data.append(["Income Types", ", ".join(t.title() for t in types)])
+        if freelancer:
+            profile_data.append(["Freelancer (44ADA)", f"Gross: {format_inr(freelancer.get('gross_receipts', 0))}"])
+        if business:
+            profile_data.append(["Business (44AD)", f"Turnover: {format_inr(business.get('gross_turnover', 0))}"])
+
+        elements.append(make_table(profile_data, [80*mm, 90*mm]))
+        elements.append(Spacer(1, 8))
+
+    # ── Income Summary ───────────────────────────────────────
+    elements.append(Paragraph("I. INCOME SUMMARY", section_s))
+    income = tax_calc["income"]
+    income_data = [
+        ["Particulars", "Amount (Rs.)"],
+        ["Salary / Employment Income", format_inr(income["salary"])],
+        ["Other Income", format_inr(income["other"])],
+        ["Gross Total Income", format_inr(income["gross_total"])],
+    ]
+    cg = tax_calc.get("capital_gains", {})
+    if cg.get("stcg", 0) > 0 or cg.get("ltcg", 0) > 0:
+        income_data.append(["Short-Term Capital Gains (STCG)", format_inr(cg.get("stcg", 0))])
+        income_data.append(["Long-Term Capital Gains (LTCG)", format_inr(cg.get("ltcg", 0))])
+        income_data.append([f"LTCG Exemption (u/s 112A)", f"({format_inr(cg.get('ltcg_exemption', 125000))})"])
+        income_data.append(["Taxable Capital Gains", format_inr(cg.get("stcg", 0) + cg.get("ltcg_taxable", 0))])
+
+    t = make_table(income_data, [110*mm, 60*mm])
+    # Highlight gross total row
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 3), (-1, 3), LIGHT_GREEN),
+        ('FONTNAME', (0, 3), (-1, 3), 'Helvetica-Bold'),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 8))
+
+    # ── Deductions Breakdown ─────────────────────────────────
+    elements.append(Paragraph("II. DEDUCTIONS (Chapter VI-A) — Old Regime", section_s))
+    ded_data = [["Section", "Claimed (Rs.)", "Limit (Rs.)", "Eligible (Rs.)"]]
+    for d in tax_calc.get("deductions", []):
+        section = d.get("section", "")
+        amount = d.get("amount", 0) or 0
+        limit = d.get("limit", 0) or 0
+        capped = d.get("capped_amount", min(amount, limit) if limit > 0 else amount)
+        ded_data.append([
+            d.get("label", f"Section {section}"),
+            format_inr(amount),
+            format_inr(limit) if limit > 0 else "No limit",
+            format_inr(capped),
+        ])
+
+    # Auto-detected deductions not in tax_calc deductions
+    auto_sections = {}
+    for d in auto_deds:
+        sec = d.get("section", "")
+        auto_sections[sec] = auto_sections.get(sec, 0) + d.get("amount", 0)
+
+    # Standard deduction
+    old_std = tax_calc["old_regime"]["standard_deduction"]
+    if old_std > 0:
+        ded_data.append(["Standard Deduction (u/s 16(ia))", format_inr(old_std), format_inr(50000), format_inr(old_std)])
+
+    total_old_ded = tax_calc["old_regime"]["total_deductions"]
+    ded_data.append(["TOTAL DEDUCTIONS (Old Regime)", "", "", format_inr(total_old_ded)])
+
+    t = make_table(ded_data, [60*mm, 35*mm, 35*mm, 40*mm])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, -1), (-1, -1), LIGHT_BLUE),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 8))
+
+    # ── Old vs New Regime Comparison ──────────────────────────
+    elements.append(Paragraph("III. TAX COMPUTATION — Old vs New Regime", section_s))
+    old = tax_calc["old_regime"]
+    new = tax_calc["new_regime"]
+    comp = tax_calc["comparison"]
+
+    regime_data = [
+        ["Particulars", "Old Regime (Rs.)", "New Regime (Rs.)"],
+        ["Gross Total Income", format_inr(income["gross_total"]), format_inr(income["gross_total"])],
+        ["Standard Deduction", format_inr(old["standard_deduction"]), format_inr(new["standard_deduction"])],
+        ["Chapter VI-A Deductions", format_inr(old["chapter_via_deductions"]), "N/A"],
+        ["NPS Deduction (80CCD)", "Incl. in above", format_inr(new.get("nps_deduction", 0))],
+        ["Total Deductions", format_inr(old["total_deductions"]), format_inr(new["total_deductions"])],
+        ["Taxable Income", format_inr(old["taxable_income"]), format_inr(new["taxable_income"])],
+        ["Tax on Income", format_inr(old["tax_on_income"]), format_inr(new["tax_on_income"])],
+        ["Rebate u/s 87A", f"({format_inr(old['rebate_87a'])})", f"({format_inr(new['rebate_87a'])})"],
+        ["Tax after Rebate", format_inr(old["tax_after_rebate"]), format_inr(new["tax_after_rebate"])],
+        ["Surcharge", format_inr(old["surcharge"]), format_inr(new["surcharge"])],
+        ["Health & Education Cess (4%)", format_inr(old["cess"]), format_inr(new["cess"])],
+        ["Tax on Regular Income", format_inr(old["total_tax_on_income"]), format_inr(new["total_tax_on_income"])],
+        ["Capital Gains Tax", format_inr(old["capital_gains_tax"]), format_inr(new["capital_gains_tax"])],
+        ["TOTAL TAX LIABILITY", format_inr(old["total_tax"]), format_inr(new["total_tax"])],
+    ]
+
+    t = Table(regime_data, colWidths=[75*mm, 47*mm, 47*mm], repeatRows=1)
+    # Determine which column to highlight as "better"
+    old_better = comp["better_regime"] == "old"
+    winner_col = 1 if old_better else 2
+
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), NAVY),
+        ('TEXTCOLOR', (0, 0), (-1, 0), rl_colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+        ('GRID', (0, 0), (-1, -1), 0.5, rl_colors.HexColor('#E5E7EB')),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -2), [rl_colors.white, GREY_BG]),
+        ('BACKGROUND', (0, -1), (-1, -1), LIGHT_GREEN if comp["better_regime"] != "equal" else LIGHT_AMBER),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, -1), (-1, -1), 9),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        # Highlight winner column header
+        ('BACKGROUND', (winner_col, -1), (winner_col, -1), rl_colors.HexColor('#A7F3D0')),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 6))
+
+    # Recommendation box
+    regime_label = "OLD REGIME" if old_better else "NEW REGIME"
+    if comp["better_regime"] != "equal":
+        savings = comp["savings"]
+        rec_text = f"RECOMMENDATION: {regime_label} saves Rs. {format_inr(savings)} more. Effective rate: {comp['old_effective_rate'] if old_better else comp['new_effective_rate']}%"
+        rec_style = ParagraphStyle('Rec', parent=styles['Normal'], fontSize=10, textColor=GREEN, alignment=1)
+        elements.append(Paragraph(f"<b>{rec_text}</b>", rec_style))
+    elements.append(Spacer(1, 8))
+
+    # ── Slab-wise Breakdown ──────────────────────────────────
+    elements.append(Paragraph("IV. SLAB-WISE TAX BREAKDOWN", section_s))
+    for regime_name, regime_key in [("Old Regime", "old_regime"), ("New Regime", "new_regime")]:
+        slab_data = [["Income Range", "Rate", "Taxable Income (Rs.)", "Tax (Rs.)"]]
+        for slab in tax_calc[regime_key].get("slab_breakdown", []):
+            slab_data.append([slab["range"], slab["rate"], format_inr(slab["income"]), format_inr(slab["tax"])])
+        if len(slab_data) > 1:
+            elements.append(Paragraph(f"{regime_name}:", body_s))
+            elements.append(make_table(slab_data, [55*mm, 20*mm, 47*mm, 47*mm]))
+            elements.append(Spacer(1, 6))
+
+    # ── TDS Summary ──────────────────────────────────────────
+    if salary_profile and salary_profile.get("tds_monthly", 0) > 0:
+        elements.append(Paragraph("V. TDS & TAX PAYMENT STATUS", section_s))
+        monthly_tds = salary_profile.get("tds_monthly", 0)
+        annual_tds = monthly_tds * 12
+        better_tax = old["total_tax"] if old_better else new["total_tax"]
+        due = max(0, better_tax - annual_tds)
+        refund = max(0, annual_tds - better_tax)
+
+        tds_data = [
+            ["Particulars", "Amount (Rs.)"],
+            ["TDS Deducted by Employer (Annual)", format_inr(annual_tds)],
+            [f"Tax Liability ({regime_label if comp['better_regime'] != 'equal' else 'New Regime'})", format_inr(better_tax)],
+        ]
+        if refund > 0:
+            tds_data.append(["EXPECTED REFUND", format_inr(refund)])
+        elif due > 0:
+            tds_data.append(["TAX DUE (Self-Assessment)", format_inr(due)])
+        else:
+            tds_data.append(["Status", "TDS matches liability"])
+
+        t = make_table(tds_data, [110*mm, 60*mm])
+        if refund > 0:
+            t.setStyle(TableStyle([('BACKGROUND', (0, -1), (-1, -1), LIGHT_GREEN), ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold')]))
+        elif due > 0:
+            t.setStyle(TableStyle([('BACKGROUND', (0, -1), (-1, -1), LIGHT_RED), ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold')]))
+        elements.append(t)
+        elements.append(Spacer(1, 8))
+
+    # ── Uploaded Documents ───────────────────────────────────
+    if tax_docs:
+        elements.append(Paragraph("VI. UPLOADED TAX DOCUMENTS", section_s))
+        doc_data = [["Document Type", "Filename", "Uploaded On"]]
+        for td in tax_docs:
+            dtype = td.get("document_type", "Unknown").replace("_", " ").title()
+            fname = td.get("filename", "N/A")[:40]
+            uploaded = td.get("created_at", "")[:10]
+            doc_data.append([dtype, fname, uploaded])
+        elements.append(make_table(doc_data, [55*mm, 80*mm, 35*mm]))
+        elements.append(Spacer(1, 8))
+
+    # ── Notes & Disclaimer ───────────────────────────────────
+    elements.append(Spacer(1, 12))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=rl_colors.grey))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("NOTES:", ParagraphStyle('NoteH', parent=styles['Normal'], fontSize=9, textColor=NAVY)))
+    for note in tax_calc.get("notes", []):
+        elements.append(Paragraph(f"  - {note}", note_s))
+
+    elements.append(Spacer(1, 10))
+    disclaimer_s = ParagraphStyle('Disclaimer', parent=styles['Normal'], fontSize=7, textColor=rl_colors.HexColor('#9CA3AF'), alignment=1)
+    elements.append(Paragraph(
+        "DISCLAIMER: This is a computer-generated estimate based on available data. "
+        "It is not a substitute for professional tax advice. Please consult a Chartered Accountant "
+        "before filing your Income Tax Return. Generated by Visor Finance.",
+        disclaimer_s,
+    ))
+
+    # Footer
+    elements.append(Spacer(1, 6))
+    footer_s = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=rl_colors.grey, alignment=1)
+    elements.append(Paragraph(f"Visor Finance | Tax Summary Report | {datetime.now(timezone.utc).strftime('%d %b %Y')}", footer_s))
+
+    doc.build(elements)
+    buf.seek(0)
+
+    filename = f"Visor_Tax_Summary_FY{fy}.pdf"
+    return StreamingResponse(
+        buf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ══════════════════════════════════════════════════════════════
+# EXCEL EXPORTS (Original)
+# ══════════════════════════════════════════════════════════════
+
 @router.get("/journal/excel")
 async def export_journal_excel(
     start_date: Optional[str] = None,

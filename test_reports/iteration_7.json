@@ -50,7 +50,7 @@
     "frontend_edit_transaction": "PASS - Edit modal opens with all fields populated, Save Changes button"
   },
   "test_environment": {
-    "url": "https://enhanced-tax-module.preview.emergentagent.com",
+    "url": "https://phase3-tax-engine.preview.emergentagent.com",
     "backend_status": "Running",
     "frontend_status": "Running"
   }

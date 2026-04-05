@@ -70,7 +70,7 @@
     "frontend_section_order": "PASS - Markets > Portfolio > Allocation > Risk > Tax > Goals"
   },
   "test_environment": {
-    "url": "https://enhanced-tax-module.preview.emergentagent.com",
+    "url": "https://phase3-tax-engine.preview.emergentagent.com",
     "backend_status": "Running",
     "frontend_status": "Running"
   },
