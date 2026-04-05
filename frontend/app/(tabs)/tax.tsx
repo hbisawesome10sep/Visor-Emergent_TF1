@@ -313,7 +313,7 @@ export default function TaxScreen() {
           
           <TouchableOpacity
             style={{ marginTop: 20, padding: 12 }}
-            onPress={() => router.push('/(tabs)/visor')}
+            onPress={() => router.push('/(tabs)/insights')}
           >
             <Text style={{ color: colors.primary, fontSize: 14 }}>
               Ask Visor AI about taxes instead →
@@ -450,8 +450,8 @@ export default function TaxScreen() {
             colors={colors}
             isDark={isDark}
             onOptimize={() => {
-              // Navigate to Visor AI with pre-loaded prompt
-              router.push('/(tabs)/ai-advisor');
+              // Navigate to Insights tab where AI Advisor chat is available
+              router.push('/(tabs)/insights');
             }}
           />
         )}

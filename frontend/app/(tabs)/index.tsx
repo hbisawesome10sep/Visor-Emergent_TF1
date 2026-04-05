@@ -130,10 +130,8 @@ export default function DashboardScreen() {
     );
   }
 
-  // ═══ ESSENTIAL MODE: Show simplified dashboard ═══
-  if (mode === 'essential') {
-    return <EssentialDashboard insets={{ top: insets.top, bottom: insets.bottom }} />;
-  }
+  // ═══ ALL USERS GET THE FULL DASHBOARD ═══
+  // Feature gating is handled at the component level, not by swapping the entire dashboard
 
   if (loading) {
     return (
