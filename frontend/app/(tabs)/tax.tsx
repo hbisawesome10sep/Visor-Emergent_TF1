@@ -9,6 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useScreenContext } from '../../src/context/ScreenContext';
+import { useExperienceMode } from '../../src/context/ExperienceModeContext';
 import { useRouter } from 'expo-router';
 import { Accent } from '../../src/utils/theme';
 import { apiRequest } from '../../src/utils/api';
@@ -48,8 +49,29 @@ export default function TaxScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { setCurrentScreen } = useScreenContext();
+  const { isFeatureAvailable, mode, setMode, loading: modeLoading } = useExperienceMode();
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 70 + insets.top;
+
+  // Feature gating - Tax is available in Plus and Full modes
+  // Show loading while mode context initializes
+  if (modeLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={isDark ? '#F59E0B' : '#B45309'} />
+      </View>
+    );
+  }
+  
+  // After mode is loaded, check feature access based on mode directly
+  // Essential mode users do NOT have tax access
+  const hasTaxAccess = mode === 'plus' || mode === 'full';
+  const hasFullTaxAccess = mode === 'full';
+  
+  // DEBUG: Log mode value
+  React.useEffect(() => {
+    console.log('[Tax Screen] Current mode:', mode, 'hasTaxAccess:', hasTaxAccess, 'modeLoading:', modeLoading);
+  }, [mode, hasTaxAccess, modeLoading]);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -235,6 +257,72 @@ export default function TaxScreen() {
 
   const taxSections = taxData?.sections || [];
   const regimeData = taxCalcData ? (activeRegime === 'old' ? taxCalcData.old_regime : taxCalcData.new_regime) : null;
+
+  // ═══ ESSENTIAL MODE - TAX LOCKED VIEW ═══
+  // Check feature access BEFORE loading state to show lock immediately
+  if (!hasTaxAccess) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        <View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
+          <View style={[styles.headerContent, { backgroundColor: isDark ? '#000000' : '#FFFFFF', borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]}>
+            <View style={styles.headerLeft}>
+              <Text style={[styles.headerTitle, { color: isDark ? '#F59E0B' : '#B45309' }]}>Tax</Text>
+            </View>
+          </View>
+        </View>
+        
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 24,
+            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+          }}>
+            <MaterialCommunityIcons name="lock-outline" size={40} color="#F59E0B" />
+          </View>
+          
+          <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 12, textAlign: 'center' }}>
+            Tax Module
+          </Text>
+          <Text style={{ fontSize: 15, color: colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: 8 }}>
+            Track deductions, compare tax regimes, and optimize your tax savings.
+          </Text>
+          <Text style={{ fontSize: 14, color: '#F59E0B', textAlign: 'center', marginBottom: 32 }}>
+            Available in Plus mode
+          </Text>
+          
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: '#F59E0B',
+              paddingHorizontal: 28,
+              paddingVertical: 16,
+              borderRadius: 14,
+            }}
+            onPress={() => setMode('plus', 'feature_gate_tax')}
+          >
+            <Text style={{ color: '#000', fontWeight: '700', fontSize: 16 }}>Upgrade to Plus</Text>
+            <MaterialCommunityIcons name="arrow-right" size={20} color="#000" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{ marginTop: 20, padding: 12 }}
+            onPress={() => router.push('/(tabs)/visor')}
+          >
+            <Text style={{ color: colors.primary, fontSize: 14 }}>
+              Ask Visor AI about taxes instead →
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   if (loading) {
     return (

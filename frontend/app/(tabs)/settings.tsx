@@ -13,6 +13,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useSecurity } from '../../src/context/SecurityContext';
+import { useExperienceMode } from '../../src/context/ExperienceModeContext';
+import { ModeSelector } from '../../src/components/experience/ModeSelector';
 import { apiRequest } from '../../src/utils/api';
 import { Accent } from '../../src/utils/theme';
 import { Linking } from 'react-native';
@@ -38,6 +40,7 @@ export default function SettingsScreen() {
     isPinSetup, isBiometricEnabled, isBiometricAvailable,
     isSecuritySetupDone, toggleBiometric, resetSecurity, lock,
   } = useSecurity();
+  const { mode, modeInfo, setMode } = useExperienceMode();
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 70 + insets.top;
   const router = useRouter();
@@ -47,7 +50,7 @@ export default function SettingsScreen() {
   const [showAadhaar, setShowAadhaar] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
-
+  const [showModeSelector, setShowModeSelector] = useState(false);
   // Global document picker mutex — prevents "Different document picking in progress" error
   const isPickingRef = useRef(false);
 
@@ -811,6 +814,7 @@ export default function SettingsScreen() {
 
   // ═══ ACCOUNT TAB ═══
   const AccountTab = () => (
+    <View>
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
         <View style={[styles.cardIconWrap, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)' }]}>
@@ -874,6 +878,93 @@ export default function SettingsScreen() {
           helper="Used for date of birth verification"
         />
         <SettingField label="Date of Birth" value={user?.dob || '01/01/1990'} icon="calendar" colors={colors} isDark={isDark} />
+      </View>
+    </View>
+
+      {/* ═══ EXPERIENCE MODE CARD ═══ */}
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: 14 }]}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.cardIconWrap, { backgroundColor: modeInfo?.color ? `${modeInfo.color}20` : 'rgba(99, 102, 241, 0.15)' }]}>
+            <MaterialCommunityIcons 
+              name={modeInfo?.icon as any || 'tune-vertical'} 
+              size={22} 
+              color={modeInfo?.color || '#6366F1'} 
+            />
+          </View>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Experience Mode</Text>
+        </View>
+        
+        <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DM Sans', marginBottom: 16, lineHeight: 20 }}>
+          Choose how much of Visor you want to see. Essential keeps it simple, Full unlocks everything.
+        </Text>
+        
+        {/* Current Mode Display */}
+        <TouchableOpacity 
+          data-testid="experience-mode-selector"
+          style={[{
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 16,
+            borderRadius: 14,
+            borderWidth: 2,
+            borderColor: modeInfo?.color || '#6366F1',
+            backgroundColor: isDark ? `${modeInfo?.color}15` : `${modeInfo?.color}08`,
+          }]}
+          onPress={() => setShowModeSelector(true)}
+        >
+          <View style={[{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            backgroundColor: `${modeInfo?.color}25`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 14,
+          }]}>
+            <MaterialCommunityIcons 
+              name={modeInfo?.icon as any || 'tune-vertical'} 
+              size={24} 
+              color={modeInfo?.color || '#6366F1'} 
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: colors.textPrimary, fontFamily: 'DM Sans' }}>
+              {modeInfo?.title || mode} Mode
+            </Text>
+            <Text style={{ fontSize: 13, color: modeInfo?.color || '#6366F1', fontFamily: 'DM Sans', marginTop: 2 }}>
+              {modeInfo?.subtitle || 'Tap to change'}
+            </Text>
+          </View>
+          <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textSecondary} />
+        </TouchableOpacity>
+        
+        {/* Mode Highlights */}
+        {modeInfo?.highlights && modeInfo.highlights.length > 0 && (
+          <View style={{ marginTop: 16 }}>
+            <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: 'DM Sans', fontWeight: '600', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Currently Included
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {modeInfo.highlights.slice(0, 4).map((highlight: string, idx: number) => (
+                <View 
+                  key={idx}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    borderRadius: 8,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <MaterialCommunityIcons name="check" size={14} color={modeInfo.color} />
+                  <Text style={{ fontSize: 12, color: colors.textPrimary, fontFamily: 'DM Sans' }}>{highlight}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -1796,6 +1887,12 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ═══ EXPERIENCE MODE SELECTOR MODAL ═══ */}
+      <ModeSelector 
+        visible={showModeSelector} 
+        onClose={() => setShowModeSelector(false)} 
+      />
     </View>
   );
 }

@@ -14,8 +14,10 @@ import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 import { SecurityProvider, useSecurity } from '../src/context/SecurityContext';
 import { ScreenProvider } from '../src/context/ScreenContext';
+import { ExperienceModeProvider } from '../src/context/ExperienceModeContext';
 import { LockScreen } from '../src/components/LockScreen';
 import { SecuritySetupScreen } from '../src/components/SecuritySetupScreen';
+import { ModeNudge } from '../src/components/experience/ModeNudge';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -40,6 +42,8 @@ function SecurityLayer({ children }: { children: React.ReactNode }) {
       {children}
       {token && !isSecuritySetupDone && <SecuritySetupScreen />}
       {token && isSecuritySetupDone && isLocked && isPinSetup && <LockScreen />}
+      {/* AI Mode Upgrade Nudge */}
+      {token && <ModeNudge />}
     </>
   );
 }
@@ -101,11 +105,13 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <SecurityProvider>
-          <ScreenProvider>
-            <InnerLayout />
-          </ScreenProvider>
-        </SecurityProvider>
+        <ExperienceModeProvider>
+          <SecurityProvider>
+            <ScreenProvider>
+              <InnerLayout />
+            </ScreenProvider>
+          </SecurityProvider>
+        </ExperienceModeProvider>
       </AuthProvider>
     </ThemeProvider>
   );

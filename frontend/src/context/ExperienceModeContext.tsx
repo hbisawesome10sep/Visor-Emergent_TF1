@@ -153,10 +153,12 @@ export function ExperienceModeProvider({ children }: Props) {
   }, [isAuthenticated, refreshMode, checkForNudge]);
 
   const isFeatureAvailable = useCallback((featureId: string): boolean => {
-    // If features haven't loaded yet, default to available to prevent UI flicker
-    if (availableFeatures.size === 0 && hiddenFeatures.size === 0) return true;
+    // If not authenticated, default to restricted (Essential mode behavior)
+    if (!isAuthenticated || !token) return false;
+    // If features haven't loaded yet, default to restricted to prevent showing locked content
+    if (availableFeatures.size === 0 && hiddenFeatures.size === 0) return false;
     return availableFeatures.has(featureId);
-  }, [availableFeatures, hiddenFeatures]);
+  }, [availableFeatures, hiddenFeatures, isAuthenticated, token]);
 
   const setMode = useCallback(async (newMode: ExperienceMode, source = 'manual') => {
     if (!token) return;
