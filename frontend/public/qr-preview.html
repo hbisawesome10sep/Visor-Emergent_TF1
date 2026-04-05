@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visor Finance - Expo Preview</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <title>Visor Finance - Preview</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(180deg, #0a0a0b 0%, #111113 100%);
       min-height: 100vh;
       display: flex;
@@ -23,7 +22,7 @@
       max-width: 400px;
       width: 100%;
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
     .title {
@@ -43,32 +42,43 @@
       padding: 16px;
       display: inline-block;
       margin-bottom: 20px;
+      min-height: 272px;
+      min-width: 272px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    #qrcode { width: 240px; height: 240px; }
+    #qrcode {
+      width: 240px;
+      height: 240px;
+    }
+    #qrcode img {
+      width: 240px !important;
+      height: 240px !important;
+    }
     .scan-text {
       font-size: 18px;
       font-weight: 600;
       color: #fff;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .scan-hint {
       font-size: 13px;
       color: rgba(255,255,255,0.5);
       margin-bottom: 16px;
     }
-    .scan-hint span { color: #10B981; }
     .url-box {
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
       border-radius: 12px;
       padding: 12px 16px;
       margin-bottom: 16px;
     }
     .url-text {
-      font-size: 12px;
+      font-size: 13px;
       color: #10B981;
       word-break: break-all;
-      font-family: 'SF Mono', monospace;
+      font-family: monospace;
     }
     .status {
       display: flex;
@@ -84,82 +94,71 @@
       background: #10B981;
       animation: pulse 2s infinite;
     }
-    .status-dot.error { background: #EF4444; }
-    .status-text { font-size: 14px; color: #10B981; }
-    .status-text.error { color: #EF4444; }
+    .status-dot.error { background: #ef4444; }
+    .status-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+    .status-text.error { color: #ef4444; }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
     }
     .steps {
       text-align: left;
-      margin-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 20px;
     }
     .step {
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .step-num {
-      background: #10B981;
-      color: #fff;
       width: 24px;
       height: 24px;
       border-radius: 50%;
+      background: #10B981;
+      color: #000;
+      font-size: 13px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
       flex-shrink: 0;
     }
     .step-text {
       font-size: 14px;
       color: rgba(255,255,255,0.8);
-      line-height: 1.4;
+      line-height: 1.5;
     }
-    .step-text strong { color: #fff; }
+    .step-text strong {
+      color: #fff;
+    }
     .refresh-note {
-      font-size: 12px;
-      color: rgba(255,255,255,0.3);
       margin-top: 20px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
     }
-    .mode-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      justify-content: center;
-    }
-    .mode-tab {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 13px;
+    .open-btn {
+      display: inline-block;
+      background: #10B981;
+      color: #000;
+      padding: 12px 32px;
+      border-radius: 12px;
       font-weight: 600;
-      cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: transparent;
-      color: rgba(255,255,255,0.5);
-      transition: all 0.2s;
+      text-decoration: none;
+      margin-top: 16px;
+      transition: transform 0.2s, background 0.2s;
     }
-    .mode-tab.active {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: #10B981;
-      color: #10B981;
+    .open-btn:hover {
+      background: #059669;
+      transform: scale(1.02);
     }
-    .mode-tab:hover { border-color: rgba(255,255,255,0.3); }
-    .warning-box {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 16px;
-      display: none;
-    }
-    .warning-box.show { display: block; }
-    .warning-text {
-      font-size: 12px;
-      color: #F59E0B;
+    .loading {
+      color: #666;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -168,21 +167,12 @@
     <div class="title">Visor Finance</div>
     <div class="subtitle">Personal Finance for Indians</div>
     
-    <div class="mode-tabs">
-      <button class="mode-tab active" onclick="switchMode('web')">Web Preview</button>
-      <button class="mode-tab" onclick="switchMode('expo')">Expo Go</button>
-    </div>
-    
-    <div id="warning-box" class="warning-box">
-      <div class="warning-text">⚠️ Ngrok tunnel is currently unavailable. Using Web Preview mode instead.</div>
-    </div>
-    
     <div class="qr-container">
-      <canvas id="qrcode"></canvas>
+      <div id="qrcode"><span class="loading">Generating QR...</span></div>
     </div>
     
-    <div class="scan-text" id="scan-text">Open on Mobile</div>
-    <div class="scan-hint" id="scan-hint">Scan with your <span>Camera App</span> or any QR scanner</div>
+    <div class="scan-text">Scan to Open on Mobile</div>
+    <div class="scan-hint">Use your phone's camera or any QR scanner</div>
     
     <div class="url-box">
       <div class="url-text" id="url-text">Loading...</div>
@@ -190,17 +180,19 @@
     
     <div class="status">
       <div class="status-dot" id="status-dot"></div>
-      <div class="status-text" id="status-text">Checking connection...</div>
+      <span class="status-text" id="status-text">Checking connection...</span>
     </div>
+    
+    <a class="open-btn" id="open-btn" href="#" target="_blank">Open Web Preview</a>
     
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
-        <div class="step-text" id="step1">Scan the QR code with your phone camera</div>
+        <div class="step-text">Scan the QR code with your phone camera</div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <div class="step-text" id="step2">Open the link — <strong>Visor</strong> loads in browser</div>
+        <div class="step-text">Open the link — <strong>Visor</strong> loads in browser</div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
@@ -212,75 +204,76 @@
       </div>
     </div>
     
-    <div class="refresh-note">Page auto-refreshes every 25 seconds</div>
+    <div class="refresh-note">Auto-refreshes every 30 seconds</div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
-    let currentMode = 'web';
     const WEB_URL = window.location.origin;
-    let EXPO_URL = null;
-    
-    function switchMode(mode) {
-      currentMode = mode;
-      document.querySelectorAll('.mode-tab').forEach(tab => tab.classList.remove('active'));
-      document.querySelector(`.mode-tab[onclick="switchMode('${mode}')"]`).classList.add('active');
-      
-      if (mode === 'expo') {
-        document.getElementById('scan-text').textContent = 'Scan with Expo Go';
-        document.getElementById('scan-hint').innerHTML = 'Open <span>Expo Go</span> → Scan QR Code';
-        document.getElementById('step1').innerHTML = 'Install <strong>Expo Go</strong> from App Store / Play Store';
-        document.getElementById('step2').innerHTML = 'Open Expo Go → tap <strong>Scan QR Code</strong>';
-        if (!EXPO_URL) {
-          document.getElementById('warning-box').classList.add('show');
-        }
-      } else {
-        document.getElementById('scan-text').textContent = 'Open on Mobile';
-        document.getElementById('scan-hint').innerHTML = 'Scan with your <span>Camera App</span> or any QR scanner';
-        document.getElementById('step1').textContent = 'Scan the QR code with your phone camera';
-        document.getElementById('step2').innerHTML = 'Open the link — <strong>Visor</strong> loads in browser';
-        document.getElementById('warning-box').classList.remove('show');
-      }
-      
-      generateQR();
-    }
+    let qrcode = null;
     
     function generateQR() {
-      const url = currentMode === 'expo' && EXPO_URL ? EXPO_URL : WEB_URL;
-      document.getElementById('url-text').textContent = url;
+      const container = document.getElementById('qrcode');
+      document.getElementById('url-text').textContent = WEB_URL;
+      document.getElementById('open-btn').href = WEB_URL;
       
-      QRCode.toCanvas(document.getElementById('qrcode'), url, {
-        width: 240,
-        margin: 1,
-        color: { dark: '#000', light: '#fff' }
-      });
+      // Clear previous
+      container.innerHTML = '';
+      
+      try {
+        // Use QRCode.js library
+        qrcode = new QRCode(container, {
+          text: WEB_URL,
+          width: 240,
+          height: 240,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch (e) {
+        console.error('QRCode.js failed, using fallback:', e);
+        // Fallback to API-based QR
+        const img = document.createElement('img');
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(WEB_URL)}`;
+        img.alt = 'QR Code';
+        img.style.width = '240px';
+        img.style.height = '240px';
+        container.appendChild(img);
+      }
     }
     
     async function checkConnection() {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      
       try {
-        const resp = await fetch('/api/health', { method: 'GET', timeout: 5000 });
+        const resp = await fetch('/api/health', { method: 'GET' });
         if (resp.ok) {
-          document.getElementById('status-dot').classList.remove('error');
-          document.getElementById('status-text').textContent = 'Server Active';
-          document.getElementById('status-text').classList.remove('error');
+          dot.classList.remove('error');
+          text.textContent = 'Server Active';
+          text.classList.remove('error');
         } else {
           throw new Error('Server error');
         }
       } catch (e) {
-        document.getElementById('status-dot').classList.add('error');
-        document.getElementById('status-text').textContent = 'Connection Error';
-        document.getElementById('status-text').classList.add('error');
+        dot.classList.add('error');
+        text.textContent = 'Checking...';
+        text.classList.add('error');
       }
     }
     
-    // Initialize
-    generateQR();
-    checkConnection();
+    // Wait for DOM and library to load
+    window.onload = function() {
+      setTimeout(() => {
+        generateQR();
+        checkConnection();
+      }, 100);
+    };
     
-    // Auto-refresh
+    // Auto-refresh every 30 seconds
     setInterval(() => {
       checkConnection();
-      generateQR();
-    }, 25000);
+    }, 30000);
   </script>
 </body>
 </html>
