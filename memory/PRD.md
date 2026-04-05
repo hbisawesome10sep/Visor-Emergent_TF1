@@ -467,6 +467,12 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
   - **Frontend**: `ExperienceModeContext`, `ModeSelector`, `FeatureGate`, `EssentialDashboard` components. Tax screen gated for Essential mode. Books screen gated for Essential/Plus modes.
   - **New MongoDB collections**: `user_experience`, `user_behavior`, `mode_nudges`.
   - **Essential Dashboard**: Simplified AI-curated home with morning brief, 3-card snapshot (Spent/Safe-to-Spend/Saved), smart alerts.
+  - **Landing Page**: Added Experience Modes comparison section showcasing Essential, Plus, and Full tiers with feature highlights.
+
+### Apr 5, 2026
+- **Experience Mode Fixes**: Fixed Metro bundler caching issues, updated direct imports, added mode loading states to prevent UI flash.
+- **Landing Page Update**: Added "Experience Modes" section with 3 mode cards (Essential/Plus/Full) showing feature comparisons.
+- **Investments Fix**: Cleared stale `openAddSip` reference error (Metro cache issue).
 
 ### Apr 4, 2026
 - **P2: Tax Summary Export PDF** (`GET /api/exports/tax-summary/pdf`): ReportLab-generated PDF with all deductions, tax liability, and regime comparison.

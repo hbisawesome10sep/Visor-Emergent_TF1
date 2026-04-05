@@ -295,6 +295,77 @@ export default function IntroScreen() {
           </ScrollView>
         </View>
 
+        {/* ── EXPERIENCE MODES SECTION ── */}
+        <View style={s.section}>
+          <View style={s.sectionTag}>
+            <MaterialCommunityIcons name="tune-variant" size={14} color="#6366F1" />
+            <Text style={[s.sectionTagText, { color: '#6366F1' }]}>EXPERIENCE MODES</Text>
+          </View>
+          <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>
+            Your pace.{'\n'}Your features.
+          </Text>
+          <Text style={[s.sectionSub, { color: colors.textSecondary }]}>
+            Start simple with Essential mode, or unlock the full power of Visor. Switch anytime from Settings — your data stays intact.
+          </Text>
+
+          {/* Mode Cards */}
+          <View style={s.modesContainer}>
+            {/* Essential Mode */}
+            <View style={[s.modeCard, { backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)', borderColor: '#10B981' + '40' }]}>
+              <View style={[s.modeBadge, { backgroundColor: '#10B981' }]}>
+                <MaterialCommunityIcons name="leaf" size={16} color="#fff" />
+                <Text style={s.modeBadgeText}>Essential</Text>
+              </View>
+              <Text style={[s.modeTagline, { color: colors.textPrimary }]}>Simple & Clear</Text>
+              <Text style={[s.modeDesc, { color: colors.textSecondary }]}>AI-curated home screen with 3-card snapshot. Perfect for getting started.</Text>
+              <View style={s.modeFeatures}>
+                {['AI Chat Home', 'Spending Snapshot', 'Smart Alerts', 'Bank Import'].map((f, i) => (
+                  <View key={i} style={s.modeFeatureRow}>
+                    <MaterialCommunityIcons name="check-circle" size={14} color="#10B981" />
+                    <Text style={[s.modeFeatureText, { color: colors.textSecondary }]}>{f}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Plus Mode */}
+            <View style={[s.modeCard, { backgroundColor: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)', borderColor: '#3B82F6' + '40' }]}>
+              <View style={[s.modeBadge, { backgroundColor: '#3B82F6' }]}>
+                <MaterialCommunityIcons name="star-four-points" size={16} color="#fff" />
+                <Text style={s.modeBadgeText}>Plus</Text>
+              </View>
+              <Text style={[s.modeTagline, { color: colors.textPrimary }]}>Full Control</Text>
+              <Text style={[s.modeDesc, { color: colors.textSecondary }]}>Complete transaction history, investment tracking, and tax basics.</Text>
+              <View style={s.modeFeatures}>
+                {['Everything in Essential', 'Full Transactions', 'SIP & Goals', 'Health Score', 'Tax Basics'].map((f, i) => (
+                  <View key={i} style={s.modeFeatureRow}>
+                    <MaterialCommunityIcons name="check-circle" size={14} color="#3B82F6" />
+                    <Text style={[s.modeFeatureText, { color: colors.textSecondary }]}>{f}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Full Mode */}
+            <View style={[s.modeCard, { backgroundColor: isDark ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.05)', borderColor: '#8B5CF6' + '40' }]}>
+              <View style={[s.modeBadge, { backgroundColor: '#8B5CF6' }]}>
+                <MaterialCommunityIcons name="crown" size={16} color="#fff" />
+                <Text style={s.modeBadgeText}>Full</Text>
+              </View>
+              <Text style={[s.modeTagline, { color: colors.textPrimary }]}>Maximum Power</Text>
+              <Text style={[s.modeDesc, { color: colors.textSecondary }]}>Bookkeeping, full tax module, advanced analytics, and data exports.</Text>
+              <View style={s.modeFeatures}>
+                {['Everything in Plus', 'Double-Entry Books', 'Full Tax Module', 'Portfolio Analytics', 'PDF/Excel Export'].map((f, i) => (
+                  <View key={i} style={s.modeFeatureRow}>
+                    <MaterialCommunityIcons name="check-circle" size={14} color="#8B5CF6" />
+                    <Text style={[s.modeFeatureText, { color: colors.textSecondary }]}>{f}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* ── SECURITY SECTION ── */}
         <View style={[s.securitySection, { backgroundColor: isDark ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)', borderColor: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.1)' }]}>
           <MaterialCommunityIcons name="shield-check" size={36} color="#10B981" style={{ marginBottom: 12 }} />
@@ -442,6 +513,17 @@ const s = StyleSheet.create({
   securityItems: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginTop: 16 },
   secItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   secLabel: { fontSize: 13, fontFamily: 'DM Sans', fontWeight: '500' },
+
+  // Experience Modes
+  modesContainer: { gap: 12 },
+  modeCard: { borderRadius: 16, borderWidth: 1.5, padding: 18, marginBottom: 4 },
+  modeBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignSelf: 'flex-start', marginBottom: 10 },
+  modeBadgeText: { color: '#fff', fontSize: 12, fontFamily: 'DM Sans', fontWeight: '700' },
+  modeTagline: { fontSize: 17, fontFamily: 'DM Sans', fontWeight: '800', marginBottom: 4 },
+  modeDesc: { fontSize: 13, fontFamily: 'DM Sans', lineHeight: 19, marginBottom: 12 },
+  modeFeatures: { gap: 6 },
+  modeFeatureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  modeFeatureText: { fontSize: 12, fontFamily: 'DM Sans' },
 
   // Final CTA
   finalCTA: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 36, paddingBottom: 8 },

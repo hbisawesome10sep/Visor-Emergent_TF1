@@ -1,7 +1,5 @@
 // /app/frontend/src/components/experience/index.ts
-/**
- * Experience Mode Components - Barrel Export
- */
+// Experience Mode Components - Barrel Export
 
 export { FeatureGate, withFeatureGate, useFeatureAccess } from './FeatureGate';
 export { ModeSelector } from './ModeSelector';

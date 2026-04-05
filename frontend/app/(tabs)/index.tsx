@@ -37,7 +37,7 @@ import { InvestmentSummaryCard } from '../../src/components/dashboard/Investment
 import { UpcomingDuesCard } from '../../src/components/dashboard/UpcomingDuesCard';
 import { AIInsightCard } from '../../src/components/dashboard/AIInsightCard';
 import { TaxMeterCard } from '../../src/components/dashboard/TaxMeterCard';
-import { EssentialDashboard } from '../../src/components/experience';
+import { EssentialDashboard } from '../../src/components/experience/EssentialDashboard';
 import { Accent } from '../../src/utils/theme';
 import { JarProgressView } from '../../src/components/JarProgressView';
 import { useDashboardData, useFrequencyFilter } from '../../src/hooks/dashboard';
