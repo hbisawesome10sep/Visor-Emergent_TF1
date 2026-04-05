@@ -438,9 +438,9 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 | P1 | Streaming TTS for faster perceived voice response | TODO |
 | P1 | Financial Health Score flip card (detailed breakdown on back) | TODO |
 | P1 | Frontend refactoring (investments.tsx, index.tsx — 2000+ lines each) | TODO |
-| P2 | Proactive Morning Brief (daily AI-powered financial summary) | TODO |
-| P2 | Categorization Feedback Loop (user correction tracking) | TODO |
-| P2 | Expanded Merchant/Keyword Library (+100 merchants) | TODO |
+| P2 | Proactive Morning Brief (daily AI-powered financial summary) | DONE |
+| P2 | Categorization Feedback Loop (user correction tracking) | DONE |
+| P2 | Expanded Merchant/Keyword Library (+100 merchants) | DONE |
 | P2 | Advanced Tax Module Phase 4 (ITR filing integration) | TODO |
 | P2 | Gmail Integration for auto-importing bank transaction emails | TODO |
 | P3 | Voice Cloning with ElevenLabs for a custom Visor persona | TODO |
@@ -458,6 +458,9 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 - **P0: Persistent AI Memory**: Cross-session context memory — AI extracts topics, concerns, preferences, open questions, financial facts, and language preference after each conversation. Stored in `user_ai_memory` MongoDB collection. Injected into future conversations. Endpoints: `GET/DELETE /api/visor-ai/memory`. New file: `services/ai_memory.py`.
 - **P1: Financial Personality Engine**: Auto-computes spending archetype, savings consistency, investment behavior, life stage, strengths & blind spots from real data. Stored in `financial_personalities` collection. Endpoints: `GET /api/visor-ai/personality`, `GET /api/visor-ai/personality/cached`. New file: `services/financial_personality.py`.
 - **P1: Tax Knowledge Base (RAG-lite)**: 14 Indian tax sections (80C, 80CCD, 80D, 80E, 80G, HRA, 24b, capital gains, regime comparison, advance tax, TDS). Regex classifier injects relevant sections into AI context. New file: `services/tax_knowledge_base.py`.
+- **P2: Proactive Morning Brief**: Daily financial snapshot — yesterday spending vs avg, upcoming dues, SIP reminders, 80C progress, live market, insights. Endpoints: `GET /api/ai/morning-brief`, `POST /api/ai/morning-brief/refresh`. New file: `services/morning_brief.py`.
+- **P2: Categorization Feedback Loop**: Tracks user corrections, extracts merchant patterns, auto-applies overrides. Endpoints: `GET/DELETE /api/categorization/overrides`. New file: `services/categorization_feedback.py`.
+- **P2: Expanded Merchant Library**: 100+ new merchants in `parsers/utils.py` — regional food, grocery, transport, crypto, health, subscriptions, household, personal care.
 - **System Prompt Update**: Added USER MEMORY section instructing AI to use past conversation context naturally.
 
 ### Apr 4, 2026

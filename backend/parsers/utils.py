@@ -141,8 +141,13 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
           "metro cash", "spar hypermarket", "nilgiris", "heritage fresh",
           "ratnadeep", "reliance smart"], "Groceries", "expense"),
 
+        # Crypto & Web3 (BEFORE Transport to prevent 'uber' substring match on 'kuber')
+        (["wazirx", "coinswitch", "coindcx", "zebpay", "giottus",
+          "buyucoin", "bitbns", "unocoin", "binance", "coinbase",
+          "crypto", "bitcoin", "ethereum"], "Crypto", "investment"),
+
         # Transport & Travel
-        (["uber", "ola ", "rapido", "taxi", "cab ", "auto ", "rickshaw",
+        (["uber ", "ola ", "rapido", "taxi", "cab ", "auto ", "rickshaw",
           # Regional & emerging
           "namma yatri", "blu smart", "meru", "mega cabs", "s ride",
           "jugnoo", "shuttl", "chalo"], "Transport", "expense"),
@@ -215,11 +220,6 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
           "chroma", "samsung store", "apple store", "oneplus store",
           "xiaomi store"], "Shopping", "expense"),
 
-        # Crypto & Web3
-        (["wazirx", "coinswitch", "coindcx", "zebpay", "giottus",
-          "buyucoin", "bitbns", "unocoin", "binance", "coinbase",
-          "crypto", "bitcoin", "ethereum"], "Crypto", "investment"),
-
         # Financial
         (["insurance", "lic", "icici pru", "hdfc life", "max life", "sbi life",
           "bajaj allianz", "health ins", "term ins", "policy",
@@ -286,7 +286,7 @@ def categorize_transaction(description: str, is_credit: bool = False) -> tuple:
           "enrich salon", "bodycraft", "toni & guy", "b blunt",
           "manly", "bombay shaving", "beardo", "ustraa",
           "nykaa man", "man matters", "traya", "vedix",
-          "gym", "cult fit", "gold's gym", "anytime fitness",
+          "gym", "cult fit", "cult.fit", "gold's gym", "anytime fitness",
           "fitness first", "talwalkar", "golds gym", "crossfit"], "Personal Care", "expense"),
 
         # Donations
