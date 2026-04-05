@@ -118,12 +118,22 @@ export default function DashboardScreen() {
     handleApplyCustomRange, openDatePicker, handleNativeDateChange,
   } = useFrequencyFilter(setSelectedFrequency, setDateRange);
 
-  // ═══ ESSENTIAL MODE: Show simplified dashboard ═══
-  if (!modeLoading && mode === 'essential') {
-    return <EssentialDashboard insets={{ top: insets.top, bottom: insets.bottom }} />;
+  // ═══ WAIT FOR MODE DATA BEFORE RENDERING ═══
+  // This prevents the full dashboard from flashing while mode is loading
+  if (modeLoading) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
   }
 
-
+  // ═══ ESSENTIAL MODE: Show simplified dashboard ═══
+  if (mode === 'essential') {
+    return <EssentialDashboard insets={{ top: insets.top, bottom: insets.bottom }} />;
+  }
 
   if (loading) {
     return (

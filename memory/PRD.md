@@ -462,6 +462,11 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 - **P2: Categorization Feedback Loop**: Tracks user corrections, extracts merchant patterns, auto-applies overrides. Endpoints: `GET/DELETE /api/categorization/overrides`. New file: `services/categorization_feedback.py`.
 - **P2: Expanded Merchant Library**: 100+ new merchants in `parsers/utils.py` — regional food, grocery, transport, crypto, health, subscriptions, household, personal care.
 - **System Prompt Update**: Added USER MEMORY section instructing AI to use past conversation context naturally.
+- **P0: Experience Mode System**: 3-tier feature gating (Essential, Plus, Full) to prevent user overwhelm:
+  - **Backend**: Feature registry (`services/experience_mode.py`), mode recommender (`services/mode_recommender.py`), essential mode APIs (`services/essential_mode_ai.py`). Routes: `/api/experience/*`.
+  - **Frontend**: `ExperienceModeContext`, `ModeSelector`, `FeatureGate`, `EssentialDashboard` components. Tax screen gated for Essential mode. Books screen gated for Essential/Plus modes.
+  - **New MongoDB collections**: `user_experience`, `user_behavior`, `mode_nudges`.
+  - **Essential Dashboard**: Simplified AI-curated home with morning brief, 3-card snapshot (Spent/Safe-to-Spend/Saved), smart alerts.
 
 ### Apr 4, 2026
 - **P2: Tax Summary Export PDF** (`GET /api/exports/tax-summary/pdf`): ReportLab-generated PDF with all deductions, tax liability, and regime comparison.
