@@ -25,121 +25,114 @@ router = APIRouter(prefix="/api/tax")
 
 FORM16_SALARY_PATTERNS = {
     "gross_salary": [
-        r"gross\s*salary.*?(\d+[,\d]*)",
-        r"total\s*gross\s*salary.*?(\d+[,\d]*)",
-        r"1\s*[.\)]\s*gross\s*salary.*?(\d+[,\d]*)",
+        r"gross\s*salary",
+        r"total\s*gross\s*salary",
+        r"1\s*[.\)]\s*gross\s*salary",
     ],
     "basic_salary": [
-        r"salary\s*as\s*per\s*.*?section\s*17\(1\).*?(\d+[,\d]*)",
-        r"basic\s*salary.*?(\d+[,\d]*)",
+        r"salary\s*as\s*per\s*.*?section\s*17\(1\)",
+        r"basic\s*salary",
     ],
     "hra": [
-        r"house\s*rent\s*allowance.*?(\d+[,\d]*)",
-        r"hra.*?(\d+[,\d]*)",
+        r"house\s*rent\s*allowance\s*.*?10\(13A?\)",
     ],
     "lta": [
-        r"leave\s*travel\s*.*?(\d+[,\d]*)",
-        r"lta.*?(\d+[,\d]*)",
+        r"leave\s*travel\s*(?:concession|allowance|assistance)",
+        r"travel\s*concession\s*or\s*assistance",
     ],
     "perquisites": [
-        r"perquisites.*?(\d+[,\d]*)",
-        r"value\s*of\s*perquisites.*?17\(2\).*?(\d+[,\d]*)",
+        r"value\s*of\s*perquisites.*?17\(2\)",
     ],
     "profits_in_lieu": [
-        r"profits\s*in\s*lieu.*?(\d+[,\d]*)",
-        r"section\s*17\(3\).*?(\d+[,\d]*)",
+        r"profits\s*in\s*lieu.*?17\(3\)",
     ],
     "standard_deduction": [
-        r"standard\s*deduction.*?(\d+[,\d]*)",
-        r"deduction\s*u/s\s*16\(ia\).*?(\d+[,\d]*)",
+        r"standard\s*deduction\s*.*?16\(ia\)",
     ],
     "professional_tax": [
-        r"professional\s*tax.*?(\d+[,\d]*)",
-        r"tax\s*on\s*employment.*?(\d+[,\d]*)",
+        r"tax\s*on\s*employment\s*.*?16\(iii\)",
+        r"professional\s*tax",
     ],
     "total_deductions_16": [
-        r"total\s*amount\s*of\s*deductions.*?section\s*16.*?(\d+[,\d]*)",
-        r"total\s*deduction\s*u/s\s*16.*?(\d+[,\d]*)",
+        r"total\s*amount\s*of\s*deductions.*?section\s*16",
+        r"total\s*deduction\s*u/s\s*16",
     ],
     "net_salary": [
-        r"income\s*chargeable\s*under.*?salaries.*?(\d+[,\d]*)",
-        r"net\s*salary.*?(\d+[,\d]*)",
+        r"income\s*chargeable\s*under.*?head.*?salaries",
+        r"net\s*salary",
+    ],
+    "exemption_section_10": [
+        r"total\s*amount\s*of\s*exemption\s*claimed\s*under\s*section\s*10",
+    ],
+    "salary_after_exemption": [
+        r"total\s*amount\s*of\s*salary\s*received\s*from\s*current\s*employer",
+    ],
+    "gross_total_income": [
+        r"gross\s*total\s*income",
     ],
 }
 
 FORM16_DEDUCTION_PATTERNS = {
     "80C": [
-        r"80c.*?(\d+[,\d]*)",
-        r"section\s*80c\)?.*?(\d+[,\d]*)",
-        r"deduction\s*u/s\s*80c.*?(\d+[,\d]*)",
+        r"(?:life\s*insurance|provident\s*fund).*?section\s*80c\b",
+        r"deduction\s*.*?section\s*80c\b",
     ],
     "80CCC": [
-        r"80ccc.*?(\d+[,\d]*)",
-        r"section\s*80ccc.*?(\d+[,\d]*)",
+        r"(?:contribution\s*to\s*certain\s*pension|section\s*80ccc)\b",
     ],
     "80CCD1": [
-        r"80ccd\(1\).*?(\d+[,\d]*)",
-        r"80ccd\s*1.*?(\d+[,\d]*)",
+        r"(?:contribution\s*by\s*taxpayer|section\s*80ccd\s*\(?1\)?)\b",
     ],
     "80CCD1B": [
-        r"80ccd\(1b\).*?(\d+[,\d]*)",
-        r"80ccd\s*1b.*?(\d+[,\d]*)",
-        r"additional.*?nps.*?(\d+[,\d]*)",
+        r"(?:notified\s*pension\s*scheme|section\s*80ccd\s*\(?1b?\)?)",
     ],
     "80CCD2": [
-        r"80ccd\(2\).*?(\d+[,\d]*)",
-        r"employer.*?nps.*?(\d+[,\d]*)",
+        r"(?:contribution\s*by\s*employer.*?pension|section\s*80ccd\s*\(?2\)?)",
     ],
     "80D": [
-        r"80d.*?(\d+[,\d]*)",
-        r"section\s*80d.*?(\d+[,\d]*)",
-        r"health\s*insurance.*?(\d+[,\d]*)",
+        r"(?:health\s*insurance\s*premia|section\s*80d)\b",
     ],
     "80E": [
-        r"80e.*?(\d+[,\d]*)",
-        r"education\s*loan.*?(\d+[,\d]*)",
+        r"(?:interest\s*on\s*loan.*?higher\s*education|section\s*80e)\b",
     ],
     "80G": [
-        r"80g.*?(\d+[,\d]*)",
-        r"donations.*?(\d+[,\d]*)",
+        r"(?:donations\s*to\s*certain\s*funds|section\s*80g)\b",
     ],
     "80TTA": [
-        r"80tta.*?(\d+[,\d]*)",
-        r"savings\s*interest.*?(\d+[,\d]*)",
+        r"(?:interest\s*on\s*deposits\s*in\s*savings|section\s*80tta)\b",
     ],
     "24b": [
-        r"24\(b\).*?(\d+[,\d]*)",
-        r"housing\s*loan\s*interest.*?(\d+[,\d]*)",
-        r"interest\s*on\s*home\s*loan.*?(\d+[,\d]*)",
+        r"(?:section\s*24\s*\(?b\)?|housing\s*loan\s*interest|interest\s*on\s*home\s*loan|loss\s*from\s*house\s*property)",
     ],
 }
 
 FORM16_TAX_PATTERNS = {
     "total_taxable_income": [
-        r"total\s*taxable\s*income.*?(\d+[,\d]*)",
-        r"total\s*income.*?(\d+[,\d]*)",
-        r"aggregate\s*of.*?total\s*income.*?(\d+[,\d]*)",
+        r"total\s*taxable\s*income",
+        r"12\.\s*total\s*taxable\s*income",
     ],
     "tax_on_income": [
-        r"tax\s*on\s*total\s*income.*?(\d+[,\d]*)",
-        r"income\s*tax.*?(\d+[,\d]*)",
-        r"tax\s*payable.*?(\d+[,\d]*)",
+        r"tax\s*on\s*total\s*income",
+        r"13\.\s*tax\s*on\s*total\s*income",
+    ],
+    "rebate_87a": [
+        r"rebate\s*under\s*section\s*87a",
+        r"rebate\s*u/s\s*87a",
     ],
     "surcharge": [
-        r"surcharge.*?(\d+[,\d]*)",
+        r"surcharge",
     ],
     "cess": [
-        r"cess.*?(\d+[,\d]*)",
-        r"health.*?education\s*cess.*?(\d+[,\d]*)",
+        r"health\s*and\s*education\s*cess",
+        r"education\s*cess",
     ],
     "total_tax": [
-        r"total\s*tax\s*payable.*?(\d+[,\d]*)",
-        r"tax\s*liability.*?(\d+[,\d]*)",
+        r"tax\s*payable\s*\(13",
+        r"17\.\s*tax\s*payable",
+        r"net\s*tax\s*payable",
     ],
     "tds_deducted": [
-        r"tax\s*deducted\s*at\s*source.*?(\d+[,\d]*)",
-        r"tds\s*deducted.*?(\d+[,\d]*)",
-        r"total\s*tds.*?(\d+[,\d]*)",
+        r"total\s*\(rs\.\)\s*.*\s+(\d[\d,.]+)\s+(\d[\d,.]+)\s*$",
     ],
 }
 
@@ -156,46 +149,116 @@ def parse_amount(text: str) -> float:
         return 0.0
 
 
+def extract_line_amount(line: str) -> Optional[float]:
+    """Extract the last monetary amount from a line of text.
+    Monetary amounts are numbers >= 100 or with decimal (.00).
+    Returns the rightmost valid amount on the line."""
+    # Find all numbers that look like money (with optional decimals)
+    amounts = re.findall(r'(\d[\d,]*(?:\.\d{1,2})?)', line)
+    if not amounts:
+        return None
+    # Walk backwards to find the last valid monetary amount
+    for amt_str in reversed(amounts):
+        val = parse_amount(amt_str)
+        # Accept if it's >= 100 OR has decimal (like 0.00)
+        if val >= 100 or '.00' in amt_str or '.0' in amt_str:
+            return val
+    return None
+
+
 def extract_with_patterns(text: str, patterns: List[str]) -> Optional[float]:
-    """Try multiple regex patterns and return first match."""
+    """Find label lines matching patterns, then extract the last monetary amount."""
+    lines = text.split('\n')
     text_lower = text.lower()
+
     for pattern in patterns:
-        match = re.search(pattern, text_lower, re.IGNORECASE | re.MULTILINE)
-        if match:
-            amount = parse_amount(match.group(1))
-            if amount > 0:
-                return amount
+        # Special handling for TDS pattern that has its own capture groups
+        if r'\s+(\d[\d,.]+)\s+(\d[\d,.]+)\s*$' in pattern:
+            match = re.search(pattern, text_lower, re.IGNORECASE | re.MULTILINE)
+            if match:
+                # Get the last group (TDS deposited amount)
+                try:
+                    amount = parse_amount(match.group(match.lastindex))
+                    if amount >= 100:
+                        return amount
+                except (IndexError, AttributeError):
+                    pass
+            continue
+
+        # For regular patterns: find matching lines, extract last amount
+        for line in lines:
+            if re.search(pattern, line.lower(), re.IGNORECASE):
+                amount = extract_line_amount(line)
+                if amount is not None and amount > 0:
+                    return amount
+                # Also check the next line (amounts sometimes wrap)
+                line_idx = lines.index(line)
+                if line_idx + 1 < len(lines):
+                    next_line = lines[line_idx + 1].strip()
+                    if next_line and re.match(r'^[\d,.\s]+$', next_line):
+                        amount = extract_line_amount(next_line)
+                        if amount is not None and amount > 0:
+                            return amount
     return None
 
 
 def extract_employer_info(text: str) -> Dict[str, str]:
     """Extract employer details from Form 16."""
     info = {}
-    
-    # Employer name
-    name_match = re.search(r"name\s*(?:and\s*address\s*)?of\s*(?:the\s*)?employer[:\s]*([^\n]+)", text, re.IGNORECASE)
-    if name_match:
-        info["employer_name"] = name_match.group(1).strip()[:100]
-    
-    # TAN
-    tan_match = re.search(r"tan[:\s]*([A-Z]{4}\d{5}[A-Z])", text, re.IGNORECASE)
+    lines = text.split('\n')
+
+    # Find employer name from lines near "Name and address of the Employer"
+    for i, line in enumerate(lines):
+        if re.search(r'name\s*and\s*address\s*of\s*the\s*employer', line, re.IGNORECASE):
+            # Employer name is often on the NEXT line(s)
+            for j in range(i + 1, min(i + 5, len(lines))):
+                candidate = lines[j].strip()
+                # Skip empty lines and lines that look like address/phone
+                if candidate and len(candidate) > 5 and not re.match(r'^[\d+\(\)\-\s]+$', candidate):
+                    if not re.search(r'pan\s*of|tan\s*of|employee|deductee|citizen', candidate, re.IGNORECASE):
+                        # Clean up garbled text (overlapping columns)
+                        info["employer_name"] = candidate[:100]
+                        break
+            break
+
+    # TAN — look for proper TAN format
+    tan_match = re.search(r'([A-Z]{4}\d{5}[A-Z])', text)
     if tan_match:
-        info["employer_tan"] = tan_match.group(1).upper()
-    
+        info["employer_tan"] = tan_match.group(1)
+
     # Employee PAN
-    pan_match = re.search(r"pan\s*(?:of\s*)?(?:the\s*)?(?:employee|deductee)[:\s]*([A-Z]{5}\d{4}[A-Z])", text, re.IGNORECASE)
-    if pan_match:
-        info["employee_pan"] = pan_match.group(1).upper()
-    
-    # Financial Year
-    fy_match = re.search(r"(?:financial\s*year|assessment\s*year|fy)[:\s]*(\d{4})\s*[-–]\s*(\d{2,4})", text, re.IGNORECASE)
-    if fy_match:
-        year1 = fy_match.group(1)
-        year2 = fy_match.group(2)
-        if len(year2) == 2:
-            year2 = year1[:2] + year2
-        info["financial_year"] = f"{year1}-{year2[-2:]}"
-    
+    pan_matches = re.findall(r'([A-Z]{5}\d{4}[A-Z])', text)
+    if len(pan_matches) >= 2:
+        info["employee_pan"] = pan_matches[1]  # Second PAN is usually the employee
+    elif pan_matches:
+        info["employee_pan"] = pan_matches[0]
+
+    # Assessment Year and Financial Year
+    ay_match = re.search(r'assessment\s*year[:\s]*(\d{4})\s*[-–]\s*(\d{2,4})', text, re.IGNORECASE)
+    if ay_match:
+        ay_year1 = ay_match.group(1)
+        ay_year2 = ay_match.group(2)
+        if len(ay_year2) == 2:
+            ay_year2 = ay_year1[:2] + ay_year2
+        fy_start = int(ay_year1) - 1
+        fy_end = int(ay_year2) - 1
+        info["financial_year"] = f"{fy_start}-{str(fy_end)[-2:]}"
+        info["assessment_year"] = f"{ay_year1}-{ay_year2[-2:]}"
+    else:
+        fy_match = re.search(r'financial\s*year[:\s]*(\d{4})\s*[-–]\s*(\d{2,4})', text, re.IGNORECASE)
+        if fy_match:
+            year1 = fy_match.group(1)
+            year2 = fy_match.group(2)
+            if len(year2) == 2:
+                year2 = year1[:2] + year2
+            info["financial_year"] = f"{year1}-{year2[-2:]}"
+
+    # Extract Total TDS from Part A summary row
+    tds_match = re.search(r'total\s*\(rs\.?\)\s+(\d[\d,.]+)\s+(\d[\d,.]+)\s+(\d[\d,.]+)', text, re.IGNORECASE)
+    if tds_match:
+        info["_total_tds_part_a"] = parse_amount(tds_match.group(3))
+        info["_total_salary_part_a"] = parse_amount(tds_match.group(1))
+
     return info
 
 
@@ -210,41 +273,66 @@ def parse_form16_pdf(text: str) -> Dict[str, Any]:
         "tax_computation": {},
         "raw_text_length": len(text),
     }
-    
-    # Extract employer info
+
+    # Extract employer info (also extracts TDS from Part A)
     result["employer_info"] = extract_employer_info(text)
-    
+
     # Extract salary components
     for component, patterns in FORM16_SALARY_PATTERNS.items():
         amount = extract_with_patterns(text, patterns)
         if amount:
             result["salary_components"][component] = amount
-    
+
+    # Use Part A totals as fallback for gross salary
+    part_a_salary = result["employer_info"].pop("_total_salary_part_a", 0)
+    part_a_tds = result["employer_info"].pop("_total_tds_part_a", 0)
+
+    if not result["salary_components"].get("gross_salary") and part_a_salary:
+        result["salary_components"]["gross_salary"] = part_a_salary
+    if not result["salary_components"].get("basic_salary") and result["salary_components"].get("gross_salary"):
+        result["salary_components"]["basic_salary"] = result["salary_components"]["gross_salary"]
+
     # Extract deductions
     for section, patterns in FORM16_DEDUCTION_PATTERNS.items():
         amount = extract_with_patterns(text, patterns)
         if amount:
             result["deductions"][section] = amount
-    
+
     # Extract tax computation
     for item, patterns in FORM16_TAX_PATTERNS.items():
         amount = extract_with_patterns(text, patterns)
         if amount:
             result["tax_computation"][item] = amount
-    
+
+    # Use Part A TDS as fallback
+    if not result["tax_computation"].get("tds_deducted") and part_a_tds:
+        result["tax_computation"]["tds_deducted"] = part_a_tds
+
     # Calculate derived values
-    if result["salary_components"]:
-        result["summary"] = {
-            "gross_salary": result["salary_components"].get("gross_salary", 0),
-            "total_deductions_claimed": sum(result["deductions"].values()),
-            "net_taxable_income": result["tax_computation"].get("total_taxable_income", 0),
-            "total_tds": result["tax_computation"].get("tds_deducted", 0),
-        }
-    
-    # Determine parse quality
-    has_salary = len(result["salary_components"]) >= 2
-    has_tax = len(result["tax_computation"]) >= 2
-    result["parse_quality"] = "high" if (has_salary and has_tax) else "medium" if has_salary else "low"
+    gross = result["salary_components"].get("gross_salary", 0)
+    total_deds = sum(result["deductions"].values())
+    taxable = result["tax_computation"].get("total_taxable_income", 0)
+    tds = result["tax_computation"].get("tds_deducted", 0)
+
+    result["summary"] = {
+        "gross_salary": gross,
+        "total_deductions_claimed": total_deds,
+        "net_taxable_income": taxable,
+        "total_tds": tds,
+    }
+
+    # Determine parse quality based on VALUE validation
+    has_salary = gross >= 100 or result["salary_components"].get("basic_salary", 0) >= 100
+    has_deductions = total_deds > 0
+    has_tax = taxable >= 100 or result["tax_computation"].get("tax_on_income", 0) >= 100
+    has_tds = tds >= 100
+
+    if has_salary and has_tax and has_tds:
+        result["parse_quality"] = "high"
+    elif has_salary and (has_tax or has_deductions):
+        result["parse_quality"] = "medium"
+    else:
+        result["parse_quality"] = "low"
     
     return result
 
@@ -566,6 +654,70 @@ async def llm_parse_document(text: str, doc_type: str) -> Optional[Dict[str, Any
         return None
 
 
+async def ocr_pdf_with_llm(pdf_bytes: bytes, doc_type: str) -> Optional[Dict[str, Any]]:
+    """Convert image-based PDF pages to images and use GPT vision for OCR + parsing."""
+    try:
+        import base64
+        from pdf2image import convert_from_bytes
+        from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+
+        prompts = {
+            "form16": LLM_FORM16_PROMPT.replace("PDF TEXT:", "Analyze this Form 16 document image and extract the data:"),
+            "form26as": LLM_AIS_PROMPT.replace("PDF TEXT:", "Analyze this Form 26AS / AIS document image and extract the data:"),
+            "ais": LLM_AIS_PROMPT.replace("PDF TEXT:", "Analyze this AIS document image and extract the data:"),
+            "fd_interest_certificate": LLM_FD_PROMPT.replace("PDF TEXT:", "Analyze this FD certificate image and extract the data:"),
+        }
+        prompt = prompts.get(doc_type)
+        if not prompt:
+            return None
+
+        # Convert first 3 pages to images (enough for most tax docs)
+        images = convert_from_bytes(pdf_bytes, first_page=1, last_page=3, dpi=150)
+        if not images:
+            logger.warning("No images extracted from PDF")
+            return None
+
+        logger.info(f"OCR: Converted {len(images)} pages to images for {doc_type}")
+
+        # Convert first page to base64 PNG
+        buf = io.BytesIO()
+        images[0].save(buf, format="PNG", optimize=True)
+        img_b64 = base64.b64encode(buf.getvalue()).decode()
+
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"tax-ocr-{doc_type}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
+            system_message="You are a precise document OCR and data extractor for Indian tax documents. Analyze the image carefully and return ONLY valid JSON.",
+        )
+        chat.with_model("openai", "gpt-5.2")
+
+        # Send image using ImageContent with base64
+        image_content = ImageContent(image_base64=img_b64)
+        response = await chat.send_message(
+            UserMessage(text=prompt, file_contents=[image_content])
+        )
+
+        # Clean response
+        clean = response.strip()
+        if clean.startswith("```"):
+            clean = clean.split("\n", 1)[1] if "\n" in clean else clean[3:]
+        if clean.endswith("```"):
+            clean = clean[:-3]
+        clean = clean.strip()
+        if clean.startswith("json"):
+            clean = clean[4:].strip()
+
+        parsed = json.loads(clean)
+        logger.info(f"OCR+LLM parsed {doc_type} from image with {len(str(parsed))} chars")
+        return parsed
+    except ImportError:
+        logger.warning("pdf2image not available for OCR")
+        return None
+    except Exception as e:
+        logger.warning(f"OCR+LLM failed for {doc_type}: {e}")
+        return None
+
+
 def merge_llm_into_regex_result(regex_result: Dict, llm_result: Dict, doc_type: str) -> Dict:
     """Merge LLM-extracted data into regex result, filling gaps only."""
     if not llm_result:
@@ -657,10 +809,32 @@ async def upload_form16(
                 text += page.extract_text() or ""
         
         if not text.strip():
-            raise HTTPException(status_code=400, detail="Could not extract text from PDF. The PDF may be scanned/image-based.")
-        
-        # Parse Form 16 with regex
-        parsed = parse_form16_pdf(text)
+            # Try OCR for image-based PDFs
+            logger.info("Form 16 has no extractable text, attempting OCR via LLM vision...")
+            ocr_result = await ocr_pdf_with_llm(content, "form16")
+            if ocr_result:
+                parsed = {
+                    "document_type": "form16",
+                    "parsed_at": datetime.now(timezone.utc).isoformat(),
+                    "employer_info": ocr_result.get("employer_info", {}),
+                    "salary_components": ocr_result.get("salary_components", {}),
+                    "deductions": ocr_result.get("deductions", {}),
+                    "tax_computation": ocr_result.get("tax_computation", {}),
+                    "raw_text_length": 0,
+                    "ocr_extracted": True,
+                    "parse_quality": "medium",
+                    "summary": {
+                        "gross_salary": ocr_result.get("salary_components", {}).get("gross_salary", 0),
+                        "total_deductions_claimed": sum(ocr_result.get("deductions", {}).values()),
+                        "net_taxable_income": ocr_result.get("tax_computation", {}).get("total_taxable_income", 0),
+                        "total_tds": ocr_result.get("tax_computation", {}).get("tds_deducted", 0),
+                    },
+                }
+            else:
+                raise HTTPException(status_code=400, detail="Could not extract text from PDF. The PDF may be scanned/image-based and OCR failed.")
+        else:
+            # Parse Form 16 with regex
+            parsed = parse_form16_pdf(text)
         
         # If parse quality is low, try LLM-powered extraction
         if parsed["parse_quality"] == "low":
@@ -722,13 +896,31 @@ async def upload_ais(
             with pdfplumber.open(io.BytesIO(content)) as pdf:
                 for page in pdf.pages:
                     text += page.extract_text() or ""
-            parsed = parse_form26as_pdf(text)
-            # Try LLM enhancement if few entries found
-            if len(parsed.get("tds_details", [])) == 0:
-                logger.info("AIS PDF regex found 0 TDS entries, attempting LLM fallback...")
-                llm_result = await llm_parse_document(text, "ais")
-                if llm_result:
-                    parsed = merge_llm_into_regex_result(parsed, llm_result, "ais")
+            
+            if not text.strip() or len(text.strip()) < 50:
+                # Image-based PDF — use OCR via LLM vision
+                logger.info("AIS/26AS has no extractable text, attempting OCR via LLM vision...")
+                ocr_result = await ocr_pdf_with_llm(content, "ais")
+                if ocr_result:
+                    parsed = {
+                        "document_type": "form26as",
+                        "parsed_at": datetime.now(timezone.utc).isoformat(),
+                        "tds_details": ocr_result.get("tds_details", []),
+                        "interest_income": ocr_result.get("interest_income", []),
+                        "dividend_income": ocr_result.get("dividend_income", []),
+                        "summary": ocr_result.get("summary", {"total_tds": 0}),
+                        "ocr_extracted": True,
+                    }
+                else:
+                    parsed = parse_form26as_pdf(text)
+            else:
+                parsed = parse_form26as_pdf(text)
+                # Try LLM enhancement if few entries found
+                if len(parsed.get("tds_details", [])) == 0:
+                    logger.info("AIS PDF regex found 0 TDS entries, attempting LLM fallback...")
+                    llm_result = await llm_parse_document(text, "ais")
+                    if llm_result:
+                        parsed = merge_llm_into_regex_result(parsed, llm_result, "ais")
         else:
             raise HTTPException(status_code=400, detail="Only JSON or PDF files are supported")
         
@@ -776,17 +968,31 @@ async def upload_form26as(
             for page in pdf.pages:
                 text += page.extract_text() or ""
         
-        if not text.strip():
-            raise HTTPException(status_code=400, detail="Could not extract text from PDF. The PDF may be scanned/image-based.")
-        
-        parsed = parse_form26as_pdf(text)
-        
-        # LLM enhancement if regex found no entries
-        if len(parsed.get("tds_details", [])) == 0:
-            logger.info("Form 26AS regex found 0 TDS entries, attempting LLM fallback...")
-            llm_result = await llm_parse_document(text, "form26as")
-            if llm_result:
-                parsed = merge_llm_into_regex_result(parsed, llm_result, "form26as")
+        if not text.strip() or len(text.strip()) < 50:
+            # Image-based PDF — use OCR via LLM vision
+            logger.info("Form 26AS has no extractable text, attempting OCR via LLM vision...")
+            ocr_result = await ocr_pdf_with_llm(content, "form26as")
+            if ocr_result:
+                parsed = {
+                    "document_type": "form26as",
+                    "parsed_at": datetime.now(timezone.utc).isoformat(),
+                    "tds_details": ocr_result.get("tds_details", []),
+                    "interest_income": ocr_result.get("interest_income", []),
+                    "dividend_income": ocr_result.get("dividend_income", []),
+                    "summary": ocr_result.get("summary", {"total_tds": 0}),
+                    "ocr_extracted": True,
+                }
+            else:
+                parsed = parse_form26as_pdf(text)
+        else:
+            parsed = parse_form26as_pdf(text)
+            
+            # LLM enhancement if regex found no entries
+            if len(parsed.get("tds_details", [])) == 0:
+                logger.info("Form 26AS regex found 0 TDS entries, attempting LLM fallback...")
+                llm_result = await llm_parse_document(text, "form26as")
+                if llm_result:
+                    parsed = merge_llm_into_regex_result(parsed, llm_result, "form26as")
         
         # Store in database
         doc = {
