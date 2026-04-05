@@ -23,7 +23,7 @@ import time
 sys.path.insert(0, '/app/backend')
 
 # Use public backend URL for testing
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://morning-brief-learn.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://experience-tier-test.preview.emergentagent.com').rstrip('/')
 
 
 @pytest.fixture(scope="module")

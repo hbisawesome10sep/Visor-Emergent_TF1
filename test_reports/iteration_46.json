@@ -1,0 +1,104 @@
+{
+  "summary": "Experience Mode System Testing - Backend APIs 100% pass (23/23 tests). Frontend has a critical bug: Dashboard shows full view instead of EssentialDashboard for Essential mode users due to race condition in mode loading.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Dashboard (index.tsx)",
+        "issue": "Dashboard shows full view instead of EssentialDashboard for Essential mode users. Race condition: dashboard data loads before mode data, causing full dashboard to render instead of EssentialDashboard.",
+        "selector": "N/A - logic issue",
+        "priority": "HIGH",
+        "root_cause": "In index.tsx line 122-136, the code checks `!modeLoading && mode === 'essential'` but if modeLoading is true and loading is false, it falls through to show the full dashboard. Need to add modeLoading check before showing full dashboard.",
+        "fix_suggestion": "Add `if (modeLoading) { return <LoadingSpinner /> }` before line 128 to wait for mode to load before deciding which dashboard to show."
+      },
+      {
+        "component": "Tax Screen (tax.tsx)",
+        "issue": "Tax screen shows loading spinner indefinitely when navigating via bottom tab. The modeLoading state appears to not resolve properly.",
+        "selector": "N/A - state issue",
+        "priority": "MEDIUM",
+        "root_cause": "Similar race condition - the Tax screen shows loading while modeLoading is true, but modeLoading may not be resolving correctly after navigation."
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Essential Mode Dashboard",
+        "issue": "EssentialDashboard component is not being rendered for Essential mode users. Full dashboard with Tax Meter, Financial Health, etc. is shown instead.",
+        "affected_selectors": ["EssentialDashboard component"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_experience_mode.py",
+    "/app/test_reports/pytest/pytest_experience_mode.xml"
+  ],
+  "action_items": [
+    "FIX CRITICAL: In /app/frontend/app/(tabs)/index.tsx, add modeLoading check before showing full dashboard. Add `if (modeLoading) { return <LoadingSpinner /> }` before line 128.",
+    "FIX: Verify ExperienceModeContext is properly setting modeLoading to false after fetching mode data.",
+    "VERIFY: After fix, Essential mode users should see EssentialDashboard with AI Morning Brief, 3-card snapshot, and Smart Alerts.",
+    "VERIFY: Tax screen should show locked view with 'Upgrade to Plus' button for Essential mode users."
+  ],
+  "critical_code_review_comments": [
+    "Race condition in index.tsx: Dashboard data (loading) can finish before mode data (modeLoading), causing full dashboard to render for Essential mode users.",
+    "The condition `!modeLoading && mode === 'essential'` is correct but needs a fallback loading state when modeLoading is true.",
+    "Backend APIs are working correctly - all 23 tests passed including mode switching, feature gating, and Essential mode endpoints."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_experience_mode.py"
+  ],
+  "success_rate": {
+    "backend": "100% (23/23 tests passed)",
+    "frontend": "50% - Dashboard not showing EssentialDashboard for Essential mode users"
+  },
+  "test_credentials": {
+    "email": "rajesh@visor.demo",
+    "password": "Demo@123",
+    "default_mode": "essential"
+  },
+  "seed_data_creation": "None - used existing demo account",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Experience Mode backend APIs are fully working. Frontend has a race condition bug in index.tsx where the full dashboard renders before mode data loads. The fix is to add a modeLoading check before showing the full dashboard. After fix, verify: 1) Essential mode users see EssentialDashboard, 2) Tax screen shows locked view for Essential users, 3) Books screen shows locked view for Essential/Plus users, 4) Mode switching works in Settings.",
+  "features_tested": {
+    "backend_apis": {
+      "GET /api/experience/mode": "PASS - Returns current_mode, mode_info, available_features, hidden_features",
+      "PUT /api/experience/mode": "PASS - Switches between essential, plus, full modes",
+      "GET /api/experience/essential/snapshot": "PASS - Returns 3-card snapshot data",
+      "GET /api/experience/essential/alerts": "PASS - Returns smart alerts list",
+      "GET /api/experience/essential/brief": "PASS - Returns AI morning brief",
+      "GET /api/experience/modes": "PASS - Returns all 3 modes info",
+      "GET /api/experience/features/{id}": "PASS - Returns feature availability",
+      "GET /api/experience/features": "PASS - Returns all features with availability",
+      "auth_required": "PASS - All endpoints return 401 without token",
+      "invalid_mode_rejected": "PASS - Returns 400 for invalid mode"
+    },
+    "feature_gating_logic": {
+      "tax_basic_in_essential": "PASS - Not available (correctly gated)",
+      "tax_basic_in_plus": "PASS - Available",
+      "bookkeeping_in_plus": "PASS - Not available (correctly gated)",
+      "bookkeeping_in_full": "PASS - Available",
+      "ai_chat_in_essential": "PASS - Available",
+      "bank_import_in_essential": "PASS - Available"
+    },
+    "frontend_ui": {
+      "dashboard_essential_mode": "FAIL - Shows full dashboard instead of EssentialDashboard",
+      "tax_screen_locked_view": "NOT TESTED - Tax screen stuck in loading state",
+      "books_screen_locked_view": "NOT TESTED",
+      "settings_mode_selector": "NOT TESTED"
+    }
+  },
+  "rca_of_the_issue": {
+    "issue": "Dashboard shows full view instead of EssentialDashboard for Essential mode users",
+    "root_cause": "Race condition in /app/frontend/app/(tabs)/index.tsx. The dashboard data (loading state) finishes loading before the mode data (modeLoading state) finishes loading. The code at line 122-124 checks `!modeLoading && mode === 'essential'` but if modeLoading is still true, it falls through to line 128 which checks `loading`. If loading is false (dashboard data loaded), it renders the full dashboard instead of waiting for mode data.",
+    "reproduction_steps": [
+      "1. Set user mode to 'essential' via API",
+      "2. Login as rajesh@visor.demo",
+      "3. Skip PIN screen",
+      "4. Observe dashboard - shows full dashboard with Tax Meter, Financial Health instead of EssentialDashboard"
+    ],
+    "mitigation": "Add modeLoading check before showing full dashboard: `if (modeLoading) { return <LoadingSpinner /> }` before line 128 in index.tsx"
+  }
+}

@@ -15,6 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useScreenContext } from '../../src/context/ScreenContext';
+import { useExperienceMode } from '../../src/context/ExperienceModeContext';
 import { apiRequest } from '../../src/utils/api';
 import {
   formatINR,
@@ -36,6 +37,7 @@ import { InvestmentSummaryCard } from '../../src/components/dashboard/Investment
 import { UpcomingDuesCard } from '../../src/components/dashboard/UpcomingDuesCard';
 import { AIInsightCard } from '../../src/components/dashboard/AIInsightCard';
 import { TaxMeterCard } from '../../src/components/dashboard/TaxMeterCard';
+import { EssentialDashboard } from '../../src/components/experience';
 import { Accent } from '../../src/utils/theme';
 import { JarProgressView } from '../../src/components/JarProgressView';
 import { useDashboardData, useFrequencyFilter } from '../../src/hooks/dashboard';
@@ -91,6 +93,7 @@ export default function DashboardScreen() {
   const { user, token } = useAuth();
   const { colors, isDark } = useTheme();
   const { setCurrentScreen } = useScreenContext();
+  const { mode, loading: modeLoading } = useExperienceMode();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -114,6 +117,11 @@ export default function DashboardScreen() {
     showNativePicker, activePickerField, handleFrequencyChange,
     handleApplyCustomRange, openDatePicker, handleNativeDateChange,
   } = useFrequencyFilter(setSelectedFrequency, setDateRange);
+
+  // ═══ ESSENTIAL MODE: Show simplified dashboard ═══
+  if (!modeLoading && mode === 'essential') {
+    return <EssentialDashboard insets={{ top: insets.top, bottom: insets.bottom }} />;
+  }
 
 
 

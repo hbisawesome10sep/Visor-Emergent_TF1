@@ -15,6 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/context/ThemeContext';
+import { useExperienceMode } from '../src/context/ExperienceModeContext';
 import { Accent } from '../src/utils/theme';
 import { apiRequest } from '../src/utils/api';
 import { formatINR, formatINRShort } from '../src/utils/formatters';
@@ -193,7 +194,11 @@ const DATE_PRESETS = [
 export default function BooksScreen() {
   const { token, user } = useAuth();
   const { colors, isDark } = useTheme();
+  const { mode, setMode, loading: modeLoading } = useExperienceMode();
   const router = useRouter();
+
+  // Feature gating - Bookkeeping is Full mode only
+  const hasBookkeepingAccess = mode === 'full';
 
   const [activeTab, setActiveTab] = useState<TabType>('journal');
   const [loading, setLoading] = useState(true);
@@ -2239,6 +2244,85 @@ export default function BooksScreen() {
       </ScrollView>
     );
   };
+
+  // Show loading while mode context initializes
+  if (modeLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ═══ FEATURE GATE - BOOKKEEPING IS FULL MODE ONLY ═══
+  if (!hasBookkeepingAccess) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+              <MaterialCommunityIcons name="arrow-left" size={24} color={isDark ? '#F8FAFC' : '#0A0A0B'} />
+            </TouchableOpacity>
+            <View style={{ flex: 1, marginLeft: 16 }}>
+              <Text style={styles.headerTitle}>Books & Reports</Text>
+            </View>
+          </View>
+        </View>
+        
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 24,
+            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+          }}>
+            <MaterialCommunityIcons name="lock-outline" size={40} color="#6366F1" />
+          </View>
+          
+          <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 12, textAlign: 'center' }}>
+            Double-Entry Bookkeeping
+          </Text>
+          <Text style={{ fontSize: 15, color: colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: 8 }}>
+            Professional-grade journal entries, P&L statements, balance sheets, and financial exports.
+          </Text>
+          <Text style={{ fontSize: 14, color: '#6366F1', textAlign: 'center', marginBottom: 32 }}>
+            Available in Full mode
+          </Text>
+          
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: '#6366F1',
+              paddingHorizontal: 28,
+              paddingVertical: 16,
+              borderRadius: 14,
+            }}
+            onPress={() => setMode('full', 'feature_gate_bookkeeping')}
+          >
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Upgrade to Full</Text>
+            <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{ marginTop: 20, padding: 12 }}
+            onPress={() => router.back()}
+          >
+            <Text style={{ color: colors.primary, fontSize: 14 }}>
+              Go back to Dashboard
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (
