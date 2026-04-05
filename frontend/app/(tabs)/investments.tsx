@@ -100,6 +100,9 @@ export default function InvestmentsScreen() {
     saving: savingSip, handleAddSip, handleEditSip, handleSaveSip, handleDeleteSip,
   } = useSIPManager(token, fetchData);
 
+  // Combined saving state for UI
+  const saving = savingGoal || savingSip;
+
   const [showEMITracker, setShowEMITracker] = useState(false);
 
   // ── SIP Pause/Execute handlers ──
