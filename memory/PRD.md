@@ -422,7 +422,7 @@ Tunnel:   Cloudflare Quick Tunnels for Expo Go mobile preview
 ## 8. Credentials
 
 - **Demo Account**: `rajesh@visor.demo` / `Demo@123`
-- **Expo Go QR**: `https://form-parser-preview.preview.emergentagent.com/api/expo/qr`
+- **Expo Go QR**: `https://morning-brief-learn.preview.emergentagent.com/api/expo/qr`
 
 ---
 

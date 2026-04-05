@@ -50,7 +50,7 @@
     "frontend_edit_transaction": "PASS - Edit modal opens with all fields populated, Save Changes button"
   },
   "test_environment": {
-    "url": "https://form-parser-preview.preview.emergentagent.com",
+    "url": "https://morning-brief-learn.preview.emergentagent.com",
     "backend_status": "Running",
     "frontend_status": "Running"
   }
