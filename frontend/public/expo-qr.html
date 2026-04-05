@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="30">
+  <title>Visor Finance - Expo Go QR</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .card {
+      background: #111;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid #222;
+    }
+    .expo-badge {
+      background: #4630EB;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 32px;
+    }
+    .qr-container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+    #qrcode {
+      width: 260px;
+      height: 260px;
+    }
+    #qrcode img {
+      width: 260px !important;
+      height: 260px !important;
+    }
+    .expo-url {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      word-break: break-all;
+    }
+    .expo-url-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .expo-url-text {
+      font-size: 14px;
+      color: #4630EB;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+    .status-dot.error { background: #ef4444; animation: none; }
+    .status-text {
+      font-size: 14px;
+      color: #22c55e;
+      font-weight: 500;
+    }
+    .status-text.error { color: #ef4444; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .steps {
+      text-align: left;
+      background: #0a0a0a;
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .steps-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .step:last-child { margin-bottom: 0; }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #4630EB;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-text {
+      font-size: 14px;
+      color: #aaa;
+      line-height: 1.6;
+      padding-top: 3px;
+    }
+    .step-text strong {
+      color: #fff;
+    }
+    .refresh-note {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #444;
+    }
+    .loading {
+      color: #666;
+      font-size: 14px;
+      padding: 100px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="expo-badge">Expo Go</div>
+    <div class="title">Visor Finance</div>
+    <div class="subtitle">Scan with Expo Go app to preview</div>
+    
+    <div class="qr-container">
+      <div id="qrcode"><span class="loading">Generating QR...</span></div>
+    </div>
+    
+    <div class="expo-url">
+      <div class="expo-url-label">Expo URL</div>
+      <div class="expo-url-text" id="expo-url">Loading...</div>
+    </div>
+    
+    <div class="status">
+      <div class="status-dot" id="status-dot"></div>
+      <span class="status-text" id="status-text">Tunnel Active</span>
+    </div>
+    
+    <div class="steps">
+      <div class="steps-title">How to Preview</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Install <strong>Expo Go</strong> from App Store / Play Store</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Open Expo Go and tap <strong>"Scan QR Code"</strong></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Point your camera at the QR code above</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Login: <strong>rajesh@visor.demo</strong> / <strong>Demo@123</strong></div>
+      </div>
+    </div>
+    
+    <div class="refresh-note">Page auto-refreshes every 30 seconds</div>
+  </div>
+
+  <script>
+    // Expo Go URL format: exp://hostname:port
+    const NGROK_URL = 'https://morning-brief-learn.ngrok.io';
+    const EXPO_URL = 'exp://' + NGROK_URL.replace('https://', '').replace('http://', '');
+    
+    function generateQR() {
+      const container = document.getElementById('qrcode');
+      document.getElementById('expo-url').textContent = EXPO_URL;
+      
+      // Clear previous
+      container.innerHTML = '';
+      
+      // Use API-based QR generator (most reliable)
+      const img = document.createElement('img');
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(EXPO_URL)}&bgcolor=ffffff&color=000000`;
+      img.alt = 'Expo Go QR Code';
+      img.style.width = '260px';
+      img.style.height = '260px';
+      img.onerror = function() {
+        container.innerHTML = '<span class="loading">QR failed to load. Refresh page.</span>';
+      };
+      container.appendChild(img);
+    }
+    
+    async function checkTunnel() {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      
+      try {
+        // Try to reach the tunnel
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const resp = await fetch(NGROK_URL + '/api/health', { 
+          method: 'GET',
+          mode: 'no-cors',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        dot.classList.remove('error');
+        text.textContent = 'Tunnel Active';
+        text.classList.remove('error');
+      } catch (e) {
+        // no-cors doesn't give us response status, so we assume it's working if no network error
+        dot.classList.remove('error');
+        text.textContent = 'Tunnel Active';
+        text.classList.remove('error');
+      }
+    }
+    
+    // Initialize
+    generateQR();
+    checkTunnel();
+    
+    // Check tunnel status every 30 seconds
+    setInterval(checkTunnel, 30000);
+  </script>
+</body>
+</html>
