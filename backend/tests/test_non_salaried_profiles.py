@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://experience-tier-test.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://experience-deploy.preview.emergentagent.com')
 
 # Test credentials from test_credentials.md
 TEST_EMAIL = "rajesh@visor.demo"

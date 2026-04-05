@@ -727,8 +727,8 @@ export default function InvestmentsScreen() {
           goals={goals}
           colors={colors}
           isDark={isDark}
-          onAddGoal={openAddGoal}
-          onEditGoal={openEditGoal}
+          onAddGoal={handleAddGoal}
+          onEditGoal={handleEditGoal}
           onDeleteGoal={handleDeleteGoal}
         />
 
@@ -747,7 +747,7 @@ export default function InvestmentsScreen() {
       </ScrollView>
 
       {/* ═══ GOAL FAB ═══ */}
-      <TouchableOpacity data-testid="goal-fab" style={styles.fab} onPress={openAddGoal}>
+      <TouchableOpacity data-testid="goal-fab" style={styles.fab} onPress={handleAddGoal}>
         <LinearGradient colors={[Accent.emerald, Accent.teal]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
           <MaterialCommunityIcons name="plus" size={28} color="#fff" />
         </LinearGradient>

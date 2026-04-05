@@ -149,8 +149,22 @@ export function ExperienceModeProvider({ children }: Props) {
         clearTimeout(nudgeTimer);
         clearInterval(interval);
       };
+    } else {
+      // If not authenticated, immediately stop loading
+      setLoading(false);
     }
   }, [isAuthenticated, refreshMode, checkForNudge]);
+
+  // Safety timeout: force loading=false after 5 seconds to prevent infinite loading
+  useEffect(() => {
+    const safetyTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('[ExperienceMode] Safety timeout: forcing loading=false after 5s');
+        setLoading(false);
+      }
+    }, 5000);
+    return () => clearTimeout(safetyTimeout);
+  }, [loading]);
 
   const isFeatureAvailable = useCallback((featureId: string): boolean => {
     // If not authenticated, default to restricted (Essential mode behavior)
