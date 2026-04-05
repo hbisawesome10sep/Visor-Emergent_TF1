@@ -102,6 +102,32 @@ export default function InvestmentsScreen() {
 
   const [showEMITracker, setShowEMITracker] = useState(false);
 
+  // ── SIP Pause/Execute handlers ──
+  const handlePauseSipAction = async (sipId: string) => {
+    try {
+      const sip = recurringData?.find(s => s.id === sipId);
+      const newStatus = sip?.is_active ? false : true;
+      await apiRequest(`/recurring/${sipId}`, { 
+        token, 
+        method: 'PUT', 
+        body: { is_active: newStatus } 
+      });
+      fetchData();
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to update SIP status');
+    }
+  };
+
+  const handleExecuteSipAction = async (sipId: string) => {
+    try {
+      await apiRequest(`/recurring/${sipId}/execute`, { token, method: 'POST' });
+      Alert.alert('Success', 'SIP executed successfully');
+      fetchData();
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to execute SIP');
+    }
+  };
+
   // ── Date picker helpers ──
   const handleDatePickerConfirm = (event: any, selectedDate?: Date) => {
     if (event.type === 'dismissed') {
@@ -626,11 +652,11 @@ export default function InvestmentsScreen() {
           recurringData={recurringData}
           colors={colors}
           isDark={isDark}
-          onAddSip={openAddSip}
-          onEditSip={openEditSip}
+          onAddSip={handleAddSip}
+          onEditSip={handleEditSip}
           onDeleteSip={handleDeleteSip}
-          onPauseSip={handlePauseSip}
-          onExecuteSip={handleExecuteSip}
+          onPauseSip={handlePauseSipAction}
+          onExecuteSip={handleExecuteSipAction}
         />
 
         {/* ═══════════════════════════════════════════════════════════
