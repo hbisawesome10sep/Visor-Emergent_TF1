@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://phase3-tax-engine.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://form-parser-preview.preview.emergentagent.com').rstrip('/')
 
 DEMO_EMAIL = "rajesh@visor.demo"
 DEMO_PASSWORD = "Demo@123"
