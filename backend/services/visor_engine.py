@@ -2,6 +2,7 @@
 Visor AI — Core Processing Engine
 Shared by both text and voice chat endpoints.
 Handles: message storage, financial context, live prices, news, calculator, LLM call.
+Integrates: Multi-model routing (P0) + Persistent AI memory (P0).
 """
 import asyncio
 import logging
@@ -15,6 +16,8 @@ from services.visor_helpers import (
     detect_tickers, fetch_commodity_prices, fetch_yf_prices,
     needs_web_search, web_search_financial, auto_calculate, _yf_executor,
 )
+from services.query_router import get_model_for_query
+from services.ai_memory import extract_and_store_memory, get_memory_context
 
 logger = logging.getLogger(__name__)
 
@@ -298,6 +301,17 @@ RECENT TRANSACTIONS:
     except Exception:
         pass
 
+    # ── Fetch persistent memory ───────────────────────────────────────
+    memory_context = ""
+    try:
+        memory_context = await get_memory_context(user_id)
+    except Exception as e:
+        logger.warning(f"Memory fetch failed: {e}")
+
+    # ── Select model via query router ────────────────────────────────
+    selected_model = get_model_for_query(message, has_calculator_result=bool(calc_result))
+    logger.info(f"Visor AI model: {selected_model} for user {user_id}")
+
     # ── Send to LLM ──────────────────────────────────────────────────
     try:
         chat = LlmChat(
@@ -305,9 +319,9 @@ RECENT TRANSACTIONS:
             session_id=f"visor-{user_id}-{datetime.now(timezone.utc).strftime('%Y%m%d')}",
             system_message=VISOR_SYSTEM_PROMPT,
         )
-        chat.with_model("openai", "gpt-5.2")
+        chat.with_model("openai", selected_model)
 
-        full_message = f"{context}{live_prices}{news_context}{calc_context}{history_context}\n\nUser: {message}"
+        full_message = f"{context}{memory_context}{live_prices}{news_context}{calc_context}{history_context}\n\nUser: {message}"
         response_text = await chat.send_message(UserMessage(text=full_message))
     except Exception as e:
         logger.error(f"Visor AI error: {e}")
@@ -320,7 +334,11 @@ RECENT TRANSACTIONS:
         "id": ai_msg_id, "user_id": user_id,
         "role": "assistant", "content": response_text,
         "input_type": input_type, "created_at": ai_now,
+        "model_used": selected_model,
     })
+
+    # ── Extract and store memory (background, non-blocking) ──────────
+    asyncio.create_task(extract_and_store_memory(user_id, message, response_text))
 
     return {
         "id": ai_msg_id,
@@ -330,4 +348,5 @@ RECENT TRANSACTIONS:
         "calculator_result": calc_result,
         "input_type": input_type,
         "created_at": ai_now,
+        "model_used": selected_model,
     }
