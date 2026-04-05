@@ -8,6 +8,7 @@ from models import TransactionCreate, TransactionResponse
 from routes.tax import process_auto_tax_deduction, remove_auto_tax_deduction, update_auto_tax_deduction
 from routes.journal import create_journal_from_transaction, delete_journal_for_reference
 from routes.credit_cards import detect_special_transaction
+from services.categorization_feedback import record_category_override
 
 router = APIRouter(prefix="/api")
 
@@ -176,6 +177,17 @@ async def update_transaction(txn_id: str, txn: TransactionCreate, user=Depends(g
         "payment_account_name": payment_account_name,
     }
     await db.transactions.update_one({"id": txn_id, "user_id": user["id"]}, {"$set": update_data})
+
+    # Record category override if category changed (for the feedback loop)
+    old_category = existing.get("category", "")
+    if old_category and old_category != txn.category:
+        await record_category_override(
+            user_id=user["id"],
+            old_category=old_category,
+            new_category=txn.category,
+            description=existing.get("description", txn.description),
+        )
+
     await update_auto_tax_deduction(
         user_id=user["id"], txn_id=txn_id,
         category=txn.category, description=txn.description,
