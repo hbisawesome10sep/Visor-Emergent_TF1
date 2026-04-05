@@ -8,6 +8,7 @@ from auth import get_current_user
 from models import AIMessageCreate
 from services.visor_engine import process_visor_message
 from services.ai_memory import get_user_memory, clear_user_memory
+from services.financial_personality import compute_financial_personality, get_cached_personality
 
 router = APIRouter(prefix="/api")
 
@@ -60,3 +61,19 @@ async def delete_memory(user=Depends(get_current_user)):
     """Clear all AI memory for this user."""
     deleted = await clear_user_memory(user["id"])
     return {"message": "AI memory cleared" if deleted else "No memory to clear"}
+
+
+# ── Financial Personality Engine ─────────────────────────────────────
+
+@router.get("/visor-ai/personality")
+async def get_personality(user=Depends(get_current_user)):
+    """Compute and return the user's financial personality profile."""
+    personality = await compute_financial_personality(user["id"])
+    return personality
+
+
+@router.get("/visor-ai/personality/cached")
+async def get_cached_personality_endpoint(user=Depends(get_current_user)):
+    """Get cached personality without recomputing. Returns null if not yet computed."""
+    cached = await get_cached_personality(user["id"])
+    return cached or {"message": "No personality computed yet. Call GET /api/visor-ai/personality first."}

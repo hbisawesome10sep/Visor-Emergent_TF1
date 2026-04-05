@@ -18,6 +18,8 @@ from services.visor_helpers import (
 )
 from services.query_router import get_model_for_query
 from services.ai_memory import extract_and_store_memory, get_memory_context
+from services.financial_personality import compute_financial_personality, get_cached_personality, get_personality_context
+from services.tax_knowledge_base import get_tax_knowledge_context
 
 logger = logging.getLogger(__name__)
 
@@ -308,6 +310,22 @@ RECENT TRANSACTIONS:
     except Exception as e:
         logger.warning(f"Memory fetch failed: {e}")
 
+    # ── Financial personality context ─────────────────────────────────
+    personality_context = ""
+    try:
+        cached_personality = await get_cached_personality(user_id)
+        if cached_personality:
+            personality_context = get_personality_context(cached_personality)
+    except Exception as e:
+        logger.warning(f"Personality fetch failed: {e}")
+
+    # ── Tax knowledge base (RAG-lite) ─────────────────────────────────
+    tax_knowledge = ""
+    try:
+        tax_knowledge = get_tax_knowledge_context(message)
+    except Exception as e:
+        logger.warning(f"Tax knowledge fetch failed: {e}")
+
     # ── Select model via query router ────────────────────────────────
     selected_model = get_model_for_query(message, has_calculator_result=bool(calc_result))
     logger.info(f"Visor AI model: {selected_model} for user {user_id}")
@@ -321,7 +339,7 @@ RECENT TRANSACTIONS:
         )
         chat.with_model("openai", selected_model)
 
-        full_message = f"{context}{memory_context}{live_prices}{news_context}{calc_context}{history_context}\n\nUser: {message}"
+        full_message = f"{context}{memory_context}{personality_context}{tax_knowledge}{live_prices}{news_context}{calc_context}{history_context}\n\nUser: {message}"
         response_text = await chat.send_message(UserMessage(text=full_message))
     except Exception as e:
         logger.error(f"Visor AI error: {e}")
